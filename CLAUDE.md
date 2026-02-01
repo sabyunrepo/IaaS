@@ -295,6 +295,13 @@ frontend/public/locales/           → i18n 번역 파일
 - API 라우터: `snake_case` (예: `create_job`, `get_job_status`)
 - 프론트엔드 컴포넌트: `PascalCase` (예: `InterviewForm`, `QuestionCard`)
 
+### File Size & Separation Rules
+- 단일 파일이 300줄을 초과하면 분리를 검토할 것
+- HTML 파일에 인라인 `<script>` / `<style>` 블록을 넣지 말 것 — 외부 `.js` / `.css` 파일로 분리
+- 시나리오 데이터(`scenario-*.js`)는 후보자별 개별 파일로 관리
+- 데모 UI의 앱 로직은 `app.js`, HTML 구조는 `index.html`에 분리 유지
+- 새 파일 생성 시 기존 파일과 책임이 겹치지 않도록 역할을 명확히 구분
+
 ### Temporal Patterns (Mandatory)
 1. 모든 Activity는 `@activity.defn` 데코레이터 필수
 2. 긴 Activity(>30s)는 반드시 `activity.heartbeat()` 사용

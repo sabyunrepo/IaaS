@@ -90,15 +90,17 @@
 │                                    │                                    │
 │                                    ▼                                    │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │ Phase 3: QUESTION GENERATION                                    │   │
+│  │ Phase 3: QUESTION GENERATION (Multi-Agent)                      │   │
 │  │                                                                  │   │
 │  │  ┌───────────────────────────────────────────────────────────┐  │   │
-│  │  │ select_topics (Activity)                                  │  │   │
+│  │  │ 3a. Topic Selector Agent - select_topics (Activity)       │  │   │
+│  │  │     주제 선정 (10개 토픽)                                  │  │   │
 │  │  └───────────────────────────────────────────────────────────┘  │   │
 │  │                          │                                       │   │
 │  │                          ▼                                       │   │
 │  │  ┌───────────────────────────────────────────────────────────┐  │   │
-│  │  │ craft_questions (Parallel - 10 Activities)                │  │   │
+│  │  │ 3b. Question Crafter Agent - craft_questions (Parallel)   │  │   │
+│  │  │     질문 본체 생성 (10개 병렬)                             │  │   │
 │  │  │ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ...                   │  │   │
 │  │  │ │ Q1 │ │ Q2 │ │ Q3 │ │ Q4 │ │ Q5 │                       │  │   │
 │  │  │ └────┘ └────┘ └────┘ └────┘ └────┘                       │  │   │
@@ -106,18 +108,39 @@
 │  │                          │                                       │   │
 │  │                          ▼                                       │   │
 │  │  ┌───────────────────────────────────────────────────────────┐  │   │
-│  │  │ REVIEW LOOP (max 3회)                                     │  │   │
+│  │  │ Parallel Enhancement Agents (3c, 3d, 3e)                  │  │   │
+│  │  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │  │   │
+│  │  │ │3c.Terminology│ │3d.Scenario  │ │3e.Follow-up │          │  │   │
+│  │  │ │Agent        │ │Writer Agent│ │Designer     │          │  │   │
+│  │  │ │용어 설명     │ │채점 시나리오│ │꼬리질문     │          │  │   │
+│  │  │ └─────────────┘ └─────────────┘ └─────────────┘          │  │   │
+│  │  └───────────────────────────────────────────────────────────┘  │   │
+│  │                          │                                       │   │
+│  │                          ▼                                       │   │
+│  │  ┌───────────────────────────────────────────────────────────┐  │   │
+│  │  │ Parallel Guide Agents (3f, 3g)                            │  │   │
+│  │  │ ┌──────────────────┐ ┌──────────────────┐                 │  │   │
+│  │  │ │3f.Interviewer Note│ │3g.Decision Guide │                 │  │   │
+│  │  │ │Agent             │ │Agent            │                 │  │   │
+│  │  │ │면접관 참고 노트   │ │이력서 기반 가이드│                 │  │   │
+│  │  │ └──────────────────┘ └──────────────────┘                 │  │   │
+│  │  └───────────────────────────────────────────────────────────┘  │   │
+│  │                          │                                       │   │
+│  │                          ▼                                       │   │
+│  │  ┌───────────────────────────────────────────────────────────┐  │   │
+│  │  │ 3h. Quality Reviewer Agent - review_questions (Activity)  │  │   │
+│  │  │     최종 검토 및 종합 (REVIEW LOOP max 3회)               │  │   │
 │  │  │                                                            │  │   │
 │  │  │  ┌──────────────────┐                                     │  │   │
 │  │  │  │ review_quality   │◄────────────────────┐               │  │   │
-│  │  │  │ (Activity)       │                     │               │  │   │
+│  │  │  │                  │                     │               │  │   │
 │  │  │  └────────┬─────────┘                     │               │  │   │
 │  │  │           │                               │               │  │   │
 │  │  │           ▼                               │               │  │   │
 │  │  │  ┌──────────────────┐    NEEDS      ┌────┴─────────┐     │  │   │
 │  │  │  │ verdict ==       │────REVISION───│ revise       │     │  │   │
 │  │  │  │ APPROVED?        │               │ _questions   │     │  │   │
-│  │  │  └────────┬─────────┘               │ (Activity)   │     │  │   │
+│  │  │  └────────┬─────────┘               │              │     │  │   │
 │  │  │           │ YES                     └──────────────┘     │  │   │
 │  │  │           ▼                                               │  │   │
 │  │  └───────────────────────────────────────────────────────────┘  │   │
@@ -309,12 +332,12 @@ class InterviewGenerationWorkflow:
             }
 
             # ================================================
-            # Phase 3: QUESTION GENERATION
+            # Phase 3: QUESTION GENERATION (Multi-Agent)
             # ================================================
             self._current_phase = "generating"
             self._progress = 45
 
-            # 3.1 토픽 선정
+            # 3a. Topic Selector Agent - 토픽 선정
             selected_topics = await workflow.execute_activity(
                 question_generation.select_topics,
                 args=[job_id, aggregated, enriched_input],
@@ -324,7 +347,7 @@ class InterviewGenerationWorkflow:
 
             self._progress = 50
 
-            # 3.2 질문 병렬 생성
+            # 3b. Question Crafter Agent - 질문 본체 생성 (10개 병렬)
             question_tasks = [
                 workflow.execute_activity(
                     question_generation.craft_question,
@@ -336,9 +359,63 @@ class InterviewGenerationWorkflow:
             ]
 
             questions = await workflow.wait_all(question_tasks)
+            self._progress = 55
+
+            # 3c, 3d, 3e - 병렬 Enhancement Agents
+            # (Terminology, Scenario Writer, Follow-up Designer)
+            enhancement_tasks = [
+                # 3c. Terminology Agent - 모든 용어 설명 생성/검증
+                workflow.execute_activity(
+                    question_generation.enhance_terminology,
+                    args=[job_id, questions],
+                    start_to_close_timeout=short_timeout,
+                    retry_policy=retry_policy,
+                ),
+                # 3d. Scenario Writer Agent - 채점 시나리오 텍스트 생성
+                workflow.execute_activity(
+                    question_generation.craft_evaluation_scenarios,
+                    args=[job_id, questions, enriched_input],
+                    start_to_close_timeout=short_timeout,
+                    retry_policy=retry_policy,
+                ),
+                # 3e. Follow-up Designer Agent - 꼬리질문 설계
+                workflow.execute_activity(
+                    question_generation.design_follow_ups,
+                    args=[job_id, questions, enriched_input],
+                    start_to_close_timeout=short_timeout,
+                    retry_policy=retry_policy,
+                ),
+            ]
+
+            enhanced_results = await workflow.wait_all(enhancement_tasks)
+            questions = self._merge_enhancements(questions, enhanced_results)
+            self._progress = 65
+
+            # 3f, 3g - 병렬 Guide Agents
+            # (Interviewer Note, Decision Guide)
+            guide_tasks = [
+                # 3f. Interviewer Note Agent - 면접관 참고 노트 생성
+                workflow.execute_activity(
+                    question_generation.generate_interviewer_notes,
+                    args=[job_id, questions, enriched_input],
+                    start_to_close_timeout=short_timeout,
+                    retry_policy=retry_policy,
+                ),
+                # 3g. Decision Guide Agent - 이력서/커버레터 기반 면접관 가이드
+                workflow.execute_activity(
+                    question_generation.generate_decision_guide,
+                    args=[job_id, aggregated, enriched_input],
+                    start_to_close_timeout=short_timeout,
+                    retry_policy=retry_policy,
+                ),
+            ]
+
+            guide_results = await workflow.wait_all(guide_tasks)
+            interviewer_notes, decision_guide = guide_results
+            questions = self._attach_interviewer_notes(questions, interviewer_notes)
             self._progress = 70
 
-            # 3.3 품질 검토 루프
+            # 3h. Quality Reviewer Agent - 최종 검토 및 종합
             self._current_phase = "reviewing"
             max_revisions = 3
             revision_count = 0
@@ -381,12 +458,42 @@ class InterviewGenerationWorkflow:
             self._current_phase = "completed"
             self._progress = 100
 
+            # decision_guide를 final_output에 포함
+            final_output["decision_guide"] = decision_guide
+
             return final_output
 
         except ActivityError as e:
             self._current_phase = "failed"
             workflow.logger.error(f"Workflow failed: {e}")
             raise
+
+    def _merge_enhancements(self, questions: list[dict], enhancements: list[dict]) -> list[dict]:
+        """Enhancement 결과를 질문에 병합"""
+        terminology_map, scenarios, follow_ups = enhancements
+
+        for q in questions:
+            q_id = q["id"]
+            # 용어 추가
+            if q_id in terminology_map:
+                q["terminology"] = terminology_map[q_id]
+            # 시나리오 추가
+            if q_id in scenarios:
+                q["evaluation_scenarios"] = scenarios[q_id]
+            # 꼬리질문 추가
+            if q_id in follow_ups:
+                q["follow_ups"] = follow_ups[q_id]
+
+        return questions
+
+    def _attach_interviewer_notes(self, questions: list[dict], notes: dict) -> list[dict]:
+        """면접관 노트를 질문에 첨부"""
+        for q in questions:
+            q_id = q["id"]
+            if q_id in notes:
+                q["interviewer_notes"] = notes[q_id]
+
+        return questions
 
     def _create_empty_document_result(self) -> dict:
         """문서 없을 때 빈 결과"""
@@ -474,13 +581,18 @@ async def main():
             code_analysis.analyze_code,
             jd_analysis.analyze_jd,
 
-            # Question Generation
-            question_generation.select_topics,
-            question_generation.craft_question,
-            question_generation.revise_questions,
+            # Question Generation (Multi-Agent)
+            question_generation.select_topics,          # 3a. Topic Selector
+            question_generation.craft_question,         # 3b. Question Crafter
+            question_generation.enhance_terminology,    # 3c. Terminology Agent
+            question_generation.craft_evaluation_scenarios,  # 3d. Scenario Writer
+            question_generation.design_follow_ups,      # 3e. Follow-up Designer
+            question_generation.generate_interviewer_notes,  # 3f. Interviewer Note Agent
+            question_generation.generate_decision_guide,     # 3g. Decision Guide Agent
+            question_generation.revise_questions,       # 3h. Quality Reviewer (revision)
 
             # Review
-            quality_review.review_questions,
+            quality_review.review_questions,            # 3h. Quality Reviewer Agent
 
             # Finalization
             finalization.finalize_output,
