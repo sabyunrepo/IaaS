@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verdict - Ultimate Hiring Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- 
+      Verdict V3.0 Architecture:
+      1. Sidebar: Multi-candidate management with status indicators.
+      2. Main View: 
+         - Tab 1 [Intel Brief]: Source data visualization (JD vs Profile).
+         - Tab 2 [Deep Analysis]: Charts for Skills, Code DNA, Risk Factors.
+         - Tab 3 [Live Interview]: Interactive scoring, "Why This Matters", "What to Listen For".
+         - Tab 4 [Decision]: Final scorecard and automated hiring recommendation.
+    -->
+    <style>
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #f8fafc; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* Animation */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Interactive Elements */
+        .nav-item { transition: all 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: #f1f5f9; }
+        .nav-item.active { background-color: #e0f2fe; border-left-color: #0284c7; }
+        
+        .tab-btn { position: relative; transition: color 0.2s; }
+        .tab-btn::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #0284c7; transition: width 0.3s; }
+        .tab-btn.active { color: #0284c7; font-weight: 700; }
+        .tab-btn.active::after { width: 100%; }
+
+        .scenario-card { transition: all 0.2s; border: 1px solid #e2e8f0; cursor: pointer; }
+        .scenario-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .selected-expert { border: 2px solid #10b981; background-color: #ecfdf5; }
+        .selected-mid { border: 2px solid #f59e0b; background-color: #fffbeb; }
+        .selected-low { border: 2px solid #ef4444; background-color: #fef2f2; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- LEFT SIDEBAR: Candidate Management -->
+    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col z-20 shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-xl">V</div>
+            <span class="font-bold text-xl text-slate-900 tracking-tight">Verdict</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto py-4">
+            <div class="px-6 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Active Pipeline</div>
+            <div id="candidate-list" class="space-y-1">
+                <!-- JS Injected Candidates -->
+            </div>
+
+            <div class="px-6 mt-8 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Archived</div>
+            <div id="archived-list" class="space-y-1 opacity-60">
+                <!-- JS Injected Archived -->
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50">
+            <button class="w-full py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100 shadow-sm transition">
+                + New Interview
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative">
+        
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 px-8 py-5 flex justify-between items-center shadow-sm z-10">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900" id="header-name">Loading...</h1>
+                <div class="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                    <span id="header-role">Role</span>
+                    <span>•</span>
+                    <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold" id="header-status">Status</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <div class="text-right">
+                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Evaluation Score</div>
+                    <div class="text-3xl font-bold text-blue-600 leading-none" id="total-score">0 <span class="text-sm text-slate-300 font-normal">/ 100</span></div>
+                </div>
+                <div class="h-10 w-px bg-slate-200"></div>
+                <button class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg transition transform hover:scale-105 flex items-center gap-2">
+                    <span>Final Decision</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white border-b border-slate-200 px-8 sticky top-0 z-10">
+            <nav class="flex space-x-8" id="main-tabs">
+                <!-- JS Injected -->
+            </nav>
+        </div>
+
+        <!-- Scrollable View Area -->
+        <div class="flex-1 overflow-y-auto p-8 scroll-smooth" id="content-area">
+            
+            <!-- TAB 1: INTEL BRIEF (Input Data Visualization) -->
+            <div id="view-intel" class="space-y-8 fade-in hidden">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Job Description Analysis
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <div class="text-xs font-bold text-blue-600 uppercase mb-2">Core Requirements</div>
+                            <ul class="space-y-2 text-sm text-blue-900">
+                                <li class="flex items-start gap-2">✅ <strong>FastAPI/Python</strong> Expert (Backend)</li>
+                                <li class="flex items-start gap-2">✅ <strong>MSA Architecture</strong> Design</li>
+                                <li class="flex items-start gap-2">✅ <strong>AWS & Kubernetes</strong> Infra Ops</li>
+                                <li class="flex items-start gap-2">✅ <strong>Team Leadership</strong> (8-15 engineers)</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <div class="text-xs font-bold text-slate-500 uppercase mb-2">Success Metrics (First 90 Days)</div>
+                            <ul class="space-y-2 text-sm text-slate-700">
+                                <li>• Stabilize legacy monolith system</li>
+                                <li>• Hire 3 senior engineers</li>
+                                <li>• Reduce deployment time by 50%</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        Candidate Footprint (GitHub & LinkedIn)
+                    </h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- GitHub Stats -->
+                        <div class="lg:col-span-2">
+                            <div class="text-sm font-bold text-slate-600 mb-2">Contribution Activity (Last 12 Months)</div>
+                            <div class="h-40 w-full bg-slate-50 rounded border border-slate-200 relative p-2">
+                                <canvas id="chart-contribution"></canvas> <!-- Chart.js -->
+                            </div>
+                            <div class="flex gap-4 mt-3 text-xs text-slate-500">
+                                <span>Total Commits: <strong>482</strong></span>
+                                <span>PRs: <strong>32</strong></span>
+                                <span>Code Reviews: <strong>14</strong></span>
+                            </div>
+                        </div>
+                        <!-- Profile Notes -->
+                        <div class="space-y-3">
+                            <div class="p-3 bg-slate-50 rounded border border-slate-200">
+                                <div class="text-xs font-bold text-slate-400 uppercase">Tenure Pattern</div>
+                                <div class="text-sm font-bold text-slate-800">Avg. 1.8 Years</div>
+                                <div class="text-xs text-amber-600 mt-1">⚠ Slightly short tenure at recent job</div>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded border border-slate-200">
+                                <div class="text-xs font-bold text-slate-400 uppercase">Tech Stack Match</div>
+                                <div class="text-sm font-bold text-emerald-600">High (Python, AWS)</div>
+                                <div class="text-xs text-slate-500 mt-1">Missing explicit K8s evidence</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: DEEP ANALYSIS (Charts) -->
+            <div id="view-analysis" class="space-y-8 fade-in hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Skills Radar -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4">Skill Capability vs. Requirement</h3>
+                        <div class="relative h-72">
+                            <canvas id="chart-radar"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Code DNA -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4">Engineering DNA Analysis</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-slate-600">Test Coverage (PyTest)</span>
+                                    <span class="font-bold text-emerald-600">82%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="bg-emerald-500 h-2 rounded-full" style="width: 82%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-slate-600">Documentation Quality</span>
+                                    <span class="font-bold text-blue-600">Excellent</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 90%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-slate-600">Infrastructure as Code (IaC)</span>
+                                    <span class="font-bold text-red-500">Not Found</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="bg-red-400 h-2 rounded-full" style="width: 5%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-100">
+                            <div class="text-xs font-bold text-amber-700 uppercase mb-2">Detected Risk Flags</div>
+                            <ul class="text-sm text-amber-800 space-y-1">
+                                <li>• <strong>Gap in Resume:</strong> Nov 2023 - Feb 2024 (3 months)</li>
+                                <li>• <strong>Framework Dependency:</strong> Heavy reliance on specific libs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: LIVE INTERVIEW (The Core) -->
+            <div id="view-interview" class="space-y-8 fade-in hidden">
+                <!-- Interview Instructions -->
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg mb-6">
+                    <h3 class="text-sm font-bold text-indigo-900 uppercase">For Non-Technical Interviewers</h3>
+                    <p class="text-sm text-indigo-800 mt-1">
+                        개발 용어를 모르셔도 됩니다. 아래 <strong>"Why This Matters"</strong>와 <strong>"What to Listen For"</strong> 가이드를 참고하여, 후보자의 논리력과 태도에 집중하세요.
+                    </p>
+                </div>
+
+                <!-- Questions Container (Populated by JS) -->
+                <div id="questions-container" class="space-y-8"></div>
+            </div>
+
+            <!-- TAB 4: DECISION (Final Report) -->
+            <div id="view-decision" class="space-y-6 fade-in hidden">
+                <div class="text-center py-10">
+                    <div class="text-5xl mb-4">🤖</div>
+                    <h2 class="text-2xl font-bold text-slate-800">Review in Progress</h2>
+                    <p class="text-slate-500">Complete the interview to generate the final hiring report.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JS Logic -->
+    <script>
+        // --- DATA MODEL ---
+        const candidates = [
+            {
+                id: 'c1',
+                name: "Alex Chen",
+                role: "CTO Candidate",
+                status: "Series A Stage",
+                img_initial: "A",
+                questions: [
+                    {
+                        id: 1,
+                        category: "Role Fit & Strategy",
+                        difficulty: "Medium",
+                        title: "First 90 Days Priorities",
+                        // HireRight Style Guides
+                        why_matters: "초기 스타트업의 CTO는 코딩과 채용, 전략 사이에서 균형을 잡아야 합니다. 이 질문은 불확실한 상황에서 우선순위를 정하는 능력을 테스트합니다.",
+                        context_bridge: "현재 저희는 8명의 엔지니어를 채용해야 하고, 제품 로드맵도 밀려있습니다.",
+                        question_text: "CTO로서 첫 90일 동안 가장 집중하실 3가지 우선순위는 무엇이며, 그것들을 어떤 순서로 실행하시겠습니까?",
+                        listen_for: "기술적 부채 해결보다는 '비즈니스 목표'와 '팀 빌딩'의 조화를 이야기하는지 확인하세요. 무조건 코드를 다 엎겠다는 답변은 위험합니다.",
+                        // Scenarios
+                        scenarios: [
+                            { level: "Expert", score: 20, text: "현재 팀과 아키텍처 진단(2주) -> 핵심 채용 및 병목 해결(1달) -> 장기 로드맵 수립 순으로 단계적 접근을 제시함." },
+                            { level: "Mid", score: 10, text: "열심히 코딩해서 밀린 기능을 빨리 개발하겠다고 함. (IC 마인드셋)" },
+                            { level: "Low", score: 0, text: "구체적 계획 없이 상황 봐서 결정하겠다고 함." }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        category: "Technical Depth",
+                        difficulty: "Hard",
+                        title: "Monolith to Microservices",
+                        why_matters: "많은 스타트업이 너무 이르게 MSA를 도입하다 망합니다. 후보자가 기술적 유행보다 비즈니스 실용성을 중시하는지 확인해야 합니다.",
+                        context_bridge: "저희 현재 시스템은 모놀리식 구조인데, 트래픽이 늘면서 배포가 좀 느려지고 있습니다.",
+                        question_text: "현재의 모놀리식 구조를 마이크로서비스(MSA)로 전환해야 할지 결정하는 기준은 무엇이며, 만약 전환한다면 어떻게 위험을 최소화하시겠습니까?",
+                        listen_for: "MSA의 단점(복잡도, 운영 비용)을 명확히 인지하고 있는지 확인하세요. 'Strangler Fig Pattern(점진적 전환)' 같은 전략을 언급하면 좋습니다.",
+                        scenarios: [
+                            { level: "Expert", score: 25, text: "도메인 경계가 명확하고 독립 배포가 빈번한 모듈부터 점진적으로 분리하겠다고 함. 인프라 성숙도가 선행되어야 함을 강조.", highlight: true },
+                            { level: "Mid", score: 12, text: "MSA가 최신 트렌드니 무조건 도입해야 한다고 주장함." },
+                            { level: "Low", score: 5, text: "MSA가 무엇인지 명확히 설명하지 못하거나 단순히 서버를 쪼개는 것이라고 답변함." }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        category: "Risk Flag Check",
+                        difficulty: "Critical",
+                        title: "Resume Gap Investigation",
+                        is_risk: true,
+                        why_matters: "이력서상의 공백기나 잦은 이직은 스타트업에게 큰 리스크입니다. 정직함과 그 기간 동안의 성장을 확인해야 합니다.",
+                        context_bridge: "이력서를 보니 작년 말에 약 4개월 정도의 공백기가 있으신 것 같습니다.",
+                        question_text: "해당 기간 동안 어떤 활동을 하셨는지, 그리고 그 시간이 현재 커리어에 어떤 영향을 주었는지 솔직하게 말씀해 주실 수 있나요?",
+                        listen_for: "방어적이거나 변명하는 태도인지, 아니면 재충전/학습/개인 프로젝트 등 목적이 있는 시간이었는지 확인하세요.",
+                        scenarios: [
+                            { level: "Expert", score: 15, text: "번아웃 관리를 위해 휴식하며 개인 사이드 프로젝트(GitHub 링크 제출)를 진행했다고 솔직히 답변함." },
+                            { level: "Mid", score: 8, text: "개인 사정이라고 짧게 얼버무림." },
+                            { level: "Low", score: -10, text: "답변을 회피하거나 앞뒤가 안 맞는 설명을 함." }
+                        ]
+                    }
+                ],
+                stats: { commits: [12, 19, 3, 5, 2, 3, 45, 60, 55, 40, 25, 30], skills: [90, 85, 40, 80, 85] }
+            },
+            { id: 'c2', name: "Sarah Connor", role: "Full-Stack Lead", status: "Pre-Seed", img_initial: "S", stats: { commits: [], skills: [] }, questions: [] }
+        ];
+
+        let state = {
+            activeCandidate: candidates[0],
+            currentTab: 'view-intel', // Default tab
+            scores: {}
+        };
+
+        // --- INIT ---
+        window.onload = function() {
+            renderSidebar();
+            loadCandidate('c1');
+        };
+
+        // --- CORE FUNCTIONS ---
+
+        function renderSidebar() {
+            const list = document.getElementById('candidate-list');
+            list.innerHTML = candidates.map(c => `
+                <div onclick="loadCandidate('${c.id}')" class="nav-item p-3 cursor-pointer flex items-center justify-between ${state.activeCandidate.id === c.id ? 'active' : ''}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold">${c.img_initial}</div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-800">${c.name}</div>
+                            <div class="text-[10px] text-slate-500">${c.role}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('archived-list').innerHTML = `
+                <div class="p-3 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs">J</div>
+                    <div class="text-sm text-slate-400 font-medium line-through">John Doe</div>
+                </div>
+            `;
+        }
+
+        function loadCandidate(id) {
+            const candidate = candidates.find(c => c.id === id);
+            state.activeCandidate = candidate;
+            state.scores = {}; // Reset scores
+            
+            // Update Header
+            document.getElementById('header-name').innerText = candidate.name;
+            document.getElementById('header-role').innerText = candidate.role;
+            document.getElementById('header-status').innerText = candidate.status;
+            document.getElementById('total-score').innerHTML = `0 <span class="text-sm text-slate-300 font-normal">/ 100</span>`;
+
+            renderSidebar();
+            renderTabs();
+            renderContent();
+        }
+
+        function renderTabs() {
+            const tabs = [
+                { id: 'view-intel', label: '1. Intel Brief' },
+                { id: 'view-analysis', label: '2. Deep Analysis' },
+                { id: 'view-interview', label: '3. Live Interview' },
+                { id: 'view-decision', label: '4. Decision' }
+            ];
+
+            const nav = document.getElementById('main-tabs');
+            nav.innerHTML = tabs.map(t => `
+                <button onclick="switchTab('${t.id}')" class="tab-btn py-4 text-sm font-medium text-slate-500 hover:text-slate-800 ${state.currentTab === t.id ? 'active' : ''}">
+                    ${t.label}
+                </button>
+            `).join('');
+        }
+
+        function switchTab(tabId) {
+            state.currentTab = tabId;
+            renderTabs();
+            
+            // Hide all views
+            ['view-intel', 'view-analysis', 'view-interview', 'view-decision'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            
+            // Show active view
+            document.getElementById(tabId).classList.remove('hidden');
+
+            // Render Charts if needed
+            if (tabId === 'view-intel' || tabId === 'view-analysis') {
+                setTimeout(renderCharts, 100); // Slight delay for DOM
+            }
+        }
+
+        function renderContent() {
+            // Render Interview Questions
+            const qContainer = document.getElementById('questions-container');
+            if (state.activeCandidate.questions.length === 0) {
+                qContainer.innerHTML = `<div class="text-center text-slate-400">No questions generated.</div>`;
+                return;
+            }
+
+            qContainer.innerHTML = state.activeCandidate.questions.map((q, idx) => `
+                <div class="bg-white rounded-xl border ${q.is_risk ? 'border-amber-200' : 'border-slate-200'} shadow-sm overflow-hidden mb-8">
+                    <!-- Header -->
+                    <div class="p-6 border-b border-slate-100 ${q.is_risk ? 'bg-amber-50' : 'bg-slate-50'}">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-2 py-1 ${q.is_risk ? 'bg-amber-200 text-amber-800' : 'bg-blue-100 text-blue-800'} text-xs font-bold rounded uppercase tracking-wide">
+                                ${q.is_risk ? '⚠ RISK FLAG' : q.category}
+                            </span>
+                            <div class="text-xs text-slate-400">Q${idx + 1} • ${q.difficulty}</div>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-4">${q.title}</h3>
+                        
+                        <!-- Interviewer Guide (Non-Tech Friendly) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-white/60 p-3 rounded border border-slate-200">
+                                <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">Why This Matters</div>
+                                <p class="text-xs text-slate-700 leading-relaxed">${q.why_matters}</p>
+                            </div>
+                            <div class="bg-white/60 p-3 rounded border border-slate-200">
+                                <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">What to Listen For</div>
+                                <p class="text-xs text-slate-700 leading-relaxed">${q.listen_for}</p>
+                            </div>
+                        </div>
+
+                        <!-- Main Question Area -->
+                        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm relative">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Question to Ask</div>
+                            <div class="mb-3 text-sm text-slate-500 italic">Context: "${q.context_bridge}"</div>
+                            <p class="text-lg font-bold text-slate-900">"${q.question_text}"</p>
+                        </div>
+                    </div>
+
+                    <!-- Evaluation Rubric -->
+                    <div class="p-6">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Rate Answer (Click to Score)</div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            ${q.scenarios.map(s => `
+                                <div onclick="rateAnswer(${q.id}, '${s.level}', ${s.score})" 
+                                     id="q${q.id}-${s.level}"
+                                     class="scenario-card bg-white p-4 rounded-lg relative group">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-bold ${s.level === 'Expert' ? 'text-emerald-600' : s.level === 'Mid' ? 'text-amber-600' : 'text-red-600'}">${s.level}</span>
+                                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">${s.score > 0 ? '+' : ''}${s.score}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600">${s.text}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function rateAnswer(qId, level, score) {
+            state.scores[qId] = score;
+
+            // Update UI
+            ['Expert', 'Mid', 'Low'].forEach(l => {
+                const el = document.getElementById(`q${qId}-${l}`);
+                el.className = `scenario-card bg-white p-4 rounded-lg relative group opacity-50`;
+            });
+            
+            const selectedClass = level === 'Expert' ? 'selected-expert' : level === 'Mid' ? 'selected-mid' : 'selected-low';
+            document.getElementById(`q${qId}-${level}`).className = `scenario-card p-4 rounded-lg relative group ${selectedClass}`;
+
+            // Calc Total
+            const total = Object.values(state.scores).reduce((a,b) => a+b, 0);
+            document.getElementById('total-score').innerHTML = `${total} <span class="text-sm text-slate-300 font-normal">/ 100</span>`;
+        }
+
+        // --- CHARTS ---
+        let charts = {};
+
+        function renderCharts() {
+            // Destroy existing charts to prevent duplication
+            if(charts['contribution']) charts['contribution'].destroy();
+            if(charts['radar']) charts['radar'].destroy();
+
+            // 1. Contribution Chart (Bar)
+            const ctx1 = document.getElementById('chart-contribution');
+            if(ctx1) {
+                charts['contribution'] = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'Commits',
+                            data: state.activeCandidate.stats.commits,
+                            backgroundColor: (ctx) => {
+                                const v = ctx.raw;
+                                return v < 5 ? '#fca5a5' : '#93c5fd'; // Red for low activity
+                            },
+                            borderRadius: 2
+                        }]
+                    },
+                    options: { maintainAspectRatio: false, scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false } } }
+                });
+            }
+
+            // 2. Skill Radar
+            const ctx2 = document.getElementById('chart-radar');
+            if(ctx2) {
+                charts['radar'] = new Chart(ctx2, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Backend', 'System Design', 'DevOps', 'Leadership', 'Product Sense'],
+                        datasets: [{
+                            label: 'Candidate',
+                            data: state.activeCandidate.stats.skills,
+                            backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                            borderColor: '#2563eb',
+                            pointBackgroundColor: '#2563eb',
+                        }, {
+                            label: 'Role Target',
+                            data: [80, 80, 60, 70, 70],
+                            borderColor: '#94a3b8',
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: { maintainAspectRatio: false }
+                });
+            }
+        }
+
+    </script>
+</body>
+</html>
