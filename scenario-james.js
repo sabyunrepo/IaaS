@@ -9,42 +9,133 @@ window.scenarioJames = {
     level: '시니어',
     current_title: 'Senior Backend Engineer @ DataFlow'
   },
+  category_weights: {
+    role_fit: 0.15,
+    technical_depth: 0.35,
+    execution_ownership: 0.25,
+    communication: 0.10,
+    risk_flags: 0.15
+  },
   intel: {
     jd_summary: {
       title: '시니어 백엔드 개발자',
       subtitle: 'Series B SaaS 플랫폼 · B2B 데이터 분석 서비스',
       requirements: [
-        { text: 'Python/FastAPI', desc: '서버 프로그램을 만드는 언어와 프레임워크(도구 모음)', matched: true },
-        { text: 'PostgreSQL/DB 설계', desc: '데이터를 체계적으로 저장·관리하는 시스템 설계', matched: true },
-        { text: 'MSA 경험', desc: '하나의 큰 프로그램을 여러 작은 서비스로 나눠 운영하는 구조', matched: true },
-        { text: 'CI/CD 구축', desc: '코드 변경을 자동으로 검사·배포하는 파이프라인', matched: true },
-        { text: '주니어 멘토링', desc: '후배 개발자를 기술적으로 이끌고 성장시키는 역할', matched: false }
+        {
+          text: 'Python/FastAPI',
+          desc: '서버 프로그램을 만드는 언어와 프레임워크(도구 모음)',
+          matched: true
+        },
+        {
+          text: 'PostgreSQL/DB 설계',
+          desc: '데이터를 체계적으로 저장·관리하는 시스템 설계',
+          matched: true
+        },
+        {
+          text: 'MSA 경험',
+          desc: '하나의 큰 프로그램을 여러 작은 서비스로 나눠 운영하는 구조',
+          matched: true
+        },
+        {
+          text: 'CI/CD 구축',
+          desc: '코드 변경을 자동으로 검사·배포하는 파이프라인',
+          matched: true
+        },
+        {
+          text: '주니어 멘토링',
+          desc: '후배 개발자를 기술적으로 이끌고 성장시키는 역할',
+          matched: false
+        }
       ],
-      success_metrics: [
-        'API 응답 시간 p95 200ms 이하 유지',
-        '분기별 기술 부채 20% 감소',
-        '주니어 2명의 독립적 개발 역량 도달'
-      ]
+      success_metrics: ['API 응답 시간 p95 200ms 이하 유지', '분기별 기술 부채 20% 감소', '주니어 2명의 독립적 개발 역량 도달']
     },
     jd_full: '<p class="font-bold text-slate-700 mb-2">[ 채용 배경 ]</p><p>저희 SaaS 플랫폼은 Series B 투자를 받고 B2B 고객이 급증하고 있습니다. 현재 모놀리식(하나의 큰 덩어리) 구조에서 MSA(마이크로서비스)로 전환 중이며, 이를 리드할 시니어 백엔드 개발자를 찾고 있습니다. 팀에는 주니어 2명, 미드레벨 1명이 있으며 기술적 의사결정과 코드 품질을 이끌어줄 분이 필요합니다.</p><p class="font-bold text-slate-700 mb-2 mt-4">[ 주요 업무 ]</p><ul class="space-y-1 ml-4"><li>• <strong>API 설계 및 개발:</strong> FastAPI 기반 RESTful API 설계·구현·문서화</li><li>• <strong>DB 설계 및 최적화:</strong> PostgreSQL 스키마 설계, 쿼리 최적화, 인덱스 전략</li><li>• <strong>MSA 전환 리드:</strong> 모놀리스에서 마이크로서비스로의 점진적 전환</li><li>• <strong>CI/CD 파이프라인:</strong> GitHub Actions 기반 자동 테스트·배포 구축</li><li>• <strong>코드 리뷰 리드:</strong> PR 리뷰 기준 수립, 팀 코드 품질 관리</li><li>• <strong>주니어 멘토링:</strong> 1:1 멘토링, 페어 프로그래밍, 기술 세미나</li></ul><p class="font-bold text-slate-700 mb-2 mt-4">[ 자격 요건 ]</p><ul class="space-y-1 ml-4"><li>• Python 백엔드 개발 경력 5년 이상</li><li>• FastAPI 또는 Django REST 프레임워크 실무 경험</li><li>• PostgreSQL 기반 데이터 모델링 및 쿼리 최적화 경험</li><li>• MSA 또는 서비스 분리 경험</li><li>• Docker/Kubernetes 기반 배포 경험</li></ul><p class="font-bold text-slate-700 mb-2 mt-4">[ 우대 사항 ]</p><ul class="space-y-1 ml-4"><li>• 대규모 트래픽 처리 경험</li><li>• Redis, Kafka 등 메시징/캐싱 시스템 활용</li><li>• 기술 블로그 운영 또는 오픈소스 기여</li><li>• 팀 리드 또는 멘토링 경험</li></ul>',
     competencies: [
-      { name: 'Python/FastAPI', match: 'strong', match_label: '후보자: 강한 매칭', desc: 'Python은 프로그래밍 언어, FastAPI는 빠른 웹 서버를 만드는 도구입니다.', why: '우리 서비스의 모든 백엔드가 FastAPI로 구축되어 있습니다.', color: 'emerald', icon: '✅' },
-      { name: 'PostgreSQL / DB 설계', match: 'strong', match_label: '후보자: 강한 매칭', desc: '데이터를 표 형태로 저장·관리하는 시스템이며, 데이터 구조를 설계하는 것을 DB 설계라고 합니다.', why: '서비스의 모든 데이터가 PostgreSQL에 저장됩니다. 고객 증가에 따라 효율적 설계가 필수.', color: 'emerald', icon: '✅' },
-      { name: 'MSA (마이크로서비스)', match: 'match', match_label: '후보자: 매칭', desc: '하나의 큰 프로그램을 작은 독립 서비스들로 나누는 방식입니다.', why: '현재 모놀리스→MSA 전환이 핵심 프로젝트입니다.', color: 'emerald', icon: '✅' },
-      { name: 'CI/CD 파이프라인', match: 'match', match_label: '후보자: 매칭', desc: '코드가 변경되면 자동으로 테스트하고 서버에 배포하는 자동화 시스템입니다.', why: '빠른 제품 출시 주기를 유지하려면 자동화가 필수입니다.', color: 'emerald', icon: '✅' },
-      { name: '주니어 멘토링', match: 'partial', match_label: '후보자: 부분 매칭 — 경험 제한적', desc: '경험이 적은 개발자를 가르치고 성장시키는 역할입니다.', why: '주니어 2명을 이끌어야 하므로 기술 리더십이 중요합니다.', color: 'amber', icon: '⚠️' },
-      { name: '대규모 트래픽', match: 'partial', match_label: '후보자: 부분 매칭 — 중규모 경험', desc: '한꺼번에 많은 사용자가 접속할 때 서버가 버틸 수 있게 만드는 기술.', why: 'B2B 고객 증가로 트래픽이 급증하고 있습니다.', color: 'amber', icon: '⚠️' }
+      {
+        name: 'Python/FastAPI',
+        match: 'strong',
+        match_label: '후보자: 강한 매칭',
+        desc: 'Python은 프로그래밍 언어, FastAPI는 빠른 웹 서버를 만드는 도구입니다.',
+        why: '우리 서비스의 모든 백엔드가 FastAPI로 구축되어 있습니다.',
+        color: 'emerald',
+        icon: '✅'
+      },
+      {
+        name: 'PostgreSQL / DB 설계',
+        match: 'strong',
+        match_label: '후보자: 강한 매칭',
+        desc: '데이터를 표 형태로 저장·관리하는 시스템이며, 데이터 구조를 설계하는 것을 DB 설계라고 합니다.',
+        why: '서비스의 모든 데이터가 PostgreSQL에 저장됩니다. 고객 증가에 따라 효율적 설계가 필수.',
+        color: 'emerald',
+        icon: '✅'
+      },
+      {
+        name: 'MSA (마이크로서비스)',
+        match: 'match',
+        match_label: '후보자: 매칭',
+        desc: '하나의 큰 프로그램을 작은 독립 서비스들로 나누는 방식입니다.',
+        why: '현재 모놀리스→MSA 전환이 핵심 프로젝트입니다.',
+        color: 'emerald',
+        icon: '✅'
+      },
+      {
+        name: 'CI/CD 파이프라인',
+        match: 'match',
+        match_label: '후보자: 매칭',
+        desc: '코드가 변경되면 자동으로 테스트하고 서버에 배포하는 자동화 시스템입니다.',
+        why: '빠른 제품 출시 주기를 유지하려면 자동화가 필수입니다.',
+        color: 'emerald',
+        icon: '✅'
+      },
+      {
+        name: '주니어 멘토링',
+        match: 'partial',
+        match_label: '후보자: 부분 매칭 — 경험 제한적',
+        desc: '경험이 적은 개발자를 가르치고 성장시키는 역할입니다.',
+        why: '주니어 2명을 이끌어야 하므로 기술 리더십이 중요합니다.',
+        color: 'amber',
+        icon: '⚠️'
+      },
+      {
+        name: '대규모 트래픽',
+        match: 'partial',
+        match_label: '후보자: 부분 매칭 — 중규모 경험',
+        desc: '한꺼번에 많은 사용자가 접속할 때 서버가 버틸 수 있게 만드는 기술.',
+        why: 'B2B 고객 증가로 트래픽이 급증하고 있습니다.',
+        color: 'amber',
+        icon: '⚠️'
+      }
     ],
     github: {
-      contributions: 1240, repos: 35, main_languages: 'Python, SQL, Go',
-      tech_match: '높음 (FastAPI, SQLAlchemy, Docker)', tech_match_note: '실무 프로젝트 중심',
-      tenure_pattern: '2~3년 주기', tenure_note: '3개 회사 (2.5년 평균)', activity_gap: '없음',
+      contributions: 1240,
+      repos: 35,
+      main_languages: 'Python, SQL, Go',
+      tech_match: '높음 (FastAPI, SQLAlchemy, Docker)',
+      tech_match_note: '실무 프로젝트 중심',
+      tenure_pattern: '2~3년 주기',
+      tenure_note: '3개 회사 (2.5년 평균)',
+      activity_gap: '없음',
       chart_data: [40, 55, 60, 70, 65, 80, 75, 85, 90, 70, 65, 55]
     },
     linkedin: [
-      { initial: 'D', title: 'Senior Backend Engineer', company: 'DataFlow', detail: '3년 · Python/FastAPI · 데이터 파이프라인' },
-      { initial: 'C', title: 'Backend Developer', company: 'CloudBridge', detail: '2.5년 · Django · B2B SaaS' },
-      { initial: 'S', title: 'Software Engineer', company: 'StartupHub', detail: '2.5년 · Python/Flask · 초기 스타트업' }
+      {
+        initial: 'D',
+        title: 'Senior Backend Engineer',
+        company: 'DataFlow',
+        detail: '3년 · Python/FastAPI · 데이터 파이프라인'
+      },
+      {
+        initial: 'C',
+        title: 'Backend Developer',
+        company: 'CloudBridge',
+        detail: '2.5년 · Django · B2B SaaS'
+      },
+      {
+        initial: 'S',
+        title: 'Software Engineer',
+        company: 'StartupHub',
+        detail: '2.5년 · Python/Flask · 초기 스타트업'
+      }
     ],
     linkedin_warning: '8년 경력 중 3개 회사 · 멘토링 경험 이력서에 미기재 · 이직 주기 2.5년'
   },
@@ -52,222 +143,4077 @@ window.scenarioJames = {
     radar_candidate: [85, 90, 80, 65, 70],
     radar_required: [80, 85, 75, 70, 65],
     engineering_dna: [
-      { label: '테스트 커버리지', value: 82, display: '82%', color: 'emerald', note: 'GitHub 프로젝트에서 pytest 활용 확인', tooltip: '코드가 제대로 동작하는지 자동 확인하는 코드의 비율' },
-      { label: '문서화 품질', value: 70, display: '양호', color: 'blue' },
-      { label: '코드 일관성', value: 88, display: '우수', color: 'emerald' }
+      {
+        label: '테스트 커버리지',
+        value: 82,
+        display: '82%',
+        color: 'emerald',
+        note: 'GitHub 프로젝트에서 pytest 활용 확인',
+        tooltip: '코드가 제대로 동작하는지 자동 확인하는 코드의 비율'
+      },
+      {
+        label: '문서화 품질',
+        value: 70,
+        display: '양호',
+        color: 'blue'
+      },
+      {
+        label: '코드 일관성',
+        value: 88,
+        display: '우수',
+        color: 'emerald'
+      }
     ],
     risk_flags: [
-      { label: '멘토링 경험 불명확', detail: '이력서에 팀 리딩/멘토링 경험 구체적 미기재' },
-      { label: '이직 주기 2.5년', detail: '3개 회사를 2~3년 주기로 이동' },
-      { label: '대규모 트래픽 경험 제한', detail: '중규모(일 50만 요청) 수준, 대규모 미확인' }
+      {
+        label: '멘토링 경험 불명확',
+        detail: '이력서에 팀 리딩/멘토링 경험 구체적 미기재'
+      },
+      {
+        label: '이직 주기 2.5년',
+        detail: '3개 회사를 2~3년 주기로 이동'
+      },
+      {
+        label: '대규모 트래픽 경험 제한',
+        detail: '중규모(일 50만 요청) 수준, 대규모 미확인'
+      }
     ],
     skill_table: [
-      { skill: 'Python', candidate: 'Python (8년)', type: 'exact', evidence: 'GitHub: 전 프로젝트', confidence: 95 },
-      { skill: 'FastAPI', candidate: 'FastAPI (3년)', type: 'exact', evidence: 'GitHub: DataFlow 프로젝트', confidence: 90 },
-      { skill: 'PostgreSQL', candidate: 'PostgreSQL', type: 'exact', evidence: 'GitHub: 스키마 설계 다수', confidence: 88 },
-      { skill: 'MSA', candidate: 'MSA 전환 경험', type: 'similar', evidence: 'LinkedIn: CloudBridge 재직', confidence: 75 },
-      { skill: 'CI/CD', candidate: 'GitHub Actions', type: 'exact', evidence: 'GitHub: workflow 파일 확인', confidence: 80 },
-      { skill: '멘토링', candidate: '—', type: 'partial', evidence: '이력서 미기재', confidence: 35 }
+      {
+        skill: 'Python',
+        candidate: 'Python (8년)',
+        type: 'exact',
+        evidence: 'GitHub: 전 프로젝트',
+        confidence: 95
+      },
+      {
+        skill: 'FastAPI',
+        candidate: 'FastAPI (3년)',
+        type: 'exact',
+        evidence: 'GitHub: DataFlow 프로젝트',
+        confidence: 90
+      },
+      {
+        skill: 'PostgreSQL',
+        candidate: 'PostgreSQL',
+        type: 'exact',
+        evidence: 'GitHub: 스키마 설계 다수',
+        confidence: 88
+      },
+      {
+        skill: 'MSA',
+        candidate: 'MSA 전환 경험',
+        type: 'similar',
+        evidence: 'LinkedIn: CloudBridge 재직',
+        confidence: 75
+      },
+      {
+        skill: 'CI/CD',
+        candidate: 'GitHub Actions',
+        type: 'exact',
+        evidence: 'GitHub: workflow 파일 확인',
+        confidence: 80
+      },
+      {
+        skill: '멘토링',
+        candidate: '—',
+        type: 'partial',
+        evidence: '이력서 미기재',
+        confidence: 35
+      }
     ],
     overall_match: 82
   },
   decision: {
     summary: {
-      experience: '8년', jd_match: '82%', level: '시니어',
+      experience: '8년',
+      jd_match: '82%',
+      level: '시니어',
       strengths: ['Python/FastAPI 전문성 (8년+3년)', 'DB 설계 및 쿼리 최적화 실력 검증됨', 'MSA 전환 실무 경험 보유', '테스트 커버리지 82%로 코드 품질 의식 높음'],
       concerns: ['멘토링 경험이 이력서에 드러나지 않음', '이직 주기 2.5년 — 장기 근속 의지 확인 필요', '대규모 트래픽 경험 제한적', '커뮤니케이션 역량 검증 필요']
     },
     interviewer_guide: {
       resume_based_tips: [
-        { area: '멘토링 공백', detail: '8년 경력이지만 이력서에 멘토링/리딩 경험이 없습니다. 실제로 후배를 가르쳐본 경험이 있는지, 관심이 있는지 확인하세요.', source: '이력서 vs JD 갭' },
-        { area: '이직 주기', detail: '2~3년 주기로 이직했습니다. 이직 사유가 성장 지향인지, 적응 문제인지 확인하세요.', source: 'LinkedIn 이력' },
-        { area: 'MSA 경험 깊이', detail: 'CloudBridge에서 MSA 전환을 했다고 하나 본인 역할과 규모를 구체적으로 확인하세요.', source: 'LinkedIn vs JD' }
+        {
+          area: '멘토링 공백',
+          detail: '8년 경력이지만 이력서에 멘토링/리딩 경험이 없습니다. 실제로 후배를 가르쳐본 경험이 있는지, 관심이 있는지 확인하세요.',
+          source: '이력서 vs JD 갭'
+        },
+        {
+          area: '이직 주기',
+          detail: '2~3년 주기로 이직했습니다. 이직 사유가 성장 지향인지, 적응 문제인지 확인하세요.',
+          source: 'LinkedIn 이력'
+        },
+        {
+          area: 'MSA 경험 깊이',
+          detail: 'CloudBridge에서 MSA 전환을 했다고 하나 본인 역할과 규모를 구체적으로 확인하세요.',
+          source: 'LinkedIn vs JD'
+        }
       ],
       cover_letter_insights: [
-        { claim: '시스템 설계에 강점이 있다', verify_with: 'Q3(대용량 API)에서 실제 설계 역량 확인' },
-        { claim: 'MSA 전환 경험이 풍부하다', verify_with: 'Q4(DB 최적화)와 면접 중 구체적 사례 질문' },
-        { claim: '팀의 생산성을 높이는 데 기여한다', verify_with: 'Q2(멘토링)에서 구체적 사례 확인' }
+        {
+          claim: '시스템 설계에 강점이 있다',
+          verify_with: 'Q3(대용량 API)에서 실제 설계 역량 확인'
+        },
+        {
+          claim: 'MSA 전환 경험이 풍부하다',
+          verify_with: 'Q4(DB 최적화)와 면접 중 구체적 사례 질문'
+        },
+        {
+          claim: '팀의 생산성을 높이는 데 기여한다',
+          verify_with: 'Q2(멘토링)에서 구체적 사례 확인'
+        }
       ],
       interview_flow: '기술 깊이 확인 → 설계 역량 → 리더십/멘토링 → 소통 → 리스크 검증',
-      time_allocation: { role_fit: '10분', technical: '20분', execution: '15분', communication: '10분', risk: '10분' },
-      red_flags_to_watch: ['설계 이유를 설명 못하고 기술명만 나열', '혼자 다 했다고 주장하면서 팀 기여가 없음', '트레이드오프 질문에 한쪽만 고집', '주니어에 대해 무시하는 태도']
-    }
+      time_allocation: {
+        role_fit: '10분',
+        technical: '20분',
+        execution: '15분',
+        communication: '10분',
+        risk: '10분'
+      },
+      red_flags_to_watch: ['설계 이유를 설명 못하고 기술명만 나열', '혼자 다 했다고 주장하면서 팀 기여가 없음', '트레이드오프 질문에 한쪽만 고집', '주니어에 대해 무시하는 태도'],
+      positive_signals: [
+        'DB 쿼리 최적화에서 실행 계획(EXPLAIN)을 활용한 구체적 사례 제시',
+        'MSA 전환 시 도메인 경계 설정의 근거를 비즈니스 맥락으로 설명',
+        '주니어 멘토링에 대한 구체적 방법론과 성과 공유',
+        '기술 부채와 새 기능 개발 사이의 트레이드오프를 수치로 설명',
+        '대규모 트래픽 미경험을 인정하되 학습/대응 전략을 구체적으로 제시'
+      ]
+    },
+    jd_competency_map: [
+      {
+        competency: 'Python/FastAPI 전문성',
+        weight: 0.9,
+        related_questions: [3, 4, 5]
+      },
+      {
+        competency: 'PostgreSQL/DB 설계',
+        weight: 0.8,
+        related_questions: [4, 6]
+      },
+      {
+        competency: 'MSA 전환 경험',
+        weight: 0.8,
+        related_questions: [5, 7]
+      },
+      {
+        competency: 'CI/CD 구축',
+        weight: 0.6,
+        related_questions: [8, 9]
+      },
+      {
+        competency: '주니어 멘토링',
+        weight: 0.7,
+        related_questions: [2, 10, 11]
+      }
+    ]
   },
   questions: [
-{id:1,category:'role_fit',difficulty:'Medium',title:'시니어 팀 내 역할',question_text:'시니어 개발자로서 팀 내에서 본인의 역할을 어떻게 정의하시나요?',context_bridge:'저희 팀에는 주니어 2명, 미드레벨 1명이 있고, 시니어 개발자가 기술적 방향을 이끌어주길 기대합니다.',why_matters:'시니어로서의 자기 인식과 리더십 관점을 확인합니다.',listen_for:'코드만 잘 짜는 것을 넘어 팀 전체의 생산성과 성장에 기여하는 관점.',code_reference:null,
-terminology:[{term:'시니어 개발자',pronunciation:'시니어 개발자',explanation:'5년 이상 경력의 숙련된 개발자. 기술적 의사결정과 팀 리딩을 합니다.'},{term:'기술 리드',pronunciation:'테크 리드',explanation:'팀의 기술적 방향을 결정하는 사람.'},{term:'아키텍처',pronunciation:'아키텍처',explanation:'시스템의 전체 구조 설계. 건물의 설계도와 같습니다.'},{term:'코드 리뷰',pronunciation:'코드 리뷰',explanation:'다른 사람의 코드를 검토하여 품질을 높이는 과정.'},{term:'기술 부채',pronunciation:'테크 데트',explanation:'빠르게 만들느라 쌓인 코드 품질 문제. 미뤄둔 청소와 같습니다.'},{term:'온보딩',pronunciation:'온보딩',explanation:'새 팀원이 빠르게 적응하도록 돕는 과정.'},{term:'페어 프로그래밍',pronunciation:'페어 프로그래밍',explanation:'두 사람이 한 컴퓨터에서 함께 코드를 작성하는 방법.'}],
-answer_keywords:[{keyword:'팀 생산성',importance:'must',explanation:'개인 성과가 아닌 팀 전체 효율을 높이는 관점'},{keyword:'기술적 의사결정',importance:'must',explanation:'아키텍처, 기술 선택 등 방향 설정'},{keyword:'후배 성장',importance:'good_to_have',explanation:'멘토링과 지식 공유'}],
-scenarios:[{level:'Expert',score:20,text:'코드 작성 50% + 코드 리뷰/멘토링 30% + 설계/기술 방향 20%. 팀 전체 생산성과 후배 성장을 구체적으로 언급.'},{level:'Mid',score:10,text:'좋은 코드를 짜고 코드 리뷰를 하겠다. 리더십 관점은 부족.'},{level:'Low',score:0,text:'개인 성과만 강조. 팀에 대한 언급 없음.'}],
-follow_ups:[{id:'q1-f1',trigger:'Expert',question_text:'팀의 기술 수준이 다양할 때 코드 리뷰 기준을 어떻게 설정하시나요?',why_matters:'실용적 리더십.',listen_for:'수준별 차등 기준, 교육적 리뷰.',good:{text:'주니어에겐 핵심만 집중, 시니어에겐 설계 관점 리뷰. 단계적 기준.',score:8},poor:{text:'모두에게 같은 기준.',score:0}},{id:'q1-f2',trigger:'Mid',question_text:'시니어와 주니어의 가장 큰 차이는 뭐라고 생각하시나요?',why_matters:'시니어의 자기 인식.',listen_for:'문제 해결 능력, 영향 범위, 책임감.',good:{text:'주니어는 주어진 문제 해결, 시니어는 문제를 정의하고 팀에 영향.',score:5},poor:{text:'코딩 실력.',score:0}},{id:'q1-f3',trigger:'Low',question_text:'팀원이 도움을 요청하면 어떻게 대응하시나요?',why_matters:'협업 의지.',listen_for:'기꺼이 돕는 태도.',good:{text:'현재 작업 상황 공유 후 시간 내서 돕겠다.',score:5},poor:{text:'내 할 일 끝내고.',score:0}}],
-interviewer_note:{business_interpretation:'시니어 개발자가 "코드만 잘 짜는 사람"인지 "팀을 성장시키는 사람"인지 확인합니다.',daily_analogy:'축구에서 에이스 공격수와 미드필더의 차이입니다. 시니어는 직접 골도 넣지만 어시스트와 전체 경기 흐름도 이끕니다.',level_expectation:'시니어에게는 "팀 전체의 성과를 끌어올리는 관점"이 핵심입니다.'},
-expected_answer:{core:'• 기술적 의사결정 (아키텍처, 기술 선택)\n• 코드 품질 관리 (리뷰 기준 수립, 컨벤션)\n• 팀원 성장 지원 (멘토링, 페어 프로그래밍)\n• 기술 부채 관리 및 개선 로드맵',example:'시니어의 역할은 크게 3가지라고 봅니다. 첫째, 기술적 방향 설정 — 어떤 기술을 쓸지, 어떤 구조로 만들지 결정. 둘째, 코드 품질 관리 — 리뷰 기준을 세우고 일관성 유지. 셋째, 팀원 성장 — 주니어가 6개월 후 혼자 기능을 만들 수 있도록 돕는 것.',key_points:['팀 관점','기술 리더십','성장 지원']}},
-{id:2,category:'role_fit',difficulty:'Medium',title:'주니어 멘토링 경험',question_text:'주니어 개발자를 멘토링하거나 성장시킨 경험이 있으시면 말씀해주세요.',context_bridge:'이력서에 멘토링 경험이 명시되어 있지 않아 확인하고 싶습니다.',why_matters:'시니어에게 기대하는 멘토링 역량이 있는지 확인합니다.',listen_for:'구체적 사례와 후배의 실제 성장 결과.',code_reference:null,
-terminology:[{term:'멘토링',pronunciation:'멘토링',explanation:'경험자가 후배에게 업무 지식과 노하우를 전수하는 활동.'},{term:'1:1 미팅',pronunciation:'원온원',explanation:'상사와 부하가 둘이서 정기적으로 하는 면담.'},{term:'페어 프로그래밍',pronunciation:'페어 프로그래밍',explanation:'두 명이 한 화면을 보며 함께 코딩하는 방법.'},{term:'코드 리뷰',pronunciation:'코드 리뷰',explanation:'다른 사람의 코드를 검토하여 개선점을 찾는 과정.'},{term:'PR',pronunciation:'피알',explanation:'코드 변경을 제안하고 리뷰를 받는 과정.'},{term:'기술 세미나',pronunciation:'기술 세미나',explanation:'팀 내에서 기술 주제를 발표하고 지식을 공유하는 모임.'},{term:'성장 로드맵',pronunciation:'성장 로드맵',explanation:'개발자가 어떤 순서로 무엇을 배울지 정리한 계획.'}],
-answer_keywords:[{keyword:'구체적 사례',importance:'must',explanation:'실제 멘토링한 경험과 상황'},{keyword:'성장 결과',importance:'must',explanation:'후배가 실제로 성장한 결과'},{keyword:'방법론',importance:'good_to_have',explanation:'어떤 방식으로 멘토링했는지'}],
-scenarios:[{level:'Expert',score:20,text:'주니어에게 코드 리뷰+1:1+페어 프로그래밍을 병행. 3개월 후 독립 개발 가능 수준으로 성장.'},{level:'Mid',score:10,text:'코드 리뷰에서 피드백은 줬지만 체계적 멘토링은 아님.'},{level:'Low',score:0,text:'경험 없음. 멘토링에 관심도 없어 보임.'}],
-follow_ups:[{id:'q2-f1',trigger:'Expert',question_text:'멘토링 중 가장 어려웠던 순간은?',why_matters:'멘토링의 어려움을 아는 경험.',listen_for:'주니어 수준 차이, 동기 부여 어려움 등.',good:{text:'설명해도 이해 못하는 주니어에게 단계를 더 작게 나누어 접근.',score:8},poor:{text:'특별히 없었다.',score:0}},{id:'q2-f2',trigger:'Mid',question_text:'코드 리뷰 외에 주니어를 돕는 방법은?',why_matters:'멘토링 방법의 다양성.',listen_for:'1:1 미팅, 페어 코딩, 기술 세미나 등.',good:{text:'주간 1:1로 고민 듣고, 어려운 태스크는 페어 코딩.',score:5},poor:{text:'모르겠다.',score:0}},{id:'q2-f3',trigger:'Low',question_text:'주니어가 같은 실수를 반복하면 어떻게 하시겠습니까?',why_matters:'인내심과 교육 태도.',listen_for:'근본 원인 파악, 반복 학습 지원.',good:{text:'왜 반복하는지 원인을 먼저 파악하고 체크리스트 제공.',score:5},poor:{text:'여러 번 말해도 안 되면 포기.',score:-2}}],
-interviewer_note:{business_interpretation:'시니어 채용의 핵심 목적 중 하나가 주니어 성장입니다. 코딩만 잘하는 시니어는 이 팀에 맞지 않을 수 있습니다.',daily_analogy:'요리 학원 강사를 뽑는 것입니다. 본인 요리 실력도 중요하지만 "초보자에게 잘 설명할 수 있는가"가 핵심.',level_expectation:'시니어에게는 "체계적인 멘토링 경험"이 베스트, 최소한 "후배를 돕고자 하는 구체적 의지"가 필요합니다.'},
-expected_answer:{core:'• 멘토링 방법: 코드 리뷰 + 1:1 미팅 + 페어 프로그래밍\n• 구체적 사례: 주니어가 N개월 후 독립 개발\n• 교훈: 수준에 맞춰 단계적으로 난이도 조절',example:'DataFlow에서 입사 3개월차 주니어에게 매주 1:1로 진행 사항을 듣고, 어려운 API 구현은 페어 프로그래밍으로 함께 했습니다. 코드 리뷰에서 "왜 이렇게 하면 안 되는지"를 항상 설명했고, 4개월 후 그 주니어가 독립적으로 API 엔드포인트를 설계·구현할 수 있게 되었습니다.',key_points:['구체적 사례','성장 결과','체계적 방법']}},
-{id:3,category:'technical_depth',difficulty:'Hard',title:'대용량 API 설계',question_text:'초당 1,000건 이상의 요청을 처리해야 하는 API를 설계한다면 어떤 아키텍처를 선택하시겠습니까?',context_bridge:'저희 서비스는 B2B 대시보드 API가 피크 시간에 높은 트래픽을 받습니다.',why_matters:'대규모 시스템 설계 능력과 트레이드오프 판단력을 확인합니다.',listen_for:'단순히 기술 나열이 아닌, 왜 그 기술을 선택하는지 이유.',code_reference:null,
-terminology:[{term:'API',pronunciation:'에이피아이',explanation:'프로그램끼리 데이터를 주고받는 창구. 식당의 주문 카운터와 같습니다.'},{term:'트래픽',pronunciation:'트래픽',explanation:'서버에 들어오는 요청의 양. 고속도로 차량 수와 비슷.'},{term:'캐싱',pronunciation:'캐싱',explanation:'자주 요청되는 데이터를 미리 저장해두어 빠르게 응답. 자주 쓰는 물건을 책상 위에 두는 것.'},{term:'Redis',pronunciation:'레디스',explanation:'매우 빠른 임시 저장소. 메모장처럼 빠르게 읽고 쓸 수 있음.'},{term:'로드 밸런싱',pronunciation:'로드 밸런싱',explanation:'여러 서버에 요청을 분산하는 것. 마트 계산대를 여러 개 여는 것.'},{term:'비동기 처리',pronunciation:'비동기 처리',explanation:'요청을 보내고 응답을 기다리지 않고 다른 일을 하는 방식.'},{term:'메시지 큐',pronunciation:'메시지 큐',explanation:'작업 요청을 대기열에 넣고 순서대로 처리. 은행 번호표 시스템.'},{term:'수평 확장',pronunciation:'스케일 아웃',explanation:'서버를 더 추가하여 처리량을 늘리는 방법.'},{term:'p95 응답시간',pronunciation:'피 나인티파이브',explanation:'100번 요청 중 95번째로 느린 응답 시간.'},{term:'CDN',pronunciation:'씨디엔',explanation:'전 세계 여러 곳에 데이터를 미리 저장해두는 네트워크.'}],
-answer_keywords:[{keyword:'캐싱 전략',importance:'must',explanation:'Redis 등을 활용한 응답 캐시'},{keyword:'DB 최적화',importance:'must',explanation:'인덱스, 커넥션 풀, 읽기 복제'},{keyword:'수평 확장',importance:'good_to_have',explanation:'서버 증설로 부하 분산'},{keyword:'비동기 처리',importance:'good_to_have',explanation:'무거운 작업을 큐로 분리'}],
-scenarios:[{level:'Expert',score:25,text:'캐싱→DB 최적화→수평 확장→비동기 처리까지 단계적 전략. 각 단계의 트레이드오프까지 설명.'},{level:'Mid',score:12,text:'캐싱과 DB 최적화는 알지만 전체적인 전략이 체계적이지 않음.'},{level:'Low',score:0,text:'서버를 많이 늘리면 된다 수준. 구체적 방법 없음.'}],
-follow_ups:[{id:'q3-f1',trigger:'Expert',question_text:'캐시 무효화(invalidation) 전략은 어떻게 설정하시겠습니까?',why_matters:'캐싱의 가장 어려운 부분.',listen_for:'TTL, 이벤트 기반 무효화, write-through 등.',good:{text:'데이터 종류별 TTL 차등 + 데이터 변경 시 이벤트로 캐시 삭제.',score:8},poor:{text:'적당히 시간 지나면 지운다.',score:0}},{id:'q3-f2',trigger:'Mid',question_text:'DB 읽기가 병목이라면 어떤 순서로 최적화하시겠습니까?',why_matters:'체계적 최적화 접근.',listen_for:'쿼리 분석→인덱스→읽기 복제.',good:{text:'EXPLAIN으로 느린 쿼리 찾고, 인덱스 추가, 그래도 안 되면 읽기 복제.',score:5},poor:{text:'서버 스펙을 올린다.',score:0}},{id:'q3-f3',trigger:'Low',question_text:'현재 회사에서 API 성능 문제를 겪은 적이 있나요?',why_matters:'실무 경험.',listen_for:'구체적 사례.',good:{text:'구체적 성능 이슈와 해결 과정.',score:5},poor:{text:'특별히 없었다.',score:0}}],
-interviewer_note:{business_interpretation:'시니어가 "큰 그림"을 그릴 수 있는지 확인합니다.',daily_analogy:'식당이 손님 10배 증가 시: 1단계 메뉴 간소화(캐싱), 2단계 주방 효율화(DB 최적화), 3단계 2호점 개설(수평 확장), 4단계 배달 분리(비동기).',level_expectation:'시니어에게는 "왜 이 순서인지"를 설명할 수 있는 트레이드오프 사고가 핵심입니다.'},
-expected_answer:{core:'• 1단계: Redis 캐싱 (읽기 부하 감소)\n• 2단계: DB 최적화 (인덱스, 커넥션 풀)\n• 3단계: 수평 확장 (로드 밸런서 + 서버 증설)\n• 4단계: 비동기 처리 (무거운 작업 큐 분리)',example:'우선 가장 빈번한 조회 API에 Redis 캐시를 적용합니다(히트율 80% 목표). 그 다음 slow query 분석으로 인덱스를 최적화하고, 커넥션 풀을 조정합니다. 그래도 부족하면 읽기 복제본을 추가하고, 리포트 생성 같은 무거운 작업은 Celery + Redis Queue로 비동기 처리합니다.',key_points:['단계적 접근','트레이드오프','실무 경험']}},
-{id:4,category:'technical_depth',difficulty:'Hard',title:'DB 쿼리 최적화',question_text:'운영 중인 API의 응답이 갑자기 느려졌습니다. DB 쿼리가 원인으로 의심될 때 어떤 순서로 조사하고 최적화하시겠습니까?',context_bridge:'저희 서비스에서 실제로 주기적으로 발생하는 상황입니다.',why_matters:'DB 성능 문제 해결의 체계적 접근 능력을 확인합니다.',listen_for:'감이 아닌 데이터 기반의 체계적 접근.',code_reference:null,
-terminology:[{term:'쿼리',pronunciation:'쿼리',explanation:'데이터베이스에 데이터를 요청하는 명령문. 도서관에서 책을 찾아달라는 요청.'},{term:'인덱스',pronunciation:'인덱스',explanation:'데이터를 빠르게 찾기 위한 색인. 책 뒤의 찾아보기와 같음.'},{term:'EXPLAIN',pronunciation:'익스플레인',explanation:'DB가 쿼리를 어떻게 실행하는지 실행 계획을 보여주는 명령.'},{term:'슬로우 쿼리 로그',pronunciation:'슬로우 쿼리 로그',explanation:'오래 걸리는 쿼리를 자동으로 기록하는 기능.'},{term:'풀 테이블 스캔',pronunciation:'풀 테이블 스캔',explanation:'인덱스 없이 모든 데이터를 하나씩 확인하는 것.'},{term:'커넥션 풀',pronunciation:'커넥션 풀',explanation:'DB 연결을 미리 만들어두고 재사용하는 방식.'},{term:'N+1 문제',pronunciation:'엔플러스원',explanation:'1번 조회로 될 것을 N+1번 조회하는 비효율.'},{term:'읽기 복제',pronunciation:'리드 레플리카',explanation:'읽기 전용 DB 사본을 만들어 부하를 분산.'}],
-answer_keywords:[{keyword:'모니터링/로그 확인',importance:'must',explanation:'슬로우 쿼리 로그, APM 도구로 원인 파악'},{keyword:'EXPLAIN 분석',importance:'must',explanation:'실행 계획을 보고 비효율 지점 파악'},{keyword:'인덱스 전략',importance:'must',explanation:'적절한 인덱스 추가'},{keyword:'쿼리 리팩토링',importance:'good_to_have',explanation:'N+1 해결, 서브쿼리 최적화'}],
-scenarios:[{level:'Expert',score:25,text:'로그 확인→EXPLAIN 분석→인덱스 최적화→쿼리 리팩토링→캐싱/읽기복제. 각 단계의 판단 기준까지 설명.'},{level:'Mid',score:12,text:'인덱스 추가는 알지만 체계적 진단 과정이 부족.'},{level:'Low',score:0,text:'서버 스펙을 올리면 된다.'}],
-follow_ups:[{id:'q4-f1',trigger:'Expert',question_text:'인덱스를 추가해도 성능이 안 나올 때 다음 조치는?',why_matters:'고급 최적화.',listen_for:'쿼리 재설계, 비정규화, 캐싱.',good:{text:'쿼리 자체를 재설계하거나 자주 조인하는 테이블을 비정규화.',score:8},poor:{text:'더 좋은 DB를 쓴다.',score:0}},{id:'q4-f2',trigger:'Mid',question_text:'인덱스를 무조건 많이 만들면 좋은가요?',why_matters:'인덱스의 트레이드오프 이해.',listen_for:'쓰기 성능 저하, 저장 공간.',good:{text:'읽기는 빨라지지만 쓰기가 느려지고 공간을 차지.',score:5},poor:{text:'많을수록 좋다.',score:-2}},{id:'q4-f3',trigger:'Low',question_text:'실무에서 DB 관련 문제를 겪은 경험이 있나요?',why_matters:'DB 실무 경험.',listen_for:'구체적 사례.',good:{text:'구체적 DB 성능 문제 경험.',score:5},poor:{text:'없다.',score:0}}],
-interviewer_note:{business_interpretation:'운영 중인 서비스의 DB 문제를 "감"이 아닌 "데이터"로 해결하는 사람인지 확인합니다.',daily_analogy:'병원에서 의사가 증상→검사→진단→치료 순서로 진행하는 것과 같습니다.',level_expectation:'시니어에게는 "진단→분석→최적화"의 체계적 과정과 각 단계의 판단 기준이 핵심입니다.'},
-expected_answer:{core:'• 1단계: 슬로우 쿼리 로그/APM으로 원인 쿼리 특정\n• 2단계: EXPLAIN으로 실행 계획 분석\n• 3단계: 인덱스 추가/수정\n• 4단계: 쿼리 리팩토링 (N+1 해결, 조인 최적화)\n• 5단계: 캐싱 또는 읽기 복제 검토',example:'먼저 슬로우 쿼리 로그로 500ms 넘는 쿼리를 찾습니다. EXPLAIN ANALYZE로 풀 테이블 스캔이 발생하는 지점을 확인하고, 복합 인덱스를 추가합니다. N+1이 원인이면 JOIN이나 ORM의 eager loading으로 변경합니다.',key_points:['데이터 기반 진단','체계적 접근','트레이드오프 이해']}},
-{id:5,category:'execution_ownership',difficulty:'Hard',title:'장애 대응 경험',question_text:'운영 서비스에서 장애가 발생했을 때의 대응 경험을 말씀해주세요. 발견부터 해결까지의 과정을 구체적으로 설명해주세요.',context_bridge:'저희 SaaS 서비스는 99.9% 가용성을 목표로 합니다.',why_matters:'장애 대응의 체계적 프로세스와 사후 개선 능력을 확인합니다.',listen_for:'혼란 속에서도 체계적으로 대응하고, 사후에 재발 방지까지 하는지.',code_reference:null,
-terminology:[{term:'장애 (Incident)',pronunciation:'인시던트',explanation:'서비스가 정상적으로 동작하지 않는 상황.'},{term:'모니터링',pronunciation:'모니터링',explanation:'서비스 상태를 실시간으로 감시하는 시스템.'},{term:'알림 (Alert)',pronunciation:'얼럿',explanation:'문제가 감지되면 자동으로 보내는 경고.'},{term:'롤백',pronunciation:'롤백',explanation:'문제가 된 변경을 이전 상태로 되돌리는 것.'},{term:'포스트모템',pronunciation:'포스트모템',explanation:'장애 후 원인과 재발 방지를 논의하는 사후 검토 회의.'},{term:'RCA',pronunciation:'알씨에이',explanation:'근본 원인 분석.'},{term:'SLA',pronunciation:'에스엘에이',explanation:'서비스 수준 약속. 예: 99.9% 가용성 보장.'},{term:'핫픽스',pronunciation:'핫픽스',explanation:'긴급하게 적용하는 수정.'}],
-answer_keywords:[{keyword:'체계적 대응 프로세스',importance:'must',explanation:'탐지→영향 범위 파악→임시 조치→원인 분석→수정→검증'},{keyword:'커뮤니케이션',importance:'must',explanation:'팀/이해관계자에 상황 공유'},{keyword:'포스트모템',importance:'good_to_have',explanation:'재발 방지를 위한 사후 분석'}],
-scenarios:[{level:'Expert',score:25,text:'알림 탐지→영향 파악→롤백 판단→핫픽스→포스트모템→재발 방지. 구체적 사례와 배운 점.'},{level:'Mid',score:12,text:'장애 해결은 했지만 체계적 과정이나 사후 분석은 부족.'},{level:'Low',score:0,text:'장애 경험 없음 또는 "다른 사람이 해결했다".'}],
-follow_ups:[{id:'q5-f1',trigger:'Expert',question_text:'포스트모템에서 가장 중요하게 보는 것은?',why_matters:'재발 방지 문화.',listen_for:'비난 아닌 시스템 개선, 근본 원인.',good:{text:'누구 잘못인지가 아니라 어떤 시스템이 부족했는지. 모니터링 강화, 테스트 추가.',score:8},poor:{text:'담당자 질책.',score:-2}},{id:'q5-f2',trigger:'Mid',question_text:'장애 중 팀원들에게 어떻게 소통하셨나요?',why_matters:'위기 시 커뮤니케이션.',listen_for:'실시간 상황 공유, 역할 분담.',good:{text:'Slack 채널에 실시간 업데이트, 역할 분배.',score:5},poor:{text:'혼자 해결하려 했다.',score:0}},{id:'q5-f3',trigger:'Low',question_text:'만약 금요일 퇴근 직전에 장애가 나면?',why_matters:'책임감.',listen_for:'당연히 대응한다는 태도.',good:{text:'퇴근보다 서비스가 우선. 임시 조치 후 상황 공유.',score:5},poor:{text:'내일 출근해서.',score:-2}}],
-interviewer_note:{business_interpretation:'장애는 반드시 발생합니다. "장애를 빠르게 수습하고 재발을 방지하는 사람"이 시니어입니다.',daily_analogy:'소방관이 불을 끄는 순서: 1) 상황 파악, 2) 인명 구조(임시 조치), 3) 진화(근본 해결), 4) 원인 조사(포스트모템).',level_expectation:'시니어에게는 "체계적 대응 프로세스"와 "포스트모템을 통한 개선 문화"가 핵심입니다.'},
-expected_answer:{core:'• 탐지: 모니터링 알림으로 즉시 인지\n• 임시 조치: 롤백 또는 트래픽 우회\n• 원인 분석: 로그+메트릭으로 근본 원인 파악\n• 수정: 핫픽스 적용+검증\n• 사후: 포스트모템+재발 방지 조치',example:'새벽 2시에 API 응답 시간이 10초로 튄 알림을 받았습니다. DB 커넥션 풀이 고갈된 것을 확인하고, 즉시 커넥션 수를 늘리는 핫픽스를 적용했습니다. 다음 날 포스트모템에서 커넥션 누수 코드를 찾아 수정하고, 커넥션 풀 모니터링 알림을 추가했습니다.',key_points:['체계적 대응','임시 조치→근본 해결','포스트모템']}},
-{id:6,category:'execution_ownership',difficulty:'Hard',title:'기술 부채 관리',question_text:'기술 부채를 어떻게 관리하시나요? 비즈니스 일정과 코드 품질 사이의 균형을 어떻게 잡으셨습니까?',context_bridge:'저희 서비스도 빠른 성장 과정에서 기술 부채가 쌓여 있습니다.',why_matters:'시니어의 실용적 판단력과 장기적 관점을 확인합니다.',listen_for:'극단이 아닌 균형 잡힌 접근.',code_reference:null,
-terminology:[{term:'기술 부채',pronunciation:'테크 데트',explanation:'빠르게 만들느라 품질을 타협한 코드. 미뤄둔 빚처럼 나중에 이자가 붙습니다.'},{term:'리팩토링',pronunciation:'리팩토링',explanation:'기능은 같지만 코드 구조를 개선하는 작업.'},{term:'레거시',pronunciation:'레거시',explanation:'오래되어 유지보수가 어려운 코드/시스템.'},{term:'스프린트',pronunciation:'스프린트',explanation:'2주 단위의 개발 주기.'},{term:'ROI',pronunciation:'알오아이',explanation:'투자 대비 수익.'},{term:'보이스카우트 규칙',pronunciation:'보이스카우트 규칙',explanation:'코드를 수정할 때 주변 코드도 약간 개선하는 습관.'},{term:'기술 백로그',pronunciation:'기술 백로그',explanation:'해야 할 기술 작업 목록.'}],
-answer_keywords:[{keyword:'우선순위 기준',importance:'must',explanation:'어떤 기술 부채를 먼저 해결할지 판단 기준'},{keyword:'비즈니스와 균형',importance:'must',explanation:'기능 개발과 품질 개선의 밸런스'},{keyword:'점진적 개선',importance:'good_to_have',explanation:'대규모 리팩토링이 아닌 점진적 접근'}],
-scenarios:[{level:'Expert',score:25,text:'기술 부채를 정량화하고 비즈니스 영향도로 우선순위. 스프린트 20% 기술 부채 해소. 보이스카우트 규칙 적용.'},{level:'Mid',score:12,text:'리팩토링이 필요하다고 인식하지만 구체적 전략 없음.'},{level:'Low',score:0,text:'나중에 하면 된다 또는 전부 다시 만들자.'}],
-follow_ups:[{id:'q6-f1',trigger:'Expert',question_text:'기술 부채 해결을 비개발 이해관계자에게 어떻게 설득하시나요?',why_matters:'비즈니스 소통 능력.',listen_for:'비즈니스 언어로 설명.',good:{text:'장애 위험도, 개발 속도 저하를 수치로 보여줌.',score:8},poor:{text:'기술 용어로만 설명.',score:0}},{id:'q6-f2',trigger:'Mid',question_text:'구체적으로 리팩토링한 경험이 있나요?',why_matters:'실행 경험.',listen_for:'구체적 사례와 결과.',good:{text:'복잡한 함수를 분리하고 테스트 추가, 버그 50% 감소.',score:5},poor:{text:'기억 안 남.',score:0}},{id:'q6-f3',trigger:'Low',question_text:'코드가 복잡해서 수정이 어려웠던 경험이 있나요?',why_matters:'기술 부채 인식.',listen_for:'복잡한 코드로 인한 문제 경험.',good:{text:'구체적 사례와 느낀 점.',score:5},poor:{text:'없었다.',score:0}}],
-interviewer_note:{business_interpretation:'"기술 부채 = 비즈니스 리스크"를 이해하는 시니어인지 확인합니다.',daily_analogy:'집 정리와 같습니다. 바쁘다고 계속 안 치우면 나중에 큰 대청소가 필요합니다.',level_expectation:'시니어에게는 "정량화된 우선순위 + 비즈니스 관점 설득 + 점진적 실행"이 핵심입니다.'},
-expected_answer:{core:'• 정량화: 기술 부채를 목록화하고 영향도 산정\n• 우선순위: 장애 위험 > 개발 속도 저하 > 코드 가독성\n• 실행: 스프린트 20% 할애 + 보이스카우트 규칙\n• 설득: 비즈니스 영향으로 번역하여 이해관계자 설득',example:'기술 부채를 Jira에 기록하고 "장애 위험도"와 "개발 속도 영향"으로 점수를 매겼습니다. 매 스프린트 20%를 기술 부채 해소에 할당하고, 코드 수정 시 보이스카우트 규칙으로 주변도 개선했습니다.',key_points:['정량화','점진적 실행','비즈니스 소통']}},
-{id:7,category:'communication',difficulty:'Medium',title:'코드 리뷰 방법론',question_text:'코드 리뷰를 할 때 어떤 기준으로 어떤 부분을 중점적으로 보시나요?',context_bridge:'저희 팀에서 시니어가 코드 리뷰를 리드해주길 기대합니다.',why_matters:'코드 리뷰의 기준과 교육적 피드백 능력을 확인합니다.',listen_for:'단순 버그 찾기가 아닌 설계와 가독성, 교육적 피드백.',code_reference:null,
-terminology:[{term:'코드 리뷰',pronunciation:'코드 리뷰',explanation:'다른 사람의 코드를 검토하는 과정.'},{term:'PR (Pull Request)',pronunciation:'피알',explanation:'코드 변경을 제안하고 팀원에게 리뷰를 요청하는 것.'},{term:'Approve',pronunciation:'어프루브',explanation:'코드 리뷰에서 승인.'},{term:'LGTM',pronunciation:'엘지티엠',explanation:'"Looks Good To Me" — 승인 표현.'},{term:'리뷰어',pronunciation:'리뷰어',explanation:'코드를 검토하는 사람.'},{term:'컨벤션',pronunciation:'컨벤션',explanation:'팀이 합의한 코드 작성 규칙.'},{term:'네이밍',pronunciation:'네이밍',explanation:'변수, 함수 이름을 짓는 것.'},{term:'엣지 케이스',pronunciation:'엣지 케이스',explanation:'보통과 다른 특수한 상황.'}],
-answer_keywords:[{keyword:'리뷰 기준',importance:'must',explanation:'무엇을 중점적으로 보는지'},{keyword:'교육적 피드백',importance:'must',explanation:'왜 고쳐야 하는지 이유를 설명'},{keyword:'효율적 프로세스',importance:'good_to_have',explanation:'리뷰 시간 관리, 자동화'}],
-scenarios:[{level:'Expert',score:20,text:'설계→로직→가독성→성능 순서. "왜"를 설명하는 교육적 피드백. 리뷰 가이드라인 수립 경험.'},{level:'Mid',score:10,text:'버그와 스타일 위주. 교육적 관점 부족.'},{level:'Low',score:0,text:'동작만 확인하고 LGTM.'}],
-follow_ups:[{id:'q7-f1',trigger:'Expert',question_text:'주니어와 시니어의 PR을 리뷰할 때 다르게 접근하시나요?',why_matters:'수준별 리뷰 전략.',listen_for:'주니어에겐 기본+교육, 시니어에겐 설계 관점.',good:{text:'주니어 PR은 기본 원칙 교육 중심, 시니어 PR은 설계 토론 중심.',score:8},poor:{text:'같은 기준.',score:0}},{id:'q7-f2',trigger:'Mid',question_text:'리뷰에서 의견이 충돌할 때 어떻게 하시나요?',why_matters:'갈등 해결.',listen_for:'논리적 토론, 데이터 기반.',good:{text:'각자 이유를 설명하고 데이터로 결정.',score:5},poor:{text:'시니어 의견을 따른다.',score:0}},{id:'q7-f3',trigger:'Low',question_text:'코드 리뷰를 하면 어떤 점이 좋다고 생각하시나요?',why_matters:'코드 리뷰 가치 인식.',listen_for:'버그 방지, 지식 공유.',good:{text:'버그 사전 방지+팀 전체 코드 이해도 향상.',score:5},poor:{text:'형식적 절차.',score:0}}],
-interviewer_note:{business_interpretation:'시니어의 리뷰 능력이 팀 전체 수준을 결정합니다.',daily_analogy:'편집장이 기자의 기사를 교정하는 것과 같습니다. 오타만 잡는 편집장 vs 논리와 구성까지 개선하는 편집장.',level_expectation:'시니어에게는 "교육적 피드백"과 "리뷰 기준 수립 능력"이 핵심입니다.'},
-expected_answer:{core:'• 리뷰 순서: 설계 적절성 → 비즈니스 로직 → 가독성 → 성능 → 테스트\n• 피드백 방식: "왜"를 함께 설명\n• 효율화: 린팅 자동화, 리뷰 체크리스트, PR 크기 제한',example:'PR을 받으면 먼저 설계가 적절한지 보고, 비즈니스 로직, 엣지 케이스, 가독성 순으로 봅니다. 피드백은 항상 "왜"를 함께 씁니다. 코드 스타일은 린터로 자동화했습니다.',key_points:['체계적 기준','교육적 피드백','자동화']}},
-{id:8,category:'communication',difficulty:'Medium',title:'기획자/PM과의 기술 소통',question_text:'기획자나 PM이 기술적으로 어려운 요구를 할 때 어떻게 소통하시나요?',context_bridge:'저희 PM은 비개발 출신이라 기술적 제약을 이해하기 어려울 수 있습니다.',why_matters:'비개발 직군과의 소통 능력을 확인합니다.',listen_for:'"안 됩니다"가 아닌 대안 제시와 비즈니스 영향 설명.',code_reference:null,
-terminology:[{term:'PM',pronunciation:'피엠',explanation:'프로젝트 매니저. 제품의 기획과 일정을 관리하는 사람.'},{term:'스펙',pronunciation:'스펙',explanation:'구현해야 할 기능의 상세 명세서.'},{term:'트레이드오프',pronunciation:'트레이드오프',explanation:'하나를 얻으면 다른 하나를 포기해야 하는 상황.'},{term:'MVP',pronunciation:'엠브이피',explanation:'최소한의 핵심 기능만 넣은 첫 번째 버전.'},{term:'기술 부채',pronunciation:'테크 데트',explanation:'빠른 개발을 위해 타협한 코드 품질.'},{term:'스코프',pronunciation:'스코프',explanation:'구현 범위.'},{term:'PoC',pronunciation:'피오씨',explanation:'개념 증명. 가능한지 먼저 작게 실험하는 것.'}],
-answer_keywords:[{keyword:'대안 제시',importance:'must',explanation:'"안 됩니다"가 아닌 "이렇게 하면 가능합니다"'},{keyword:'비즈니스 언어',importance:'must',explanation:'기술 용어 없이 비즈니스 관점으로 설명'},{keyword:'정량적 근거',importance:'good_to_have',explanation:'소요 시간, 리스크를 수치로 제시'}],
-scenarios:[{level:'Expert',score:20,text:'기획 의도 파악→기술적 제약 비즈니스 언어로 설명→대안 제시→데이터 기반 설득.'},{level:'Mid',score:10,text:'어렵다고 말하지만 대안이 구체적이지 않음.'},{level:'Low',score:0,text:'기술 용어로 설명하여 PM이 이해 못하거나, 무리하게 수용.'}],
-follow_ups:[{id:'q8-f1',trigger:'Expert',question_text:'PM이 "이번 주 안에 해달라"고 하는데 2주가 필요할 때?',why_matters:'일정 협상 능력.',listen_for:'범위 조정 제안, 단계적 출시.',good:{text:'핵심 기능만 1주, 나머지 다음 스프린트로 나눠서 출시 제안.',score:8},poor:{text:'야근해서 하겠다.',score:0}},{id:'q8-f2',trigger:'Mid',question_text:'기획 변경이 잦을 때 어떻게 대응하시나요?',why_matters:'변화 관리.',listen_for:'체계적 변경 관리.',good:{text:'변경 사항 문서화, 영향도 분석 공유.',score:5},poor:{text:'짜증난다.',score:-2}},{id:'q8-f3',trigger:'Low',question_text:'PM과 일하면서 좋았던 경험이 있나요?',why_matters:'협업 태도.',listen_for:'긍정적 협업 경험.',good:{text:'함께 문제를 해결한 사례.',score:5},poor:{text:'특별히 없다.',score:0}}],
-interviewer_note:{business_interpretation:'기술과 비즈니스 사이의 "번역가" 역할을 할 수 있는지 확인합니다.',daily_analogy:'건축가가 고객에게 "이 구조는 3층까지만 가능합니다. 4층을 원하시면 기초를 보강해야 합니다. 3층에 옥탑방을 만드는 방법도 있습니다"라고 대안을 주는 것.',level_expectation:'시니어에게는 "기술↔비즈니스 번역 능력"과 "대안 제시 능력"이 핵심입니다.'},
-expected_answer:{core:'• 기획 의도 파악: "왜 이 기능이 필요한지" 먼저 이해\n• 제약 설명: 비즈니스 영향으로 번역\n• 대안 제시: MVP로 출시 후 개선\n• 데이터: 소요 시간과 리스크를 수치로',example:'PM이 실시간 알림을 요청했는데 WebSocket 구현에 3주가 필요했습니다. "핵심은 사용자가 빠르게 알림을 받는 것"임을 확인하고, 30초 간격 폴링으로 1주 내 출시를 제안했습니다.',key_points:['의도 파악','비즈니스 언어','대안 제시']}},
-{id:9,category:'risk_flags',difficulty:'Medium',title:'잦은 이직 사유',is_risk:true,risk_source:'3개 회사를 2~3년 주기로 이직 (8년간)',question_text:'경력 8년 동안 3개 회사를 거치셨는데, 각 이직의 이유와 저희 회사에서는 어떤 점이 다를 것으로 기대하시나요?',context_bridge:'LinkedIn 이력을 보면 2~3년 주기로 이직하신 패턴이 있습니다.',why_matters:'이직 패턴이 성장 지향적인지, 적응 문제인지 확인합니다.',listen_for:'각 이직에 합리적 이유가 있고, 장기 근속 의지가 있는지.',code_reference:null,
-terminology:[{term:'이직',pronunciation:'이직',explanation:'회사를 옮기는 것.'},{term:'성장 정체',pronunciation:'성장 정체',explanation:'현재 환경에서 더 배울 것이 없는 상태.'},{term:'스택',pronunciation:'스택',explanation:'사용하는 기술 도구 모음.'},{term:'컬처 핏',pronunciation:'컬처 핏',explanation:'회사 문화와 본인 가치관이 맞는 정도.'},{term:'커리어 패스',pronunciation:'커리어 패스',explanation:'앞으로의 직업적 성장 경로.'},{term:'리텐션',pronunciation:'리텐션',explanation:'직원이 회사에 머무는 비율.'},{term:'레퍼런스 체크',pronunciation:'레퍼런스 체크',explanation:'이전 직장에 후보자에 대해 확인하는 절차.'}],
-answer_keywords:[{keyword:'합리적 이직 사유',importance:'must',explanation:'각 이직에 성장과 관련된 이유'},{keyword:'패턴 인식',importance:'must',explanation:'본인의 이직 패턴을 인식하고 있음'},{keyword:'장기 비전',importance:'good_to_have',explanation:'우리 회사에서의 구체적 성장 계획'}],
-scenarios:[{level:'Expert',score:20,text:'각 이직이 기술 성장/역할 확장 목적. 우리 회사에서 MSA 전환+팀 빌딩이라는 장기 목표 제시.'},{level:'Mid',score:10,text:'이유는 있지만 패턴 인식이 부족. 장기 계획 불명확.'},{level:'Low',score:-5,text:'이유가 불명확하거나 전 회사 비난. 장기 비전 없음.'}],
-follow_ups:[{id:'q9-f1',trigger:'Expert',question_text:'3년 후 이 회사에서 어떤 모습이길 기대하시나요?',why_matters:'장기 비전.',listen_for:'구체적 성장 목표.',good:{text:'MSA 전환 완료+5인 팀 리드+시니어→리드 성장.',score:8},poor:{text:'잘 모르겠다.',score:0}},{id:'q9-f2',trigger:'Mid',question_text:'이전 회사에서 "이것만 있었다면 안 떠났다"는 것이 있나요?',why_matters:'이탈 원인.',listen_for:'환경적 요인 vs 개인적 요인.',good:{text:'기술 성장 기회, 의사결정 참여 등 합리적 요인.',score:5},poor:{text:'연봉.',score:0}},{id:'q9-f3',trigger:'Low',question_text:'가장 오래 다닌 회사에서의 경험을 말씀해주세요.',why_matters:'장기 근속 가능성.',listen_for:'긍정적 경험과 성장.',good:{text:'3년간의 성장 과정 공유.',score:5},poor:{text:'기억 안 남.',score:0}}],
-interviewer_note:{business_interpretation:'시니어 채용 비용이 높으므로 2년 이내 퇴사는 큰 손실입니다.',daily_analogy:'연애에서 만남이 짧은 사람에게 "왜 헤어졌나?"보다 "이번에는 뭐가 다른가?"가 중요한 것과 같습니다.',level_expectation:'각 이직에 합리적 이유가 있고 장기적 목표가 구체적이면 긍정적입니다.'},
-expected_answer:{core:'• 각 이직 사유: 성장 기회, 기술 도전, 역할 확장\n• 패턴 인식: 본인도 인지\n• 우리 회사: MSA 전환+팀 빌딩이 장기 도전과제',example:'StartupHub에서 Flask→CloudBridge에서 Django로 이동한 건 더 큰 규모의 B2B SaaS를 경험하고 싶었기 때문입니다. CloudBridge→DataFlow는 FastAPI와 데이터 파이프라인이라는 새 도전이었습니다. 이번 이직은 MSA 전환을 리드하면서 팀 빌딩까지 할 수 있는 기회가 매력적입니다.',key_points:['합리적 이유','성장 지향','장기 비전']}},
-{id:10,category:'risk_flags',difficulty:'Hard',title:'팀 리딩 경험 부족',is_risk:true,risk_source:'8년 경력이나 이력서에 팀 리딩/멘토링 경험 미기재',question_text:'8년 경력 동안 팀을 이끌거나 기술적 의사결정을 리드한 경험이 이력서에 보이지 않는데, 그 이유와 향후 계획을 말씀해주세요.',context_bridge:'이 포지션은 주니어 2명을 이끌어야 합니다.',why_matters:'기술 리더십 경험 부재가 역량 부족인지 기회 부재인지 확인합니다.',listen_for:'솔직한 인정과 구체적 준비 의지.',code_reference:null,
-terminology:[{term:'팀 리드',pronunciation:'팀 리드',explanation:'팀의 기술적 방향을 결정하고 팀원을 이끄는 역할.'},{term:'기술 의사결정',pronunciation:'테크 디시전',explanation:'어떤 기술을 쓸지, 어떤 구조로 만들지 결정하는 것.'},{term:'IC (Individual Contributor)',pronunciation:'아이씨',explanation:'관리가 아닌 개인 기여자로 일하는 역할.'},{term:'매니지먼트 트랙',pronunciation:'매니지먼트 트랙',explanation:'팀 관리자로 성장하는 경로.'},{term:'기술 트랙',pronunciation:'테크 트랙',explanation:'기술 전문가로 성장하는 경로.'},{term:'임팩트',pronunciation:'임팩트',explanation:'업무가 조직에 미치는 영향력.'},{term:'스코프',pronunciation:'스코프',explanation:'담당하는 업무의 범위와 책임.'}],
-answer_keywords:[{keyword:'솔직한 인정',importance:'must',explanation:'리딩 경험 부족을 솔직히 인정'},{keyword:'이유 설명',importance:'must',explanation:'기회가 없었는지, 관심이 없었는지'},{keyword:'구체적 준비',importance:'good_to_have',explanation:'리더십 역량을 키우기 위한 계획'}],
-scenarios:[{level:'Expert',score:25,text:'IC 역할이었으나 비공식적으로 기술 결정·멘토링 경험 있음. 공식적 리딩을 원하며 구체적 준비.'},{level:'Mid',score:12,text:'기회가 없었다고 설명. 의지는 있지만 준비가 구체적이지 않음.'},{level:'Low',score:-5,text:'리딩에 관심 없음. 코딩만 하고 싶다.'}],
-follow_ups:[{id:'q10-f1',trigger:'Expert',question_text:'비공식적으로 기술 결정을 내린 구체적 사례는?',why_matters:'실질적 리더십 경험.',listen_for:'기술 선정, 구조 설계 결정.',good:{text:'팀에서 FastAPI 도입을 제안하고 PoC까지 주도.',score:8},poor:{text:'구체적 사례 없음.',score:0}},{id:'q10-f2',trigger:'Mid',question_text:'리더십을 키우기 위해 어떤 준비를 하고 계신가요?',why_matters:'성장 의지.',listen_for:'구체적 학습/준비.',good:{text:'리더십 관련 책/강의, 스터디 그룹 운영.',score:5},poor:{text:'특별히 없다.',score:0}},{id:'q10-f3',trigger:'Low',question_text:'이 포지션에서 주니어를 이끄는 것에 대해 어떻게 생각하시나요?',why_matters:'역할 적합성.',listen_for:'긍정적 태도.',good:{text:'해보고 싶고, 코드 리뷰부터 시작하겠다.',score:5},poor:{text:'부담스럽다.',score:-2}}],
-interviewer_note:{business_interpretation:'8년차에 리딩 경험이 없는 것은 리스크입니다. 하지만 "기회가 없었던 것"과 "능력이 없는 것"은 다릅니다.',daily_analogy:'운전면허 10년차인데 고속도로 운전 경험이 없는 사람. 시내 운전 실력은 확실하지만 고속도로는 다른 스킬이 필요합니다.',level_expectation:'비공식적이라도 기술 결정이나 멘토링 경험이 있으면 긍정적. 전혀 없다면 이 포지션에 맞지 않을 수 있습니다.'},
-expected_answer:{core:'• 이유: IC 역할 중심 팀 구조, 공식 리드 기회 부재\n• 비공식 경험: 기술 선정 제안, 온보딩 가이드 작성, 코드 리뷰 리드\n• 준비: 리더십 학습, 이번 포지션에서 공식적 리딩 도전 의지',example:'이전 회사들이 플랫 구조라 공식 리드 타이틀은 없었지만, DataFlow에서 FastAPI 마이그레이션을 제안하고 기술 검토부터 PoC까지 주도했습니다. 신규 입사자 온보딩 가이드도 제가 만들었습니다. 이제는 공식적으로 팀을 이끄는 역할을 하고 싶어서 이 포지션에 지원했습니다.',key_points:['솔직한 인정','비공식 경험','성장 의지']}},
-{id:11,category:'role_fit',difficulty:'Easy',title:'기술 비전 정렬',question_text:'저희 회사가 모놀리스에서 MSA로 전환 중인데, 이 기술 방향에 대해 어떻게 생각하시나요? 본인의 기술 비전과 어떻게 맞닿아 있나요?',context_bridge:'저희는 현재 모놀리스→MSA 전환이라는 큰 기술적 전환기에 있습니다.',why_matters:'회사의 기술 방향과 후보자의 기술 비전이 정렬되는지 확인합니다.',listen_for:'MSA 전환의 장단점을 이해하고, 본인의 경험과 연결 지어 설명하는지.',code_reference:null,
-terminology:[{term:'모놀리스',pronunciation:'모놀리스',explanation:'하나의 큰 덩어리로 만들어진 프로그램. 모든 기능이 한 곳에 있습니다.'},{term:'MSA',pronunciation:'엠에스에이',explanation:'마이크로서비스 아키텍처. 기능별로 작은 서비스를 나누어 운영하는 방식.'},{term:'기술 비전',pronunciation:'기술 비전',explanation:'앞으로 기술을 어떤 방향으로 발전시킬지에 대한 큰 그림.'},{term:'점진적 전환',pronunciation:'점진적 전환',explanation:'한 번에 바꾸지 않고 조금씩 단계적으로 변경하는 방법.'},{term:'서비스 경계',pronunciation:'서비스 바운더리',explanation:'각 마이크로서비스가 담당하는 업무 범위.'},{term:'도메인',pronunciation:'도메인',explanation:'비즈니스의 특정 영역. 예: 결제, 사용자 관리 등.'},{term:'트레이드오프',pronunciation:'트레이드오프',explanation:'하나를 얻으면 다른 하나를 포기해야 하는 상황.'}],
-answer_keywords:[{keyword:'MSA 이해',importance:'must',explanation:'MSA 전환의 필요성과 장단점을 이해'},{keyword:'경험 연결',importance:'must',explanation:'본인의 MSA 관련 경험과 연결'},{keyword:'현실적 관점',importance:'good_to_have',explanation:'무조건 좋다가 아닌 균형 잡힌 시각'}],
-scenarios:[{level:'Expert',score:15,text:'MSA 전환의 장단점을 실무 경험과 함께 설명. 점진적 전환 전략과 주의점까지 언급.'},{level:'Mid',score:8,text:'MSA가 좋다는 것은 알지만 구체적 경험이나 주의점 부족.'},{level:'Low',score:0,text:'MSA에 대한 이해가 부족하거나 관심 없음.'}],
-follow_ups:[{id:'q11-f1',trigger:'Expert',question_text:'MSA 전환에서 가장 먼저 분리해야 할 서비스는 어떻게 결정하시나요?',why_matters:'전환 전략의 구체성.',listen_for:'비즈니스 임팩트, 독립성, 변경 빈도 기준.',good:{text:'변경이 잦고 독립적으로 배포가 필요한 서비스부터. 비즈니스 도메인 경계를 기준으로 판단.',score:6},poor:{text:'잘 모르겠다.',score:0}},{id:'q11-f2',trigger:'Mid',question_text:'MSA의 단점은 무엇이라고 생각하시나요?',why_matters:'균형 잡힌 시각.',listen_for:'운영 복잡도, 분산 트랜잭션 등.',good:{text:'서비스 간 통신 복잡도, 분산 트랜잭션, 모니터링 어려움.',score:4},poor:{text:'단점은 없다.',score:0}},{id:'q11-f3',trigger:'Low',question_text:'모놀리스와 MSA의 차이를 간단히 설명해주세요.',why_matters:'기본 이해 확인.',listen_for:'기본 개념 이해.',good:{text:'모놀리스는 하나의 큰 프로그램, MSA는 작은 서비스로 나눈 구조.',score:4},poor:{text:'잘 모른다.',score:0}}],
-interviewer_note:{business_interpretation:'회사의 기술 방향과 후보자의 관심이 일치해야 장기적으로 동기부여됩니다.',daily_analogy:'이사할 집을 고를 때, 동네 개발 계획과 본인의 라이프스타일이 맞는지 확인하는 것과 같습니다.',level_expectation:'시니어에게는 MSA 전환에 대한 실무적 이해와 균형 잡힌 관점이 필요합니다.'},
-expected_answer:{core:'• MSA 전환의 필요성 인식\n• 본인 경험과의 연결점\n• 점진적 전환에 대한 현실적 관점',example:'CloudBridge에서 모놀리스→MSA 전환을 경험했는데, 무작정 나누면 오히려 복잡도만 높아집니다. 비즈니스 도메인 기준으로 경계를 잡고, 가장 변경이 잦은 서비스부터 분리하는 것이 효과적이었습니다. 이 회사에서도 그 경험을 살려 기여하고 싶습니다.',key_points:['MSA 이해','경험 연결','현실적 관점']}},
-{id:12,category:'role_fit',difficulty:'Easy',title:'타 팀 협업 기대치',question_text:'시니어 백엔드 개발자로서 프론트엔드, 데이터, 인프라 등 다른 팀과 어떻게 협업하시겠습니까?',context_bridge:'저희는 백엔드 팀 외에도 프론트엔드, 데이터 분석, 인프라 팀이 있습니다.',why_matters:'시니어가 자기 팀에만 갇히지 않고 크로스팀 협업을 할 수 있는지 확인합니다.',listen_for:'API 계약, 문서화, 정기 싱크 등 구체적 협업 방식.',code_reference:null,
-terminology:[{term:'크로스팀',pronunciation:'크로스팀',explanation:'여러 팀이 함께 협력하는 것.'},{term:'API 계약',pronunciation:'에이피아이 컨트랙트',explanation:'팀 간 데이터를 주고받는 형식을 미리 약속하는 것.'},{term:'API 문서',pronunciation:'에이피아이 문서',explanation:'API를 어떻게 사용하는지 설명한 명세서.'},{term:'Swagger',pronunciation:'스웨거',explanation:'API 문서를 자동 생성하고 테스트할 수 있는 도구.'},{term:'싱크 미팅',pronunciation:'싱크 미팅',explanation:'팀 간 진행 상황을 맞추는 회의.'},{term:'블로커',pronunciation:'블로커',explanation:'다른 팀의 작업이 끝나야 진행할 수 있는 의존성.'},{term:'인터페이스',pronunciation:'인터페이스',explanation:'서로 다른 시스템이 소통하는 접점.'}],
-answer_keywords:[{keyword:'API 계약/문서화',importance:'must',explanation:'팀 간 명확한 인터페이스 정의'},{keyword:'정기적 소통',importance:'must',explanation:'싱크 미팅, 블로커 공유 등'},{keyword:'선제적 커뮤니케이션',importance:'good_to_have',explanation:'문제 발생 전 미리 소통'}],
-scenarios:[{level:'Expert',score:15,text:'API 계약 선정의→Swagger 문서 자동화→정기 싱크→블로커 선제 공유. 실무 사례 포함.'},{level:'Mid',score:8,text:'필요할 때 소통한다 수준. 체계적 방법론 부족.'},{level:'Low',score:0,text:'백엔드만 잘 하면 된다는 인식.'}],
-follow_ups:[{id:'q12-f1',trigger:'Expert',question_text:'프론트엔드 팀과 API 스펙 충돌이 생겼을 때 어떻게 해결하시나요?',why_matters:'갈등 해결.',listen_for:'상호 이해, 타협, 데이터 기반 결정.',good:{text:'양쪽 제약 조건을 듣고, 사용자 경험에 가장 좋은 방향으로 합의.',score:6},poor:{text:'백엔드 편의대로.',score:0}},{id:'q12-f2',trigger:'Mid',question_text:'다른 팀과 협업하면서 어려웠던 점은?',why_matters:'협업 경험.',listen_for:'구체적 사례와 해결.',good:{text:'일정 차이로 블로커가 생겨서 미리 목업 API를 제공한 경험.',score:4},poor:{text:'특별히 없다.',score:0}},{id:'q12-f3',trigger:'Low',question_text:'백엔드 개발자가 다른 팀과 소통해야 하는 이유는 뭐라고 생각하시나요?',why_matters:'협업 인식.',listen_for:'상호 의존성 이해.',good:{text:'서비스는 혼자 만들 수 없고 팀 간 인터페이스가 중요하다.',score:4},poor:{text:'잘 모르겠다.',score:0}}],
-interviewer_note:{business_interpretation:'시니어가 "자기 팀 사일로"에 갇히면 전체 제품 품질이 떨어집니다.',daily_analogy:'아파트 건설에서 전기, 배관, 인테리어 팀이 각각 일하되, 설계도(API 문서)를 공유하고 정기적으로 맞추는 것과 같습니다.',level_expectation:'시니어에게는 "선제적 소통"과 "체계적 협업 방식"이 핵심입니다.'},
-expected_answer:{core:'• API 계약 선정의: 개발 전 스펙 합의\n• 문서 자동화: Swagger/OpenAPI로 항상 최신 유지\n• 정기 싱크: 주간 크로스팀 미팅\n• 선제적 공유: 블로커나 변경사항 미리 알림',example:'DataFlow에서 프론트엔드 팀과 API 스펙을 먼저 합의하고, FastAPI의 자동 Swagger 문서를 활용했습니다. 주간 싱크에서 다음 주 변경 예정 API를 미리 공유하여 블로커를 최소화했습니다.',key_points:['API 계약','문서화','선제적 소통']}},
-{id:13,category:'role_fit',difficulty:'Hard',title:'오너십과 주도성',question_text:'본인이 주도적으로 기술적 문제를 발견하고 해결한 경험을 말씀해주세요. 누가 시키지 않았는데 스스로 나서서 한 일이 있나요?',context_bridge:'저희 팀에서는 시니어가 문제를 찾아서 해결하는 주도성을 기대합니다.',why_matters:'시니어로서 문제를 발견하고 자발적으로 해결하는 오너십을 확인합니다.',listen_for:'수동적 실행이 아닌 능동적 문제 발견과 해결.',code_reference:null,
-terminology:[{term:'오너십',pronunciation:'오너십',explanation:'자기 일처럼 책임감을 가지고 주도하는 태도.'},{term:'프로액티브',pronunciation:'프로액티브',explanation:'문제가 생기기 전에 미리 움직이는 것.'},{term:'기술 부채',pronunciation:'테크 데트',explanation:'미뤄둔 코드 품질 문제.'},{term:'이니셔티브',pronunciation:'이니셔티브',explanation:'스스로 시작하고 이끄는 것.'},{term:'임팩트',pronunciation:'임팩트',explanation:'행동이 만들어낸 결과와 영향.'},{term:'보틀넥',pronunciation:'보틀넥',explanation:'전체 과정에서 가장 느린 병목 지점.'},{term:'ROI',pronunciation:'알오아이',explanation:'투자 대비 수익. 들인 노력 대비 효과.'},{term:'RFC',pronunciation:'알에프씨',explanation:'기술 변경 제안서. 팀에 기술적 변경을 공식으로 제안하는 문서.'}],
-answer_keywords:[{keyword:'자발적 문제 발견',importance:'must',explanation:'누가 시키지 않고 스스로 문제를 찾음'},{keyword:'실행과 결과',importance:'must',explanation:'발견에 그치지 않고 실행하여 결과를 만듦'},{keyword:'팀 영향력',importance:'good_to_have',explanation:'개인이 아닌 팀/조직 수준의 임팩트'}],
-scenarios:[{level:'Expert',score:25,text:'성능 병목이나 기술 부채를 스스로 발견하고, 팀에 제안하여 해결. 정량적 결과 포함.'},{level:'Mid',score:12,text:'문제를 인식하고 건의는 했지만 직접 실행까지는 하지 않음.'},{level:'Low',score:0,text:'시키는 일만 한다. 주도적 경험 없음.'}],
-follow_ups:[{id:'q13-f1',trigger:'Expert',question_text:'그 변경을 팀에 어떻게 설득하고 우선순위를 얻었나요?',why_matters:'설득력과 실행력.',listen_for:'데이터 기반 설득, ROI 제시.',good:{text:'장애 위험도와 개발 속도 영향을 수치로 보여주고 스프린트에 포함시킴.',score:8},poor:{text:'그냥 했다.',score:0}},{id:'q13-f2',trigger:'Mid',question_text:'건의했는데 받아들여지지 않았을 때 어떻게 했나요?',why_matters:'끈기와 설득력.',listen_for:'포기하지 않고 다른 방식으로 재시도.',good:{text:'데이터를 더 모아서 다시 제안하거나 작은 범위로 PoC를 진행.',score:5},poor:{text:'포기했다.',score:0}},{id:'q13-f3',trigger:'Low',question_text:'업무 중에 "이건 개선하면 좋겠다"고 느낀 적이 있나요?',why_matters:'문제 인식 능력.',listen_for:'개선점을 인식하는 능력.',good:{text:'반복적인 수작업이 있어서 스크립트로 자동화하고 싶었다.',score:5},poor:{text:'특별히 없다.',score:0}}],
-interviewer_note:{business_interpretation:'시니어는 "시키는 일만 잘하는 사람"이 아니라 "문제를 찾아서 해결하는 사람"이어야 합니다.',daily_analogy:'식당에서 바닥에 물이 흘렸을 때, 지나가는 직원(주니어) vs 즉시 닦고 원인을 찾아 수도꼭지를 고치는 직원(시니어).',level_expectation:'시니어에게는 "자발적 문제 발견 + 팀 설득 + 실행 + 결과"의 풀 사이클이 핵심입니다.'},
-expected_answer:{core:'• 문제 발견: 모니터링/코드 리뷰 중 성능 이슈나 기술 부채 발견\n• 제안: RFC 또는 팀 미팅에서 개선안 제시\n• 실행: 직접 구현하고 팀에 공유\n• 결과: 정량적 개선 효과',example:'DataFlow에서 API 응답 시간이 서서히 느려지는 것을 APM으로 발견했습니다. N+1 쿼리가 원인이었고, 팀 미팅에서 개선안을 발표한 후 직접 ORM 최적화를 진행했습니다. 결과적으로 p95 응답 시간이 800ms에서 200ms로 개선되었습니다.',key_points:['자발적 발견','실행력','정량적 결과']}},
-{id:14,category:'technical_depth',difficulty:'Easy',title:'MSA 서비스 경계 설계',question_text:'마이크로서비스로 시스템을 나눌 때, 서비스의 경계를 어떤 기준으로 결정하시나요?',context_bridge:'저희가 모놀리스를 MSA로 전환하면서 서비스 경계를 정하는 것이 가장 어려운 문제입니다.',why_matters:'MSA 설계의 핵심인 서비스 분리 기준에 대한 이해를 확인합니다.',listen_for:'기술적 기준이 아닌 비즈니스 도메인 기반의 경계 설정.',code_reference:null,
-terminology:[{term:'서비스 경계',pronunciation:'서비스 바운더리',explanation:'각 마이크로서비스가 담당하는 업무 범위의 구분선.'},{term:'도메인 주도 설계',pronunciation:'디디디',explanation:'비즈니스 영역을 기준으로 소프트웨어를 설계하는 방법론.'},{term:'바운디드 컨텍스트',pronunciation:'바운디드 컨텍스트',explanation:'특정 도메인 모델이 적용되는 명확한 범위.'},{term:'결합도',pronunciation:'커플링',explanation:'서비스 간 의존 정도. 낮을수록 독립적.'},{term:'응집도',pronunciation:'코히전',explanation:'하나의 서비스 내 기능들이 얼마나 관련 있는지. 높을수록 좋음.'},{term:'API 게이트웨이',pronunciation:'에이피아이 게이트웨이',explanation:'외부 요청을 적절한 서비스로 전달하는 입구.'},{term:'이벤트 드리븐',pronunciation:'이벤트 드리븐',explanation:'서비스 간 통신을 이벤트(알림)로 하는 방식.'}],
-answer_keywords:[{keyword:'도메인 기반 분리',importance:'must',explanation:'비즈니스 도메인을 기준으로 서비스 경계 결정'},{keyword:'결합도/응집도',importance:'must',explanation:'낮은 결합도, 높은 응집도 원칙'},{keyword:'데이터 소유권',importance:'good_to_have',explanation:'각 서비스가 자신의 데이터를 독립적으로 관리'}],
-scenarios:[{level:'Expert',score:15,text:'DDD 기반 바운디드 컨텍스트로 경계 설정. 데이터 소유권, 변경 빈도, 팀 구조까지 고려.'},{level:'Mid',score:8,text:'도메인 기반이라는 개념은 알지만 구체적 기준이 부족.'},{level:'Low',score:0,text:'기능 단위로 무작정 나누면 된다 수준.'}],
-follow_ups:[{id:'q14-f1',trigger:'Expert',question_text:'서비스 간 데이터를 공유해야 할 때 어떻게 처리하시나요?',why_matters:'분산 데이터 관리.',listen_for:'API 호출, 이벤트, 데이터 복제 등.',good:{text:'이벤트로 동기화하거나 API로 요청. 직접 DB 접근은 금지.',score:6},poor:{text:'공유 DB를 쓴다.',score:0}},{id:'q14-f2',trigger:'Mid',question_text:'서비스를 너무 잘게 나누면 어떤 문제가 생기나요?',why_matters:'오버 엔지니어링 인식.',listen_for:'운영 복잡도, 네트워크 지연, 디버깅 어려움.',good:{text:'서비스 수가 너무 많으면 운영과 디버깅이 매우 어려워진다.',score:4},poor:{text:'문제 없다.',score:0}},{id:'q14-f3',trigger:'Low',question_text:'모놀리스와 마이크로서비스를 각각 언제 쓰면 좋을까요?',why_matters:'적재적소 이해.',listen_for:'초기엔 모놀리스, 규모가 커지면 MSA.',good:{text:'초기 스타트업은 모놀리스가 효율적, 팀과 서비스 규모가 커지면 MSA.',score:4},poor:{text:'항상 MSA가 좋다.',score:0}}],
-interviewer_note:{business_interpretation:'서비스를 어떻게 나누느냐가 향후 개발 속도와 팀 구조를 결정합니다.',daily_analogy:'회사 조직도를 만드는 것과 같습니다. 부서를 어떤 기준으로 나누느냐에 따라 업무 효율이 달라집니다.',level_expectation:'시니어에게는 "비즈니스 도메인 기반 경계 설정"과 "결합도/응집도 원칙"이 기본입니다.'},
-expected_answer:{core:'• 비즈니스 도메인 기준 (DDD 바운디드 컨텍스트)\n• 낮은 결합도, 높은 응집도\n• 독립적 배포 가능 단위\n• 데이터 소유권 분리',example:'비즈니스 도메인을 기준으로 나눕니다. 예를 들어 "사용자 관리", "결제", "알림"은 각각 독립 서비스로 분리합니다. 핵심 기준은 "독립적으로 배포할 수 있는가"와 "데이터를 독립적으로 관리할 수 있는가"입니다.',key_points:['도메인 기반','결합도/응집도','데이터 소유권']}},
-{id:15,category:'technical_depth',difficulty:'Easy',title:'테스트 전략',question_text:'백엔드 시스템에서 단위 테스트, 통합 테스트, E2E 테스트를 어떻게 구성하시나요? 각각의 역할과 비중은?',context_bridge:'저희 팀의 테스트 커버리지가 낮아서 시니어가 테스트 문화를 이끌어주길 기대합니다.',why_matters:'체계적인 테스트 전략과 각 테스트 레벨의 역할을 이해하는지 확인합니다.',listen_for:'테스트 피라미드 개념과 각 레벨의 목적을 구분하는지.',code_reference:null,
-terminology:[{term:'단위 테스트',pronunciation:'유닛 테스트',explanation:'함수 하나하나를 개별적으로 검증하는 테스트.'},{term:'통합 테스트',pronunciation:'인테그레이션 테스트',explanation:'여러 모듈이 함께 잘 동작하는지 확인하는 테스트.'},{term:'E2E 테스트',pronunciation:'이투이 테스트',explanation:'실제 사용자처럼 전체 시스템을 테스트하는 것.'},{term:'테스트 피라미드',pronunciation:'테스트 피라미드',explanation:'단위 테스트를 가장 많이, E2E를 가장 적게 구성하는 원칙.'},{term:'커버리지',pronunciation:'커버리지',explanation:'전체 코드 중 테스트가 확인하는 코드의 비율.'},{term:'모킹',pronunciation:'모킹',explanation:'외부 의존성을 가짜로 대체하여 테스트하는 기법.'},{term:'pytest',pronunciation:'파이테스트',explanation:'Python의 대표적인 테스트 프레임워크.'},{term:'CI',pronunciation:'씨아이',explanation:'코드 변경 시 자동으로 테스트를 실행하는 시스템.'}],
-answer_keywords:[{keyword:'테스트 피라미드',importance:'must',explanation:'단위>통합>E2E 비중 구조'},{keyword:'각 레벨의 목적',importance:'must',explanation:'단위=로직, 통합=연결, E2E=시나리오'},{keyword:'자동화',importance:'good_to_have',explanation:'CI에서 자동 실행'}],
-scenarios:[{level:'Expert',score:15,text:'테스트 피라미드 원칙. 단위 70%/통합 20%/E2E 10% 비중. 각 레벨의 목적과 실행 시점을 명확히 구분.'},{level:'Mid',score:8,text:'테스트 종류는 알지만 비중이나 전략이 불명확.'},{level:'Low',score:0,text:'테스트를 거의 작성하지 않음.'}],
-follow_ups:[{id:'q15-f1',trigger:'Expert',question_text:'테스트 커버리지가 낮은 레거시 코드에 테스트를 추가한다면 어디서부터 시작하시나요?',why_matters:'현실적 테스트 전략.',listen_for:'핵심 비즈니스 로직부터, 변경이 잦은 코드부터.',good:{text:'핵심 비즈니스 로직과 버그가 자주 발생하는 모듈부터 통합 테스트를 추가.',score:6},poor:{text:'처음부터 전부 작성.',score:0}},{id:'q15-f2',trigger:'Mid',question_text:'모킹을 많이 사용하면 어떤 문제가 있을 수 있나요?',why_matters:'테스트 품질 인식.',listen_for:'모킹이 실제와 다를 수 있음.',good:{text:'모킹이 실제 동작과 달라서 테스트는 통과하지만 실제로는 깨질 수 있다.',score:4},poor:{text:'문제없다.',score:0}},{id:'q15-f3',trigger:'Low',question_text:'테스트를 작성하면 어떤 점이 좋다고 생각하시나요?',why_matters:'테스트 가치 인식.',listen_for:'버그 방지, 리팩토링 안전망.',good:{text:'코드 수정 시 기존 기능이 깨지지 않는지 확인할 수 있다.',score:4},poor:{text:'시간 낭비.',score:0}}],
-interviewer_note:{business_interpretation:'테스트가 없으면 코드 수정이 두려워지고 개발 속도가 점점 느려집니다.',daily_analogy:'자동차 정비 체크리스트와 같습니다. 엔진 오일(단위), 브레이크(통합), 시운전(E2E) 각각 다른 것을 확인합니다.',level_expectation:'시니어에게는 테스트 피라미드 이해와 팀에 테스트 문화를 이끌 수 있는 역량이 필요합니다.'},
-expected_answer:{core:'• 테스트 피라미드: 단위 70%, 통합 20%, E2E 10%\n• 단위: 비즈니스 로직 함수 단위 검증\n• 통합: API+DB 연동 검증\n• E2E: 핵심 사용자 시나리오 검증\n• CI에서 자동 실행',example:'단위 테스트는 서비스 레이어 함수를 pytest로 검증하고 70%를 목표합니다. 통합 테스트는 실제 DB와 함께 API 엔드포인트를 테스트합니다. E2E는 핵심 시나리오(가입→주문→결제)만 최소로 유지합니다. PR마다 CI에서 자동 실행됩니다.',key_points:['피라미드 원칙','각 레벨 역할','자동화']}},
-{id:16,category:'technical_depth',difficulty:'Medium',title:'보안 및 인증 패턴',question_text:'백엔드 API의 인증/인가 체계를 어떻게 설계하시나요? JWT 기반 인증의 장단점과 보안 고려사항을 말씀해주세요.',context_bridge:'저희 SaaS 서비스는 B2B 고객의 민감한 데이터를 다루므로 보안이 중요합니다.',why_matters:'보안에 대한 체계적 이해와 실무 적용 능력을 확인합니다.',listen_for:'단순 구현이 아닌 보안 위협과 대응 전략까지 포함한 설계.',code_reference:null,
-terminology:[{term:'인증',pronunciation:'어센티케이션',explanation:'사용자가 누구인지 확인하는 과정. 신분증 확인과 같음.'},{term:'인가',pronunciation:'오서라이제이션',explanation:'인증된 사용자가 어떤 권한이 있는지 확인. 출입 권한과 같음.'},{term:'JWT',pronunciation:'제이더블유티',explanation:'토큰 기반 인증 방식. 디지털 출입증 같은 것.'},{term:'Access Token',pronunciation:'액세스 토큰',explanation:'짧은 유효기간의 인증 토큰. 단기 출입증.'},{term:'Refresh Token',pronunciation:'리프레시 토큰',explanation:'Access Token을 재발급하기 위한 장기 토큰.'},{term:'RBAC',pronunciation:'알백',explanation:'역할 기반 접근 제어. 역할(관리자, 사용자)별로 권한을 나누는 것.'},{term:'CORS',pronunciation:'코스',explanation:'다른 도메인에서 API를 호출할 수 있게 허용하는 보안 정책.'},{term:'HTTPS',pronunciation:'에이치티티피에스',explanation:'데이터를 암호화하여 전송하는 프로토콜.'},{term:'SQL 인젝션',pronunciation:'에스큐엘 인젝션',explanation:'악의적인 SQL을 넣어 데이터를 빼내는 공격.'}],
-answer_keywords:[{keyword:'JWT 장단점',importance:'must',explanation:'JWT의 장점(무상태)과 단점(토큰 크기, 무효화 어려움)'},{keyword:'토큰 관리 전략',importance:'must',explanation:'Access/Refresh Token 분리, 만료 관리'},{keyword:'RBAC',importance:'good_to_have',explanation:'역할 기반 접근 제어 설계'}],
-scenarios:[{level:'Expert',score:20,text:'JWT 장단점 이해+Access/Refresh 전략+RBAC+보안 위협 대응(XSS, CSRF)+토큰 무효화 방안.'},{level:'Mid',score:10,text:'JWT 사용 경험은 있지만 보안 위협 대응이 부족.'},{level:'Low',score:0,text:'JWT를 단순히 발급만 할 줄 안다.'}],
-follow_ups:[{id:'q16-f1',trigger:'Expert',question_text:'JWT를 이미 발급한 뒤 해당 사용자의 권한을 즉시 회수해야 한다면?',why_matters:'JWT의 가장 어려운 문제.',listen_for:'토큰 블랙리스트, 짧은 만료시간, Redis 활용.',good:{text:'Redis에 블랙리스트를 관리하거나 Access Token 만료를 5분으로 짧게 유지.',score:8},poor:{text:'방법이 없다.',score:0}},{id:'q16-f2',trigger:'Mid',question_text:'Refresh Token은 어디에 저장하는 것이 안전한가요?',why_matters:'실무 보안 감각.',listen_for:'HttpOnly Cookie, Secure 플래그.',good:{text:'HttpOnly + Secure + SameSite 설정된 쿠키에 저장.',score:5},poor:{text:'로컬 스토리지.',score:0}},{id:'q16-f3',trigger:'Low',question_text:'API 보안에서 가장 기본적으로 해야 할 것은 무엇인가요?',why_matters:'보안 기본기.',listen_for:'HTTPS, 입력 검증, 인증.',good:{text:'HTTPS 필수, 모든 입력값 검증, 인증/인가 체크.',score:5},poor:{text:'잘 모르겠다.',score:0}}],
-interviewer_note:{business_interpretation:'B2B SaaS에서 보안 사고는 고객 신뢰를 잃는 치명적 문제입니다.',daily_analogy:'건물 보안 시스템과 같습니다. 출입증(JWT) 발급, 층별 권한(RBAC), CCTV(로깅), 출입증 분실 대응(토큰 무효화).',level_expectation:'시니어에게는 "보안 위협을 인식하고 방어 설계를 하는 능력"이 핵심입니다.'},
-expected_answer:{core:'• JWT 장점: 무상태, 서버 부담 감소\n• JWT 단점: 토큰 크기, 즉시 무효화 어려움\n• 전략: Access Token(짧은 만료) + Refresh Token(긴 만료)\n• RBAC: 역할 기반 접근 제어\n• 보안: XSS/CSRF 방지, 입력 검증, HTTPS',example:'JWT를 사용하되 Access Token은 15분, Refresh Token은 7일로 설정합니다. RBAC으로 관리자/일반 사용자/뷰어 권한을 분리하고, Refresh Token은 HttpOnly Cookie에 저장합니다. 토큰 강제 무효화가 필요하면 Redis 블랙리스트를 활용합니다.',key_points:['JWT 트레이드오프','토큰 전략','보안 방어']}},
-{id:17,category:'execution_ownership',difficulty:'Easy',title:'CI/CD 파이프라인 설계',question_text:'CI/CD 파이프라인을 처음부터 구축한다면 어떤 단계들을 포함시키시겠습니까?',context_bridge:'저희 팀은 GitHub Actions 기반 CI/CD를 사용하고 있지만 아직 초기 단계입니다.',why_matters:'자동화된 배포 파이프라인에 대한 이해와 설계 역량을 확인합니다.',listen_for:'빌드→테스트→배포의 기본 흐름과 각 단계의 목적.',code_reference:null,
-terminology:[{term:'CI',pronunciation:'씨아이',explanation:'Continuous Integration. 코드 변경 시 자동으로 빌드하고 테스트하는 것.'},{term:'CD',pronunciation:'씨디',explanation:'Continuous Deployment. 테스트 통과 후 자동으로 서버에 배포하는 것.'},{term:'파이프라인',pronunciation:'파이프라인',explanation:'코드가 서버에 올라가기까지의 자동화된 과정.'},{term:'GitHub Actions',pronunciation:'깃허브 액션스',explanation:'GitHub에서 제공하는 CI/CD 자동화 도구.'},{term:'린팅',pronunciation:'린팅',explanation:'코드 스타일과 규칙을 자동으로 검사하는 것.'},{term:'스테이징',pronunciation:'스테이징',explanation:'실제 서비스에 배포하기 전 테스트하는 환경.'},{term:'블루-그린 배포',pronunciation:'블루-그린 배포',explanation:'새 버전을 별도 서버에 띄워두고 한 번에 전환하는 배포 방식.'},{term:'롤백',pronunciation:'롤백',explanation:'문제가 생기면 이전 버전으로 되돌리는 것.'}],
-answer_keywords:[{keyword:'기본 파이프라인 단계',importance:'must',explanation:'린팅→빌드→테스트→배포의 기본 흐름'},{keyword:'환경별 배포',importance:'must',explanation:'개발→스테이징→프로덕션 환경 구분'},{keyword:'롤백 전략',importance:'good_to_have',explanation:'배포 실패 시 복구 방안'}],
-scenarios:[{level:'Expert',score:15,text:'린팅→단위테스트→빌드→통합테스트→스테이징 배포→E2E→프로덕션 배포. 롤백과 승인 프로세스 포함.'},{level:'Mid',score:8,text:'테스트→배포 기본 흐름은 알지만 세부 단계 부족.'},{level:'Low',score:0,text:'수동 배포 또는 CI/CD 경험 없음.'}],
-follow_ups:[{id:'q17-f1',trigger:'Expert',question_text:'프로덕션 배포 시 무중단 배포는 어떻게 구현하시나요?',why_matters:'고가용성 배포.',listen_for:'블루-그린, 카나리, 롤링 배포.',good:{text:'블루-그린 배포로 전환하거나 카나리 배포로 일부 트래픽에만 먼저 적용.',score:6},poor:{text:'서버를 내렸다 올린다.',score:0}},{id:'q17-f2',trigger:'Mid',question_text:'CI에서 테스트가 실패하면 어떻게 처리하시나요?',why_matters:'CI 문화.',listen_for:'머지 차단, 원인 분석.',good:{text:'PR 머지를 차단하고 실패한 테스트를 먼저 수정.',score:4},poor:{text:'무시하고 머지.',score:0}},{id:'q17-f3',trigger:'Low',question_text:'CI/CD가 왜 필요하다고 생각하시나요?',why_matters:'자동화 가치 인식.',listen_for:'수동 배포 위험, 일관성.',good:{text:'수동 배포는 실수가 생기고 느리다. 자동화하면 안전하고 빠르다.',score:4},poor:{text:'편리하니까.',score:0}}],
-interviewer_note:{business_interpretation:'배포 자동화는 제품 출시 속도와 안정성을 결정합니다.',daily_analogy:'공장의 생산 라인과 같습니다. 원재료 검수(린팅)→조립(빌드)→품질 검사(테스트)→출하(배포). 어느 단계에서든 불량이 발견되면 라인을 멈춥니다.',level_expectation:'시니어에게는 파이프라인 각 단계의 목적과 실패 시 대응 전략이 필요합니다.'},
-expected_answer:{core:'• 린팅/포맷팅 자동 검사\n• 단위 테스트 + 통합 테스트\n• Docker 이미지 빌드\n• 스테이징 환경 배포 + E2E 테스트\n• 승인 후 프로덕션 배포\n• 롤백 전략 포함',example:'GitHub Actions로 PR 시 린팅+단위테스트 자동 실행, 머지 시 Docker 빌드→스테이징 배포→E2E 실행→통과 시 프로덕션 배포. 프로덕션은 블루-그린 배포로 무중단, 문제 시 즉시 롤백.',key_points:['자동화 단계','환경 구분','롤백']}},
-{id:18,category:'execution_ownership',difficulty:'Easy',title:'모니터링과 관측성',question_text:'운영 중인 서비스의 모니터링과 알림은 어떻게 구성하시나요? 어떤 지표를 가장 중요하게 보시나요?',context_bridge:'서비스가 커지면서 장애를 빠르게 감지하는 것이 중요해지고 있습니다.',why_matters:'서비스 안정성을 위한 모니터링 설계 역량을 확인합니다.',listen_for:'핵심 지표와 알림 기준에 대한 이해.',code_reference:null,
-terminology:[{term:'모니터링',pronunciation:'모니터링',explanation:'서비스 상태를 실시간으로 감시하는 것.'},{term:'관측성',pronunciation:'옵저버빌리티',explanation:'시스템 내부 상태를 외부에서 파악할 수 있는 능력.'},{term:'메트릭',pronunciation:'메트릭',explanation:'측정 가능한 수치 데이터. 예: 응답 시간, CPU 사용률.'},{term:'로그',pronunciation:'로그',explanation:'시스템이 기록하는 동작 이력.'},{term:'트레이싱',pronunciation:'트레이싱',explanation:'요청이 시스템을 지나가는 경로를 추적하는 것.'},{term:'알림',pronunciation:'얼럿',explanation:'이상 징후 감지 시 자동으로 보내는 경고.'},{term:'대시보드',pronunciation:'대시보드',explanation:'주요 지표를 한눈에 볼 수 있는 화면.'},{term:'SLO',pronunciation:'에스엘오',explanation:'서비스 수준 목표. 예: 응답 시간 200ms 이하 99.9%.'}],
-answer_keywords:[{keyword:'핵심 지표',importance:'must',explanation:'응답 시간, 에러율, 처리량 등 핵심 메트릭'},{keyword:'알림 전략',importance:'must',explanation:'어떤 조건에서 알림을 보내는지'},{keyword:'로그/트레이싱',importance:'good_to_have',explanation:'구조화된 로깅과 분산 트레이싱'}],
-scenarios:[{level:'Expert',score:15,text:'메트릭+로그+트레이싱 3축. SLO 기반 알림. 대시보드 구성 경험. 알림 피로도 관리.'},{level:'Mid',score:8,text:'기본 모니터링은 하지만 체계적 전략 부족.'},{level:'Low',score:0,text:'모니터링 경험 없음. 문제 발생 후 수동 확인.'}],
-follow_ups:[{id:'q18-f1',trigger:'Expert',question_text:'알림이 너무 많아서 팀이 무시하게 되는 상황을 어떻게 해결하시나요?',why_matters:'알림 피로도 관리.',listen_for:'알림 임계값 조정, 우선순위화, 노이즈 제거.',good:{text:'알림을 심각도별로 구분하고 노이즈를 제거. 실제 대응이 필요한 것만 알림.',score:6},poor:{text:'다 보내면 된다.',score:0}},{id:'q18-f2',trigger:'Mid',question_text:'어떤 도구를 사용해서 모니터링하셨나요?',why_matters:'실무 도구 경험.',listen_for:'Prometheus, Grafana, DataDog 등 구체적 도구.',good:{text:'Prometheus+Grafana로 메트릭 대시보드, ELK로 로그 수집.',score:4},poor:{text:'구체적 도구 경험 없음.',score:0}},{id:'q18-f3',trigger:'Low',question_text:'서비스에 문제가 있는지 어떻게 알 수 있을까요?',why_matters:'모니터링 필요성 인식.',listen_for:'자동 감지의 중요성.',good:{text:'사용자가 신고하기 전에 자동으로 감지해야 한다.',score:4},poor:{text:'사용자가 알려주면.',score:0}}],
-interviewer_note:{business_interpretation:'모니터링이 없으면 장애를 고객이 먼저 발견하게 됩니다.',daily_analogy:'자동차 계기판과 같습니다. 속도계(응답 시간), 엔진 경고등(에러율), 연료계(리소스)를 항상 확인해야 합니다.',level_expectation:'시니어에게는 "무엇을 모니터링할지"와 "언제 알림을 보낼지" 기준 설계가 핵심입니다.'},
-expected_answer:{core:'• 핵심 지표: 응답 시간(p95), 에러율(5xx), 처리량(RPS)\n• 3축: 메트릭 + 로그 + 트레이싱\n• 알림: SLO 기반 임계값으로 자동 알림\n• 대시보드: 실시간 핵심 지표 시각화',example:'Prometheus로 메트릭을 수집하고 Grafana 대시보드에서 실시간 모니터링합니다. 핵심 지표는 API p95 응답 시간, 5xx 에러율, DB 커넥션 수입니다. p95가 500ms를 넘거나 에러율이 1%를 넘으면 Slack 알림을 보냅니다.',key_points:['핵심 지표','자동 알림','도구 활용']}},
-{id:19,category:'execution_ownership',difficulty:'Medium',title:'일정 산정과 프로젝트 계획',question_text:'새로운 기능 개발의 일정을 산정할 때 어떤 방법으로 추정하시나요? 예상보다 지연될 때는 어떻게 대응하시나요?',context_bridge:'시니어에게는 정확한 일정 산정과 리스크 관리를 기대합니다.',why_matters:'시니어의 프로젝트 관리 역량과 현실적 판단력을 확인합니다.',listen_for:'낙관적 추정이 아닌 버퍼를 포함한 현실적 산정.',code_reference:null,
-terminology:[{term:'일정 산정',pronunciation:'에스티메이션',explanation:'작업에 걸리는 시간을 예측하는 것.'},{term:'버퍼',pronunciation:'버퍼',explanation:'예상치 못한 상황에 대비한 여유 시간.'},{term:'스코프',pronunciation:'스코프',explanation:'작업 범위.'},{term:'스파이크',pronunciation:'스파이크',explanation:'불확실한 기술 검증을 위해 짧게 실험하는 것.'},{term:'스토리 포인트',pronunciation:'스토리 포인트',explanation:'작업의 복잡도와 크기를 상대적으로 나타내는 단위.'},{term:'번다운 차트',pronunciation:'번다운 차트',explanation:'남은 작업량을 시간에 따라 보여주는 그래프.'},{term:'리스크',pronunciation:'리스크',explanation:'계획대로 되지 않을 수 있는 위험 요소.'},{term:'크리티컬 패스',pronunciation:'크리티컬 패스',explanation:'전체 일정에서 가장 긴 작업 경로. 이것이 지연되면 전체가 지연됨.'}],
-answer_keywords:[{keyword:'분해 기반 추정',importance:'must',explanation:'큰 작업을 작게 나누어 추정'},{keyword:'버퍼 포함',importance:'must',explanation:'불확실성에 대한 여유 시간'},{keyword:'지연 시 대응',importance:'good_to_have',explanation:'스코프 조정, 우선순위 재설정'}],
-scenarios:[{level:'Expert',score:20,text:'작업 분해→스파이크→추정→버퍼 추가. 지연 시 스코프 조정+이해관계자 조기 소통. 과거 실적 기반.'},{level:'Mid',score:10,text:'경험에 기반해 추정하지만 체계적이지 않음.'},{level:'Low',score:0,text:'대충 감으로 추정. 지연 시 야근으로 해결.'}],
-follow_ups:[{id:'q19-f1',trigger:'Expert',question_text:'일정이 50% 이상 지연될 것으로 예상될 때 어떻게 하시나요?',why_matters:'위기 관리.',listen_for:'조기 공유, 대안 제시.',good:{text:'즉시 이해관계자에게 공유하고 스코프 축소 또는 출시 일정 조정 제안.',score:8},poor:{text:'더 열심히 한다.',score:0}},{id:'q19-f2',trigger:'Mid',question_text:'추정이 자주 빗나가는 이유는 무엇이라고 생각하시나요?',why_matters:'자기 인식.',listen_for:'불확실성, 의존성, 요구사항 변경 등.',good:{text:'기술적 불확실성, 외부 의존성, 요구사항 변경을 과소평가하기 때문.',score:5},poor:{text:'모르겠다.',score:0}},{id:'q19-f3',trigger:'Low',question_text:'한 번도 해보지 않은 기술이 필요한 작업은 어떻게 추정하시나요?',why_matters:'불확실성 대응.',listen_for:'스파이크, 리서치 시간 확보.',good:{text:'1~2일 기술 검증(스파이크) 시간을 먼저 잡고 그 후에 추정.',score:5},poor:{text:'대충 넉넉히.',score:0}}],
-interviewer_note:{business_interpretation:'일정 산정은 비즈니스 계획의 기초입니다. 정확한 추정이 신뢰를 만듭니다.',daily_analogy:'여행 계획을 세울 때, 이동 시간에 교통 체증과 휴게소 시간을 포함하는 것처럼, 개발에도 버퍼가 필요합니다.',level_expectation:'시니어에게는 "분해 기반 추정 + 불확실성 버퍼 + 지연 시 소통"이 핵심입니다.'},
-expected_answer:{core:'• 작업을 2시간~1일 단위로 분해\n• 불확실한 부분은 스파이크로 검증\n• 총 추정치에 20~30% 버퍼\n• 지연 시 조기 공유+스코프 조정',example:'기능을 작은 태스크로 분해하고 각각 추정합니다. 처음 해보는 기술이면 1일 스파이크를 먼저 잡습니다. 총합에 25% 버퍼를 추가하고, 버퍼를 먹기 시작하면 PM에게 미리 알립니다.',key_points:['분해 추정','버퍼','조기 소통']}},
-{id:20,category:'communication',difficulty:'Easy',title:'기술 문서 작성',question_text:'기술 문서를 작성할 때 어떤 원칙으로 작성하시나요? 잘 쓴 기술 문서란 무엇이라고 생각하시나요?',context_bridge:'저희 팀의 기술 문서가 부족해서 시니어가 문서화 문화를 이끌어주길 기대합니다.',why_matters:'기술 문서 작성 능력과 문서화에 대한 태도를 확인합니다.',listen_for:'독자를 고려한 문서 작성과 문서 유지보수 관점.',code_reference:null,
-terminology:[{term:'기술 문서',pronunciation:'기술 문서',explanation:'시스템이나 코드의 동작 방식을 설명한 글.'},{term:'README',pronunciation:'리드미',explanation:'프로젝트의 첫 번째 안내 문서.'},{term:'API 문서',pronunciation:'에이피아이 문서',explanation:'API 사용 방법을 설명한 명세서.'},{term:'ADR',pronunciation:'에이디알',explanation:'아키텍처 결정 기록. 왜 이런 결정을 했는지 기록하는 문서.'},{term:'위키',pronunciation:'위키',explanation:'팀이 함께 편집하는 지식 저장소.'},{term:'온보딩 문서',pronunciation:'온보딩 문서',explanation:'새 팀원이 빠르게 적응할 수 있도록 돕는 안내 문서.'},{term:'다이어그램',pronunciation:'다이어그램',explanation:'시스템 구조나 흐름을 시각적으로 표현한 그림.'}],
-answer_keywords:[{keyword:'독자 중심',importance:'must',explanation:'누가 읽을지 고려하여 수준 조절'},{keyword:'유지보수',importance:'must',explanation:'코드와 함께 문서도 업데이트하는 습관'},{keyword:'구조화',importance:'good_to_have',explanation:'목적, 배경, 상세, 예시 순서'}],
-scenarios:[{level:'Expert',score:15,text:'독자별 수준 조절+코드와 동기화+ADR로 결정 이력 기록+자동 생성 활용.'},{level:'Mid',score:8,text:'문서 작성은 하지만 체계적 원칙 없음.'},{level:'Low',score:0,text:'문서 작성을 거의 하지 않음.'}],
-follow_ups:[{id:'q20-f1',trigger:'Expert',question_text:'문서가 코드와 동기화되지 않는 문제를 어떻게 해결하시나요?',why_matters:'문서 유지보수.',listen_for:'자동 생성, 코드 리뷰 시 확인, 최소 문서.',good:{text:'API 문서는 코드에서 자동 생성, PR 리뷰에 문서 업데이트 체크리스트 포함.',score:6},poor:{text:'어쩔 수 없다.',score:0}},{id:'q20-f2',trigger:'Mid',question_text:'어떤 종류의 문서를 가장 많이 작성하시나요?',why_matters:'문서 경험.',listen_for:'README, API 문서, 설계 문서 등.',good:{text:'API 문서, 시스템 설계 문서, 온보딩 가이드.',score:4},poor:{text:'거의 안 쓴다.',score:0}},{id:'q20-f3',trigger:'Low',question_text:'문서가 왜 필요하다고 생각하시나요?',why_matters:'문서화 가치 인식.',listen_for:'지식 공유, 온보딩, 유지보수.',good:{text:'새 팀원 온보딩, 인수인계, 나중에 본인도 기억 못할 수 있으므로.',score:4},poor:{text:'필요 없다.',score:0}}],
-interviewer_note:{business_interpretation:'문서가 없으면 특정 사람에게 의존하게 되고, 그 사람이 떠나면 큰 문제가 됩니다.',daily_analogy:'요리 레시피와 같습니다. 요리사가 바뀌어도 같은 맛을 낼 수 있어야 합니다.',level_expectation:'시니어에게는 "독자 중심 작성"과 "문서 유지보수 전략"이 핵심입니다.'},
-expected_answer:{core:'• 독자 중심: 누가 읽을지 고려\n• 구조화: 목적→배경→상세→예시\n• 유지보수: 코드와 동기화, 자동 생성 활용\n• ADR: 기술 결정 이력 기록',example:'문서는 독자에 따라 수준을 조절합니다. API 문서는 FastAPI의 자동 생성을 활용하고, 설계 문서는 배경→문제→대안→결정 순서로 작성합니다. PR에 문서 업데이트 여부를 체크리스트로 포함합니다.',key_points:['독자 중심','유지보수','구조화']}},
-{id:21,category:'communication',difficulty:'Easy',title:'크로스팀 의존성 관리',question_text:'다른 팀의 작업에 의존하는 프로젝트를 진행할 때, 의존성을 어떻게 관리하시나요?',context_bridge:'저희 백엔드 팀은 프론트엔드, 인프라 팀과 의존성이 많습니다.',why_matters:'팀 간 의존성 관리 능력과 선제적 소통 역량을 확인합니다.',listen_for:'의존성을 사전에 파악하고 선제적으로 소통하는지.',code_reference:null,
-terminology:[{term:'의존성',pronunciation:'디펜던시',explanation:'다른 팀이나 시스템의 작업이 끝나야 내 작업을 진행할 수 있는 관계.'},{term:'블로커',pronunciation:'블로커',explanation:'진행을 막는 장애물.'},{term:'목업',pronunciation:'목업',explanation:'실제가 아닌 가짜 데이터나 인터페이스.'},{term:'인터페이스 합의',pronunciation:'인터페이스 합의',explanation:'팀 간 데이터 형식을 미리 약속하는 것.'},{term:'타임라인',pronunciation:'타임라인',explanation:'작업의 시간 계획.'},{term:'에스컬레이션',pronunciation:'에스컬레이션',explanation:'문제를 상위 의사결정자에게 올리는 것.'},{term:'슬랙 타임',pronunciation:'슬랙 타임',explanation:'일정에서의 여유 시간.'}],
-answer_keywords:[{keyword:'사전 식별',importance:'must',explanation:'프로젝트 시작 전 의존성 파악'},{keyword:'선제적 소통',importance:'must',explanation:'문제 발생 전 미리 소통'},{keyword:'대안 준비',importance:'good_to_have',explanation:'블로커 시 목업 등 우회 방안'}],
-scenarios:[{level:'Expert',score:15,text:'프로젝트 시작 시 의존성 매핑→인터페이스 선합의→정기 싱크→블로커 시 목업으로 우회.'},{level:'Mid',score:8,text:'필요할 때 소통하지만 사전 계획 부족.'},{level:'Low',score:0,text:'블로커 발생 시에야 소통. 수동적.'}],
-follow_ups:[{id:'q21-f1',trigger:'Expert',question_text:'다른 팀의 일정이 지연되어 우리 일정도 영향받을 때 어떻게 하시나요?',why_matters:'위기 관리.',listen_for:'대안 제시, 에스컬레이션, 스코프 조정.',good:{text:'목업 API로 우선 개발 진행하면서 PM에게 리스크 공유. 필요 시 에스컬레이션.',score:6},poor:{text:'기다린다.',score:0}},{id:'q21-f2',trigger:'Mid',question_text:'의존성이 있는 작업의 일정을 어떻게 산정하시나요?',why_matters:'의존성 감안한 계획.',listen_for:'버퍼, 병렬 작업, 크리티컬 패스.',good:{text:'의존성 있는 부분에 버퍼를 더 넣고, 독립적인 부분을 먼저 진행.',score:4},poor:{text:'다른 팀 일정에 맞춘다.',score:0}},{id:'q21-f3',trigger:'Low',question_text:'다른 팀에 요청해야 할 때 어떤 방식으로 소통하시나요?',why_matters:'기본 소통 방식.',listen_for:'명확한 요청, 기한 제시.',good:{text:'필요한 것, 이유, 기한을 명확히 전달.',score:4},poor:{text:'슬랙에 한 줄 보낸다.',score:0}}],
-interviewer_note:{business_interpretation:'팀 간 의존성 관리 실패는 전체 프로젝트 지연으로 이어집니다.',daily_analogy:'결혼식 준비와 같습니다. 드레스, 꽃, 케이크 업체가 각자 작업하되, 전체 일정에 맞춰 조율해야 합니다.',level_expectation:'시니어에게는 "사전 식별 + 선제적 소통 + 블로커 우회"가 핵심입니다.'},
-expected_answer:{core:'• 사전 식별: 프로젝트 시작 시 의존성 매핑\n• 인터페이스 선합의: 데이터 형식 미리 약속\n• 정기 싱크: 주간 진행 상황 공유\n• 블로커 우회: 목업으로 개발 진행',example:'프로젝트 킥오프 때 의존성 다이어그램을 그리고, 관련 팀과 인터페이스를 먼저 합의합니다. 주간 싱크에서 진행 상황을 확인하고, 다른 팀 작업이 늦어지면 목업 API로 우선 개발을 진행합니다.',key_points:['사전 파악','선제적 소통','우회 방안']}},
-{id:22,category:'communication',difficulty:'Hard',title:'지식 공유 문화',question_text:'팀 내 지식 공유 문화를 만들고 유지하기 위해 어떤 노력을 하시나요? 구체적 경험이 있으면 말씀해주세요.',context_bridge:'저희 팀은 특정 사람에게 지식이 집중되는 문제가 있습니다.',why_matters:'시니어가 지식 공유를 주도하고 "버스 팩터"를 높일 수 있는지 확인합니다.',listen_for:'단발성이 아닌 지속적이고 체계적인 지식 공유 방법.',code_reference:null,
-terminology:[{term:'지식 공유',pronunciation:'날리지 셰어링',explanation:'팀원들 간에 기술 지식과 경험을 나누는 활동.'},{term:'버스 팩터',pronunciation:'버스 팩터',explanation:'핵심 인원이 빠졌을 때 프로젝트가 멈추는 위험도.'},{term:'기술 세미나',pronunciation:'테크 톡',explanation:'팀 내에서 기술 주제를 발표하는 시간.'},{term:'페어 프로그래밍',pronunciation:'페어 프로그래밍',explanation:'두 명이 함께 코딩하며 지식을 공유하는 방법.'},{term:'위키',pronunciation:'위키',explanation:'팀이 함께 편집하는 지식 저장소.'},{term:'온보딩',pronunciation:'온보딩',explanation:'새 팀원이 빠르게 적응하도록 돕는 과정.'},{term:'사일로',pronunciation:'사일로',explanation:'정보가 특정 사람/팀에 갇혀 공유되지 않는 상태.'},{term:'문서화',pronunciation:'도큐멘테이션',explanation:'지식을 글로 기록하는 것.'}],
-answer_keywords:[{keyword:'체계적 방법',importance:'must',explanation:'기술 세미나, 코드 리뷰, 위키 등 구체적 방법'},{keyword:'지속성',importance:'must',explanation:'일회성이 아닌 문화로 정착시키는 노력'},{keyword:'버스 팩터 개선',importance:'good_to_have',explanation:'특정 인원 의존도를 낮추는 전략'}],
-scenarios:[{level:'Expert',score:25,text:'주간 테크 톡+코드 리뷰로 지식 확산+페어 프로그래밍+문서화 문화+온보딩 체계. 구체적 사례와 결과.'},{level:'Mid',score:12,text:'필요성은 인식하지만 실행 경험이 부족.'},{level:'Low',score:0,text:'지식 공유에 관심 없음. 본인만 알면 된다.'}],
-follow_ups:[{id:'q22-f1',trigger:'Expert',question_text:'팀원이 지식 공유에 소극적일 때 어떻게 참여를 유도하시나요?',why_matters:'문화 형성 리더십.',listen_for:'강요가 아닌 동기 부여.',good:{text:'작은 것부터 시작. 코드 리뷰에서 배운 점 공유, 발표 부담을 줄이는 포맷.',score:8},poor:{text:'의무화한다.',score:0}},{id:'q22-f2',trigger:'Mid',question_text:'지식 공유의 가장 큰 장벽은 무엇이라고 생각하시나요?',why_matters:'현실적 인식.',listen_for:'시간 부족, 문화, 동기 부여.',good:{text:'당장 급한 업무에 밀려서. 일정에 포함시키는 것이 중요.',score:5},poor:{text:'모르겠다.',score:0}},{id:'q22-f3',trigger:'Low',question_text:'본인만 알고 있는 기술 지식이 있을 때 어떻게 하시나요?',why_matters:'공유 의지.',listen_for:'공유하려는 태도.',good:{text:'문서로 정리하거나 팀에 공유한다.',score:5},poor:{text:'물어보면 알려준다.',score:0}}],
-interviewer_note:{business_interpretation:'지식이 한 사람에게 집중되면, 그 사람이 퇴사하면 서비스가 위험합니다.',daily_analogy:'요리사가 레시피를 공유하지 않으면 그 사람이 쉬는 날 메뉴를 못 만드는 것과 같습니다.',level_expectation:'시니어에게는 "지식 공유를 문화로 만드는 리더십"이 핵심입니다.'},
-expected_answer:{core:'• 주간 테크 톡: 팀원 돌아가며 발표\n• 코드 리뷰: 지식 공유의 일상 채널\n• 문서화: 위키에 아키텍처, 트러블슈팅 기록\n• 페어 프로그래밍: 복잡한 작업 시 함께\n• 온보딩 체계: 새 팀원 적응 프로그램',example:'DataFlow에서 매주 금요일 30분 테크 톡을 도입했습니다. 부담을 줄이기 위해 TIL(Today I Learned) 형식으로 시작했고, 코드 리뷰 시 "왜"를 항상 설명하여 자연스러운 지식 공유가 되었습니다. 결과적으로 팀의 버스 팩터가 개선되어 특정 모듈을 여러 사람이 수정할 수 있게 되었습니다.',key_points:['체계적 방법','문화 형성','버스 팩터 개선']}},
-{id:23,category:'risk_flags',difficulty:'Easy',title:'대규모 트래픽 경험 한계',is_risk:true,risk_source:'중규모(일 50만 요청) 경험만 있고 대규모 트래픽 미확인',question_text:'지금까지 다루셨던 서비스의 최대 트래픽 규모가 어느 정도였나요? 대규모 트래픽에 대한 경험이나 준비는 어떻게 하고 계신가요?',context_bridge:'저희 서비스는 B2B 고객 증가로 트래픽이 빠르게 늘고 있습니다.',why_matters:'대규모 트래픽 경험 부족이 실제 리스크인지, 학습으로 극복 가능한 수준인지 확인합니다.',listen_for:'솔직한 경험 범위 인정과 학습/준비 의지.',code_reference:null,
-terminology:[{term:'트래픽',pronunciation:'트래픽',explanation:'서버에 들어오는 요청의 양.'},{term:'RPS',pronunciation:'알피에스',explanation:'초당 요청 수. Requests Per Second.'},{term:'스케일링',pronunciation:'스케일링',explanation:'더 많은 요청을 처리할 수 있게 시스템을 확장하는 것.'},{term:'로드 테스트',pronunciation:'로드 테스트',explanation:'대량의 요청을 보내 시스템 한계를 확인하는 테스트.'},{term:'오토 스케일링',pronunciation:'오토 스케일링',explanation:'트래픽에 따라 서버를 자동으로 늘리거나 줄이는 기능.'},{term:'병목',pronunciation:'보틀넥',explanation:'전체 성능을 떨어뜨리는 가장 느린 지점.'},{term:'캐싱',pronunciation:'캐싱',explanation:'자주 요청되는 데이터를 미리 저장해두는 것.'}],
-answer_keywords:[{keyword:'경험 범위 인정',importance:'must',explanation:'본인의 트래픽 경험 범위를 솔직히 인정'},{keyword:'학습 의지',importance:'must',explanation:'대규모 트래픽 대응을 위한 학습/준비'},{keyword:'기본 전략',importance:'good_to_have',explanation:'캐싱, 스케일링 등 기본 대응 전략 이해'}],
-scenarios:[{level:'Expert',score:15,text:'중규모 경험을 솔직히 인정하면서, 로드 테스트/학습으로 준비 중. 기본 전략(캐싱, 스케일링)을 체계적으로 이해.'},{level:'Mid',score:8,text:'솔직히 인정하지만 구체적 학습 계획이 없음.'},{level:'Low',score:-5,text:'경험을 과장하거나 대규모 트래픽의 어려움을 인식하지 못함.'}],
-follow_ups:[{id:'q23-f1',trigger:'Expert',question_text:'로드 테스트를 해보신 경험이 있나요? 어떤 도구를 사용하셨나요?',why_matters:'실무적 준비.',listen_for:'Locust, k6, JMeter 등 구체적 도구.',good:{text:'Locust로 API 부하 테스트를 진행하고 병목 지점을 찾아 개선한 경험이 있다.',score:6},poor:{text:'해본 적 없다.',score:0}},{id:'q23-f2',trigger:'Mid',question_text:'트래픽이 10배 늘면 가장 먼저 문제가 될 곳은 어디라고 생각하시나요?',why_matters:'병목 인식.',listen_for:'DB, 네트워크, 메모리 등.',good:{text:'보통 DB가 먼저 병목이 되고, 그 다음이 서버 메모리.',score:4},poor:{text:'모르겠다.',score:0}},{id:'q23-f3',trigger:'Low',question_text:'트래픽이 갑자기 급증하면 어떻게 대응하시겠습니까?',why_matters:'기본 대응 능력.',listen_for:'서버 증설, 캐싱 등 기본 대응.',good:{text:'캐싱 적용하고 서버를 늘리겠다.',score:4},poor:{text:'서버를 끄고 점검한다.',score:-2}}],
-interviewer_note:{business_interpretation:'대규모 트래픽 경험이 없는 것 자체는 문제가 아닙니다. 문제는 그것을 인식하고 준비하는지입니다.',daily_analogy:'시내 운전만 해본 사람이 고속도로를 처음 탈 때, 기본 운전 실력이 좋으면 적응이 빠릅니다. 중요한 건 "고속도로가 다르다"는 것을 아는 것.',level_expectation:'솔직한 인정 + 학습 의지 + 기본 전략 이해가 있으면 충분히 긍정적입니다.'},
-expected_answer:{core:'• 솔직한 인정: 일 50만 요청 수준의 중규모 경험\n• 기본 전략: 캐싱, DB 최적화, 수평 확장 이해\n• 학습: 로드 테스트, 대규모 시스템 설계 학습\n• 적용 의지: 이 회사에서 대규모 경험을 쌓고 싶음',example:'현재까지 일 50만 요청 수준의 서비스를 운영했습니다. 대규모는 아니지만, 캐싱, DB 최적화, 로드 밸런싱의 기본기는 갖추고 있습니다. Locust로 부하 테스트를 해보았고, "데이터 중심 애플리케이션 설계" 같은 책으로 대규모 시스템을 학습하고 있습니다.',key_points:['솔직한 인정','기본 전략','학습 의지']}},
-{id:24,category:'risk_flags',difficulty:'Easy',title:'커뮤니케이션 스타일',is_risk:true,risk_source:'이력서에 소통/협업 관련 키워드가 부족하고 기술 중심으로 기술됨',question_text:'개발 외에 팀 소통이나 협업에서 본인의 강점과 약점은 무엇이라고 생각하시나요?',context_bridge:'이력서가 기술 역량 중심으로 작성되어 있어서 소통 역량을 확인하고 싶습니다.',why_matters:'시니어의 소통 역량이 팀 전체 효율에 큰 영향을 미칩니다.',listen_for:'자기 인식이 있고, 약점을 개선하려는 태도.',code_reference:null,
-terminology:[{term:'소프트 스킬',pronunciation:'소프트 스킬',explanation:'기술 외의 대인관계, 소통, 리더십 등의 역량.'},{term:'피드백',pronunciation:'피드백',explanation:'상대방의 행동이나 결과에 대한 의견 전달.'},{term:'능동적 경청',pronunciation:'액티브 리스닝',explanation:'상대방의 말을 적극적으로 듣고 이해하려는 태도.'},{term:'비동기 소통',pronunciation:'비동기 소통',explanation:'즉시 응답하지 않아도 되는 소통. 예: 이메일, 슬랙.'},{term:'동기 소통',pronunciation:'동기 소통',explanation:'실시간으로 대화하는 소통. 예: 미팅, 전화.'},{term:'컨플릭트',pronunciation:'컨플릭트',explanation:'의견 충돌.'},{term:'공감',pronunciation:'엠패시',explanation:'상대방의 상황과 감정을 이해하려는 태도.'}],
-answer_keywords:[{keyword:'자기 인식',importance:'must',explanation:'소통 강점과 약점을 솔직히 파악'},{keyword:'개선 노력',importance:'must',explanation:'약점을 인식하고 개선하려는 구체적 노력'},{keyword:'구체적 사례',importance:'good_to_have',explanation:'소통 관련 실제 경험'}],
-scenarios:[{level:'Expert',score:15,text:'강점과 약점을 구체적으로 인식. 약점 개선을 위한 실제 노력과 변화. 소통 관련 구체적 사례.'},{level:'Mid',score:8,text:'강점은 말하지만 약점 인식이 부족.'},{level:'Low',score:-5,text:'소통에 문제가 없다고 주장. 자기 인식 부재.'}],
-follow_ups:[{id:'q24-f1',trigger:'Expert',question_text:'팀원에게 부정적 피드백을 줘야 할 때 어떻게 하시나요?',why_matters:'건설적 피드백 능력.',listen_for:'사실 기반, 개인이 아닌 행동에 대해, 대안 제시.',good:{text:'1:1에서 구체적 사실 기반으로, 개선 방향과 함께 전달.',score:6},poor:{text:'공개적으로 지적한다.',score:-2}},{id:'q24-f2',trigger:'Mid',question_text:'의견 충돌이 있을 때 보통 어떻게 해결하시나요?',why_matters:'갈등 해결 방식.',listen_for:'논리적 토론, 데이터 기반.',good:{text:'각자 근거를 제시하고 데이터로 결정. 감정적이 되지 않도록 노력.',score:4},poor:{text:'내 의견을 고집한다.',score:-2}},{id:'q24-f3',trigger:'Low',question_text:'팀에서 소통이 잘 되려면 무엇이 필요하다고 생각하시나요?',why_matters:'소통 인식.',listen_for:'경청, 존중, 투명성.',good:{text:'서로의 의견을 존중하고 투명하게 정보를 공유하는 것.',score:4},poor:{text:'잘 모르겠다.',score:0}}],
-interviewer_note:{business_interpretation:'기술이 뛰어나도 소통이 안 되면 시니어로서 팀에 부정적 영향을 줄 수 있습니다.',daily_analogy:'실력 좋은 의사도 환자에게 설명을 못 하면 신뢰를 얻기 어려운 것과 같습니다.',level_expectation:'약점을 인식하고 개선하려는 태도가 가장 중요합니다. 완벽할 필요는 없습니다.'},
-expected_answer:{core:'• 강점: 기술적 설명, 문서화, 논리적 소통\n• 약점: 비개발 직군과의 소통, 감정적 공감 등\n• 개선: 의식적으로 비기술 언어 사용, 경청 훈련',example:'강점은 복잡한 기술을 문서와 다이어그램으로 정리하는 것입니다. 약점은 비개발 직군에게 기술 용어를 무의식적으로 쓰는 것이었는데, PM과의 미팅 후 "이해됐나요?"를 항상 확인하는 습관을 들이고 있습니다.',key_points:['자기 인식','개선 노력','구체적 사례']}},
-{id:25,category:'risk_flags',difficulty:'Medium',title:'개인 작업 선호도',is_risk:true,risk_source:'GitHub 활동이 개인 프로젝트 중심이며 팀 협업 기여가 제한적',question_text:'혼자 집중해서 작업하는 것과 팀과 함께 작업하는 것 중 어떤 것을 선호하시나요? 팀에서 일할 때 어떤 점이 어렵고 어떤 점이 좋으신가요?',context_bridge:'GitHub 활동을 보면 개인 프로젝트가 많은데, 팀 작업에 대한 선호도를 확인하고 싶습니다.',why_matters:'시니어는 팀과 함께 일하는 것이 필수입니다. 개인 작업만 선호하면 팀에 부정적 영향.',listen_for:'팀 작업의 가치를 인정하고 균형 잡힌 시각.',code_reference:null,
-terminology:[{term:'페어 프로그래밍',pronunciation:'페어 프로그래밍',explanation:'두 명이 함께 코딩하는 방법.'},{term:'몹 프로그래밍',pronunciation:'몹 프로그래밍',explanation:'팀 전체가 한 화면에서 함께 코딩하는 방법.'},{term:'딥 워크',pronunciation:'딥 워크',explanation:'방해 없이 깊이 집중하여 작업하는 시간.'},{term:'코드 오너십',pronunciation:'코드 오너십',explanation:'특정 코드에 대한 책임감.'},{term:'공유 코드 오너십',pronunciation:'컬렉티브 오너십',explanation:'코드를 팀 전체가 공동으로 관리하는 방식.'},{term:'사일로',pronunciation:'사일로',explanation:'혼자만 알고 있어서 다른 사람이 접근 못하는 상태.'},{term:'팀 플레이어',pronunciation:'팀 플레이어',explanation:'팀의 목표를 위해 협력하는 사람.'}],
-answer_keywords:[{keyword:'균형 잡힌 시각',importance:'must',explanation:'혼자 집중과 팀 협업 모두의 가치를 인정'},{keyword:'팀 작업 긍정',importance:'must',explanation:'팀 작업의 장점을 구체적으로 이해'},{keyword:'자기 인식',importance:'good_to_have',explanation:'개인 작업 선호 경향을 인식하고 조절'}],
-scenarios:[{level:'Expert',score:20,text:'깊은 집중이 필요할 때와 협업이 필요할 때를 구분. 팀 시너지의 가치를 구체적 경험으로 설명.'},{level:'Mid',score:10,text:'팀 작업이 중요하다고 말하지만 실제 선호는 개인 작업.'},{level:'Low',score:-5,text:'혼자 일하는 것이 훨씬 효율적이라고 주장. 팀 작업을 비효율로 봄.'}],
-follow_ups:[{id:'q25-f1',trigger:'Expert',question_text:'팀의 코드 품질을 위해 개인의 생산성을 양보한 경험이 있나요?',why_matters:'팀 우선 태도.',listen_for:'코드 리뷰, 멘토링 등으로 개인 시간 투자.',good:{text:'주니어 코드 리뷰에 시간을 많이 쓰면서 개인 태스크가 늦어졌지만, 장기적으로 팀 전체 속도가 올라갔다.',score:8},poor:{text:'내 일이 우선.',score:0}},{id:'q25-f2',trigger:'Mid',question_text:'팀에서 의견이 다를 때 어떻게 합의를 이끌어내시나요?',why_matters:'팀 협업 능력.',listen_for:'논리적 토론, 데이터 기반 결정.',good:{text:'각자 장단점을 나열하고 실험이나 데이터로 결정.',score:5},poor:{text:'내 의견을 따르라.',score:-2}},{id:'q25-f3',trigger:'Low',question_text:'팀 작업에서 가장 좋았던 경험을 하나만 말씀해주세요.',why_matters:'팀 협업 긍정 경험.',listen_for:'구체적인 긍정적 협업 경험.',good:{text:'함께 장애를 해결하면서 서로의 강점을 발견한 경험.',score:5},poor:{text:'특별히 없다.',score:-2}}],
-interviewer_note:{business_interpretation:'혼자 일하는 것을 극도로 선호하는 시니어는 팀 문화를 해칠 수 있습니다.',daily_analogy:'축구에서 드리블만 잘하는 선수 vs 패스와 팀 플레이도 하는 선수. 시니어는 후자여야 합니다.',level_expectation:'시니어에게는 "집중 작업과 협업의 균형"을 의식적으로 잡는 태도가 핵심입니다.'},
-expected_answer:{core:'• 균형: 깊은 집중(오전)과 협업(오후) 시간 구분\n• 팀 가치: 코드 리뷰, 설계 토론에서 더 나은 결과\n• 자기 인식: 개인 작업 선호 경향을 알고 의식적으로 협업',example:'코딩 자체는 혼자 집중할 때 효율적이지만, 설계 결정이나 코드 리뷰는 팀과 함께할 때 훨씬 좋은 결과가 나옵니다. 오전에 딥 워크 시간을 확보하고, 오후에 미팅과 리뷰를 몰아서 합니다. 팀의 코드 품질이 올라가면 결국 내 생산성도 올라갑니다.',key_points:['균형 잡힌 시각','팀 가치 인정','자기 관리']}}
+    {
+      id: 1,
+      category: 'role_fit',
+      difficulty: 'Medium',
+      title: '시니어 팀 내 역할',
+      question_text: '시니어 개발자로서 팀 내에서 본인의 역할을 어떻게 정의하시나요?',
+      context_bridge: '저희 팀에는 주니어 2명, 미드레벨 1명이 있고, 시니어 개발자가 기술적 방향을 이끌어주길 기대합니다.',
+      why_matters: '시니어로서의 자기 인식과 리더십 관점을 확인합니다.',
+      listen_for: '코드만 잘 짜는 것을 넘어 팀 전체의 생산성과 성장에 기여하는 관점.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '시니어 개발자',
+          pronunciation: '시니어 개발자',
+          explanation: '5년 이상 경력의 숙련된 개발자. 기술적 의사결정과 팀 리딩을 합니다.',
+          definition: '5년 이상 경력의 숙련된 개발자. 기술적 의사결정과 팀 리딩을 합니다.',
+          plain_language: '5년 이상 경력의 숙련된 개발자. 기술적 의사결정과 팀 리딩을 합니다.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '기술 리드',
+          pronunciation: '테크 리드',
+          explanation: '팀의 기술적 방향을 결정하는 사람.',
+          definition: '팀의 기술적 방향을 결정하는 사람.',
+          plain_language: '팀의 기술적 방향을 결정하는 사람.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '아키텍처',
+          pronunciation: '아키텍처',
+          explanation: '시스템의 전체 구조 설계. 건물의 설계도와 같습니다.'
+        },
+        {
+          term: '코드 리뷰',
+          pronunciation: '코드 리뷰',
+          explanation: '다른 사람의 코드를 검토하여 품질을 높이는 과정.'
+        },
+        {
+          term: '기술 부채',
+          pronunciation: '테크 데트',
+          explanation: '빠르게 만들느라 쌓인 코드 품질 문제. 미뤄둔 청소와 같습니다.'
+        },
+        {
+          term: '온보딩',
+          pronunciation: '온보딩',
+          explanation: '새 팀원이 빠르게 적응하도록 돕는 과정.'
+        },
+        {
+          term: '페어 프로그래밍',
+          pronunciation: '페어 프로그래밍',
+          explanation: '두 사람이 한 컴퓨터에서 함께 코드를 작성하는 방법.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '팀 생산성',
+          importance: 'must',
+          explanation: '개인 성과가 아닌 팀 전체 효율을 높이는 관점'
+        },
+        {
+          keyword: '기술적 의사결정',
+          importance: 'must',
+          explanation: '아키텍처, 기술 선택 등 방향 설정'
+        },
+        {
+          keyword: '후배 성장',
+          importance: 'good_to_have',
+          explanation: '멘토링과 지식 공유'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '코드 작성 50% + 코드 리뷰/멘토링 30% + 설계/기술 방향 20%. 팀 전체 생산성과 후배 성장을 구체적으로 언급.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '좋은 코드를 짜고 코드 리뷰를 하겠다. 리더십 관점은 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '개인 성과만 강조. 팀에 대한 언급 없음.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q1-f1',
+          trigger: 'Expert',
+          question_text: '팀의 기술 수준이 다양할 때 코드 리뷰 기준을 어떻게 설정하시나요?',
+          why_matters: '실용적 리더십.',
+          listen_for: '수준별 차등 기준, 교육적 리뷰.',
+          good: {
+            text: '주니어에겐 핵심만 집중, 시니어에겐 설계 관점 리뷰. 단계적 기준.',
+            score: 8
+          },
+          poor: {
+            text: '모두에게 같은 기준.',
+            score: 0
+          }
+        },
+        {
+          id: 'q1-f2',
+          trigger: 'Mid',
+          question_text: '시니어와 주니어의 가장 큰 차이는 뭐라고 생각하시나요?',
+          why_matters: '시니어의 자기 인식.',
+          listen_for: '문제 해결 능력, 영향 범위, 책임감.',
+          good: {
+            text: '주니어는 주어진 문제 해결, 시니어는 문제를 정의하고 팀에 영향.',
+            score: 5
+          },
+          poor: {
+            text: '코딩 실력.',
+            score: 0
+          }
+        },
+        {
+          id: 'q1-f3',
+          trigger: 'Low',
+          question_text: '팀원이 도움을 요청하면 어떻게 대응하시나요?',
+          why_matters: '협업 의지.',
+          listen_for: '기꺼이 돕는 태도.',
+          good: {
+            text: '현재 작업 상황 공유 후 시간 내서 돕겠다.',
+            score: 5
+          },
+          poor: {
+            text: '내 할 일 끝내고.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '시니어 개발자가 "코드만 잘 짜는 사람"인지 "팀을 성장시키는 사람"인지 확인합니다.',
+        daily_analogy: '축구에서 에이스 공격수와 미드필더의 차이입니다. 시니어는 직접 골도 넣지만 어시스트와 전체 경기 흐름도 이끕니다.',
+        level_expectation: '시니어에게는 "팀 전체의 성과를 끌어올리는 관점"이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 기술적 의사결정 (아키텍처, 기술 선택)\n• 코드 품질 관리 (리뷰 기준 수립, 컨벤션)\n• 팀원 성장 지원 (멘토링, 페어 프로그래밍)\n• 기술 부채 관리 및 개선 로드맵',
+        example: '시니어의 역할은 크게 3가지라고 봅니다. 첫째, 기술적 방향 설정 — 어떤 기술을 쓸지, 어떤 구조로 만들지 결정. 둘째, 코드 품질 관리 — 리뷰 기준을 세우고 일관성 유지. 셋째, 팀원 성장 — 주니어가 6개월 후 혼자 기능을 만들 수 있도록 돕는 것.',
+        key_points: ['팀 관점', '기술 리더십', '성장 지원']
+      },
+      jd_competency_link: 'JD 요구사항: "기술적 의사결정과 코드 품질 리드" → 시니어 역할 인식 검증',
+      generation_rationale: '8년 경력이나 멘토링 경험 미기재로 시니어 역할 인식 확인 필요',
+      skills_assessed: ['leadership', 'mentoring'],
+      alternative_phrasings: ['시니어 개발자로서 팀 내에서 본인의 역할을 어떻게 정의하시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 2,
+      category: 'role_fit',
+      difficulty: 'Medium',
+      title: '주니어 멘토링 경험',
+      question_text: '주니어 개발자를 멘토링하거나 성장시킨 경험이 있으시면 말씀해주세요.',
+      context_bridge: '이력서에 멘토링 경험이 명시되어 있지 않아 확인하고 싶습니다.',
+      why_matters: '시니어에게 기대하는 멘토링 역량이 있는지 확인합니다.',
+      listen_for: '구체적 사례와 후배의 실제 성장 결과.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '멘토링',
+          pronunciation: '멘토링',
+          explanation: '경험자가 후배에게 업무 지식과 노하우를 전수하는 활동.',
+          definition: '경험자가 후배에게 업무 지식과 노하우를 전수하는 활동.',
+          plain_language: '경험자가 후배에게 업무 지식과 노하우를 전수하는 활동.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '1:1 미팅',
+          pronunciation: '원온원',
+          explanation: '상사와 부하가 둘이서 정기적으로 하는 면담.',
+          definition: '상사와 부하가 둘이서 정기적으로 하는 면담.',
+          plain_language: '상사와 부하가 둘이서 정기적으로 하는 면담.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '페어 프로그래밍',
+          pronunciation: '페어 프로그래밍',
+          explanation: '두 명이 한 화면을 보며 함께 코딩하는 방법.'
+        },
+        {
+          term: '코드 리뷰',
+          pronunciation: '코드 리뷰',
+          explanation: '다른 사람의 코드를 검토하여 개선점을 찾는 과정.'
+        },
+        {
+          term: 'PR',
+          pronunciation: '피알',
+          explanation: '코드 변경을 제안하고 리뷰를 받는 과정.'
+        },
+        {
+          term: '기술 세미나',
+          pronunciation: '기술 세미나',
+          explanation: '팀 내에서 기술 주제를 발표하고 지식을 공유하는 모임.'
+        },
+        {
+          term: '성장 로드맵',
+          pronunciation: '성장 로드맵',
+          explanation: '개발자가 어떤 순서로 무엇을 배울지 정리한 계획.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '구체적 사례',
+          importance: 'must',
+          explanation: '실제 멘토링한 경험과 상황'
+        },
+        {
+          keyword: '성장 결과',
+          importance: 'must',
+          explanation: '후배가 실제로 성장한 결과'
+        },
+        {
+          keyword: '방법론',
+          importance: 'good_to_have',
+          explanation: '어떤 방식으로 멘토링했는지'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '주니어에게 코드 리뷰+1:1+페어 프로그래밍을 병행. 3개월 후 독립 개발 가능 수준으로 성장.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '코드 리뷰에서 피드백은 줬지만 체계적 멘토링은 아님.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '경험 없음. 멘토링에 관심도 없어 보임.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q2-f1',
+          trigger: 'Expert',
+          question_text: '멘토링 중 가장 어려웠던 순간은?',
+          why_matters: '멘토링의 어려움을 아는 경험.',
+          listen_for: '주니어 수준 차이, 동기 부여 어려움 등.',
+          good: {
+            text: '설명해도 이해 못하는 주니어에게 단계를 더 작게 나누어 접근.',
+            score: 8
+          },
+          poor: {
+            text: '특별히 없었다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q2-f2',
+          trigger: 'Mid',
+          question_text: '코드 리뷰 외에 주니어를 돕는 방법은?',
+          why_matters: '멘토링 방법의 다양성.',
+          listen_for: '1:1 미팅, 페어 코딩, 기술 세미나 등.',
+          good: {
+            text: '주간 1:1로 고민 듣고, 어려운 태스크는 페어 코딩.',
+            score: 5
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q2-f3',
+          trigger: 'Low',
+          question_text: '주니어가 같은 실수를 반복하면 어떻게 하시겠습니까?',
+          why_matters: '인내심과 교육 태도.',
+          listen_for: '근본 원인 파악, 반복 학습 지원.',
+          good: {
+            text: '왜 반복하는지 원인을 먼저 파악하고 체크리스트 제공.',
+            score: 5
+          },
+          poor: {
+            text: '여러 번 말해도 안 되면 포기.',
+            score: -2
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '시니어 채용의 핵심 목적 중 하나가 주니어 성장입니다. 코딩만 잘하는 시니어는 이 팀에 맞지 않을 수 있습니다.',
+        daily_analogy: '요리 학원 강사를 뽑는 것입니다. 본인 요리 실력도 중요하지만 "초보자에게 잘 설명할 수 있는가"가 핵심.',
+        level_expectation: '시니어에게는 "체계적인 멘토링 경험"이 베스트, 최소한 "후배를 돕고자 하는 구체적 의지"가 필요합니다.'
+      },
+      expected_answer: {
+        core: '• 멘토링 방법: 코드 리뷰 + 1:1 미팅 + 페어 프로그래밍\n• 구체적 사례: 주니어가 N개월 후 독립 개발\n• 교훈: 수준에 맞춰 단계적으로 난이도 조절',
+        example: 'DataFlow에서 입사 3개월차 주니어에게 매주 1:1로 진행 사항을 듣고, 어려운 API 구현은 페어 프로그래밍으로 함께 했습니다. 코드 리뷰에서 "왜 이렇게 하면 안 되는지"를 항상 설명했고, 4개월 후 그 주니어가 독립적으로 API 엔드포인트를 설계·구현할 수 있게 되었습니다.',
+        key_points: ['구체적 사례', '성장 결과', '체계적 방법']
+      },
+      jd_competency_link: 'JD 요구사항: "기술적 의사결정과 코드 품질 리드" → 시니어 역할 인식 검증',
+      generation_rationale: '8년 경력이나 멘토링 경험 미기재로 시니어 역할 인식 확인 필요',
+      skills_assessed: ['leadership', 'mentoring'],
+      alternative_phrasings: ['주니어 개발자를 멘토링하거나 성장시킨 경험이 있으시면 말씀해주세요.', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 3,
+      category: 'technical_depth',
+      difficulty: 'Hard',
+      title: '대용량 API 설계',
+      question_text: '초당 1,000건 이상의 요청을 처리해야 하는 API를 설계한다면 어떤 아키텍처를 선택하시겠습니까?',
+      context_bridge: '저희 서비스는 B2B 대시보드 API가 피크 시간에 높은 트래픽을 받습니다.',
+      why_matters: '대규모 시스템 설계 능력과 트레이드오프 판단력을 확인합니다.',
+      listen_for: '단순히 기술 나열이 아닌, 왜 그 기술을 선택하는지 이유.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'API',
+          pronunciation: '에이피아이',
+          explanation: '프로그램끼리 데이터를 주고받는 창구. 식당의 주문 카운터와 같습니다.',
+          definition: '프로그램끼리 데이터를 주고받는 창구. 식당의 주문 카운터와 같습니다.',
+          plain_language: '프로그램끼리 데이터를 주고받는 창구. 식당의 주문 카운터와 같습니다.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '트래픽',
+          pronunciation: '트래픽',
+          explanation: '서버에 들어오는 요청의 양. 고속도로 차량 수와 비슷.',
+          definition: '서버에 들어오는 요청의 양. 고속도로 차량 수와 비슷.',
+          plain_language: '서버에 들어오는 요청의 양. 고속도로 차량 수와 비슷.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '캐싱',
+          pronunciation: '캐싱',
+          explanation: '자주 요청되는 데이터를 미리 저장해두어 빠르게 응답. 자주 쓰는 물건을 책상 위에 두는 것.'
+        },
+        {
+          term: 'Redis',
+          pronunciation: '레디스',
+          explanation: '매우 빠른 임시 저장소. 메모장처럼 빠르게 읽고 쓸 수 있음.'
+        },
+        {
+          term: '로드 밸런싱',
+          pronunciation: '로드 밸런싱',
+          explanation: '여러 서버에 요청을 분산하는 것. 마트 계산대를 여러 개 여는 것.'
+        },
+        {
+          term: '비동기 처리',
+          pronunciation: '비동기 처리',
+          explanation: '요청을 보내고 응답을 기다리지 않고 다른 일을 하는 방식.'
+        },
+        {
+          term: '메시지 큐',
+          pronunciation: '메시지 큐',
+          explanation: '작업 요청을 대기열에 넣고 순서대로 처리. 은행 번호표 시스템.'
+        },
+        {
+          term: '수평 확장',
+          pronunciation: '스케일 아웃',
+          explanation: '서버를 더 추가하여 처리량을 늘리는 방법.'
+        },
+        {
+          term: 'p95 응답시간',
+          pronunciation: '피 나인티파이브',
+          explanation: '100번 요청 중 95번째로 느린 응답 시간.'
+        },
+        {
+          term: 'CDN',
+          pronunciation: '씨디엔',
+          explanation: '전 세계 여러 곳에 데이터를 미리 저장해두는 네트워크.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '캐싱 전략',
+          importance: 'must',
+          explanation: 'Redis 등을 활용한 응답 캐시'
+        },
+        {
+          keyword: 'DB 최적화',
+          importance: 'must',
+          explanation: '인덱스, 커넥션 풀, 읽기 복제'
+        },
+        {
+          keyword: '수평 확장',
+          importance: 'good_to_have',
+          explanation: '서버 증설로 부하 분산'
+        },
+        {
+          keyword: '비동기 처리',
+          importance: 'good_to_have',
+          explanation: '무거운 작업을 큐로 분리'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '캐싱→DB 최적화→수평 확장→비동기 처리까지 단계적 전략. 각 단계의 트레이드오프까지 설명.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '캐싱과 DB 최적화는 알지만 전체적인 전략이 체계적이지 않음.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '서버를 많이 늘리면 된다 수준. 구체적 방법 없음.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q3-f1',
+          trigger: 'Expert',
+          question_text: '캐시 무효화(invalidation) 전략은 어떻게 설정하시겠습니까?',
+          why_matters: '캐싱의 가장 어려운 부분.',
+          listen_for: 'TTL, 이벤트 기반 무효화, write-through 등.',
+          good: {
+            text: '데이터 종류별 TTL 차등 + 데이터 변경 시 이벤트로 캐시 삭제.',
+            score: 8
+          },
+          poor: {
+            text: '적당히 시간 지나면 지운다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q3-f2',
+          trigger: 'Mid',
+          question_text: 'DB 읽기가 병목이라면 어떤 순서로 최적화하시겠습니까?',
+          why_matters: '체계적 최적화 접근.',
+          listen_for: '쿼리 분석→인덱스→읽기 복제.',
+          good: {
+            text: 'EXPLAIN으로 느린 쿼리 찾고, 인덱스 추가, 그래도 안 되면 읽기 복제.',
+            score: 5
+          },
+          poor: {
+            text: '서버 스펙을 올린다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q3-f3',
+          trigger: 'Low',
+          question_text: '현재 회사에서 API 성능 문제를 겪은 적이 있나요?',
+          why_matters: '실무 경험.',
+          listen_for: '구체적 사례.',
+          good: {
+            text: '구체적 성능 이슈와 해결 과정.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없었다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '시니어가 "큰 그림"을 그릴 수 있는지 확인합니다.',
+        daily_analogy: '식당이 손님 10배 증가 시: 1단계 메뉴 간소화(캐싱), 2단계 주방 효율화(DB 최적화), 3단계 2호점 개설(수평 확장), 4단계 배달 분리(비동기).',
+        level_expectation: '시니어에게는 "왜 이 순서인지"를 설명할 수 있는 트레이드오프 사고가 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 1단계: Redis 캐싱 (읽기 부하 감소)\n• 2단계: DB 최적화 (인덱스, 커넥션 풀)\n• 3단계: 수평 확장 (로드 밸런서 + 서버 증설)\n• 4단계: 비동기 처리 (무거운 작업 큐 분리)',
+        example: '우선 가장 빈번한 조회 API에 Redis 캐시를 적용합니다(히트율 80% 목표). 그 다음 slow query 분석으로 인덱스를 최적화하고, 커넥션 풀을 조정합니다. 그래도 부족하면 읽기 복제본을 추가하고, 리포트 생성 같은 무거운 작업은 Celery + Redis Queue로 비동기 처리합니다.',
+        key_points: ['단계적 접근', '트레이드오프', '실무 경험']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['초당 1,000건 이상의 요청을 처리해야 하는 API를 설계한다면 어떤 아키텍처를 선택하시겠습니까에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 4,
+      category: 'technical_depth',
+      difficulty: 'Hard',
+      title: 'DB 쿼리 최적화',
+      question_text: '운영 중인 API의 응답이 갑자기 느려졌습니다. DB 쿼리가 원인으로 의심될 때 어떤 순서로 조사하고 최적화하시겠습니까?',
+      context_bridge: '저희 서비스에서 실제로 주기적으로 발생하는 상황입니다.',
+      why_matters: 'DB 성능 문제 해결의 체계적 접근 능력을 확인합니다.',
+      listen_for: '감이 아닌 데이터 기반의 체계적 접근.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '쿼리',
+          pronunciation: '쿼리',
+          explanation: '데이터베이스에 데이터를 요청하는 명령문. 도서관에서 책을 찾아달라는 요청.',
+          definition: '데이터베이스에 데이터를 요청하는 명령문. 도서관에서 책을 찾아달라는 요청.',
+          plain_language: '데이터베이스에 데이터를 요청하는 명령문. 도서관에서 책을 찾아달라는 요청.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '인덱스',
+          pronunciation: '인덱스',
+          explanation: '데이터를 빠르게 찾기 위한 색인. 책 뒤의 찾아보기와 같음.',
+          definition: '데이터를 빠르게 찾기 위한 색인. 책 뒤의 찾아보기와 같음.',
+          plain_language: '데이터를 빠르게 찾기 위한 색인. 책 뒤의 찾아보기와 같음.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'EXPLAIN',
+          pronunciation: '익스플레인',
+          explanation: 'DB가 쿼리를 어떻게 실행하는지 실행 계획을 보여주는 명령.'
+        },
+        {
+          term: '슬로우 쿼리 로그',
+          pronunciation: '슬로우 쿼리 로그',
+          explanation: '오래 걸리는 쿼리를 자동으로 기록하는 기능.'
+        },
+        {
+          term: '풀 테이블 스캔',
+          pronunciation: '풀 테이블 스캔',
+          explanation: '인덱스 없이 모든 데이터를 하나씩 확인하는 것.'
+        },
+        {
+          term: '커넥션 풀',
+          pronunciation: '커넥션 풀',
+          explanation: 'DB 연결을 미리 만들어두고 재사용하는 방식.'
+        },
+        {
+          term: 'N+1 문제',
+          pronunciation: '엔플러스원',
+          explanation: '1번 조회로 될 것을 N+1번 조회하는 비효율.'
+        },
+        {
+          term: '읽기 복제',
+          pronunciation: '리드 레플리카',
+          explanation: '읽기 전용 DB 사본을 만들어 부하를 분산.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '모니터링/로그 확인',
+          importance: 'must',
+          explanation: '슬로우 쿼리 로그, APM 도구로 원인 파악'
+        },
+        {
+          keyword: 'EXPLAIN 분석',
+          importance: 'must',
+          explanation: '실행 계획을 보고 비효율 지점 파악'
+        },
+        {
+          keyword: '인덱스 전략',
+          importance: 'must',
+          explanation: '적절한 인덱스 추가'
+        },
+        {
+          keyword: '쿼리 리팩토링',
+          importance: 'good_to_have',
+          explanation: 'N+1 해결, 서브쿼리 최적화'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '로그 확인→EXPLAIN 분석→인덱스 최적화→쿼리 리팩토링→캐싱/읽기복제. 각 단계의 판단 기준까지 설명.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '인덱스 추가는 알지만 체계적 진단 과정이 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '서버 스펙을 올리면 된다.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q4-f1',
+          trigger: 'Expert',
+          question_text: '인덱스를 추가해도 성능이 안 나올 때 다음 조치는?',
+          why_matters: '고급 최적화.',
+          listen_for: '쿼리 재설계, 비정규화, 캐싱.',
+          good: {
+            text: '쿼리 자체를 재설계하거나 자주 조인하는 테이블을 비정규화.',
+            score: 8
+          },
+          poor: {
+            text: '더 좋은 DB를 쓴다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q4-f2',
+          trigger: 'Mid',
+          question_text: '인덱스를 무조건 많이 만들면 좋은가요?',
+          why_matters: '인덱스의 트레이드오프 이해.',
+          listen_for: '쓰기 성능 저하, 저장 공간.',
+          good: {
+            text: '읽기는 빨라지지만 쓰기가 느려지고 공간을 차지.',
+            score: 5
+          },
+          poor: {
+            text: '많을수록 좋다.',
+            score: -2
+          }
+        },
+        {
+          id: 'q4-f3',
+          trigger: 'Low',
+          question_text: '실무에서 DB 관련 문제를 겪은 경험이 있나요?',
+          why_matters: 'DB 실무 경험.',
+          listen_for: '구체적 사례.',
+          good: {
+            text: '구체적 DB 성능 문제 경험.',
+            score: 5
+          },
+          poor: {
+            text: '없다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '운영 중인 서비스의 DB 문제를 "감"이 아닌 "데이터"로 해결하는 사람인지 확인합니다.',
+        daily_analogy: '병원에서 의사가 증상→검사→진단→치료 순서로 진행하는 것과 같습니다.',
+        level_expectation: '시니어에게는 "진단→분석→최적화"의 체계적 과정과 각 단계의 판단 기준이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 1단계: 슬로우 쿼리 로그/APM으로 원인 쿼리 특정\n• 2단계: EXPLAIN으로 실행 계획 분석\n• 3단계: 인덱스 추가/수정\n• 4단계: 쿼리 리팩토링 (N+1 해결, 조인 최적화)\n• 5단계: 캐싱 또는 읽기 복제 검토',
+        example: '먼저 슬로우 쿼리 로그로 500ms 넘는 쿼리를 찾습니다. EXPLAIN ANALYZE로 풀 테이블 스캔이 발생하는 지점을 확인하고, 복합 인덱스를 추가합니다. N+1이 원인이면 JOIN이나 ORM의 eager loading으로 변경합니다.',
+        key_points: ['데이터 기반 진단', '체계적 접근', '트레이드오프 이해']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: [
+        '운영 중인 API의 응답이 갑자기 느려졌습니다. DB 쿼리가 원인으로 의심될 때 어떤 순서로 조사하고 최적화하시겠습니까에 대해 자세히 설명해 주시겠습니까?',
+        '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.'
+      ]
+    },
+    {
+      id: 5,
+      category: 'execution_ownership',
+      difficulty: 'Hard',
+      title: '장애 대응 경험',
+      question_text: '운영 서비스에서 장애가 발생했을 때의 대응 경험을 말씀해주세요. 발견부터 해결까지의 과정을 구체적으로 설명해주세요.',
+      context_bridge: '저희 SaaS 서비스는 99.9% 가용성을 목표로 합니다.',
+      why_matters: '장애 대응의 체계적 프로세스와 사후 개선 능력을 확인합니다.',
+      listen_for: '혼란 속에서도 체계적으로 대응하고, 사후에 재발 방지까지 하는지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '장애 (Incident)',
+          pronunciation: '인시던트',
+          explanation: '서비스가 정상적으로 동작하지 않는 상황.',
+          definition: '서비스가 정상적으로 동작하지 않는 상황.',
+          plain_language: '서비스가 정상적으로 동작하지 않는 상황.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '모니터링',
+          pronunciation: '모니터링',
+          explanation: '서비스 상태를 실시간으로 감시하는 시스템.',
+          definition: '서비스 상태를 실시간으로 감시하는 시스템.',
+          plain_language: '서비스 상태를 실시간으로 감시하는 시스템.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '알림 (Alert)',
+          pronunciation: '얼럿',
+          explanation: '문제가 감지되면 자동으로 보내는 경고.'
+        },
+        {
+          term: '롤백',
+          pronunciation: '롤백',
+          explanation: '문제가 된 변경을 이전 상태로 되돌리는 것.'
+        },
+        {
+          term: '포스트모템',
+          pronunciation: '포스트모템',
+          explanation: '장애 후 원인과 재발 방지를 논의하는 사후 검토 회의.'
+        },
+        {
+          term: 'RCA',
+          pronunciation: '알씨에이',
+          explanation: '근본 원인 분석.'
+        },
+        {
+          term: 'SLA',
+          pronunciation: '에스엘에이',
+          explanation: '서비스 수준 약속. 예: 99.9% 가용성 보장.'
+        },
+        {
+          term: '핫픽스',
+          pronunciation: '핫픽스',
+          explanation: '긴급하게 적용하는 수정.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '체계적 대응 프로세스',
+          importance: 'must',
+          explanation: '탐지→영향 범위 파악→임시 조치→원인 분석→수정→검증'
+        },
+        {
+          keyword: '커뮤니케이션',
+          importance: 'must',
+          explanation: '팀/이해관계자에 상황 공유'
+        },
+        {
+          keyword: '포스트모템',
+          importance: 'good_to_have',
+          explanation: '재발 방지를 위한 사후 분석'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '알림 탐지→영향 파악→롤백 판단→핫픽스→포스트모템→재발 방지. 구체적 사례와 배운 점.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '장애 해결은 했지만 체계적 과정이나 사후 분석은 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '장애 경험 없음 또는 "다른 사람이 해결했다".',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q5-f1',
+          trigger: 'Expert',
+          question_text: '포스트모템에서 가장 중요하게 보는 것은?',
+          why_matters: '재발 방지 문화.',
+          listen_for: '비난 아닌 시스템 개선, 근본 원인.',
+          good: {
+            text: '누구 잘못인지가 아니라 어떤 시스템이 부족했는지. 모니터링 강화, 테스트 추가.',
+            score: 8
+          },
+          poor: {
+            text: '담당자 질책.',
+            score: -2
+          }
+        },
+        {
+          id: 'q5-f2',
+          trigger: 'Mid',
+          question_text: '장애 중 팀원들에게 어떻게 소통하셨나요?',
+          why_matters: '위기 시 커뮤니케이션.',
+          listen_for: '실시간 상황 공유, 역할 분담.',
+          good: {
+            text: 'Slack 채널에 실시간 업데이트, 역할 분배.',
+            score: 5
+          },
+          poor: {
+            text: '혼자 해결하려 했다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q5-f3',
+          trigger: 'Low',
+          question_text: '만약 금요일 퇴근 직전에 장애가 나면?',
+          why_matters: '책임감.',
+          listen_for: '당연히 대응한다는 태도.',
+          good: {
+            text: '퇴근보다 서비스가 우선. 임시 조치 후 상황 공유.',
+            score: 5
+          },
+          poor: {
+            text: '내일 출근해서.',
+            score: -2
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '장애는 반드시 발생합니다. "장애를 빠르게 수습하고 재발을 방지하는 사람"이 시니어입니다.',
+        daily_analogy: '소방관이 불을 끄는 순서: 1) 상황 파악, 2) 인명 구조(임시 조치), 3) 진화(근본 해결), 4) 원인 조사(포스트모템).',
+        level_expectation: '시니어에게는 "체계적 대응 프로세스"와 "포스트모템을 통한 개선 문화"가 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 탐지: 모니터링 알림으로 즉시 인지\n• 임시 조치: 롤백 또는 트래픽 우회\n• 원인 분석: 로그+메트릭으로 근본 원인 파악\n• 수정: 핫픽스 적용+검증\n• 사후: 포스트모템+재발 방지 조치',
+        example: '새벽 2시에 API 응답 시간이 10초로 튄 알림을 받았습니다. DB 커넥션 풀이 고갈된 것을 확인하고, 즉시 커넥션 수를 늘리는 핫픽스를 적용했습니다. 다음 날 포스트모템에서 커넥션 누수 코드를 찾아 수정하고, 커넥션 풀 모니터링 알림을 추가했습니다.',
+        key_points: ['체계적 대응', '임시 조치→근본 해결', '포스트모템']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['운영 서비스에서 장애가 발생했을 때의 대응 경험을 말씀해주세요. 발견부터 해결까지의 과정을 구체적으로 설명해주세요.', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 6,
+      category: 'execution_ownership',
+      difficulty: 'Hard',
+      title: '기술 부채 관리',
+      question_text: '기술 부채를 어떻게 관리하시나요? 비즈니스 일정과 코드 품질 사이의 균형을 어떻게 잡으셨습니까?',
+      context_bridge: '저희 서비스도 빠른 성장 과정에서 기술 부채가 쌓여 있습니다.',
+      why_matters: '시니어의 실용적 판단력과 장기적 관점을 확인합니다.',
+      listen_for: '극단이 아닌 균형 잡힌 접근.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '기술 부채',
+          pronunciation: '테크 데트',
+          explanation: '빠르게 만들느라 품질을 타협한 코드. 미뤄둔 빚처럼 나중에 이자가 붙습니다.',
+          definition: '빠르게 만들느라 품질을 타협한 코드. 미뤄둔 빚처럼 나중에 이자가 붙습니다.',
+          plain_language: '빠르게 만들느라 품질을 타협한 코드. 미뤄둔 빚처럼 나중에 이자가 붙습니다.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '리팩토링',
+          pronunciation: '리팩토링',
+          explanation: '기능은 같지만 코드 구조를 개선하는 작업.',
+          definition: '기능은 같지만 코드 구조를 개선하는 작업.',
+          plain_language: '기능은 같지만 코드 구조를 개선하는 작업.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '레거시',
+          pronunciation: '레거시',
+          explanation: '오래되어 유지보수가 어려운 코드/시스템.'
+        },
+        {
+          term: '스프린트',
+          pronunciation: '스프린트',
+          explanation: '2주 단위의 개발 주기.'
+        },
+        {
+          term: 'ROI',
+          pronunciation: '알오아이',
+          explanation: '투자 대비 수익.'
+        },
+        {
+          term: '보이스카우트 규칙',
+          pronunciation: '보이스카우트 규칙',
+          explanation: '코드를 수정할 때 주변 코드도 약간 개선하는 습관.'
+        },
+        {
+          term: '기술 백로그',
+          pronunciation: '기술 백로그',
+          explanation: '해야 할 기술 작업 목록.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '우선순위 기준',
+          importance: 'must',
+          explanation: '어떤 기술 부채를 먼저 해결할지 판단 기준'
+        },
+        {
+          keyword: '비즈니스와 균형',
+          importance: 'must',
+          explanation: '기능 개발과 품질 개선의 밸런스'
+        },
+        {
+          keyword: '점진적 개선',
+          importance: 'good_to_have',
+          explanation: '대규모 리팩토링이 아닌 점진적 접근'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '기술 부채를 정량화하고 비즈니스 영향도로 우선순위. 스프린트 20% 기술 부채 해소. 보이스카우트 규칙 적용.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '리팩토링이 필요하다고 인식하지만 구체적 전략 없음.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '나중에 하면 된다 또는 전부 다시 만들자.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q6-f1',
+          trigger: 'Expert',
+          question_text: '기술 부채 해결을 비개발 이해관계자에게 어떻게 설득하시나요?',
+          why_matters: '비즈니스 소통 능력.',
+          listen_for: '비즈니스 언어로 설명.',
+          good: {
+            text: '장애 위험도, 개발 속도 저하를 수치로 보여줌.',
+            score: 8
+          },
+          poor: {
+            text: '기술 용어로만 설명.',
+            score: 0
+          }
+        },
+        {
+          id: 'q6-f2',
+          trigger: 'Mid',
+          question_text: '구체적으로 리팩토링한 경험이 있나요?',
+          why_matters: '실행 경험.',
+          listen_for: '구체적 사례와 결과.',
+          good: {
+            text: '복잡한 함수를 분리하고 테스트 추가, 버그 50% 감소.',
+            score: 5
+          },
+          poor: {
+            text: '기억 안 남.',
+            score: 0
+          }
+        },
+        {
+          id: 'q6-f3',
+          trigger: 'Low',
+          question_text: '코드가 복잡해서 수정이 어려웠던 경험이 있나요?',
+          why_matters: '기술 부채 인식.',
+          listen_for: '복잡한 코드로 인한 문제 경험.',
+          good: {
+            text: '구체적 사례와 느낀 점.',
+            score: 5
+          },
+          poor: {
+            text: '없었다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"기술 부채 = 비즈니스 리스크"를 이해하는 시니어인지 확인합니다.',
+        daily_analogy: '집 정리와 같습니다. 바쁘다고 계속 안 치우면 나중에 큰 대청소가 필요합니다.',
+        level_expectation: '시니어에게는 "정량화된 우선순위 + 비즈니스 관점 설득 + 점진적 실행"이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 정량화: 기술 부채를 목록화하고 영향도 산정\n• 우선순위: 장애 위험 > 개발 속도 저하 > 코드 가독성\n• 실행: 스프린트 20% 할애 + 보이스카우트 규칙\n• 설득: 비즈니스 영향으로 번역하여 이해관계자 설득',
+        example: '기술 부채를 Jira에 기록하고 "장애 위험도"와 "개발 속도 영향"으로 점수를 매겼습니다. 매 스프린트 20%를 기술 부채 해소에 할당하고, 코드 수정 시 보이스카우트 규칙으로 주변도 개선했습니다.',
+        key_points: ['정량화', '점진적 실행', '비즈니스 소통']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['기술 부채를 어떻게 관리하시나요? 비즈니스 일정과 코드 품질 사이의 균형을 어떻게 잡으셨습니까에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 7,
+      category: 'communication',
+      difficulty: 'Medium',
+      title: '코드 리뷰 방법론',
+      question_text: '코드 리뷰를 할 때 어떤 기준으로 어떤 부분을 중점적으로 보시나요?',
+      context_bridge: '저희 팀에서 시니어가 코드 리뷰를 리드해주길 기대합니다.',
+      why_matters: '코드 리뷰의 기준과 교육적 피드백 능력을 확인합니다.',
+      listen_for: '단순 버그 찾기가 아닌 설계와 가독성, 교육적 피드백.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '코드 리뷰',
+          pronunciation: '코드 리뷰',
+          explanation: '다른 사람의 코드를 검토하는 과정.',
+          definition: '다른 사람의 코드를 검토하는 과정.',
+          plain_language: '다른 사람의 코드를 검토하는 과정.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'PR (Pull Request)',
+          pronunciation: '피알',
+          explanation: '코드 변경을 제안하고 팀원에게 리뷰를 요청하는 것.',
+          definition: '코드 변경을 제안하고 팀원에게 리뷰를 요청하는 것.',
+          plain_language: '코드 변경을 제안하고 팀원에게 리뷰를 요청하는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'Approve',
+          pronunciation: '어프루브',
+          explanation: '코드 리뷰에서 승인.'
+        },
+        {
+          term: 'LGTM',
+          pronunciation: '엘지티엠',
+          explanation: '"Looks Good To Me" — 승인 표현.'
+        },
+        {
+          term: '리뷰어',
+          pronunciation: '리뷰어',
+          explanation: '코드를 검토하는 사람.'
+        },
+        {
+          term: '컨벤션',
+          pronunciation: '컨벤션',
+          explanation: '팀이 합의한 코드 작성 규칙.'
+        },
+        {
+          term: '네이밍',
+          pronunciation: '네이밍',
+          explanation: '변수, 함수 이름을 짓는 것.'
+        },
+        {
+          term: '엣지 케이스',
+          pronunciation: '엣지 케이스',
+          explanation: '보통과 다른 특수한 상황.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '리뷰 기준',
+          importance: 'must',
+          explanation: '무엇을 중점적으로 보는지'
+        },
+        {
+          keyword: '교육적 피드백',
+          importance: 'must',
+          explanation: '왜 고쳐야 하는지 이유를 설명'
+        },
+        {
+          keyword: '효율적 프로세스',
+          importance: 'good_to_have',
+          explanation: '리뷰 시간 관리, 자동화'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '설계→로직→가독성→성능 순서. "왜"를 설명하는 교육적 피드백. 리뷰 가이드라인 수립 경험.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '버그와 스타일 위주. 교육적 관점 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '동작만 확인하고 LGTM.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q7-f1',
+          trigger: 'Expert',
+          question_text: '주니어와 시니어의 PR을 리뷰할 때 다르게 접근하시나요?',
+          why_matters: '수준별 리뷰 전략.',
+          listen_for: '주니어에겐 기본+교육, 시니어에겐 설계 관점.',
+          good: {
+            text: '주니어 PR은 기본 원칙 교육 중심, 시니어 PR은 설계 토론 중심.',
+            score: 8
+          },
+          poor: {
+            text: '같은 기준.',
+            score: 0
+          }
+        },
+        {
+          id: 'q7-f2',
+          trigger: 'Mid',
+          question_text: '리뷰에서 의견이 충돌할 때 어떻게 하시나요?',
+          why_matters: '갈등 해결.',
+          listen_for: '논리적 토론, 데이터 기반.',
+          good: {
+            text: '각자 이유를 설명하고 데이터로 결정.',
+            score: 5
+          },
+          poor: {
+            text: '시니어 의견을 따른다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q7-f3',
+          trigger: 'Low',
+          question_text: '코드 리뷰를 하면 어떤 점이 좋다고 생각하시나요?',
+          why_matters: '코드 리뷰 가치 인식.',
+          listen_for: '버그 방지, 지식 공유.',
+          good: {
+            text: '버그 사전 방지+팀 전체 코드 이해도 향상.',
+            score: 5
+          },
+          poor: {
+            text: '형식적 절차.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '시니어의 리뷰 능력이 팀 전체 수준을 결정합니다.',
+        daily_analogy: '편집장이 기자의 기사를 교정하는 것과 같습니다. 오타만 잡는 편집장 vs 논리와 구성까지 개선하는 편집장.',
+        level_expectation: '시니어에게는 "교육적 피드백"과 "리뷰 기준 수립 능력"이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 리뷰 순서: 설계 적절성 → 비즈니스 로직 → 가독성 → 성능 → 테스트\n• 피드백 방식: "왜"를 함께 설명\n• 효율화: 린팅 자동화, 리뷰 체크리스트, PR 크기 제한',
+        example: 'PR을 받으면 먼저 설계가 적절한지 보고, 비즈니스 로직, 엣지 케이스, 가독성 순으로 봅니다. 피드백은 항상 "왜"를 함께 씁니다. 코드 스타일은 린터로 자동화했습니다.',
+        key_points: ['체계적 기준', '교육적 피드백', '자동화']
+      },
+      jd_competency_link: 'JD 요구사항: "주니어 멘토링, 코드 리뷰 리드" → 기술 리더십 소통 검증',
+      generation_rationale: '이력서에 멘토링 미기재로 소통/리더십 역량 별도 확인 필요',
+      skills_assessed: ['mentoring', 'collaboration'],
+      alternative_phrasings: ['코드 리뷰를 할 때 어떤 기준으로 어떤 부분을 중점적으로 보시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 8,
+      category: 'communication',
+      difficulty: 'Medium',
+      title: '기획자/PM과의 기술 소통',
+      question_text: '기획자나 PM이 기술적으로 어려운 요구를 할 때 어떻게 소통하시나요?',
+      context_bridge: '저희 PM은 비개발 출신이라 기술적 제약을 이해하기 어려울 수 있습니다.',
+      why_matters: '비개발 직군과의 소통 능력을 확인합니다.',
+      listen_for: '"안 됩니다"가 아닌 대안 제시와 비즈니스 영향 설명.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'PM',
+          pronunciation: '피엠',
+          explanation: '프로젝트 매니저. 제품의 기획과 일정을 관리하는 사람.',
+          definition: '프로젝트 매니저. 제품의 기획과 일정을 관리하는 사람.',
+          plain_language: '프로젝트 매니저. 제품의 기획과 일정을 관리하는 사람.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '스펙',
+          pronunciation: '스펙',
+          explanation: '구현해야 할 기능의 상세 명세서.',
+          definition: '구현해야 할 기능의 상세 명세서.',
+          plain_language: '구현해야 할 기능의 상세 명세서.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '트레이드오프',
+          pronunciation: '트레이드오프',
+          explanation: '하나를 얻으면 다른 하나를 포기해야 하는 상황.'
+        },
+        {
+          term: 'MVP',
+          pronunciation: '엠브이피',
+          explanation: '최소한의 핵심 기능만 넣은 첫 번째 버전.'
+        },
+        {
+          term: '기술 부채',
+          pronunciation: '테크 데트',
+          explanation: '빠른 개발을 위해 타협한 코드 품질.'
+        },
+        {
+          term: '스코프',
+          pronunciation: '스코프',
+          explanation: '구현 범위.'
+        },
+        {
+          term: 'PoC',
+          pronunciation: '피오씨',
+          explanation: '개념 증명. 가능한지 먼저 작게 실험하는 것.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '대안 제시',
+          importance: 'must',
+          explanation: '"안 됩니다"가 아닌 "이렇게 하면 가능합니다"'
+        },
+        {
+          keyword: '비즈니스 언어',
+          importance: 'must',
+          explanation: '기술 용어 없이 비즈니스 관점으로 설명'
+        },
+        {
+          keyword: '정량적 근거',
+          importance: 'good_to_have',
+          explanation: '소요 시간, 리스크를 수치로 제시'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '기획 의도 파악→기술적 제약 비즈니스 언어로 설명→대안 제시→데이터 기반 설득.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '어렵다고 말하지만 대안이 구체적이지 않음.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '기술 용어로 설명하여 PM이 이해 못하거나, 무리하게 수용.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q8-f1',
+          trigger: 'Expert',
+          question_text: 'PM이 "이번 주 안에 해달라"고 하는데 2주가 필요할 때?',
+          why_matters: '일정 협상 능력.',
+          listen_for: '범위 조정 제안, 단계적 출시.',
+          good: {
+            text: '핵심 기능만 1주, 나머지 다음 스프린트로 나눠서 출시 제안.',
+            score: 8
+          },
+          poor: {
+            text: '야근해서 하겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q8-f2',
+          trigger: 'Mid',
+          question_text: '기획 변경이 잦을 때 어떻게 대응하시나요?',
+          why_matters: '변화 관리.',
+          listen_for: '체계적 변경 관리.',
+          good: {
+            text: '변경 사항 문서화, 영향도 분석 공유.',
+            score: 5
+          },
+          poor: {
+            text: '짜증난다.',
+            score: -2
+          }
+        },
+        {
+          id: 'q8-f3',
+          trigger: 'Low',
+          question_text: 'PM과 일하면서 좋았던 경험이 있나요?',
+          why_matters: '협업 태도.',
+          listen_for: '긍정적 협업 경험.',
+          good: {
+            text: '함께 문제를 해결한 사례.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '기술과 비즈니스 사이의 "번역가" 역할을 할 수 있는지 확인합니다.',
+        daily_analogy: '건축가가 고객에게 "이 구조는 3층까지만 가능합니다. 4층을 원하시면 기초를 보강해야 합니다. 3층에 옥탑방을 만드는 방법도 있습니다"라고 대안을 주는 것.',
+        level_expectation: '시니어에게는 "기술↔비즈니스 번역 능력"과 "대안 제시 능력"이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 기획 의도 파악: "왜 이 기능이 필요한지" 먼저 이해\n• 제약 설명: 비즈니스 영향으로 번역\n• 대안 제시: MVP로 출시 후 개선\n• 데이터: 소요 시간과 리스크를 수치로',
+        example: 'PM이 실시간 알림을 요청했는데 WebSocket 구현에 3주가 필요했습니다. "핵심은 사용자가 빠르게 알림을 받는 것"임을 확인하고, 30초 간격 폴링으로 1주 내 출시를 제안했습니다.',
+        key_points: ['의도 파악', '비즈니스 언어', '대안 제시']
+      },
+      jd_competency_link: 'JD 요구사항: "주니어 멘토링, 코드 리뷰 리드" → 기술 리더십 소통 검증',
+      generation_rationale: '이력서에 멘토링 미기재로 소통/리더십 역량 별도 확인 필요',
+      skills_assessed: ['mentoring', 'collaboration'],
+      alternative_phrasings: ['기획자나 PM이 기술적으로 어려운 요구를 할 때 어떻게 소통하시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 9,
+      category: 'risk_flags',
+      difficulty: 'Medium',
+      title: '잦은 이직 사유',
+      is_risk: true,
+      risk_source: '3개 회사를 2~3년 주기로 이직 (8년간)',
+      question_text: '경력 8년 동안 3개 회사를 거치셨는데, 각 이직의 이유와 저희 회사에서는 어떤 점이 다를 것으로 기대하시나요?',
+      context_bridge: 'LinkedIn 이력을 보면 2~3년 주기로 이직하신 패턴이 있습니다.',
+      why_matters: '이직 패턴이 성장 지향적인지, 적응 문제인지 확인합니다.',
+      listen_for: '각 이직에 합리적 이유가 있고, 장기 근속 의지가 있는지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '이직',
+          pronunciation: '이직',
+          explanation: '회사를 옮기는 것.',
+          definition: '회사를 옮기는 것.',
+          plain_language: '회사를 옮기는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '성장 정체',
+          pronunciation: '성장 정체',
+          explanation: '현재 환경에서 더 배울 것이 없는 상태.',
+          definition: '현재 환경에서 더 배울 것이 없는 상태.',
+          plain_language: '현재 환경에서 더 배울 것이 없는 상태.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '스택',
+          pronunciation: '스택',
+          explanation: '사용하는 기술 도구 모음.'
+        },
+        {
+          term: '컬처 핏',
+          pronunciation: '컬처 핏',
+          explanation: '회사 문화와 본인 가치관이 맞는 정도.'
+        },
+        {
+          term: '커리어 패스',
+          pronunciation: '커리어 패스',
+          explanation: '앞으로의 직업적 성장 경로.'
+        },
+        {
+          term: '리텐션',
+          pronunciation: '리텐션',
+          explanation: '직원이 회사에 머무는 비율.'
+        },
+        {
+          term: '레퍼런스 체크',
+          pronunciation: '레퍼런스 체크',
+          explanation: '이전 직장에 후보자에 대해 확인하는 절차.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '합리적 이직 사유',
+          importance: 'must',
+          explanation: '각 이직에 성장과 관련된 이유'
+        },
+        {
+          keyword: '패턴 인식',
+          importance: 'must',
+          explanation: '본인의 이직 패턴을 인식하고 있음'
+        },
+        {
+          keyword: '장기 비전',
+          importance: 'good_to_have',
+          explanation: '우리 회사에서의 구체적 성장 계획'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '각 이직이 기술 성장/역할 확장 목적. 우리 회사에서 MSA 전환+팀 빌딩이라는 장기 목표 제시.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '이유는 있지만 패턴 인식이 부족. 장기 계획 불명확.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: '이유가 불명확하거나 전 회사 비난. 장기 비전 없음.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q9-f1',
+          trigger: 'Expert',
+          question_text: '3년 후 이 회사에서 어떤 모습이길 기대하시나요?',
+          why_matters: '장기 비전.',
+          listen_for: '구체적 성장 목표.',
+          good: {
+            text: 'MSA 전환 완료+5인 팀 리드+시니어→리드 성장.',
+            score: 8
+          },
+          poor: {
+            text: '잘 모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q9-f2',
+          trigger: 'Mid',
+          question_text: '이전 회사에서 "이것만 있었다면 안 떠났다"는 것이 있나요?',
+          why_matters: '이탈 원인.',
+          listen_for: '환경적 요인 vs 개인적 요인.',
+          good: {
+            text: '기술 성장 기회, 의사결정 참여 등 합리적 요인.',
+            score: 5
+          },
+          poor: {
+            text: '연봉.',
+            score: 0
+          }
+        },
+        {
+          id: 'q9-f3',
+          trigger: 'Low',
+          question_text: '가장 오래 다닌 회사에서의 경험을 말씀해주세요.',
+          why_matters: '장기 근속 가능성.',
+          listen_for: '긍정적 경험과 성장.',
+          good: {
+            text: '3년간의 성장 과정 공유.',
+            score: 5
+          },
+          poor: {
+            text: '기억 안 남.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '시니어 채용 비용이 높으므로 2년 이내 퇴사는 큰 손실입니다.',
+        daily_analogy: '연애에서 만남이 짧은 사람에게 "왜 헤어졌나?"보다 "이번에는 뭐가 다른가?"가 중요한 것과 같습니다.',
+        level_expectation: '각 이직에 합리적 이유가 있고 장기적 목표가 구체적이면 긍정적입니다.'
+      },
+      expected_answer: {
+        core: '• 각 이직 사유: 성장 기회, 기술 도전, 역할 확장\n• 패턴 인식: 본인도 인지\n• 우리 회사: MSA 전환+팀 빌딩이 장기 도전과제',
+        example: 'StartupHub에서 Flask→CloudBridge에서 Django로 이동한 건 더 큰 규모의 B2B SaaS를 경험하고 싶었기 때문입니다. CloudBridge→DataFlow는 FastAPI와 데이터 파이프라인이라는 새 도전이었습니다. 이번 이직은 MSA 전환을 리드하면서 팀 빌딩까지 할 수 있는 기회가 매력적입니다.',
+        key_points: ['합리적 이유', '성장 지향', '장기 비전']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['경력 8년 동안 3개 회사를 거치셨는데, 각 이직의 이유와 저희 회사에서는 어떤 점이 다를 것으로 기대하시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 10,
+      category: 'risk_flags',
+      difficulty: 'Hard',
+      title: '팀 리딩 경험 부족',
+      is_risk: true,
+      risk_source: '8년 경력이나 이력서에 팀 리딩/멘토링 경험 미기재',
+      question_text: '8년 경력 동안 팀을 이끌거나 기술적 의사결정을 리드한 경험이 이력서에 보이지 않는데, 그 이유와 향후 계획을 말씀해주세요.',
+      context_bridge: '이 포지션은 주니어 2명을 이끌어야 합니다.',
+      why_matters: '기술 리더십 경험 부재가 역량 부족인지 기회 부재인지 확인합니다.',
+      listen_for: '솔직한 인정과 구체적 준비 의지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '팀 리드',
+          pronunciation: '팀 리드',
+          explanation: '팀의 기술적 방향을 결정하고 팀원을 이끄는 역할.',
+          definition: '팀의 기술적 방향을 결정하고 팀원을 이끄는 역할.',
+          plain_language: '팀의 기술적 방향을 결정하고 팀원을 이끄는 역할.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '기술 의사결정',
+          pronunciation: '테크 디시전',
+          explanation: '어떤 기술을 쓸지, 어떤 구조로 만들지 결정하는 것.',
+          definition: '어떤 기술을 쓸지, 어떤 구조로 만들지 결정하는 것.',
+          plain_language: '어떤 기술을 쓸지, 어떤 구조로 만들지 결정하는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'IC (Individual Contributor)',
+          pronunciation: '아이씨',
+          explanation: '관리가 아닌 개인 기여자로 일하는 역할.'
+        },
+        {
+          term: '매니지먼트 트랙',
+          pronunciation: '매니지먼트 트랙',
+          explanation: '팀 관리자로 성장하는 경로.'
+        },
+        {
+          term: '기술 트랙',
+          pronunciation: '테크 트랙',
+          explanation: '기술 전문가로 성장하는 경로.'
+        },
+        {
+          term: '임팩트',
+          pronunciation: '임팩트',
+          explanation: '업무가 조직에 미치는 영향력.'
+        },
+        {
+          term: '스코프',
+          pronunciation: '스코프',
+          explanation: '담당하는 업무의 범위와 책임.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '솔직한 인정',
+          importance: 'must',
+          explanation: '리딩 경험 부족을 솔직히 인정'
+        },
+        {
+          keyword: '이유 설명',
+          importance: 'must',
+          explanation: '기회가 없었는지, 관심이 없었는지'
+        },
+        {
+          keyword: '구체적 준비',
+          importance: 'good_to_have',
+          explanation: '리더십 역량을 키우기 위한 계획'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: 'IC 역할이었으나 비공식적으로 기술 결정·멘토링 경험 있음. 공식적 리딩을 원하며 구체적 준비.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '기회가 없었다고 설명. 의지는 있지만 준비가 구체적이지 않음.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: '리딩에 관심 없음. 코딩만 하고 싶다.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q10-f1',
+          trigger: 'Expert',
+          question_text: '비공식적으로 기술 결정을 내린 구체적 사례는?',
+          why_matters: '실질적 리더십 경험.',
+          listen_for: '기술 선정, 구조 설계 결정.',
+          good: {
+            text: '팀에서 FastAPI 도입을 제안하고 PoC까지 주도.',
+            score: 8
+          },
+          poor: {
+            text: '구체적 사례 없음.',
+            score: 0
+          }
+        },
+        {
+          id: 'q10-f2',
+          trigger: 'Mid',
+          question_text: '리더십을 키우기 위해 어떤 준비를 하고 계신가요?',
+          why_matters: '성장 의지.',
+          listen_for: '구체적 학습/준비.',
+          good: {
+            text: '리더십 관련 책/강의, 스터디 그룹 운영.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q10-f3',
+          trigger: 'Low',
+          question_text: '이 포지션에서 주니어를 이끄는 것에 대해 어떻게 생각하시나요?',
+          why_matters: '역할 적합성.',
+          listen_for: '긍정적 태도.',
+          good: {
+            text: '해보고 싶고, 코드 리뷰부터 시작하겠다.',
+            score: 5
+          },
+          poor: {
+            text: '부담스럽다.',
+            score: -2
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '8년차에 리딩 경험이 없는 것은 리스크입니다. 하지만 "기회가 없었던 것"과 "능력이 없는 것"은 다릅니다.',
+        daily_analogy: '운전면허 10년차인데 고속도로 운전 경험이 없는 사람. 시내 운전 실력은 확실하지만 고속도로는 다른 스킬이 필요합니다.',
+        level_expectation: '비공식적이라도 기술 결정이나 멘토링 경험이 있으면 긍정적. 전혀 없다면 이 포지션에 맞지 않을 수 있습니다.'
+      },
+      expected_answer: {
+        core: '• 이유: IC 역할 중심 팀 구조, 공식 리드 기회 부재\n• 비공식 경험: 기술 선정 제안, 온보딩 가이드 작성, 코드 리뷰 리드\n• 준비: 리더십 학습, 이번 포지션에서 공식적 리딩 도전 의지',
+        example: '이전 회사들이 플랫 구조라 공식 리드 타이틀은 없었지만, DataFlow에서 FastAPI 마이그레이션을 제안하고 기술 검토부터 PoC까지 주도했습니다. 신규 입사자 온보딩 가이드도 제가 만들었습니다. 이제는 공식적으로 팀을 이끄는 역할을 하고 싶어서 이 포지션에 지원했습니다.',
+        key_points: ['솔직한 인정', '비공식 경험', '성장 의지']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['8년 경력 동안 팀을 이끌거나 기술적 의사결정을 리드한 경험이 이력서에 보이지 않는데, 그 이유와 향후 계획을 말씀해주세요.', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 11,
+      category: 'role_fit',
+      difficulty: 'Easy',
+      title: '기술 비전 정렬',
+      question_text: '저희 회사가 모놀리스에서 MSA로 전환 중인데, 이 기술 방향에 대해 어떻게 생각하시나요? 본인의 기술 비전과 어떻게 맞닿아 있나요?',
+      context_bridge: '저희는 현재 모놀리스→MSA 전환이라는 큰 기술적 전환기에 있습니다.',
+      why_matters: '회사의 기술 방향과 후보자의 기술 비전이 정렬되는지 확인합니다.',
+      listen_for: 'MSA 전환의 장단점을 이해하고, 본인의 경험과 연결 지어 설명하는지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '모놀리스',
+          pronunciation: '모놀리스',
+          explanation: '하나의 큰 덩어리로 만들어진 프로그램. 모든 기능이 한 곳에 있습니다.',
+          definition: '하나의 큰 덩어리로 만들어진 프로그램. 모든 기능이 한 곳에 있습니다.',
+          plain_language: '하나의 큰 덩어리로 만들어진 프로그램. 모든 기능이 한 곳에 있습니다.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'MSA',
+          pronunciation: '엠에스에이',
+          explanation: '마이크로서비스 아키텍처. 기능별로 작은 서비스를 나누어 운영하는 방식.',
+          definition: '마이크로서비스 아키텍처. 기능별로 작은 서비스를 나누어 운영하는 방식.',
+          plain_language: '마이크로서비스 아키텍처. 기능별로 작은 서비스를 나누어 운영하는 방식.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '기술 비전',
+          pronunciation: '기술 비전',
+          explanation: '앞으로 기술을 어떤 방향으로 발전시킬지에 대한 큰 그림.'
+        },
+        {
+          term: '점진적 전환',
+          pronunciation: '점진적 전환',
+          explanation: '한 번에 바꾸지 않고 조금씩 단계적으로 변경하는 방법.'
+        },
+        {
+          term: '서비스 경계',
+          pronunciation: '서비스 바운더리',
+          explanation: '각 마이크로서비스가 담당하는 업무 범위.'
+        },
+        {
+          term: '도메인',
+          pronunciation: '도메인',
+          explanation: '비즈니스의 특정 영역. 예: 결제, 사용자 관리 등.'
+        },
+        {
+          term: '트레이드오프',
+          pronunciation: '트레이드오프',
+          explanation: '하나를 얻으면 다른 하나를 포기해야 하는 상황.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: 'MSA 이해',
+          importance: 'must',
+          explanation: 'MSA 전환의 필요성과 장단점을 이해'
+        },
+        {
+          keyword: '경험 연결',
+          importance: 'must',
+          explanation: '본인의 MSA 관련 경험과 연결'
+        },
+        {
+          keyword: '현실적 관점',
+          importance: 'good_to_have',
+          explanation: '무조건 좋다가 아닌 균형 잡힌 시각'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: 'MSA 전환의 장단점을 실무 경험과 함께 설명. 점진적 전환 전략과 주의점까지 언급.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: 'MSA가 좋다는 것은 알지만 구체적 경험이나 주의점 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: 'MSA에 대한 이해가 부족하거나 관심 없음.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q11-f1',
+          trigger: 'Expert',
+          question_text: 'MSA 전환에서 가장 먼저 분리해야 할 서비스는 어떻게 결정하시나요?',
+          why_matters: '전환 전략의 구체성.',
+          listen_for: '비즈니스 임팩트, 독립성, 변경 빈도 기준.',
+          good: {
+            text: '변경이 잦고 독립적으로 배포가 필요한 서비스부터. 비즈니스 도메인 경계를 기준으로 판단.',
+            score: 6
+          },
+          poor: {
+            text: '잘 모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q11-f2',
+          trigger: 'Mid',
+          question_text: 'MSA의 단점은 무엇이라고 생각하시나요?',
+          why_matters: '균형 잡힌 시각.',
+          listen_for: '운영 복잡도, 분산 트랜잭션 등.',
+          good: {
+            text: '서비스 간 통신 복잡도, 분산 트랜잭션, 모니터링 어려움.',
+            score: 4
+          },
+          poor: {
+            text: '단점은 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q11-f3',
+          trigger: 'Low',
+          question_text: '모놀리스와 MSA의 차이를 간단히 설명해주세요.',
+          why_matters: '기본 이해 확인.',
+          listen_for: '기본 개념 이해.',
+          good: {
+            text: '모놀리스는 하나의 큰 프로그램, MSA는 작은 서비스로 나눈 구조.',
+            score: 4
+          },
+          poor: {
+            text: '잘 모른다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '회사의 기술 방향과 후보자의 관심이 일치해야 장기적으로 동기부여됩니다.',
+        daily_analogy: '이사할 집을 고를 때, 동네 개발 계획과 본인의 라이프스타일이 맞는지 확인하는 것과 같습니다.',
+        level_expectation: '시니어에게는 MSA 전환에 대한 실무적 이해와 균형 잡힌 관점이 필요합니다.'
+      },
+      expected_answer: {
+        core: '• MSA 전환의 필요성 인식\n• 본인 경험과의 연결점\n• 점진적 전환에 대한 현실적 관점',
+        example: 'CloudBridge에서 모놀리스→MSA 전환을 경험했는데, 무작정 나누면 오히려 복잡도만 높아집니다. 비즈니스 도메인 기준으로 경계를 잡고, 가장 변경이 잦은 서비스부터 분리하는 것이 효과적이었습니다. 이 회사에서도 그 경험을 살려 기여하고 싶습니다.',
+        key_points: ['MSA 이해', '경험 연결', '현실적 관점']
+      },
+      jd_competency_link: 'JD 요구사항: "기술적 의사결정과 코드 품질 리드" → 시니어 역할 인식 검증',
+      generation_rationale: '8년 경력이나 멘토링 경험 미기재로 시니어 역할 인식 확인 필요',
+      skills_assessed: ['leadership', 'mentoring'],
+      alternative_phrasings: [
+        '저희 회사가 모놀리스에서 MSA로 전환 중인데, 이 기술 방향에 대해 어떻게 생각하시나요? 본인의 기술 비전과 어떻게 맞닿아 있나요에 대해 자세히 설명해 주시겠습니까?',
+        '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.'
+      ]
+    },
+    {
+      id: 12,
+      category: 'role_fit',
+      difficulty: 'Easy',
+      title: '타 팀 협업 기대치',
+      question_text: '시니어 백엔드 개발자로서 프론트엔드, 데이터, 인프라 등 다른 팀과 어떻게 협업하시겠습니까?',
+      context_bridge: '저희는 백엔드 팀 외에도 프론트엔드, 데이터 분석, 인프라 팀이 있습니다.',
+      why_matters: '시니어가 자기 팀에만 갇히지 않고 크로스팀 협업을 할 수 있는지 확인합니다.',
+      listen_for: 'API 계약, 문서화, 정기 싱크 등 구체적 협업 방식.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '크로스팀',
+          pronunciation: '크로스팀',
+          explanation: '여러 팀이 함께 협력하는 것.',
+          definition: '여러 팀이 함께 협력하는 것.',
+          plain_language: '여러 팀이 함께 협력하는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'API 계약',
+          pronunciation: '에이피아이 컨트랙트',
+          explanation: '팀 간 데이터를 주고받는 형식을 미리 약속하는 것.',
+          definition: '팀 간 데이터를 주고받는 형식을 미리 약속하는 것.',
+          plain_language: '팀 간 데이터를 주고받는 형식을 미리 약속하는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'API 문서',
+          pronunciation: '에이피아이 문서',
+          explanation: 'API를 어떻게 사용하는지 설명한 명세서.'
+        },
+        {
+          term: 'Swagger',
+          pronunciation: '스웨거',
+          explanation: 'API 문서를 자동 생성하고 테스트할 수 있는 도구.'
+        },
+        {
+          term: '싱크 미팅',
+          pronunciation: '싱크 미팅',
+          explanation: '팀 간 진행 상황을 맞추는 회의.'
+        },
+        {
+          term: '블로커',
+          pronunciation: '블로커',
+          explanation: '다른 팀의 작업이 끝나야 진행할 수 있는 의존성.'
+        },
+        {
+          term: '인터페이스',
+          pronunciation: '인터페이스',
+          explanation: '서로 다른 시스템이 소통하는 접점.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: 'API 계약/문서화',
+          importance: 'must',
+          explanation: '팀 간 명확한 인터페이스 정의'
+        },
+        {
+          keyword: '정기적 소통',
+          importance: 'must',
+          explanation: '싱크 미팅, 블로커 공유 등'
+        },
+        {
+          keyword: '선제적 커뮤니케이션',
+          importance: 'good_to_have',
+          explanation: '문제 발생 전 미리 소통'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: 'API 계약 선정의→Swagger 문서 자동화→정기 싱크→블로커 선제 공유. 실무 사례 포함.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '필요할 때 소통한다 수준. 체계적 방법론 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '백엔드만 잘 하면 된다는 인식.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q12-f1',
+          trigger: 'Expert',
+          question_text: '프론트엔드 팀과 API 스펙 충돌이 생겼을 때 어떻게 해결하시나요?',
+          why_matters: '갈등 해결.',
+          listen_for: '상호 이해, 타협, 데이터 기반 결정.',
+          good: {
+            text: '양쪽 제약 조건을 듣고, 사용자 경험에 가장 좋은 방향으로 합의.',
+            score: 6
+          },
+          poor: {
+            text: '백엔드 편의대로.',
+            score: 0
+          }
+        },
+        {
+          id: 'q12-f2',
+          trigger: 'Mid',
+          question_text: '다른 팀과 협업하면서 어려웠던 점은?',
+          why_matters: '협업 경험.',
+          listen_for: '구체적 사례와 해결.',
+          good: {
+            text: '일정 차이로 블로커가 생겨서 미리 목업 API를 제공한 경험.',
+            score: 4
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q12-f3',
+          trigger: 'Low',
+          question_text: '백엔드 개발자가 다른 팀과 소통해야 하는 이유는 뭐라고 생각하시나요?',
+          why_matters: '협업 인식.',
+          listen_for: '상호 의존성 이해.',
+          good: {
+            text: '서비스는 혼자 만들 수 없고 팀 간 인터페이스가 중요하다.',
+            score: 4
+          },
+          poor: {
+            text: '잘 모르겠다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '시니어가 "자기 팀 사일로"에 갇히면 전체 제품 품질이 떨어집니다.',
+        daily_analogy: '아파트 건설에서 전기, 배관, 인테리어 팀이 각각 일하되, 설계도(API 문서)를 공유하고 정기적으로 맞추는 것과 같습니다.',
+        level_expectation: '시니어에게는 "선제적 소통"과 "체계적 협업 방식"이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• API 계약 선정의: 개발 전 스펙 합의\n• 문서 자동화: Swagger/OpenAPI로 항상 최신 유지\n• 정기 싱크: 주간 크로스팀 미팅\n• 선제적 공유: 블로커나 변경사항 미리 알림',
+        example: 'DataFlow에서 프론트엔드 팀과 API 스펙을 먼저 합의하고, FastAPI의 자동 Swagger 문서를 활용했습니다. 주간 싱크에서 다음 주 변경 예정 API를 미리 공유하여 블로커를 최소화했습니다.',
+        key_points: ['API 계약', '문서화', '선제적 소통']
+      },
+      jd_competency_link: 'JD 요구사항: "기술적 의사결정과 코드 품질 리드" → 시니어 역할 인식 검증',
+      generation_rationale: '8년 경력이나 멘토링 경험 미기재로 시니어 역할 인식 확인 필요',
+      skills_assessed: ['leadership', 'mentoring'],
+      alternative_phrasings: ['시니어 백엔드 개발자로서 프론트엔드, 데이터, 인프라 등 다른 팀과 어떻게 협업하시겠습니까에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 13,
+      category: 'role_fit',
+      difficulty: 'Hard',
+      title: '오너십과 주도성',
+      question_text: '본인이 주도적으로 기술적 문제를 발견하고 해결한 경험을 말씀해주세요. 누가 시키지 않았는데 스스로 나서서 한 일이 있나요?',
+      context_bridge: '저희 팀에서는 시니어가 문제를 찾아서 해결하는 주도성을 기대합니다.',
+      why_matters: '시니어로서 문제를 발견하고 자발적으로 해결하는 오너십을 확인합니다.',
+      listen_for: '수동적 실행이 아닌 능동적 문제 발견과 해결.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '오너십',
+          pronunciation: '오너십',
+          explanation: '자기 일처럼 책임감을 가지고 주도하는 태도.',
+          definition: '자기 일처럼 책임감을 가지고 주도하는 태도.',
+          plain_language: '자기 일처럼 책임감을 가지고 주도하는 태도.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '프로액티브',
+          pronunciation: '프로액티브',
+          explanation: '문제가 생기기 전에 미리 움직이는 것.',
+          definition: '문제가 생기기 전에 미리 움직이는 것.',
+          plain_language: '문제가 생기기 전에 미리 움직이는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '기술 부채',
+          pronunciation: '테크 데트',
+          explanation: '미뤄둔 코드 품질 문제.'
+        },
+        {
+          term: '이니셔티브',
+          pronunciation: '이니셔티브',
+          explanation: '스스로 시작하고 이끄는 것.'
+        },
+        {
+          term: '임팩트',
+          pronunciation: '임팩트',
+          explanation: '행동이 만들어낸 결과와 영향.'
+        },
+        {
+          term: '보틀넥',
+          pronunciation: '보틀넥',
+          explanation: '전체 과정에서 가장 느린 병목 지점.'
+        },
+        {
+          term: 'ROI',
+          pronunciation: '알오아이',
+          explanation: '투자 대비 수익. 들인 노력 대비 효과.'
+        },
+        {
+          term: 'RFC',
+          pronunciation: '알에프씨',
+          explanation: '기술 변경 제안서. 팀에 기술적 변경을 공식으로 제안하는 문서.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '자발적 문제 발견',
+          importance: 'must',
+          explanation: '누가 시키지 않고 스스로 문제를 찾음'
+        },
+        {
+          keyword: '실행과 결과',
+          importance: 'must',
+          explanation: '발견에 그치지 않고 실행하여 결과를 만듦'
+        },
+        {
+          keyword: '팀 영향력',
+          importance: 'good_to_have',
+          explanation: '개인이 아닌 팀/조직 수준의 임팩트'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '성능 병목이나 기술 부채를 스스로 발견하고, 팀에 제안하여 해결. 정량적 결과 포함.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '문제를 인식하고 건의는 했지만 직접 실행까지는 하지 않음.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '시키는 일만 한다. 주도적 경험 없음.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q13-f1',
+          trigger: 'Expert',
+          question_text: '그 변경을 팀에 어떻게 설득하고 우선순위를 얻었나요?',
+          why_matters: '설득력과 실행력.',
+          listen_for: '데이터 기반 설득, ROI 제시.',
+          good: {
+            text: '장애 위험도와 개발 속도 영향을 수치로 보여주고 스프린트에 포함시킴.',
+            score: 8
+          },
+          poor: {
+            text: '그냥 했다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q13-f2',
+          trigger: 'Mid',
+          question_text: '건의했는데 받아들여지지 않았을 때 어떻게 했나요?',
+          why_matters: '끈기와 설득력.',
+          listen_for: '포기하지 않고 다른 방식으로 재시도.',
+          good: {
+            text: '데이터를 더 모아서 다시 제안하거나 작은 범위로 PoC를 진행.',
+            score: 5
+          },
+          poor: {
+            text: '포기했다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q13-f3',
+          trigger: 'Low',
+          question_text: '업무 중에 "이건 개선하면 좋겠다"고 느낀 적이 있나요?',
+          why_matters: '문제 인식 능력.',
+          listen_for: '개선점을 인식하는 능력.',
+          good: {
+            text: '반복적인 수작업이 있어서 스크립트로 자동화하고 싶었다.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '시니어는 "시키는 일만 잘하는 사람"이 아니라 "문제를 찾아서 해결하는 사람"이어야 합니다.',
+        daily_analogy: '식당에서 바닥에 물이 흘렸을 때, 지나가는 직원(주니어) vs 즉시 닦고 원인을 찾아 수도꼭지를 고치는 직원(시니어).',
+        level_expectation: '시니어에게는 "자발적 문제 발견 + 팀 설득 + 실행 + 결과"의 풀 사이클이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 문제 발견: 모니터링/코드 리뷰 중 성능 이슈나 기술 부채 발견\n• 제안: RFC 또는 팀 미팅에서 개선안 제시\n• 실행: 직접 구현하고 팀에 공유\n• 결과: 정량적 개선 효과',
+        example: 'DataFlow에서 API 응답 시간이 서서히 느려지는 것을 APM으로 발견했습니다. N+1 쿼리가 원인이었고, 팀 미팅에서 개선안을 발표한 후 직접 ORM 최적화를 진행했습니다. 결과적으로 p95 응답 시간이 800ms에서 200ms로 개선되었습니다.',
+        key_points: ['자발적 발견', '실행력', '정량적 결과']
+      },
+      jd_competency_link: 'JD 요구사항: "기술적 의사결정과 코드 품질 리드" → 시니어 역할 인식 검증',
+      generation_rationale: '8년 경력이나 멘토링 경험 미기재로 시니어 역할 인식 확인 필요',
+      skills_assessed: ['leadership', 'mentoring'],
+      alternative_phrasings: [
+        '본인이 주도적으로 기술적 문제를 발견하고 해결한 경험을 말씀해주세요. 누가 시키지 않았는데 스스로 나서서 한 일이 있나요에 대해 자세히 설명해 주시겠습니까?',
+        '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.'
+      ]
+    },
+    {
+      id: 14,
+      category: 'technical_depth',
+      difficulty: 'Easy',
+      title: 'MSA 서비스 경계 설계',
+      question_text: '마이크로서비스로 시스템을 나눌 때, 서비스의 경계를 어떤 기준으로 결정하시나요?',
+      context_bridge: '저희가 모놀리스를 MSA로 전환하면서 서비스 경계를 정하는 것이 가장 어려운 문제입니다.',
+      why_matters: 'MSA 설계의 핵심인 서비스 분리 기준에 대한 이해를 확인합니다.',
+      listen_for: '기술적 기준이 아닌 비즈니스 도메인 기반의 경계 설정.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '서비스 경계',
+          pronunciation: '서비스 바운더리',
+          explanation: '각 마이크로서비스가 담당하는 업무 범위의 구분선.',
+          definition: '각 마이크로서비스가 담당하는 업무 범위의 구분선.',
+          plain_language: '각 마이크로서비스가 담당하는 업무 범위의 구분선.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '도메인 주도 설계',
+          pronunciation: '디디디',
+          explanation: '비즈니스 영역을 기준으로 소프트웨어를 설계하는 방법론.',
+          definition: '비즈니스 영역을 기준으로 소프트웨어를 설계하는 방법론.',
+          plain_language: '비즈니스 영역을 기준으로 소프트웨어를 설계하는 방법론.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '바운디드 컨텍스트',
+          pronunciation: '바운디드 컨텍스트',
+          explanation: '특정 도메인 모델이 적용되는 명확한 범위.'
+        },
+        {
+          term: '결합도',
+          pronunciation: '커플링',
+          explanation: '서비스 간 의존 정도. 낮을수록 독립적.'
+        },
+        {
+          term: '응집도',
+          pronunciation: '코히전',
+          explanation: '하나의 서비스 내 기능들이 얼마나 관련 있는지. 높을수록 좋음.'
+        },
+        {
+          term: 'API 게이트웨이',
+          pronunciation: '에이피아이 게이트웨이',
+          explanation: '외부 요청을 적절한 서비스로 전달하는 입구.'
+        },
+        {
+          term: '이벤트 드리븐',
+          pronunciation: '이벤트 드리븐',
+          explanation: '서비스 간 통신을 이벤트(알림)로 하는 방식.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '도메인 기반 분리',
+          importance: 'must',
+          explanation: '비즈니스 도메인을 기준으로 서비스 경계 결정'
+        },
+        {
+          keyword: '결합도/응집도',
+          importance: 'must',
+          explanation: '낮은 결합도, 높은 응집도 원칙'
+        },
+        {
+          keyword: '데이터 소유권',
+          importance: 'good_to_have',
+          explanation: '각 서비스가 자신의 데이터를 독립적으로 관리'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: 'DDD 기반 바운디드 컨텍스트로 경계 설정. 데이터 소유권, 변경 빈도, 팀 구조까지 고려.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '도메인 기반이라는 개념은 알지만 구체적 기준이 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '기능 단위로 무작정 나누면 된다 수준.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q14-f1',
+          trigger: 'Expert',
+          question_text: '서비스 간 데이터를 공유해야 할 때 어떻게 처리하시나요?',
+          why_matters: '분산 데이터 관리.',
+          listen_for: 'API 호출, 이벤트, 데이터 복제 등.',
+          good: {
+            text: '이벤트로 동기화하거나 API로 요청. 직접 DB 접근은 금지.',
+            score: 6
+          },
+          poor: {
+            text: '공유 DB를 쓴다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q14-f2',
+          trigger: 'Mid',
+          question_text: '서비스를 너무 잘게 나누면 어떤 문제가 생기나요?',
+          why_matters: '오버 엔지니어링 인식.',
+          listen_for: '운영 복잡도, 네트워크 지연, 디버깅 어려움.',
+          good: {
+            text: '서비스 수가 너무 많으면 운영과 디버깅이 매우 어려워진다.',
+            score: 4
+          },
+          poor: {
+            text: '문제 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q14-f3',
+          trigger: 'Low',
+          question_text: '모놀리스와 마이크로서비스를 각각 언제 쓰면 좋을까요?',
+          why_matters: '적재적소 이해.',
+          listen_for: '초기엔 모놀리스, 규모가 커지면 MSA.',
+          good: {
+            text: '초기 스타트업은 모놀리스가 효율적, 팀과 서비스 규모가 커지면 MSA.',
+            score: 4
+          },
+          poor: {
+            text: '항상 MSA가 좋다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '서비스를 어떻게 나누느냐가 향후 개발 속도와 팀 구조를 결정합니다.',
+        daily_analogy: '회사 조직도를 만드는 것과 같습니다. 부서를 어떤 기준으로 나누느냐에 따라 업무 효율이 달라집니다.',
+        level_expectation: '시니어에게는 "비즈니스 도메인 기반 경계 설정"과 "결합도/응집도 원칙"이 기본입니다.'
+      },
+      expected_answer: {
+        core: '• 비즈니스 도메인 기준 (DDD 바운디드 컨텍스트)\n• 낮은 결합도, 높은 응집도\n• 독립적 배포 가능 단위\n• 데이터 소유권 분리',
+        example: '비즈니스 도메인을 기준으로 나눕니다. 예를 들어 "사용자 관리", "결제", "알림"은 각각 독립 서비스로 분리합니다. 핵심 기준은 "독립적으로 배포할 수 있는가"와 "데이터를 독립적으로 관리할 수 있는가"입니다.',
+        key_points: ['도메인 기반', '결합도/응집도', '데이터 소유권']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['마이크로서비스로 시스템을 나눌 때, 서비스의 경계를 어떤 기준으로 결정하시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 15,
+      category: 'technical_depth',
+      difficulty: 'Easy',
+      title: '테스트 전략',
+      question_text: '백엔드 시스템에서 단위 테스트, 통합 테스트, E2E 테스트를 어떻게 구성하시나요? 각각의 역할과 비중은?',
+      context_bridge: '저희 팀의 테스트 커버리지가 낮아서 시니어가 테스트 문화를 이끌어주길 기대합니다.',
+      why_matters: '체계적인 테스트 전략과 각 테스트 레벨의 역할을 이해하는지 확인합니다.',
+      listen_for: '테스트 피라미드 개념과 각 레벨의 목적을 구분하는지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '단위 테스트',
+          pronunciation: '유닛 테스트',
+          explanation: '함수 하나하나를 개별적으로 검증하는 테스트.',
+          definition: '함수 하나하나를 개별적으로 검증하는 테스트.',
+          plain_language: '함수 하나하나를 개별적으로 검증하는 테스트.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '통합 테스트',
+          pronunciation: '인테그레이션 테스트',
+          explanation: '여러 모듈이 함께 잘 동작하는지 확인하는 테스트.',
+          definition: '여러 모듈이 함께 잘 동작하는지 확인하는 테스트.',
+          plain_language: '여러 모듈이 함께 잘 동작하는지 확인하는 테스트.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'E2E 테스트',
+          pronunciation: '이투이 테스트',
+          explanation: '실제 사용자처럼 전체 시스템을 테스트하는 것.'
+        },
+        {
+          term: '테스트 피라미드',
+          pronunciation: '테스트 피라미드',
+          explanation: '단위 테스트를 가장 많이, E2E를 가장 적게 구성하는 원칙.'
+        },
+        {
+          term: '커버리지',
+          pronunciation: '커버리지',
+          explanation: '전체 코드 중 테스트가 확인하는 코드의 비율.'
+        },
+        {
+          term: '모킹',
+          pronunciation: '모킹',
+          explanation: '외부 의존성을 가짜로 대체하여 테스트하는 기법.'
+        },
+        {
+          term: 'pytest',
+          pronunciation: '파이테스트',
+          explanation: 'Python의 대표적인 테스트 프레임워크.'
+        },
+        {
+          term: 'CI',
+          pronunciation: '씨아이',
+          explanation: '코드 변경 시 자동으로 테스트를 실행하는 시스템.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '테스트 피라미드',
+          importance: 'must',
+          explanation: '단위>통합>E2E 비중 구조'
+        },
+        {
+          keyword: '각 레벨의 목적',
+          importance: 'must',
+          explanation: '단위=로직, 통합=연결, E2E=시나리오'
+        },
+        {
+          keyword: '자동화',
+          importance: 'good_to_have',
+          explanation: 'CI에서 자동 실행'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '테스트 피라미드 원칙. 단위 70%/통합 20%/E2E 10% 비중. 각 레벨의 목적과 실행 시점을 명확히 구분.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '테스트 종류는 알지만 비중이나 전략이 불명확.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '테스트를 거의 작성하지 않음.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q15-f1',
+          trigger: 'Expert',
+          question_text: '테스트 커버리지가 낮은 레거시 코드에 테스트를 추가한다면 어디서부터 시작하시나요?',
+          why_matters: '현실적 테스트 전략.',
+          listen_for: '핵심 비즈니스 로직부터, 변경이 잦은 코드부터.',
+          good: {
+            text: '핵심 비즈니스 로직과 버그가 자주 발생하는 모듈부터 통합 테스트를 추가.',
+            score: 6
+          },
+          poor: {
+            text: '처음부터 전부 작성.',
+            score: 0
+          }
+        },
+        {
+          id: 'q15-f2',
+          trigger: 'Mid',
+          question_text: '모킹을 많이 사용하면 어떤 문제가 있을 수 있나요?',
+          why_matters: '테스트 품질 인식.',
+          listen_for: '모킹이 실제와 다를 수 있음.',
+          good: {
+            text: '모킹이 실제 동작과 달라서 테스트는 통과하지만 실제로는 깨질 수 있다.',
+            score: 4
+          },
+          poor: {
+            text: '문제없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q15-f3',
+          trigger: 'Low',
+          question_text: '테스트를 작성하면 어떤 점이 좋다고 생각하시나요?',
+          why_matters: '테스트 가치 인식.',
+          listen_for: '버그 방지, 리팩토링 안전망.',
+          good: {
+            text: '코드 수정 시 기존 기능이 깨지지 않는지 확인할 수 있다.',
+            score: 4
+          },
+          poor: {
+            text: '시간 낭비.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '테스트가 없으면 코드 수정이 두려워지고 개발 속도가 점점 느려집니다.',
+        daily_analogy: '자동차 정비 체크리스트와 같습니다. 엔진 오일(단위), 브레이크(통합), 시운전(E2E) 각각 다른 것을 확인합니다.',
+        level_expectation: '시니어에게는 테스트 피라미드 이해와 팀에 테스트 문화를 이끌 수 있는 역량이 필요합니다.'
+      },
+      expected_answer: {
+        core: '• 테스트 피라미드: 단위 70%, 통합 20%, E2E 10%\n• 단위: 비즈니스 로직 함수 단위 검증\n• 통합: API+DB 연동 검증\n• E2E: 핵심 사용자 시나리오 검증\n• CI에서 자동 실행',
+        example: '단위 테스트는 서비스 레이어 함수를 pytest로 검증하고 70%를 목표합니다. 통합 테스트는 실제 DB와 함께 API 엔드포인트를 테스트합니다. E2E는 핵심 시나리오(가입→주문→결제)만 최소로 유지합니다. PR마다 CI에서 자동 실행됩니다.',
+        key_points: ['피라미드 원칙', '각 레벨 역할', '자동화']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['백엔드 시스템에서 단위 테스트, 통합 테스트, E2E 테스트를 어떻게 구성하시나요? 각각의 역할과 비중은에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 16,
+      category: 'technical_depth',
+      difficulty: 'Medium',
+      title: '보안 및 인증 패턴',
+      question_text: '백엔드 API의 인증/인가 체계를 어떻게 설계하시나요? JWT 기반 인증의 장단점과 보안 고려사항을 말씀해주세요.',
+      context_bridge: '저희 SaaS 서비스는 B2B 고객의 민감한 데이터를 다루므로 보안이 중요합니다.',
+      why_matters: '보안에 대한 체계적 이해와 실무 적용 능력을 확인합니다.',
+      listen_for: '단순 구현이 아닌 보안 위협과 대응 전략까지 포함한 설계.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '인증',
+          pronunciation: '어센티케이션',
+          explanation: '사용자가 누구인지 확인하는 과정. 신분증 확인과 같음.',
+          definition: '사용자가 누구인지 확인하는 과정. 신분증 확인과 같음.',
+          plain_language: '사용자가 누구인지 확인하는 과정. 신분증 확인과 같음.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '인가',
+          pronunciation: '오서라이제이션',
+          explanation: '인증된 사용자가 어떤 권한이 있는지 확인. 출입 권한과 같음.',
+          definition: '인증된 사용자가 어떤 권한이 있는지 확인. 출입 권한과 같음.',
+          plain_language: '인증된 사용자가 어떤 권한이 있는지 확인. 출입 권한과 같음.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'JWT',
+          pronunciation: '제이더블유티',
+          explanation: '토큰 기반 인증 방식. 디지털 출입증 같은 것.'
+        },
+        {
+          term: 'Access Token',
+          pronunciation: '액세스 토큰',
+          explanation: '짧은 유효기간의 인증 토큰. 단기 출입증.'
+        },
+        {
+          term: 'Refresh Token',
+          pronunciation: '리프레시 토큰',
+          explanation: 'Access Token을 재발급하기 위한 장기 토큰.'
+        },
+        {
+          term: 'RBAC',
+          pronunciation: '알백',
+          explanation: '역할 기반 접근 제어. 역할(관리자, 사용자)별로 권한을 나누는 것.'
+        },
+        {
+          term: 'CORS',
+          pronunciation: '코스',
+          explanation: '다른 도메인에서 API를 호출할 수 있게 허용하는 보안 정책.'
+        },
+        {
+          term: 'HTTPS',
+          pronunciation: '에이치티티피에스',
+          explanation: '데이터를 암호화하여 전송하는 프로토콜.'
+        },
+        {
+          term: 'SQL 인젝션',
+          pronunciation: '에스큐엘 인젝션',
+          explanation: '악의적인 SQL을 넣어 데이터를 빼내는 공격.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: 'JWT 장단점',
+          importance: 'must',
+          explanation: 'JWT의 장점(무상태)과 단점(토큰 크기, 무효화 어려움)'
+        },
+        {
+          keyword: '토큰 관리 전략',
+          importance: 'must',
+          explanation: 'Access/Refresh Token 분리, 만료 관리'
+        },
+        {
+          keyword: 'RBAC',
+          importance: 'good_to_have',
+          explanation: '역할 기반 접근 제어 설계'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: 'JWT 장단점 이해+Access/Refresh 전략+RBAC+보안 위협 대응(XSS, CSRF)+토큰 무효화 방안.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: 'JWT 사용 경험은 있지만 보안 위협 대응이 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: 'JWT를 단순히 발급만 할 줄 안다.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q16-f1',
+          trigger: 'Expert',
+          question_text: 'JWT를 이미 발급한 뒤 해당 사용자의 권한을 즉시 회수해야 한다면?',
+          why_matters: 'JWT의 가장 어려운 문제.',
+          listen_for: '토큰 블랙리스트, 짧은 만료시간, Redis 활용.',
+          good: {
+            text: 'Redis에 블랙리스트를 관리하거나 Access Token 만료를 5분으로 짧게 유지.',
+            score: 8
+          },
+          poor: {
+            text: '방법이 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q16-f2',
+          trigger: 'Mid',
+          question_text: 'Refresh Token은 어디에 저장하는 것이 안전한가요?',
+          why_matters: '실무 보안 감각.',
+          listen_for: 'HttpOnly Cookie, Secure 플래그.',
+          good: {
+            text: 'HttpOnly + Secure + SameSite 설정된 쿠키에 저장.',
+            score: 5
+          },
+          poor: {
+            text: '로컬 스토리지.',
+            score: 0
+          }
+        },
+        {
+          id: 'q16-f3',
+          trigger: 'Low',
+          question_text: 'API 보안에서 가장 기본적으로 해야 할 것은 무엇인가요?',
+          why_matters: '보안 기본기.',
+          listen_for: 'HTTPS, 입력 검증, 인증.',
+          good: {
+            text: 'HTTPS 필수, 모든 입력값 검증, 인증/인가 체크.',
+            score: 5
+          },
+          poor: {
+            text: '잘 모르겠다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: 'B2B SaaS에서 보안 사고는 고객 신뢰를 잃는 치명적 문제입니다.',
+        daily_analogy: '건물 보안 시스템과 같습니다. 출입증(JWT) 발급, 층별 권한(RBAC), CCTV(로깅), 출입증 분실 대응(토큰 무효화).',
+        level_expectation: '시니어에게는 "보안 위협을 인식하고 방어 설계를 하는 능력"이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• JWT 장점: 무상태, 서버 부담 감소\n• JWT 단점: 토큰 크기, 즉시 무효화 어려움\n• 전략: Access Token(짧은 만료) + Refresh Token(긴 만료)\n• RBAC: 역할 기반 접근 제어\n• 보안: XSS/CSRF 방지, 입력 검증, HTTPS',
+        example: 'JWT를 사용하되 Access Token은 15분, Refresh Token은 7일로 설정합니다. RBAC으로 관리자/일반 사용자/뷰어 권한을 분리하고, Refresh Token은 HttpOnly Cookie에 저장합니다. 토큰 강제 무효화가 필요하면 Redis 블랙리스트를 활용합니다.',
+        key_points: ['JWT 트레이드오프', '토큰 전략', '보안 방어']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['백엔드 API의 인증/인가 체계를 어떻게 설계하시나요? JWT 기반 인증의 장단점과 보안 고려사항을 말씀해주세요.', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 17,
+      category: 'execution_ownership',
+      difficulty: 'Easy',
+      title: 'CI/CD 파이프라인 설계',
+      question_text: 'CI/CD 파이프라인을 처음부터 구축한다면 어떤 단계들을 포함시키시겠습니까?',
+      context_bridge: '저희 팀은 GitHub Actions 기반 CI/CD를 사용하고 있지만 아직 초기 단계입니다.',
+      why_matters: '자동화된 배포 파이프라인에 대한 이해와 설계 역량을 확인합니다.',
+      listen_for: '빌드→테스트→배포의 기본 흐름과 각 단계의 목적.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'CI',
+          pronunciation: '씨아이',
+          explanation: 'Continuous Integration. 코드 변경 시 자동으로 빌드하고 테스트하는 것.',
+          definition: 'Continuous Integration. 코드 변경 시 자동으로 빌드하고 테스트하는 것.',
+          plain_language: 'Continuous Integration. 코드 변경 시 자동으로 빌드하고 테스트하는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'CD',
+          pronunciation: '씨디',
+          explanation: 'Continuous Deployment. 테스트 통과 후 자동으로 서버에 배포하는 것.',
+          definition: 'Continuous Deployment. 테스트 통과 후 자동으로 서버에 배포하는 것.',
+          plain_language: 'Continuous Deployment. 테스트 통과 후 자동으로 서버에 배포하는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '파이프라인',
+          pronunciation: '파이프라인',
+          explanation: '코드가 서버에 올라가기까지의 자동화된 과정.'
+        },
+        {
+          term: 'GitHub Actions',
+          pronunciation: '깃허브 액션스',
+          explanation: 'GitHub에서 제공하는 CI/CD 자동화 도구.'
+        },
+        {
+          term: '린팅',
+          pronunciation: '린팅',
+          explanation: '코드 스타일과 규칙을 자동으로 검사하는 것.'
+        },
+        {
+          term: '스테이징',
+          pronunciation: '스테이징',
+          explanation: '실제 서비스에 배포하기 전 테스트하는 환경.'
+        },
+        {
+          term: '블루-그린 배포',
+          pronunciation: '블루-그린 배포',
+          explanation: '새 버전을 별도 서버에 띄워두고 한 번에 전환하는 배포 방식.'
+        },
+        {
+          term: '롤백',
+          pronunciation: '롤백',
+          explanation: '문제가 생기면 이전 버전으로 되돌리는 것.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '기본 파이프라인 단계',
+          importance: 'must',
+          explanation: '린팅→빌드→테스트→배포의 기본 흐름'
+        },
+        {
+          keyword: '환경별 배포',
+          importance: 'must',
+          explanation: '개발→스테이징→프로덕션 환경 구분'
+        },
+        {
+          keyword: '롤백 전략',
+          importance: 'good_to_have',
+          explanation: '배포 실패 시 복구 방안'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '린팅→단위테스트→빌드→통합테스트→스테이징 배포→E2E→프로덕션 배포. 롤백과 승인 프로세스 포함.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '테스트→배포 기본 흐름은 알지만 세부 단계 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '수동 배포 또는 CI/CD 경험 없음.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q17-f1',
+          trigger: 'Expert',
+          question_text: '프로덕션 배포 시 무중단 배포는 어떻게 구현하시나요?',
+          why_matters: '고가용성 배포.',
+          listen_for: '블루-그린, 카나리, 롤링 배포.',
+          good: {
+            text: '블루-그린 배포로 전환하거나 카나리 배포로 일부 트래픽에만 먼저 적용.',
+            score: 6
+          },
+          poor: {
+            text: '서버를 내렸다 올린다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q17-f2',
+          trigger: 'Mid',
+          question_text: 'CI에서 테스트가 실패하면 어떻게 처리하시나요?',
+          why_matters: 'CI 문화.',
+          listen_for: '머지 차단, 원인 분석.',
+          good: {
+            text: 'PR 머지를 차단하고 실패한 테스트를 먼저 수정.',
+            score: 4
+          },
+          poor: {
+            text: '무시하고 머지.',
+            score: 0
+          }
+        },
+        {
+          id: 'q17-f3',
+          trigger: 'Low',
+          question_text: 'CI/CD가 왜 필요하다고 생각하시나요?',
+          why_matters: '자동화 가치 인식.',
+          listen_for: '수동 배포 위험, 일관성.',
+          good: {
+            text: '수동 배포는 실수가 생기고 느리다. 자동화하면 안전하고 빠르다.',
+            score: 4
+          },
+          poor: {
+            text: '편리하니까.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '배포 자동화는 제품 출시 속도와 안정성을 결정합니다.',
+        daily_analogy: '공장의 생산 라인과 같습니다. 원재료 검수(린팅)→조립(빌드)→품질 검사(테스트)→출하(배포). 어느 단계에서든 불량이 발견되면 라인을 멈춥니다.',
+        level_expectation: '시니어에게는 파이프라인 각 단계의 목적과 실패 시 대응 전략이 필요합니다.'
+      },
+      expected_answer: {
+        core: '• 린팅/포맷팅 자동 검사\n• 단위 테스트 + 통합 테스트\n• Docker 이미지 빌드\n• 스테이징 환경 배포 + E2E 테스트\n• 승인 후 프로덕션 배포\n• 롤백 전략 포함',
+        example: 'GitHub Actions로 PR 시 린팅+단위테스트 자동 실행, 머지 시 Docker 빌드→스테이징 배포→E2E 실행→통과 시 프로덕션 배포. 프로덕션은 블루-그린 배포로 무중단, 문제 시 즉시 롤백.',
+        key_points: ['자동화 단계', '환경 구분', '롤백']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['CI/CD 파이프라인을 처음부터 구축한다면 어떤 단계들을 포함시키시겠습니까에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 18,
+      category: 'execution_ownership',
+      difficulty: 'Easy',
+      title: '모니터링과 관측성',
+      question_text: '운영 중인 서비스의 모니터링과 알림은 어떻게 구성하시나요? 어떤 지표를 가장 중요하게 보시나요?',
+      context_bridge: '서비스가 커지면서 장애를 빠르게 감지하는 것이 중요해지고 있습니다.',
+      why_matters: '서비스 안정성을 위한 모니터링 설계 역량을 확인합니다.',
+      listen_for: '핵심 지표와 알림 기준에 대한 이해.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '모니터링',
+          pronunciation: '모니터링',
+          explanation: '서비스 상태를 실시간으로 감시하는 것.',
+          definition: '서비스 상태를 실시간으로 감시하는 것.',
+          plain_language: '서비스 상태를 실시간으로 감시하는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '관측성',
+          pronunciation: '옵저버빌리티',
+          explanation: '시스템 내부 상태를 외부에서 파악할 수 있는 능력.',
+          definition: '시스템 내부 상태를 외부에서 파악할 수 있는 능력.',
+          plain_language: '시스템 내부 상태를 외부에서 파악할 수 있는 능력.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '메트릭',
+          pronunciation: '메트릭',
+          explanation: '측정 가능한 수치 데이터. 예: 응답 시간, CPU 사용률.'
+        },
+        {
+          term: '로그',
+          pronunciation: '로그',
+          explanation: '시스템이 기록하는 동작 이력.'
+        },
+        {
+          term: '트레이싱',
+          pronunciation: '트레이싱',
+          explanation: '요청이 시스템을 지나가는 경로를 추적하는 것.'
+        },
+        {
+          term: '알림',
+          pronunciation: '얼럿',
+          explanation: '이상 징후 감지 시 자동으로 보내는 경고.'
+        },
+        {
+          term: '대시보드',
+          pronunciation: '대시보드',
+          explanation: '주요 지표를 한눈에 볼 수 있는 화면.'
+        },
+        {
+          term: 'SLO',
+          pronunciation: '에스엘오',
+          explanation: '서비스 수준 목표. 예: 응답 시간 200ms 이하 99.9%.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '핵심 지표',
+          importance: 'must',
+          explanation: '응답 시간, 에러율, 처리량 등 핵심 메트릭'
+        },
+        {
+          keyword: '알림 전략',
+          importance: 'must',
+          explanation: '어떤 조건에서 알림을 보내는지'
+        },
+        {
+          keyword: '로그/트레이싱',
+          importance: 'good_to_have',
+          explanation: '구조화된 로깅과 분산 트레이싱'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '메트릭+로그+트레이싱 3축. SLO 기반 알림. 대시보드 구성 경험. 알림 피로도 관리.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '기본 모니터링은 하지만 체계적 전략 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '모니터링 경험 없음. 문제 발생 후 수동 확인.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q18-f1',
+          trigger: 'Expert',
+          question_text: '알림이 너무 많아서 팀이 무시하게 되는 상황을 어떻게 해결하시나요?',
+          why_matters: '알림 피로도 관리.',
+          listen_for: '알림 임계값 조정, 우선순위화, 노이즈 제거.',
+          good: {
+            text: '알림을 심각도별로 구분하고 노이즈를 제거. 실제 대응이 필요한 것만 알림.',
+            score: 6
+          },
+          poor: {
+            text: '다 보내면 된다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q18-f2',
+          trigger: 'Mid',
+          question_text: '어떤 도구를 사용해서 모니터링하셨나요?',
+          why_matters: '실무 도구 경험.',
+          listen_for: 'Prometheus, Grafana, DataDog 등 구체적 도구.',
+          good: {
+            text: 'Prometheus+Grafana로 메트릭 대시보드, ELK로 로그 수집.',
+            score: 4
+          },
+          poor: {
+            text: '구체적 도구 경험 없음.',
+            score: 0
+          }
+        },
+        {
+          id: 'q18-f3',
+          trigger: 'Low',
+          question_text: '서비스에 문제가 있는지 어떻게 알 수 있을까요?',
+          why_matters: '모니터링 필요성 인식.',
+          listen_for: '자동 감지의 중요성.',
+          good: {
+            text: '사용자가 신고하기 전에 자동으로 감지해야 한다.',
+            score: 4
+          },
+          poor: {
+            text: '사용자가 알려주면.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '모니터링이 없으면 장애를 고객이 먼저 발견하게 됩니다.',
+        daily_analogy: '자동차 계기판과 같습니다. 속도계(응답 시간), 엔진 경고등(에러율), 연료계(리소스)를 항상 확인해야 합니다.',
+        level_expectation: '시니어에게는 "무엇을 모니터링할지"와 "언제 알림을 보낼지" 기준 설계가 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 핵심 지표: 응답 시간(p95), 에러율(5xx), 처리량(RPS)\n• 3축: 메트릭 + 로그 + 트레이싱\n• 알림: SLO 기반 임계값으로 자동 알림\n• 대시보드: 실시간 핵심 지표 시각화',
+        example: 'Prometheus로 메트릭을 수집하고 Grafana 대시보드에서 실시간 모니터링합니다. 핵심 지표는 API p95 응답 시간, 5xx 에러율, DB 커넥션 수입니다. p95가 500ms를 넘거나 에러율이 1%를 넘으면 Slack 알림을 보냅니다.',
+        key_points: ['핵심 지표', '자동 알림', '도구 활용']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['운영 중인 서비스의 모니터링과 알림은 어떻게 구성하시나요? 어떤 지표를 가장 중요하게 보시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 19,
+      category: 'execution_ownership',
+      difficulty: 'Medium',
+      title: '일정 산정과 프로젝트 계획',
+      question_text: '새로운 기능 개발의 일정을 산정할 때 어떤 방법으로 추정하시나요? 예상보다 지연될 때는 어떻게 대응하시나요?',
+      context_bridge: '시니어에게는 정확한 일정 산정과 리스크 관리를 기대합니다.',
+      why_matters: '시니어의 프로젝트 관리 역량과 현실적 판단력을 확인합니다.',
+      listen_for: '낙관적 추정이 아닌 버퍼를 포함한 현실적 산정.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '일정 산정',
+          pronunciation: '에스티메이션',
+          explanation: '작업에 걸리는 시간을 예측하는 것.',
+          definition: '작업에 걸리는 시간을 예측하는 것.',
+          plain_language: '작업에 걸리는 시간을 예측하는 것.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '버퍼',
+          pronunciation: '버퍼',
+          explanation: '예상치 못한 상황에 대비한 여유 시간.',
+          definition: '예상치 못한 상황에 대비한 여유 시간.',
+          plain_language: '예상치 못한 상황에 대비한 여유 시간.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '스코프',
+          pronunciation: '스코프',
+          explanation: '작업 범위.'
+        },
+        {
+          term: '스파이크',
+          pronunciation: '스파이크',
+          explanation: '불확실한 기술 검증을 위해 짧게 실험하는 것.'
+        },
+        {
+          term: '스토리 포인트',
+          pronunciation: '스토리 포인트',
+          explanation: '작업의 복잡도와 크기를 상대적으로 나타내는 단위.'
+        },
+        {
+          term: '번다운 차트',
+          pronunciation: '번다운 차트',
+          explanation: '남은 작업량을 시간에 따라 보여주는 그래프.'
+        },
+        {
+          term: '리스크',
+          pronunciation: '리스크',
+          explanation: '계획대로 되지 않을 수 있는 위험 요소.'
+        },
+        {
+          term: '크리티컬 패스',
+          pronunciation: '크리티컬 패스',
+          explanation: '전체 일정에서 가장 긴 작업 경로. 이것이 지연되면 전체가 지연됨.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '분해 기반 추정',
+          importance: 'must',
+          explanation: '큰 작업을 작게 나누어 추정'
+        },
+        {
+          keyword: '버퍼 포함',
+          importance: 'must',
+          explanation: '불확실성에 대한 여유 시간'
+        },
+        {
+          keyword: '지연 시 대응',
+          importance: 'good_to_have',
+          explanation: '스코프 조정, 우선순위 재설정'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '작업 분해→스파이크→추정→버퍼 추가. 지연 시 스코프 조정+이해관계자 조기 소통. 과거 실적 기반.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '경험에 기반해 추정하지만 체계적이지 않음.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '대충 감으로 추정. 지연 시 야근으로 해결.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q19-f1',
+          trigger: 'Expert',
+          question_text: '일정이 50% 이상 지연될 것으로 예상될 때 어떻게 하시나요?',
+          why_matters: '위기 관리.',
+          listen_for: '조기 공유, 대안 제시.',
+          good: {
+            text: '즉시 이해관계자에게 공유하고 스코프 축소 또는 출시 일정 조정 제안.',
+            score: 8
+          },
+          poor: {
+            text: '더 열심히 한다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q19-f2',
+          trigger: 'Mid',
+          question_text: '추정이 자주 빗나가는 이유는 무엇이라고 생각하시나요?',
+          why_matters: '자기 인식.',
+          listen_for: '불확실성, 의존성, 요구사항 변경 등.',
+          good: {
+            text: '기술적 불확실성, 외부 의존성, 요구사항 변경을 과소평가하기 때문.',
+            score: 5
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q19-f3',
+          trigger: 'Low',
+          question_text: '한 번도 해보지 않은 기술이 필요한 작업은 어떻게 추정하시나요?',
+          why_matters: '불확실성 대응.',
+          listen_for: '스파이크, 리서치 시간 확보.',
+          good: {
+            text: '1~2일 기술 검증(스파이크) 시간을 먼저 잡고 그 후에 추정.',
+            score: 5
+          },
+          poor: {
+            text: '대충 넉넉히.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '일정 산정은 비즈니스 계획의 기초입니다. 정확한 추정이 신뢰를 만듭니다.',
+        daily_analogy: '여행 계획을 세울 때, 이동 시간에 교통 체증과 휴게소 시간을 포함하는 것처럼, 개발에도 버퍼가 필요합니다.',
+        level_expectation: '시니어에게는 "분해 기반 추정 + 불확실성 버퍼 + 지연 시 소통"이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 작업을 2시간~1일 단위로 분해\n• 불확실한 부분은 스파이크로 검증\n• 총 추정치에 20~30% 버퍼\n• 지연 시 조기 공유+스코프 조정',
+        example: '기능을 작은 태스크로 분해하고 각각 추정합니다. 처음 해보는 기술이면 1일 스파이크를 먼저 잡습니다. 총합에 25% 버퍼를 추가하고, 버퍼를 먹기 시작하면 PM에게 미리 알립니다.',
+        key_points: ['분해 추정', '버퍼', '조기 소통']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['새로운 기능 개발의 일정을 산정할 때 어떤 방법으로 추정하시나요? 예상보다 지연될 때는 어떻게 대응하시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 20,
+      category: 'communication',
+      difficulty: 'Easy',
+      title: '기술 문서 작성',
+      question_text: '기술 문서를 작성할 때 어떤 원칙으로 작성하시나요? 잘 쓴 기술 문서란 무엇이라고 생각하시나요?',
+      context_bridge: '저희 팀의 기술 문서가 부족해서 시니어가 문서화 문화를 이끌어주길 기대합니다.',
+      why_matters: '기술 문서 작성 능력과 문서화에 대한 태도를 확인합니다.',
+      listen_for: '독자를 고려한 문서 작성과 문서 유지보수 관점.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '기술 문서',
+          pronunciation: '기술 문서',
+          explanation: '시스템이나 코드의 동작 방식을 설명한 글.',
+          definition: '시스템이나 코드의 동작 방식을 설명한 글.',
+          plain_language: '시스템이나 코드의 동작 방식을 설명한 글.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'README',
+          pronunciation: '리드미',
+          explanation: '프로젝트의 첫 번째 안내 문서.',
+          definition: '프로젝트의 첫 번째 안내 문서.',
+          plain_language: '프로젝트의 첫 번째 안내 문서.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'API 문서',
+          pronunciation: '에이피아이 문서',
+          explanation: 'API 사용 방법을 설명한 명세서.'
+        },
+        {
+          term: 'ADR',
+          pronunciation: '에이디알',
+          explanation: '아키텍처 결정 기록. 왜 이런 결정을 했는지 기록하는 문서.'
+        },
+        {
+          term: '위키',
+          pronunciation: '위키',
+          explanation: '팀이 함께 편집하는 지식 저장소.'
+        },
+        {
+          term: '온보딩 문서',
+          pronunciation: '온보딩 문서',
+          explanation: '새 팀원이 빠르게 적응할 수 있도록 돕는 안내 문서.'
+        },
+        {
+          term: '다이어그램',
+          pronunciation: '다이어그램',
+          explanation: '시스템 구조나 흐름을 시각적으로 표현한 그림.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '독자 중심',
+          importance: 'must',
+          explanation: '누가 읽을지 고려하여 수준 조절'
+        },
+        {
+          keyword: '유지보수',
+          importance: 'must',
+          explanation: '코드와 함께 문서도 업데이트하는 습관'
+        },
+        {
+          keyword: '구조화',
+          importance: 'good_to_have',
+          explanation: '목적, 배경, 상세, 예시 순서'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '독자별 수준 조절+코드와 동기화+ADR로 결정 이력 기록+자동 생성 활용.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '문서 작성은 하지만 체계적 원칙 없음.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '문서 작성을 거의 하지 않음.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q20-f1',
+          trigger: 'Expert',
+          question_text: '문서가 코드와 동기화되지 않는 문제를 어떻게 해결하시나요?',
+          why_matters: '문서 유지보수.',
+          listen_for: '자동 생성, 코드 리뷰 시 확인, 최소 문서.',
+          good: {
+            text: 'API 문서는 코드에서 자동 생성, PR 리뷰에 문서 업데이트 체크리스트 포함.',
+            score: 6
+          },
+          poor: {
+            text: '어쩔 수 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q20-f2',
+          trigger: 'Mid',
+          question_text: '어떤 종류의 문서를 가장 많이 작성하시나요?',
+          why_matters: '문서 경험.',
+          listen_for: 'README, API 문서, 설계 문서 등.',
+          good: {
+            text: 'API 문서, 시스템 설계 문서, 온보딩 가이드.',
+            score: 4
+          },
+          poor: {
+            text: '거의 안 쓴다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q20-f3',
+          trigger: 'Low',
+          question_text: '문서가 왜 필요하다고 생각하시나요?',
+          why_matters: '문서화 가치 인식.',
+          listen_for: '지식 공유, 온보딩, 유지보수.',
+          good: {
+            text: '새 팀원 온보딩, 인수인계, 나중에 본인도 기억 못할 수 있으므로.',
+            score: 4
+          },
+          poor: {
+            text: '필요 없다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '문서가 없으면 특정 사람에게 의존하게 되고, 그 사람이 떠나면 큰 문제가 됩니다.',
+        daily_analogy: '요리 레시피와 같습니다. 요리사가 바뀌어도 같은 맛을 낼 수 있어야 합니다.',
+        level_expectation: '시니어에게는 "독자 중심 작성"과 "문서 유지보수 전략"이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 독자 중심: 누가 읽을지 고려\n• 구조화: 목적→배경→상세→예시\n• 유지보수: 코드와 동기화, 자동 생성 활용\n• ADR: 기술 결정 이력 기록',
+        example: '문서는 독자에 따라 수준을 조절합니다. API 문서는 FastAPI의 자동 생성을 활용하고, 설계 문서는 배경→문제→대안→결정 순서로 작성합니다. PR에 문서 업데이트 여부를 체크리스트로 포함합니다.',
+        key_points: ['독자 중심', '유지보수', '구조화']
+      },
+      jd_competency_link: 'JD 요구사항: "주니어 멘토링, 코드 리뷰 리드" → 기술 리더십 소통 검증',
+      generation_rationale: '이력서에 멘토링 미기재로 소통/리더십 역량 별도 확인 필요',
+      skills_assessed: ['mentoring', 'collaboration'],
+      alternative_phrasings: ['기술 문서를 작성할 때 어떤 원칙으로 작성하시나요? 잘 쓴 기술 문서란 무엇이라고 생각하시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 21,
+      category: 'communication',
+      difficulty: 'Easy',
+      title: '크로스팀 의존성 관리',
+      question_text: '다른 팀의 작업에 의존하는 프로젝트를 진행할 때, 의존성을 어떻게 관리하시나요?',
+      context_bridge: '저희 백엔드 팀은 프론트엔드, 인프라 팀과 의존성이 많습니다.',
+      why_matters: '팀 간 의존성 관리 능력과 선제적 소통 역량을 확인합니다.',
+      listen_for: '의존성을 사전에 파악하고 선제적으로 소통하는지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '의존성',
+          pronunciation: '디펜던시',
+          explanation: '다른 팀이나 시스템의 작업이 끝나야 내 작업을 진행할 수 있는 관계.',
+          definition: '다른 팀이나 시스템의 작업이 끝나야 내 작업을 진행할 수 있는 관계.',
+          plain_language: '다른 팀이나 시스템의 작업이 끝나야 내 작업을 진행할 수 있는 관계.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '블로커',
+          pronunciation: '블로커',
+          explanation: '진행을 막는 장애물.',
+          definition: '진행을 막는 장애물.',
+          plain_language: '진행을 막는 장애물.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '목업',
+          pronunciation: '목업',
+          explanation: '실제가 아닌 가짜 데이터나 인터페이스.'
+        },
+        {
+          term: '인터페이스 합의',
+          pronunciation: '인터페이스 합의',
+          explanation: '팀 간 데이터 형식을 미리 약속하는 것.'
+        },
+        {
+          term: '타임라인',
+          pronunciation: '타임라인',
+          explanation: '작업의 시간 계획.'
+        },
+        {
+          term: '에스컬레이션',
+          pronunciation: '에스컬레이션',
+          explanation: '문제를 상위 의사결정자에게 올리는 것.'
+        },
+        {
+          term: '슬랙 타임',
+          pronunciation: '슬랙 타임',
+          explanation: '일정에서의 여유 시간.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '사전 식별',
+          importance: 'must',
+          explanation: '프로젝트 시작 전 의존성 파악'
+        },
+        {
+          keyword: '선제적 소통',
+          importance: 'must',
+          explanation: '문제 발생 전 미리 소통'
+        },
+        {
+          keyword: '대안 준비',
+          importance: 'good_to_have',
+          explanation: '블로커 시 목업 등 우회 방안'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '프로젝트 시작 시 의존성 매핑→인터페이스 선합의→정기 싱크→블로커 시 목업으로 우회.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '필요할 때 소통하지만 사전 계획 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '블로커 발생 시에야 소통. 수동적.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q21-f1',
+          trigger: 'Expert',
+          question_text: '다른 팀의 일정이 지연되어 우리 일정도 영향받을 때 어떻게 하시나요?',
+          why_matters: '위기 관리.',
+          listen_for: '대안 제시, 에스컬레이션, 스코프 조정.',
+          good: {
+            text: '목업 API로 우선 개발 진행하면서 PM에게 리스크 공유. 필요 시 에스컬레이션.',
+            score: 6
+          },
+          poor: {
+            text: '기다린다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q21-f2',
+          trigger: 'Mid',
+          question_text: '의존성이 있는 작업의 일정을 어떻게 산정하시나요?',
+          why_matters: '의존성 감안한 계획.',
+          listen_for: '버퍼, 병렬 작업, 크리티컬 패스.',
+          good: {
+            text: '의존성 있는 부분에 버퍼를 더 넣고, 독립적인 부분을 먼저 진행.',
+            score: 4
+          },
+          poor: {
+            text: '다른 팀 일정에 맞춘다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q21-f3',
+          trigger: 'Low',
+          question_text: '다른 팀에 요청해야 할 때 어떤 방식으로 소통하시나요?',
+          why_matters: '기본 소통 방식.',
+          listen_for: '명확한 요청, 기한 제시.',
+          good: {
+            text: '필요한 것, 이유, 기한을 명확히 전달.',
+            score: 4
+          },
+          poor: {
+            text: '슬랙에 한 줄 보낸다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '팀 간 의존성 관리 실패는 전체 프로젝트 지연으로 이어집니다.',
+        daily_analogy: '결혼식 준비와 같습니다. 드레스, 꽃, 케이크 업체가 각자 작업하되, 전체 일정에 맞춰 조율해야 합니다.',
+        level_expectation: '시니어에게는 "사전 식별 + 선제적 소통 + 블로커 우회"가 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 사전 식별: 프로젝트 시작 시 의존성 매핑\n• 인터페이스 선합의: 데이터 형식 미리 약속\n• 정기 싱크: 주간 진행 상황 공유\n• 블로커 우회: 목업으로 개발 진행',
+        example: '프로젝트 킥오프 때 의존성 다이어그램을 그리고, 관련 팀과 인터페이스를 먼저 합의합니다. 주간 싱크에서 진행 상황을 확인하고, 다른 팀 작업이 늦어지면 목업 API로 우선 개발을 진행합니다.',
+        key_points: ['사전 파악', '선제적 소통', '우회 방안']
+      },
+      jd_competency_link: 'JD 요구사항: "주니어 멘토링, 코드 리뷰 리드" → 기술 리더십 소통 검증',
+      generation_rationale: '이력서에 멘토링 미기재로 소통/리더십 역량 별도 확인 필요',
+      skills_assessed: ['mentoring', 'collaboration'],
+      alternative_phrasings: ['다른 팀의 작업에 의존하는 프로젝트를 진행할 때, 의존성을 어떻게 관리하시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 22,
+      category: 'communication',
+      difficulty: 'Hard',
+      title: '지식 공유 문화',
+      question_text: '팀 내 지식 공유 문화를 만들고 유지하기 위해 어떤 노력을 하시나요? 구체적 경험이 있으면 말씀해주세요.',
+      context_bridge: '저희 팀은 특정 사람에게 지식이 집중되는 문제가 있습니다.',
+      why_matters: '시니어가 지식 공유를 주도하고 "버스 팩터"를 높일 수 있는지 확인합니다.',
+      listen_for: '단발성이 아닌 지속적이고 체계적인 지식 공유 방법.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '지식 공유',
+          pronunciation: '날리지 셰어링',
+          explanation: '팀원들 간에 기술 지식과 경험을 나누는 활동.',
+          definition: '팀원들 간에 기술 지식과 경험을 나누는 활동.',
+          plain_language: '팀원들 간에 기술 지식과 경험을 나누는 활동.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '버스 팩터',
+          pronunciation: '버스 팩터',
+          explanation: '핵심 인원이 빠졌을 때 프로젝트가 멈추는 위험도.',
+          definition: '핵심 인원이 빠졌을 때 프로젝트가 멈추는 위험도.',
+          plain_language: '핵심 인원이 빠졌을 때 프로젝트가 멈추는 위험도.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '기술 세미나',
+          pronunciation: '테크 톡',
+          explanation: '팀 내에서 기술 주제를 발표하는 시간.'
+        },
+        {
+          term: '페어 프로그래밍',
+          pronunciation: '페어 프로그래밍',
+          explanation: '두 명이 함께 코딩하며 지식을 공유하는 방법.'
+        },
+        {
+          term: '위키',
+          pronunciation: '위키',
+          explanation: '팀이 함께 편집하는 지식 저장소.'
+        },
+        {
+          term: '온보딩',
+          pronunciation: '온보딩',
+          explanation: '새 팀원이 빠르게 적응하도록 돕는 과정.'
+        },
+        {
+          term: '사일로',
+          pronunciation: '사일로',
+          explanation: '정보가 특정 사람/팀에 갇혀 공유되지 않는 상태.'
+        },
+        {
+          term: '문서화',
+          pronunciation: '도큐멘테이션',
+          explanation: '지식을 글로 기록하는 것.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '체계적 방법',
+          importance: 'must',
+          explanation: '기술 세미나, 코드 리뷰, 위키 등 구체적 방법'
+        },
+        {
+          keyword: '지속성',
+          importance: 'must',
+          explanation: '일회성이 아닌 문화로 정착시키는 노력'
+        },
+        {
+          keyword: '버스 팩터 개선',
+          importance: 'good_to_have',
+          explanation: '특정 인원 의존도를 낮추는 전략'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '주간 테크 톡+코드 리뷰로 지식 확산+페어 프로그래밍+문서화 문화+온보딩 체계. 구체적 사례와 결과.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '필요성은 인식하지만 실행 경험이 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '지식 공유에 관심 없음. 본인만 알면 된다.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q22-f1',
+          trigger: 'Expert',
+          question_text: '팀원이 지식 공유에 소극적일 때 어떻게 참여를 유도하시나요?',
+          why_matters: '문화 형성 리더십.',
+          listen_for: '강요가 아닌 동기 부여.',
+          good: {
+            text: '작은 것부터 시작. 코드 리뷰에서 배운 점 공유, 발표 부담을 줄이는 포맷.',
+            score: 8
+          },
+          poor: {
+            text: '의무화한다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q22-f2',
+          trigger: 'Mid',
+          question_text: '지식 공유의 가장 큰 장벽은 무엇이라고 생각하시나요?',
+          why_matters: '현실적 인식.',
+          listen_for: '시간 부족, 문화, 동기 부여.',
+          good: {
+            text: '당장 급한 업무에 밀려서. 일정에 포함시키는 것이 중요.',
+            score: 5
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q22-f3',
+          trigger: 'Low',
+          question_text: '본인만 알고 있는 기술 지식이 있을 때 어떻게 하시나요?',
+          why_matters: '공유 의지.',
+          listen_for: '공유하려는 태도.',
+          good: {
+            text: '문서로 정리하거나 팀에 공유한다.',
+            score: 5
+          },
+          poor: {
+            text: '물어보면 알려준다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '지식이 한 사람에게 집중되면, 그 사람이 퇴사하면 서비스가 위험합니다.',
+        daily_analogy: '요리사가 레시피를 공유하지 않으면 그 사람이 쉬는 날 메뉴를 못 만드는 것과 같습니다.',
+        level_expectation: '시니어에게는 "지식 공유를 문화로 만드는 리더십"이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 주간 테크 톡: 팀원 돌아가며 발표\n• 코드 리뷰: 지식 공유의 일상 채널\n• 문서화: 위키에 아키텍처, 트러블슈팅 기록\n• 페어 프로그래밍: 복잡한 작업 시 함께\n• 온보딩 체계: 새 팀원 적응 프로그램',
+        example: 'DataFlow에서 매주 금요일 30분 테크 톡을 도입했습니다. 부담을 줄이기 위해 TIL(Today I Learned) 형식으로 시작했고, 코드 리뷰 시 "왜"를 항상 설명하여 자연스러운 지식 공유가 되었습니다. 결과적으로 팀의 버스 팩터가 개선되어 특정 모듈을 여러 사람이 수정할 수 있게 되었습니다.',
+        key_points: ['체계적 방법', '문화 형성', '버스 팩터 개선']
+      },
+      jd_competency_link: 'JD 요구사항: "주니어 멘토링, 코드 리뷰 리드" → 기술 리더십 소통 검증',
+      generation_rationale: '이력서에 멘토링 미기재로 소통/리더십 역량 별도 확인 필요',
+      skills_assessed: ['mentoring', 'collaboration'],
+      alternative_phrasings: ['팀 내 지식 공유 문화를 만들고 유지하기 위해 어떤 노력을 하시나요? 구체적 경험이 있으면 말씀해주세요.', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 23,
+      category: 'risk_flags',
+      difficulty: 'Easy',
+      title: '대규모 트래픽 경험 한계',
+      is_risk: true,
+      risk_source: '중규모(일 50만 요청) 경험만 있고 대규모 트래픽 미확인',
+      question_text: '지금까지 다루셨던 서비스의 최대 트래픽 규모가 어느 정도였나요? 대규모 트래픽에 대한 경험이나 준비는 어떻게 하고 계신가요?',
+      context_bridge: '저희 서비스는 B2B 고객 증가로 트래픽이 빠르게 늘고 있습니다.',
+      why_matters: '대규모 트래픽 경험 부족이 실제 리스크인지, 학습으로 극복 가능한 수준인지 확인합니다.',
+      listen_for: '솔직한 경험 범위 인정과 학습/준비 의지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '트래픽',
+          pronunciation: '트래픽',
+          explanation: '서버에 들어오는 요청의 양.',
+          definition: '서버에 들어오는 요청의 양.',
+          plain_language: '서버에 들어오는 요청의 양.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: 'RPS',
+          pronunciation: '알피에스',
+          explanation: '초당 요청 수. Requests Per Second.',
+          definition: '초당 요청 수. Requests Per Second.',
+          plain_language: '초당 요청 수. Requests Per Second.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '스케일링',
+          pronunciation: '스케일링',
+          explanation: '더 많은 요청을 처리할 수 있게 시스템을 확장하는 것.'
+        },
+        {
+          term: '로드 테스트',
+          pronunciation: '로드 테스트',
+          explanation: '대량의 요청을 보내 시스템 한계를 확인하는 테스트.'
+        },
+        {
+          term: '오토 스케일링',
+          pronunciation: '오토 스케일링',
+          explanation: '트래픽에 따라 서버를 자동으로 늘리거나 줄이는 기능.'
+        },
+        {
+          term: '병목',
+          pronunciation: '보틀넥',
+          explanation: '전체 성능을 떨어뜨리는 가장 느린 지점.'
+        },
+        {
+          term: '캐싱',
+          pronunciation: '캐싱',
+          explanation: '자주 요청되는 데이터를 미리 저장해두는 것.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '경험 범위 인정',
+          importance: 'must',
+          explanation: '본인의 트래픽 경험 범위를 솔직히 인정'
+        },
+        {
+          keyword: '학습 의지',
+          importance: 'must',
+          explanation: '대규모 트래픽 대응을 위한 학습/준비'
+        },
+        {
+          keyword: '기본 전략',
+          importance: 'good_to_have',
+          explanation: '캐싱, 스케일링 등 기본 대응 전략 이해'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '중규모 경험을 솔직히 인정하면서, 로드 테스트/학습으로 준비 중. 기본 전략(캐싱, 스케일링)을 체계적으로 이해.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '솔직히 인정하지만 구체적 학습 계획이 없음.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: '경험을 과장하거나 대규모 트래픽의 어려움을 인식하지 못함.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q23-f1',
+          trigger: 'Expert',
+          question_text: '로드 테스트를 해보신 경험이 있나요? 어떤 도구를 사용하셨나요?',
+          why_matters: '실무적 준비.',
+          listen_for: 'Locust, k6, JMeter 등 구체적 도구.',
+          good: {
+            text: 'Locust로 API 부하 테스트를 진행하고 병목 지점을 찾아 개선한 경험이 있다.',
+            score: 6
+          },
+          poor: {
+            text: '해본 적 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q23-f2',
+          trigger: 'Mid',
+          question_text: '트래픽이 10배 늘면 가장 먼저 문제가 될 곳은 어디라고 생각하시나요?',
+          why_matters: '병목 인식.',
+          listen_for: 'DB, 네트워크, 메모리 등.',
+          good: {
+            text: '보통 DB가 먼저 병목이 되고, 그 다음이 서버 메모리.',
+            score: 4
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q23-f3',
+          trigger: 'Low',
+          question_text: '트래픽이 갑자기 급증하면 어떻게 대응하시겠습니까?',
+          why_matters: '기본 대응 능력.',
+          listen_for: '서버 증설, 캐싱 등 기본 대응.',
+          good: {
+            text: '캐싱 적용하고 서버를 늘리겠다.',
+            score: 4
+          },
+          poor: {
+            text: '서버를 끄고 점검한다.',
+            score: -2
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '대규모 트래픽 경험이 없는 것 자체는 문제가 아닙니다. 문제는 그것을 인식하고 준비하는지입니다.',
+        daily_analogy: '시내 운전만 해본 사람이 고속도로를 처음 탈 때, 기본 운전 실력이 좋으면 적응이 빠릅니다. 중요한 건 "고속도로가 다르다"는 것을 아는 것.',
+        level_expectation: '솔직한 인정 + 학습 의지 + 기본 전략 이해가 있으면 충분히 긍정적입니다.'
+      },
+      expected_answer: {
+        core: '• 솔직한 인정: 일 50만 요청 수준의 중규모 경험\n• 기본 전략: 캐싱, DB 최적화, 수평 확장 이해\n• 학습: 로드 테스트, 대규모 시스템 설계 학습\n• 적용 의지: 이 회사에서 대규모 경험을 쌓고 싶음',
+        example: '현재까지 일 50만 요청 수준의 서비스를 운영했습니다. 대규모는 아니지만, 캐싱, DB 최적화, 로드 밸런싱의 기본기는 갖추고 있습니다. Locust로 부하 테스트를 해보았고, "데이터 중심 애플리케이션 설계" 같은 책으로 대규모 시스템을 학습하고 있습니다.',
+        key_points: ['솔직한 인정', '기본 전략', '학습 의지']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: [
+        '지금까지 다루셨던 서비스의 최대 트래픽 규모가 어느 정도였나요? 대규모 트래픽에 대한 경험이나 준비는 어떻게 하고 계신가요에 대해 자세히 설명해 주시겠습니까?',
+        '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.'
+      ]
+    },
+    {
+      id: 24,
+      category: 'risk_flags',
+      difficulty: 'Easy',
+      title: '커뮤니케이션 스타일',
+      is_risk: true,
+      risk_source: '이력서에 소통/협업 관련 키워드가 부족하고 기술 중심으로 기술됨',
+      question_text: '개발 외에 팀 소통이나 협업에서 본인의 강점과 약점은 무엇이라고 생각하시나요?',
+      context_bridge: '이력서가 기술 역량 중심으로 작성되어 있어서 소통 역량을 확인하고 싶습니다.',
+      why_matters: '시니어의 소통 역량이 팀 전체 효율에 큰 영향을 미칩니다.',
+      listen_for: '자기 인식이 있고, 약점을 개선하려는 태도.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '소프트 스킬',
+          pronunciation: '소프트 스킬',
+          explanation: '기술 외의 대인관계, 소통, 리더십 등의 역량.',
+          definition: '기술 외의 대인관계, 소통, 리더십 등의 역량.',
+          plain_language: '기술 외의 대인관계, 소통, 리더십 등의 역량.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '피드백',
+          pronunciation: '피드백',
+          explanation: '상대방의 행동이나 결과에 대한 의견 전달.',
+          definition: '상대방의 행동이나 결과에 대한 의견 전달.',
+          plain_language: '상대방의 행동이나 결과에 대한 의견 전달.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '능동적 경청',
+          pronunciation: '액티브 리스닝',
+          explanation: '상대방의 말을 적극적으로 듣고 이해하려는 태도.'
+        },
+        {
+          term: '비동기 소통',
+          pronunciation: '비동기 소통',
+          explanation: '즉시 응답하지 않아도 되는 소통. 예: 이메일, 슬랙.'
+        },
+        {
+          term: '동기 소통',
+          pronunciation: '동기 소통',
+          explanation: '실시간으로 대화하는 소통. 예: 미팅, 전화.'
+        },
+        {
+          term: '컨플릭트',
+          pronunciation: '컨플릭트',
+          explanation: '의견 충돌.'
+        },
+        {
+          term: '공감',
+          pronunciation: '엠패시',
+          explanation: '상대방의 상황과 감정을 이해하려는 태도.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '자기 인식',
+          importance: 'must',
+          explanation: '소통 강점과 약점을 솔직히 파악'
+        },
+        {
+          keyword: '개선 노력',
+          importance: 'must',
+          explanation: '약점을 인식하고 개선하려는 구체적 노력'
+        },
+        {
+          keyword: '구체적 사례',
+          importance: 'good_to_have',
+          explanation: '소통 관련 실제 경험'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '강점과 약점을 구체적으로 인식. 약점 개선을 위한 실제 노력과 변화. 소통 관련 구체적 사례.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '강점은 말하지만 약점 인식이 부족.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: '소통에 문제가 없다고 주장. 자기 인식 부재.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q24-f1',
+          trigger: 'Expert',
+          question_text: '팀원에게 부정적 피드백을 줘야 할 때 어떻게 하시나요?',
+          why_matters: '건설적 피드백 능력.',
+          listen_for: '사실 기반, 개인이 아닌 행동에 대해, 대안 제시.',
+          good: {
+            text: '1:1에서 구체적 사실 기반으로, 개선 방향과 함께 전달.',
+            score: 6
+          },
+          poor: {
+            text: '공개적으로 지적한다.',
+            score: -2
+          }
+        },
+        {
+          id: 'q24-f2',
+          trigger: 'Mid',
+          question_text: '의견 충돌이 있을 때 보통 어떻게 해결하시나요?',
+          why_matters: '갈등 해결 방식.',
+          listen_for: '논리적 토론, 데이터 기반.',
+          good: {
+            text: '각자 근거를 제시하고 데이터로 결정. 감정적이 되지 않도록 노력.',
+            score: 4
+          },
+          poor: {
+            text: '내 의견을 고집한다.',
+            score: -2
+          }
+        },
+        {
+          id: 'q24-f3',
+          trigger: 'Low',
+          question_text: '팀에서 소통이 잘 되려면 무엇이 필요하다고 생각하시나요?',
+          why_matters: '소통 인식.',
+          listen_for: '경청, 존중, 투명성.',
+          good: {
+            text: '서로의 의견을 존중하고 투명하게 정보를 공유하는 것.',
+            score: 4
+          },
+          poor: {
+            text: '잘 모르겠다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '기술이 뛰어나도 소통이 안 되면 시니어로서 팀에 부정적 영향을 줄 수 있습니다.',
+        daily_analogy: '실력 좋은 의사도 환자에게 설명을 못 하면 신뢰를 얻기 어려운 것과 같습니다.',
+        level_expectation: '약점을 인식하고 개선하려는 태도가 가장 중요합니다. 완벽할 필요는 없습니다.'
+      },
+      expected_answer: {
+        core: '• 강점: 기술적 설명, 문서화, 논리적 소통\n• 약점: 비개발 직군과의 소통, 감정적 공감 등\n• 개선: 의식적으로 비기술 언어 사용, 경청 훈련',
+        example: '강점은 복잡한 기술을 문서와 다이어그램으로 정리하는 것입니다. 약점은 비개발 직군에게 기술 용어를 무의식적으로 쓰는 것이었는데, PM과의 미팅 후 "이해됐나요?"를 항상 확인하는 습관을 들이고 있습니다.',
+        key_points: ['자기 인식', '개선 노력', '구체적 사례']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['개발 외에 팀 소통이나 협업에서 본인의 강점과 약점은 무엇이라고 생각하시나요에 대해 자세히 설명해 주시겠습니까?', '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.']
+    },
+    {
+      id: 25,
+      category: 'risk_flags',
+      difficulty: 'Medium',
+      title: '개인 작업 선호도',
+      is_risk: true,
+      risk_source: 'GitHub 활동이 개인 프로젝트 중심이며 팀 협업 기여가 제한적',
+      question_text: '혼자 집중해서 작업하는 것과 팀과 함께 작업하는 것 중 어떤 것을 선호하시나요? 팀에서 일할 때 어떤 점이 어렵고 어떤 점이 좋으신가요?',
+      context_bridge: 'GitHub 활동을 보면 개인 프로젝트가 많은데, 팀 작업에 대한 선호도를 확인하고 싶습니다.',
+      why_matters: '시니어는 팀과 함께 일하는 것이 필수입니다. 개인 작업만 선호하면 팀에 부정적 영향.',
+      listen_for: '팀 작업의 가치를 인정하고 균형 잡힌 시각.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '페어 프로그래밍',
+          pronunciation: '페어 프로그래밍',
+          explanation: '두 명이 함께 코딩하는 방법.',
+          definition: '두 명이 함께 코딩하는 방법.',
+          plain_language: '두 명이 함께 코딩하는 방법.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '몹 프로그래밍',
+          pronunciation: '몹 프로그래밍',
+          explanation: '팀 전체가 한 화면에서 함께 코딩하는 방법.',
+          definition: '팀 전체가 한 화면에서 함께 코딩하는 방법.',
+          plain_language: '팀 전체가 한 화면에서 함께 코딩하는 방법.',
+          context: '시니어 백엔드 면접에서 핵심적으로 다루는 용어'
+        },
+        {
+          term: '딥 워크',
+          pronunciation: '딥 워크',
+          explanation: '방해 없이 깊이 집중하여 작업하는 시간.'
+        },
+        {
+          term: '코드 오너십',
+          pronunciation: '코드 오너십',
+          explanation: '특정 코드에 대한 책임감.'
+        },
+        {
+          term: '공유 코드 오너십',
+          pronunciation: '컬렉티브 오너십',
+          explanation: '코드를 팀 전체가 공동으로 관리하는 방식.'
+        },
+        {
+          term: '사일로',
+          pronunciation: '사일로',
+          explanation: '혼자만 알고 있어서 다른 사람이 접근 못하는 상태.'
+        },
+        {
+          term: '팀 플레이어',
+          pronunciation: '팀 플레이어',
+          explanation: '팀의 목표를 위해 협력하는 사람.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '균형 잡힌 시각',
+          importance: 'must',
+          explanation: '혼자 집중과 팀 협업 모두의 가치를 인정'
+        },
+        {
+          keyword: '팀 작업 긍정',
+          importance: 'must',
+          explanation: '팀 작업의 장점을 구체적으로 이해'
+        },
+        {
+          keyword: '자기 인식',
+          importance: 'good_to_have',
+          explanation: '개인 작업 선호 경향을 인식하고 조절'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '깊은 집중이 필요할 때와 협업이 필요할 때를 구분. 팀 시너지의 가치를 구체적 경험으로 설명.',
+          depth_expectations: '구체적 수치, 아키텍처 다이어그램 수준의 설명, 트레이드오프 분석까지 포함.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '팀 작업이 중요하다고 말하지만 실제 선호는 개인 작업.',
+          depth_expectations: '개념은 이해하나 실무 적용 깊이가 부족. 구체적 사례 추가 확인 필요.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: '혼자 일하는 것이 훨씬 효율적이라고 주장. 팀 작업을 비효율로 봄.',
+          depth_expectations: '시니어 수준에 미달. 기본 개념 설명이 불충분하거나 경험 부재.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q25-f1',
+          trigger: 'Expert',
+          question_text: '팀의 코드 품질을 위해 개인의 생산성을 양보한 경험이 있나요?',
+          why_matters: '팀 우선 태도.',
+          listen_for: '코드 리뷰, 멘토링 등으로 개인 시간 투자.',
+          good: {
+            text: '주니어 코드 리뷰에 시간을 많이 쓰면서 개인 태스크가 늦어졌지만, 장기적으로 팀 전체 속도가 올라갔다.',
+            score: 8
+          },
+          poor: {
+            text: '내 일이 우선.',
+            score: 0
+          }
+        },
+        {
+          id: 'q25-f2',
+          trigger: 'Mid',
+          question_text: '팀에서 의견이 다를 때 어떻게 합의를 이끌어내시나요?',
+          why_matters: '팀 협업 능력.',
+          listen_for: '논리적 토론, 데이터 기반 결정.',
+          good: {
+            text: '각자 장단점을 나열하고 실험이나 데이터로 결정.',
+            score: 5
+          },
+          poor: {
+            text: '내 의견을 따르라.',
+            score: -2
+          }
+        },
+        {
+          id: 'q25-f3',
+          trigger: 'Low',
+          question_text: '팀 작업에서 가장 좋았던 경험을 하나만 말씀해주세요.',
+          why_matters: '팀 협업 긍정 경험.',
+          listen_for: '구체적인 긍정적 협업 경험.',
+          good: {
+            text: '함께 장애를 해결하면서 서로의 강점을 발견한 경험.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: -2
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '혼자 일하는 것을 극도로 선호하는 시니어는 팀 문화를 해칠 수 있습니다.',
+        daily_analogy: '축구에서 드리블만 잘하는 선수 vs 패스와 팀 플레이도 하는 선수. 시니어는 후자여야 합니다.',
+        level_expectation: '시니어에게는 "집중 작업과 협업의 균형"을 의식적으로 잡는 태도가 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 균형: 깊은 집중(오전)과 협업(오후) 시간 구분\n• 팀 가치: 코드 리뷰, 설계 토론에서 더 나은 결과\n• 자기 인식: 개인 작업 선호 경향을 알고 의식적으로 협업',
+        example: '코딩 자체는 혼자 집중할 때 효율적이지만, 설계 결정이나 코드 리뷰는 팀과 함께할 때 훨씬 좋은 결과가 나옵니다. 오전에 딥 워크 시간을 확보하고, 오후에 미팅과 리뷰를 몰아서 합니다. 팀의 코드 품질이 올라가면 결국 내 생산성도 올라갑니다.',
+        key_points: ['균형 잡힌 시각', '팀 가치 인정', '자기 관리']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: [
+        '혼자 집중해서 작업하는 것과 팀과 함께 작업하는 것 중 어떤 것을 선호하시나요? 팀에서 일할 때 어떤 점이 어렵고 어떤 점이 좋으신가요에 대해 자세히 설명해 주시겠습니까?',
+        '이 주제에 대한 실무 경험을 구체적으로 공유해 주세요.'
+      ]
+    }
   ]
 };

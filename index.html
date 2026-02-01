@@ -49,6 +49,15 @@
         .section-side-link { transition: all 0.2s; border-left: 2px solid transparent; }
         .section-side-link:hover { border-left-color: #94a3b8; }
         .section-side-link.active-nav { border-left-color: #0284c7; color: #0284c7; font-weight: 700; }
+        .q-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .q-body.open { max-height: 10000px; }
+        .q-header { cursor: pointer; }
+        .q-header:hover { background-color: #f8fafc; }
+        .q-toggle-icon { transition: transform 0.2s; display: inline-block; }
+        .q-toggle-icon.open { transform: rotate(90deg); }
+        .alt-phrasings { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .alt-phrasings.open { max-height: 2000px; }
+        .skill-badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; background: #f1f5f9; color: #475569; margin-right: 4px; }
     </style>
 </head>
 <body class="text-slate-800 h-screen flex overflow-hidden">

@@ -16,7 +16,7 @@ const scenarios = {};
 function registerScenario(id, data) { scenarios[id] = data; }
 
 // ===== STATE =====
-let state = { currentTab:'view-intel', scores:{}, fuScores:{}, keywordsChecked:{}, scenario:'alex', selectedQuestions:[], interviewPhase:'select' };
+let state = { currentTab:'view-intel', scores:{}, fuScores:{}, keywordsChecked:{}, scenario:'alex', selectedQuestions:[], interviewPhase:'select', expandedQuestions: new Set() };
 let charts = {};
 
 function currentScenario() { return scenarios[state.scenario] || scenarios[Object.keys(scenarios)[0]]; }
@@ -28,6 +28,7 @@ function switchScenario(id) {
     state.keywordsChecked = {};
     state.selectedQuestions = [];
     state.interviewPhase = 'select';
+    state.expandedQuestions = new Set();
     const sc = currentScenario();
     if (sc) { questions = sc.questions || []; }
 
@@ -94,23 +95,35 @@ function renderQuestionSelector() {
                 <h3 class="text-base font-bold text-slate-800">${cat.label}</h3>
                 <span class="text-xs text-slate-400">${catSelected}/${catQuestions.length} 선택</span>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">`;
+            <div class="space-y-3">`;
 
         catQuestions.forEach(q => {
             const isSelected = state.selectedQuestions.includes(q.id);
             const time = getQuestionTime(q);
             const diffColor = q.difficulty==='Hard'?'red':q.difficulty==='Medium'?'amber':'emerald';
             html += `
-            <div onclick="toggleQuestionSelect(${q.id})" class="p-4 rounded-lg border-2 cursor-pointer transition-all ${isSelected?'border-blue-400 bg-blue-50 shadow-sm':'border-slate-200 bg-white hover:border-slate-300'}">
-                <div class="flex items-start justify-between mb-2">
-                    <div class="flex items-center gap-2">
-                        <div class="w-5 h-5 rounded border-2 flex items-center justify-center text-xs ${isSelected?'border-blue-500 bg-blue-500 text-white':'border-slate-300 bg-white'}">${isSelected?'✓':''}</div>
-                        <span class="px-1.5 py-0.5 bg-${diffColor}-100 text-${diffColor}-700 text-[10px] font-bold rounded">${q.difficulty}</span>
+            <div class="rounded-xl border-2 cursor-pointer transition-all overflow-hidden ${isSelected?'border-blue-400 bg-blue-50/30 shadow-sm':'border-slate-200 bg-white hover:border-slate-300'}">
+                <div onclick="toggleQuestionSelect(${q.id})" class="p-4 ${q.is_risk?'bg-amber-50/50':''}">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div class="w-5 h-5 rounded border-2 flex items-center justify-center text-xs shrink-0 ${isSelected?'border-blue-500 bg-blue-500 text-white':'border-slate-300 bg-white'}">${isSelected?'✓':''}</div>
+                            <span class="px-1.5 py-0.5 bg-${diffColor}-100 text-${diffColor}-700 text-[10px] font-bold rounded">${q.difficulty}</span>
+                            ${q.is_risk?'<span class="px-1.5 py-0.5 bg-amber-200 text-amber-800 text-[10px] font-bold rounded uppercase">⚠ 위험 신호 검증</span>':''}
+                            ${q.skills_assessed&&q.skills_assessed.length?q.skills_assessed.map(s=>`<span class="skill-badge">${s}</span>`).join(''):''}
+                        </div>
+                        <span class="text-xs text-slate-400 shrink-0">⏱ ~${time}분</span>
                     </div>
-                    <span class="text-xs text-slate-400">~${time}분</span>
+                    <h3 class="text-sm font-bold text-slate-800 mb-1">${q.title}</h3>
+                    ${q.jd_competency_link?`<div class="text-xs text-blue-600 mb-1">📌 JD 연결: ${q.jd_competency_link}</div>`:''}
+                    ${q.generation_rationale?`<div class="text-xs text-slate-400 italic mb-2">${q.generation_rationale}</div>`:''}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                        <div class="text-xs"><span class="font-bold text-blue-600">왜 중요:</span> <span class="text-slate-600">${q.why_matters}</span></div>
+                        <div class="text-xs"><span class="font-bold text-emerald-600">이런 답변을:</span> <span class="text-slate-600">${q.listen_for}</span></div>
+                    </div>
+                    <div class="mt-2 p-2 bg-slate-50 rounded border border-slate-100">
+                        <p class="text-xs text-slate-700">"<strong>${q.question_text}</strong>"</p>
+                    </div>
                 </div>
-                <p class="text-sm font-medium text-slate-800 leading-snug">${q.title}</p>
-                ${q.is_risk?'<span class="text-[10px] text-amber-600 font-medium">⚠ 위험 신호 검증</span>':''}
             </div>`;
         });
 
@@ -202,7 +215,7 @@ function exportTrainingData() {
     const bonus = Object.values(state.fuScores).reduce((a,b) => a + b.score, 0);
     const total = main + bonus;
     const maxScore = activeQs.reduce((sum, q) => sum + Math.max(...q.scenarios.map(s=>s.score)), 0);
-    const ratio = maxScore > 0 ? total / maxScore : 0;
+    const { ratio } = getWeightedScore();
     let recommendation = 'INCOMPLETE';
     if (Object.keys(state.scores).length >= Math.ceil(activeQs.length / 2)) {
         if (ratio >= 0.9) recommendation = 'STRONG_HIRE';
@@ -411,9 +424,42 @@ function renderDecision() {
                     ${g.cover_letter_insights.map(c => `<div class="p-3 bg-purple-50 rounded border border-purple-100"><div class="text-xs"><span class="font-bold text-purple-700">주장:</span> ${c.claim}</div><div class="text-xs text-purple-600 mt-1">→ 확인 방법: ${c.verify_with}</div></div>`).join('')}
                 </div>
             </div>` : ''}
+            ${g.positive_signals&&g.positive_signals.length?`
+            <div class="mb-4">
+                <div class="text-xs font-bold text-emerald-600 uppercase mb-2">긍정 신호 탐색</div>
+                <div class="space-y-2">
+                    ${g.positive_signals.map(s => `<div class="p-3 bg-emerald-50 rounded border border-emerald-100 text-xs text-emerald-800">✨ ${s}</div>`).join('')}
+                </div>
+            </div>`:''}
             <div class="text-xs font-bold text-red-500 uppercase mb-2">주의 신호</div>
             <ul class="text-sm text-red-600 space-y-1">${g.red_flags_to_watch.map(r => '<li>🚩 '+r+'</li>').join('')}</ul>
         </div>` : ''}
+        ${d.jd_competency_map&&d.jd_competency_map.length?`
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-slate-800 mb-4">JD 역량 달성도</h3>
+            <div class="space-y-4">
+                ${d.jd_competency_map.map(c => {
+                    const relatedScores = c.related_questions.map(qid => state.scores[qid]).filter(Boolean);
+                    const earned = relatedScores.reduce((a,b) => a + b.score, 0);
+                    const activeQs = getActiveQuestions();
+                    const maxPossible = c.related_questions.reduce((sum, qid) => {
+                        const q = activeQs.find(x => x.id === qid);
+                        return sum + (q ? Math.max(...q.scenarios.map(s=>s.score)) : 0);
+                    }, 0);
+                    const pct = maxPossible > 0 ? Math.round((earned / maxPossible) * 100) : 0;
+                    return `<div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-700 font-medium">${c.competency} <span class="text-xs text-slate-400">(가중치: ${Math.round(c.weight*100)}%)</span></span>
+                            <span class="font-bold ${pct>=70?'text-emerald-600':pct>=40?'text-amber-600':'text-red-600'}">${earned} / ${maxPossible} (${pct}%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="${pct>=70?'bg-emerald-500':pct>=40?'bg-amber-500':'bg-red-500'} h-2 rounded-full transition-all" style="width:${pct}%"></div>
+                        </div>
+                        <div class="text-xs text-slate-400 mt-1">관련 질문: ${c.related_questions.map(id=>'Q'+id).join(', ')}</div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`:''}
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm" id="keyword-summary-card">
             <h3 class="font-bold text-slate-800 mb-2">키워드 달성 현황</h3>
             <p class="text-xs text-slate-400 mb-4">점수에는 반영되지 않습니다. 후보자가 핵심 용어를 얼마나 언급했는지 참고용으로 확인하세요.</p>
@@ -534,6 +580,23 @@ function switchTab(tabId) {
 }
 
 // ===== QUESTIONS =====
+function toggleQuestion(qId) {
+    if (state.expandedQuestions.has(qId)) {
+        state.expandedQuestions.delete(qId);
+    } else {
+        state.expandedQuestions.add(qId);
+    }
+    const body = document.getElementById(`q-body-${qId}`);
+    const icon = document.getElementById(`q-toggle-${qId}`);
+    if (body) body.classList.toggle('open');
+    if (icon) icon.classList.toggle('open');
+}
+
+function toggleAltPhrasings(qId) {
+    const el = document.getElementById(`alt-phrasings-${qId}`);
+    if (el) el.classList.toggle('open');
+}
+
 function renderQuestions() {
     const container = document.getElementById('questions-container');
     const activeQs = getActiveQuestions();
@@ -567,19 +630,35 @@ function renderQuestions() {
 function renderQuestion(q, idx, totalCount) {
     const total = totalCount || getActiveQuestions().length;
     const isRisk = q.is_risk;
+    const isExpanded = state.expandedQuestions.has(q.id);
+    const isScored = !!state.scores[q.id];
+    const filePathHtml = q.code_reference ? (q.code_reference.permalink
+        ? `<a href="${q.code_reference.permalink}" target="_blank" class="text-green-400 hover:underline">${q.code_reference.file_path}</a>`
+        : `<span class="text-green-400">${q.code_reference.file_path}</span>`) : '';
+
     return `
     <div class="bg-white rounded-xl border ${isRisk?'border-amber-200':'border-slate-200'} shadow-sm overflow-hidden" id="question-${q.id}">
-        <div class="p-6 border-b border-slate-100 ${isRisk?'bg-amber-50/50':'bg-slate-50/50'}">
-            <div class="flex justify-between items-start mb-3">
-                <div class="flex items-center gap-2">
+        <!-- HEADER (always visible, clickable) -->
+        <div class="q-header p-6 ${isRisk?'bg-amber-50/50':'bg-slate-50/50'}" onclick="toggleQuestion(${q.id})">
+            <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="q-toggle-icon ${isExpanded?'open':''}" id="q-toggle-${q.id}">▶</span>
                     <span class="px-2 py-1 ${isRisk?'bg-amber-200 text-amber-800':'bg-slate-200 text-slate-700'} text-xs font-bold rounded uppercase tracking-wide">${isRisk?'⚠ 위험 신호 검증':CATS.find(c=>c.id===q.category).label}</span>
                     <span class="px-2 py-0.5 ${q.difficulty==='Hard'?'bg-red-100 text-red-700':q.difficulty==='Medium'?'bg-amber-100 text-amber-700':'bg-emerald-100 text-emerald-700'} text-xs font-bold rounded">${q.difficulty}</span>
+                    ${q.skills_assessed&&q.skills_assessed.length?q.skills_assessed.map(s=>`<span class="skill-badge">${s}</span>`).join(''):''}
+                    ${isScored?'<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">✓ 채점됨</span>':''}
                 </div>
                 <div class="flex items-center gap-2"><span class="text-xs text-slate-300">⏱ ~${q.difficulty==='Hard'?7:q.difficulty==='Medium'?5:3}분</span><span class="text-xs text-slate-400 font-medium">Q${idx} / ${total}</span></div>
             </div>
-            ${isRisk&&q.risk_source?`<div class="text-xs text-amber-600 mb-2 italic">탐지 근거: ${q.risk_source}</div>`:''}
-            <h3 class="text-xl font-bold text-slate-800 mb-4">${q.title}</h3>
+            ${isRisk&&q.risk_source?`<div class="text-xs text-amber-600 mb-1 italic">탐지 근거: ${q.risk_source}</div>`:''}
+            <h3 class="text-xl font-bold text-slate-800">${q.title}</h3>
+            ${q.jd_competency_link?`<div class="text-xs text-blue-600 mt-1">📌 JD 연결: ${q.jd_competency_link}</div>`:''}
+            ${q.generation_rationale?`<div class="text-xs text-slate-400 mt-1 italic">${q.generation_rationale}</div>`:''}
+        </div>
 
+        <!-- BODY (collapsible) -->
+        <div class="q-body ${isExpanded?'open':''}" id="q-body-${q.id}">
+            <div class="px-6 pb-2 pt-2 border-t border-slate-100">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 <div class="bg-white p-3 rounded border border-slate-200">
                     <div class="text-[10px] font-bold text-blue-600 uppercase mb-1">이 질문이 중요한 이유</div>
@@ -597,13 +676,23 @@ function renderQuestion(q, idx, totalCount) {
                 <p class="text-lg font-bold text-slate-900">"${q.question_text}"</p>
             </div>
 
+            ${q.alternative_phrasings&&q.alternative_phrasings.length?`
+            <div class="mt-3">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-500 cursor-pointer" onclick="event.stopPropagation();toggleAltPhrasings(${q.id})">
+                    <span class="transform transition-transform">▶</span> 다른 표현으로 물어보기 (${q.alternative_phrasings.length}개)
+                </div>
+                <div class="alt-phrasings mt-2" id="alt-phrasings-${q.id}"><div class="space-y-1 pl-4">
+                    ${q.alternative_phrasings.map(p=>`<div class="text-sm text-slate-600 italic">"${p}"</div>`).join('')}
+                </div></div>
+            </div>`:''}
+
             ${q.code_reference?`
             <div class="mt-4 p-4 bg-slate-900 rounded-lg">
                 <div class="text-[10px] font-bold text-slate-400 uppercase mb-2">📁 코드 참조 — 후보자의 실제 코드에서 발견</div>
                 <div class="flex items-center gap-2 mb-2 text-xs text-slate-400 flex-wrap">
                     <span class="px-2 py-0.5 bg-slate-800 rounded text-slate-300">📦 ${q.code_reference.repo_name||'api-server'}</span>
                     <span>→</span>
-                    <span class="text-green-400">${q.code_reference.file_path}</span>
+                    ${filePathHtml}
                     ${q.code_reference.line_range?`<span class="text-yellow-400">${q.code_reference.line_range}</span>`:''}
                 </div>
                 <pre class="text-green-400 text-xs overflow-x-auto"><code>${q.code_reference.snippet}</code></pre>
@@ -611,107 +700,122 @@ function renderQuestion(q, idx, totalCount) {
                 <div class="text-xs text-slate-400 mt-1 italic">${q.code_reference.explanation}</div>
             </div>`:''}
 
-            ${q.terminology.length?`
+            ${q.terminology&&q.terminology.length?`
             <div class="mt-4">
-                <div class="collapsible-toggle flex items-center gap-2 text-xs font-bold text-slate-500 uppercase cursor-pointer" onclick="toggleC(this)">
+                <div class="collapsible-toggle flex items-center gap-2 text-xs font-bold text-slate-500 uppercase cursor-pointer" onclick="event.stopPropagation();toggleC(this)">
                     <span class="transform transition-transform">▶</span> 용어 설명 (${q.terminology.length}개)
                 </div>
                 <div class="collapsible-content mt-2"><div class="space-y-2">
-                    ${q.terminology.map(t=>`<div class="p-2 bg-white rounded border border-slate-200 text-xs"><span class="font-bold text-slate-800">${t.term}</span> <span class="text-slate-400">[${t.pronunciation}]</span> <span class="text-slate-600 ml-1">${t.explanation}</span></div>`).join('')}
+                    ${q.terminology.map(t=>{
+                        const def = t.definition || t.explanation;
+                        const hasPL = t.plain_language && t.plain_language !== def;
+                        return `<div class="p-2 bg-white rounded border border-slate-200 text-xs">
+                            <span class="font-bold text-slate-800">${t.term}</span> <span class="text-slate-400">[${t.pronunciation}]</span>
+                            <span class="text-slate-600 ml-1">${def}</span>
+                            ${hasPL?`<div class="text-slate-500 mt-1 italic">쉬운 말로: ${t.plain_language}</div>`:''}
+                            ${t.context?`<div class="text-blue-500 mt-1">맥락: ${t.context}</div>`:''}
+                        </div>`;
+                    }).join('')}
                 </div></div>
             </div>`:''}
-        </div>
+            </div>
 
-        <div class="p-6">
-            <div id="scoring-area-${q.id}">
-            <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">답변 채점 (클릭하세요)</div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                ${q.scenarios.map(s=>`
-                <div onclick="rateAnswer(${q.id},'${s.level}',${s.score},'${q.category}')" id="q${q.id}-${s.level}" class="scenario-card bg-white p-4 rounded-lg">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-bold ${s.level==='Expert'?'text-emerald-600':s.level==='Mid'?'text-amber-600':'text-red-600'}">${s.level==='Expert'?'🟢 우수':s.level==='Mid'?'🟡 보통':'🔴 미흡'}</span>
-                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">${s.score>0?'+':''}${s.score}점</span>
+            <div class="p-6">
+                <div id="scoring-area-${q.id}">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">답변 채점 (클릭하세요)</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    ${q.scenarios.map(s=>`
+                    <div onclick="event.stopPropagation();rateAnswer(${q.id},'${s.level}',${s.score},'${q.category}')" id="q${q.id}-${s.level}" class="scenario-card bg-white p-4 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-bold ${s.level==='Expert'?'text-emerald-600':s.level==='Mid'?'text-amber-600':'text-red-600'}">${s.level==='Expert'?'🟢 우수':s.level==='Mid'?'🟡 보통':'🔴 미흡'}</span>
+                            <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">${s.score>0?'+':''}${s.score}점</span>
+                        </div>
+                        <p class="text-sm text-slate-600">${s.text}</p>
+                    </div>`).join('')}
+                </div>
+
+                <!-- Keywords (hidden until scored) -->
+                ${q.answer_keywords&&q.answer_keywords.length?`
+                <div class="mt-5" id="kw-section-${q.id}" style="display:none">
+                    <div class="text-xs font-bold text-slate-400 uppercase mb-2">핵심 키워드 체크 <span class="font-normal text-slate-300">(답변에서 이 단어가 들리면 체크하세요 — 점수에는 반영되지 않고 참고용입니다)</span></div>
+                    <div class="flex flex-wrap gap-2">
+                        ${q.answer_keywords.map((k,ki)=>`
+                        <span onclick="event.stopPropagation();toggleKeyword(${q.id},${ki})" id="kw-${q.id}-${ki}" class="kw-badge unchecked px-3 py-1 rounded-full text-xs font-medium border-2 ${k.importance==='must'?'border-red-300 bg-red-50 text-red-700':'border-blue-300 bg-blue-50 text-blue-700'}" title="${k.explanation}">
+                            ${k.importance==='must'?'필수':'가산'} ${k.keyword}
+                        </span>`).join('')}
                     </div>
-                    <p class="text-sm text-slate-600">${s.text}</p>
-                </div>`).join('')}
-            </div>
+                </div>`:''}
 
-            <!-- Keywords (hidden until scored) -->
-            ${q.answer_keywords&&q.answer_keywords.length?`
-            <div class="mt-5" id="kw-section-${q.id}" style="display:none">
-                <div class="text-xs font-bold text-slate-400 uppercase mb-2">핵심 키워드 체크 <span class="font-normal text-slate-300">(답변에서 이 단어가 들리면 체크하세요 — 점수에는 반영되지 않고 참고용입니다)</span></div>
-                <div class="flex flex-wrap gap-2">
-                    ${q.answer_keywords.map((k,ki)=>`
-                    <span onclick="toggleKeyword(${q.id},${ki})" id="kw-${q.id}-${ki}" class="kw-badge unchecked px-3 py-1 rounded-full text-xs font-medium border-2 ${k.importance==='must'?'border-red-300 bg-red-50 text-red-700':'border-blue-300 bg-blue-50 text-blue-700'}" title="${k.explanation}">
-                        ${k.importance==='must'?'필수':'가산'} ${k.keyword}
-                    </span>`).join('')}
-                </div>
-            </div>`:''}
-
-            <!-- Follow-ups (hidden until scored) -->
-            <div class="mt-5" id="fu-section-${q.id}" style="display:none">
-                <div class="text-xs font-bold text-slate-400 uppercase mb-3">꼬리질문 <span class="font-normal text-slate-300">(위에서 선택한 답변 수준에 맞는 꼬리질문입니다)</span></div>
-                <div class="space-y-3">
-                    ${q.follow_ups.map(fu => {
-                        const triggerLabel = fu.trigger==='Expert'?'📗 우수 답변 시':fu.trigger==='Mid'?'📙 보통 답변 시':'📕 미흡 답변 시';
-                        const triggerColor = fu.trigger==='Expert'?'emerald':fu.trigger==='Mid'?'amber':'red';
-                        return `
-                    <div class="fu-card p-4 rounded-lg border border-slate-200 bg-slate-50" id="fu-${fu.id}" data-trigger="${fu.trigger}">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-xs font-bold text-${triggerColor}-600 bg-${triggerColor}-100 px-2 py-0.5 rounded">${triggerLabel}</span>
-                        </div>
-                        <p class="text-sm font-bold text-slate-800 mb-2">"${fu.question_text}"</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
-                            <div class="text-xs"><span class="font-bold text-blue-600">왜 중요:</span> ${fu.why_matters}</div>
-                            <div class="text-xs"><span class="font-bold text-emerald-600">들어볼 것:</span> ${fu.listen_for}</div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="rateFU('${fu.id}',${fu.good.score},'good','${q.category}')" id="fu-${fu.id}-good" class="flex-1 p-2 rounded border border-emerald-200 bg-emerald-50 text-xs hover:bg-emerald-100 transition">
-                                <span class="font-bold text-emerald-700">👍 좋은 답변</span> <span class="text-emerald-600">(+${fu.good.score})</span>
-                                <div class="text-emerald-600 mt-1">${fu.good.text}</div>
-                            </button>
-                            <button onclick="rateFU('${fu.id}',${fu.poor.score},'poor','${q.category}')" id="fu-${fu.id}-poor" class="flex-1 p-2 rounded border border-red-200 bg-red-50 text-xs hover:bg-red-100 transition">
-                                <span class="font-bold text-red-700">👎 부족한 답변</span> <span class="text-red-600">(${fu.poor.score>=0?'+':''}${fu.poor.score})</span>
-                                <div class="text-red-600 mt-1">${fu.poor.text}</div>
-                            </button>
-                        </div>
-                    </div>`;
-                    }).join('')}
-                </div>
-            </div>
-
-            <!-- Interviewer Note (hidden until scored) -->
-            <div class="mt-5" id="note-section-${q.id}" style="display:none">
-                <div class="collapsible-toggle flex items-center gap-2 text-xs font-bold text-slate-500 uppercase cursor-pointer" onclick="toggleC(this)">
-                    <span class="transform transition-transform">▶</span> 면접관 참고 노트
-                </div>
-                <div class="collapsible-content mt-2">
-                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4">
-                        ${q.interviewer_note?`
-                        <div>
-                            <div class="text-[10px] font-bold text-indigo-600 uppercase mb-1">🔍 비개발자 관점 해석</div>
-                            <p class="text-sm text-slate-700">${q.interviewer_note.business_interpretation}</p>
-                        </div>
-                        <div>
-                            <div class="text-[10px] font-bold text-amber-600 uppercase mb-1">💡 일상 비유로 이해하기</div>
-                            <p class="text-sm text-slate-600">${q.interviewer_note.daily_analogy}</p>
-                        </div>
-                        <div>
-                            <div class="text-[10px] font-bold text-emerald-600 uppercase mb-1">📊 이 직급에서 기대하는 수준</div>
-                            <p class="text-sm text-slate-600">${q.interviewer_note.level_expectation}</p>
-                        </div>
-                        `:''}
-                        <div class="pt-3 border-t border-slate-200">
-                            <div class="text-[10px] font-bold text-blue-600 uppercase mb-1">✅ 좋은 답변의 핵심 포인트</div>
-                            <p class="text-sm text-slate-700">${q.expected_answer.core.replace(/\n/g,'<br>')}</p>
-                        </div>
-                        <div>
-                            <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">💬 이런 수준의 답변이 나오면 우수합니다</div>
-                            <p class="text-sm text-slate-600 italic bg-white p-3 rounded border border-slate-200">"${q.expected_answer.example}"</p>
-                        </div>
+                <!-- Follow-ups (hidden until scored) -->
+                <div class="mt-5" id="fu-section-${q.id}" style="display:none">
+                    <div class="text-xs font-bold text-slate-400 uppercase mb-3">꼬리질문 <span class="font-normal text-slate-300">(위에서 선택한 답변 수준에 맞는 꼬리질문입니다)</span></div>
+                    <div class="space-y-3">
+                        ${q.follow_ups.map(fu => {
+                            const triggerLabel = fu.trigger==='Expert'?'📗 우수 답변 시':fu.trigger==='Mid'?'📙 보통 답변 시':'📕 미흡 답변 시';
+                            const triggerColor = fu.trigger==='Expert'?'emerald':fu.trigger==='Mid'?'amber':'red';
+                            return `
+                        <div class="fu-card p-4 rounded-lg border border-slate-200 bg-slate-50" id="fu-${fu.id}" data-trigger="${fu.trigger}">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs font-bold text-${triggerColor}-600 bg-${triggerColor}-100 px-2 py-0.5 rounded">${triggerLabel}</span>
+                            </div>
+                            <p class="text-sm font-bold text-slate-800 mb-2">"${fu.question_text}"</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                                <div class="text-xs"><span class="font-bold text-blue-600">왜 중요:</span> ${fu.why_matters}</div>
+                                <div class="text-xs"><span class="font-bold text-emerald-600">들어볼 것:</span> ${fu.listen_for}</div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="event.stopPropagation();rateFU('${fu.id}',${fu.good.score},'good','${q.category}')" id="fu-${fu.id}-good" class="flex-1 p-2 rounded border border-emerald-200 bg-emerald-50 text-xs hover:bg-emerald-100 transition">
+                                    <span class="font-bold text-emerald-700">👍 좋은 답변</span> <span class="text-emerald-600">(+${fu.good.score})</span>
+                                    <div class="text-emerald-600 mt-1">${fu.good.text}</div>
+                                </button>
+                                <button onclick="event.stopPropagation();rateFU('${fu.id}',${fu.poor.score},'poor','${q.category}')" id="fu-${fu.id}-poor" class="flex-1 p-2 rounded border border-red-200 bg-red-50 text-xs hover:bg-red-100 transition">
+                                    <span class="font-bold text-red-700">👎 부족한 답변</span> <span class="text-red-600">(${fu.poor.score>=0?'+':''}${fu.poor.score})</span>
+                                    <div class="text-red-600 mt-1">${fu.poor.text}</div>
+                                </button>
+                            </div>
+                        </div>`;
+                        }).join('')}
                     </div>
                 </div>
-            </div>
+
+                <!-- Interviewer Note (hidden until scored) -->
+                <div class="mt-5" id="note-section-${q.id}" style="display:none">
+                    <div class="collapsible-toggle flex items-center gap-2 text-xs font-bold text-slate-500 uppercase cursor-pointer" onclick="event.stopPropagation();toggleC(this)">
+                        <span class="transform transition-transform">▶</span> 면접관 참고 노트
+                    </div>
+                    <div class="collapsible-content mt-2">
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4">
+                            ${q.interviewer_note?`
+                            <div>
+                                <div class="text-[10px] font-bold text-indigo-600 uppercase mb-1">🔍 비개발자 관점 해석</div>
+                                <p class="text-sm text-slate-700">${q.interviewer_note.business_interpretation}</p>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-bold text-amber-600 uppercase mb-1">💡 일상 비유로 이해하기</div>
+                                <p class="text-sm text-slate-600">${q.interviewer_note.daily_analogy}</p>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-bold text-emerald-600 uppercase mb-1">📊 이 직급에서 기대하는 수준</div>
+                                <p class="text-sm text-slate-600">${q.interviewer_note.level_expectation}</p>
+                            </div>
+                            `:''}
+                            ${q.expected_answer.depth_expectations?`
+                            <div>
+                                <div class="text-[10px] font-bold text-purple-600 uppercase mb-1">🎯 답변 깊이 기대치</div>
+                                <p class="text-sm text-slate-600">${q.expected_answer.depth_expectations}</p>
+                            </div>`:''}
+                            <div class="pt-3 border-t border-slate-200">
+                                <div class="text-[10px] font-bold text-blue-600 uppercase mb-1">✅ 좋은 답변의 핵심 포인트</div>
+                                <p class="text-sm text-slate-700">${q.expected_answer.core.replace(/\n/g,'<br>')}</p>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">💬 이런 수준의 답변이 나오면 우수합니다</div>
+                                <p class="text-sm text-slate-600 italic bg-white p-3 rounded border border-slate-200">"${q.expected_answer.example}"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
             </div>
         </div>
     </div>`;
@@ -758,6 +862,17 @@ function rateAnswer(qId, level, score, category) {
     // Show interviewer note section
     const noteSection = document.getElementById(`note-section-${qId}`);
     if (noteSection) noteSection.style.display = '';
+
+    // Auto-collapse scored question after a short delay
+    setTimeout(() => {
+        if (state.expandedQuestions.has(qId)) {
+            state.expandedQuestions.delete(qId);
+            const body = document.getElementById(`q-body-${qId}`);
+            const icon = document.getElementById(`q-toggle-${qId}`);
+            if (body) body.classList.remove('open');
+            if (icon) icon.classList.remove('open');
+        }
+    }, 800);
 
     updateScores();
 }
@@ -814,10 +929,11 @@ function updateScores() {
     });
 
     if (document.getElementById('decision-total')) {
-        document.getElementById('decision-total').textContent = mainTotal + bonusTotal;
-        const total = mainTotal + bonusTotal;
-        const sc = document.getElementById('decision-score-card');
-        if (sc) sc.className = `text-center p-3 rounded-lg ${total>=180?'bg-emerald-50':total>=120?'bg-blue-50':total>=70?'bg-amber-50':'bg-red-50'}`;
+        const { ratio } = getWeightedScore();
+        const pct = Math.round(ratio * 100);
+        document.getElementById('decision-total').innerHTML = `${mainTotal + bonusTotal} <span class="text-xs font-normal text-slate-400">(${pct}%)</span>`;
+        const scoreCard = document.getElementById('decision-score-card');
+        if (scoreCard) scoreCard.className = `text-center p-3 rounded-lg ${ratio>=0.9?'bg-emerald-50':ratio>=0.6?'bg-blue-50':ratio>=0.35?'bg-amber-50':'bg-red-50'}`;
     }
     // Progress bar
     const answered = Object.keys(state.scores).length;
@@ -834,17 +950,48 @@ function updateScores() {
 }
 
 // ===== TAB 4: DECISION =====
+function getWeightedScore() {
+    const sc = currentScenario();
+    const weights = sc && sc.category_weights ? sc.category_weights : null;
+    const activeQs = getActiveQuestions();
+    if (!weights) {
+        // Fallback: simple ratio
+        const total = Object.values(state.scores).reduce((a,b) => a + b.score, 0)
+            + Object.values(state.fuScores).reduce((a,b) => a + b.score, 0);
+        const max = activeQs.reduce((sum, q) => sum + Math.max(...q.scenarios.map(s=>s.score)), 0);
+        return { ratio: max > 0 ? total / max : 0, weights: null };
+    }
+    let weightedSum = 0;
+    let weightTotal = 0;
+    CATS.forEach(cat => {
+        const w = weights[cat.id] || 0;
+        const catQs = activeQs.filter(q => q.category === cat.id);
+        if (!catQs.length) return;
+        const earned = Object.values(state.scores).filter(s => s.category === cat.id).reduce((a,b) => a + b.score, 0);
+        const catBonus = Object.values(state.fuScores).filter(s => s.category === cat.id).reduce((a,b) => a + b.score, 0);
+        const max = catQs.reduce((sum, q) => sum + Math.max(...q.scenarios.map(s=>s.score)), 0);
+        const catRatio = max > 0 ? (earned + catBonus) / max : 0;
+        weightedSum += catRatio * w;
+        weightTotal += w;
+    });
+    return { ratio: weightTotal > 0 ? weightedSum / weightTotal : 0, weights };
+}
+
 function renderCategoryScores() {
     const container = document.getElementById('category-scores');
     if (!container) return;
     const activeQs = getActiveQuestions();
+    const sc = currentScenario();
+    const weights = sc && sc.category_weights ? sc.category_weights : {};
     const maxScores = {};
     activeQs.forEach(q => { const max = Math.max(...q.scenarios.map(s=>s.score)); maxScores[q.category] = (maxScores[q.category]||0) + max; });
     container.innerHTML = CATS.map(cat => {
         const earned = Object.values(state.scores).filter(s=>s.category===cat.id).reduce((a,b)=>a+b.score,0);
         const max = maxScores[cat.id]||1;
         const pct = Math.max(0, Math.round((earned/max)*100));
-        return `<div><div class="flex justify-between text-sm mb-1"><span class="text-slate-600">${cat.icon} ${cat.label}</span><span class="font-bold">${earned} / ${max}</span></div><div class="w-full bg-slate-100 rounded-full h-2"><div class="bg-${cat.color}-500 h-2 rounded-full transition-all" style="width:${pct}%"></div></div></div>`;
+        const w = weights[cat.id];
+        const weightLabel = w ? ` <span class="text-xs text-slate-400 font-normal">(가중치 ${Math.round(w*100)}%)</span>` : '';
+        return `<div><div class="flex justify-between text-sm mb-1"><span class="text-slate-600">${cat.icon} ${cat.label}${weightLabel}</span><span class="font-bold">${earned} / ${max}</span></div><div class="w-full bg-slate-100 rounded-full h-2"><div class="bg-${cat.color}-500 h-2 rounded-full transition-all" style="width:${pct}%"></div></div></div>`;
     }).join('');
 
     const bonus = Object.values(state.fuScores).reduce((a,b)=>a+b.score,0);
@@ -863,8 +1010,8 @@ function updateRecommendation() {
     const text = document.getElementById('rec-text');
     const detail = document.getElementById('rec-detail');
 
-    const maxScore = activeQs.reduce((sum, q) => sum + Math.max(...q.scenarios.map(s=>s.score)), 0);
-    const ratio = maxScore > 0 ? total / maxScore : 0;
+    const { ratio } = getWeightedScore();
+    const pctDisplay = Math.round(ratio * 100);
     if (answered < Math.ceil(activeQs.length / 2)) {
         card.className='p-8 rounded-xl border-2 border-slate-200 bg-slate-50 text-center';
         label.textContent=`${answered}/${activeQs.length} 질문 채점 완료`; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-slate-500';
@@ -874,22 +1021,22 @@ function updateRecommendation() {
         card.className='p-8 rounded-xl border-2 border-emerald-300 bg-emerald-50 text-center';
         label.textContent='STRONG HIRE'; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-emerald-600';
         text.textContent='강력 추천'; text.className='text-3xl font-bold mb-2 text-emerald-700';
-        detail.textContent=`총점 ${total}점. 핵심 역량과 리더십 잠재력이 모두 우수합니다. 빠른 의사결정을 권장합니다.`;
+        detail.textContent=`총점 ${total}점 (가중 ${pctDisplay}%). 핵심 역량과 리더십 잠재력이 모두 우수합니다. 빠른 의사결정을 권장합니다.`;
     } else if (ratio >= 0.6) {
         card.className='p-8 rounded-xl border-2 border-blue-300 bg-blue-50 text-center';
         label.textContent='HIRE'; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-blue-600';
         text.textContent='채용 추천'; text.className='text-3xl font-bold mb-2 text-blue-700';
-        detail.textContent=`총점 ${total}점. 전반적으로 역량이 충분합니다. 약점 영역에 대한 보완 계획을 확인하세요.`;
+        detail.textContent=`총점 ${total}점 (가중 ${pctDisplay}%). 전반적으로 역량이 충분합니다. 약점 영역에 대한 보완 계획을 확인하세요.`;
     } else if (ratio >= 0.35) {
         card.className='p-8 rounded-xl border-2 border-amber-300 bg-amber-50 text-center';
         label.textContent='MAYBE'; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-amber-600';
         text.textContent='추가 검토 필요'; text.className='text-3xl font-bold mb-2 text-amber-700';
-        detail.textContent=`총점 ${total}점. 일부 강점이 있으나 주요 역량에서 부족함이 있습니다. 2차 면접을 고려하세요.`;
+        detail.textContent=`총점 ${total}점 (가중 ${pctDisplay}%). 일부 강점이 있으나 주요 역량에서 부족함이 있습니다. 2차 면접을 고려하세요.`;
     } else {
         card.className='p-8 rounded-xl border-2 border-red-300 bg-red-50 text-center';
         label.textContent='NO HIRE'; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-red-600';
         text.textContent='채용 비추천'; text.className='text-3xl font-bold mb-2 text-red-700';
-        detail.textContent=`총점 ${total}점. 핵심 역량이 요구 수준에 미달합니다.`;
+        detail.textContent=`총점 ${total}점 (가중 ${pctDisplay}%). 핵심 역량이 요구 수준에 미달합니다.`;
     }
 }
 

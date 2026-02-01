@@ -9,41 +9,128 @@ window.scenarioSarah = {
     level: '주니어',
     current_title: 'Frontend Developer (인턴 출신)'
   },
+  category_weights: {
+    role_fit: 0.15,
+    technical_depth: 0.35,
+    execution_ownership: 0.20,
+    communication: 0.10,
+    risk_flags: 0.20
+  },
   intel: {
     jd_summary: {
       title: '주니어 프론트엔드 개발자',
       subtitle: 'Series B EdTech 스타트업 · 교육 기술 스타트업',
       requirements: [
-        { text: 'React/TypeScript', desc: '웹 화면을 만드는 도구와 코드 오류를 줄여주는 언어', matched: true },
-        { text: 'CSS/디자인 시스템', desc: '화면의 색상, 크기, 배치 등 디자인을 코드로 구현하는 기술', matched: true },
-        { text: 'Git/협업', desc: '여러 사람이 함께 코드를 관리하는 도구 사용 경험', matched: true },
-        { text: '기본 CS 지식', desc: '컴퓨터 과학의 기초 (자료구조, 알고리즘 등)', matched: false }
+        {
+          text: 'React/TypeScript',
+          desc: '웹 화면을 만드는 도구와 코드 오류를 줄여주는 언어',
+          matched: true
+        },
+        {
+          text: 'CSS/디자인 시스템',
+          desc: '화면의 색상, 크기, 배치 등 디자인을 코드로 구현하는 기술',
+          matched: true
+        },
+        {
+          text: 'Git/협업',
+          desc: '여러 사람이 함께 코드를 관리하는 도구 사용 경험',
+          matched: true
+        },
+        {
+          text: '기본 CS 지식',
+          desc: '컴퓨터 과학의 기초 (자료구조, 알고리즘 등)',
+          matched: false
+        }
       ],
-      success_metrics: [
-        '독립적으로 UI 컴포넌트를 개발할 수 있는 수준 도달',
-        '코드 리뷰에 적극적으로 참여하고 피드백 반영',
-        '팀 문화에 긍정적으로 기여'
-      ]
+      success_metrics: ['독립적으로 UI 컴포넌트를 개발할 수 있는 수준 도달', '코드 리뷰에 적극적으로 참여하고 피드백 반영', '팀 문화에 긍정적으로 기여']
     },
     jd_full: '<p class="font-bold text-slate-700 mb-2">[ 채용 배경 ]</p><p>저희 EdTech(교육+기술) 스타트업은 Series B 투자를 받고 교육 플랫폼을 빠르게 확장하고 있습니다. 학생과 선생님이 사용하는 웹 서비스의 화면(프론트엔드)을 개발할 주니어 개발자를 찾고 있습니다. 시니어 개발자들이 멘토링해줄 환경이며, 성장 의지가 있는 분을 환영합니다.</p><p class="font-bold text-slate-700 mb-2 mt-4">[ 주요 업무 ]</p><ul class="space-y-1 ml-4"><li>• <strong>UI 컴포넌트 개발:</strong> 디자인 시안을 받아 React로 화면을 구현</li><li>• <strong>디자인 시스템 참여:</strong> 재사용 가능한 버튼, 입력창 등의 컴포넌트 제작</li><li>• <strong>API 연동:</strong> 서버에서 데이터를 가져와 화면에 표시하는 작업</li><li>• <strong>코드 리뷰 참여:</strong> 팀원의 코드를 검토하고 본인 코드도 리뷰 받기</li><li>• <strong>버그 수정:</strong> 사용자가 보고한 화면 문제를 찾아 수정</li></ul><p class="font-bold text-slate-700 mb-2 mt-4">[ 자격 요건 ]</p><ul class="space-y-1 ml-4"><li>• 프론트엔드 개발 경력 1년 이상 또는 부트캠프 수료 + 포트폴리오</li><li>• React로 프로젝트를 만들어본 경험</li><li>• HTML, CSS, JavaScript 기본 지식</li><li>• Git으로 코드를 관리해본 경험</li></ul><p class="font-bold text-slate-700 mb-2 mt-4">[ 우대 사항 ]</p><ul class="space-y-1 ml-4"><li>• TypeScript 사용 경험</li><li>• 테스트 코드 작성 경험</li><li>• 디자인 시스템 사용 경험 (Storybook 등)</li><li>• 컴퓨터 과학 관련 학위 또는 독학</li></ul>',
     competencies: [
-      { name: 'React 기본기', match: 'strong', match_label: '후보자: 강한 매칭', desc: 'React는 웹 화면을 만드는 도구입니다. 레고 블록처럼 작은 부품(컴포넌트)을 조립해서 웹 페이지를 만듭니다.', why: '우리 제품의 모든 화면이 React로 만들어져 있어 필수입니다.', color: 'emerald', icon: '✅' },
-      { name: 'CSS / 스타일링', match: 'strong', match_label: '후보자: 강한 매칭', desc: 'CSS는 웹 페이지의 디자인을 담당합니다. 글자 크기, 색상, 배치를 코드로 지정합니다.', why: '교육 플랫폼은 학생이 사용하므로 직관적이고 예쁜 화면이 중요합니다.', color: 'emerald', icon: '✅' },
-      { name: 'TypeScript', match: 'partial', match_label: '후보자: 부분 매칭 — 기초 수준', desc: 'JavaScript에 타입을 추가한 언어입니다. 맞춤법 검사기처럼 코드 실수를 미리 잡아줍니다.', why: '팀에서 TypeScript를 사용하므로 기본적인 이해가 필요합니다.', color: 'amber', icon: '⚠️' },
-      { name: 'Git / 협업 도구', match: 'match', match_label: '후보자: 매칭', desc: '코드 변경 이력을 관리하고 여러 사람이 함께 작업할 수 있게 하는 도구입니다.', why: '팀으로 일하려면 코드를 함께 관리하는 도구를 사용할 줄 알아야 합니다.', color: 'emerald', icon: '✅' },
-      { name: '테스트 작성', match: 'none', match_label: '후보자: 증거 없음', desc: '코드가 제대로 동작하는지 자동으로 확인하는 코드를 작성하는 것입니다.', why: '코드 품질을 유지하고 수정해도 기존 기능이 안 깨지도록 보장합니다.', color: 'red', icon: '❌' },
-      { name: '접근성 (a11y)', match: 'none', match_label: '후보자: 증거 없음', desc: '모든 사용자가 웹 서비스를 이용할 수 있게 만드는 기술입니다.', why: '교육 플랫폼은 다양한 사용자가 접근해야 하므로 중요합니다.', color: 'red', icon: '❌' }
+      {
+        name: 'React 기본기',
+        match: 'strong',
+        match_label: '후보자: 강한 매칭',
+        desc: 'React는 웹 화면을 만드는 도구입니다. 레고 블록처럼 작은 부품(컴포넌트)을 조립해서 웹 페이지를 만듭니다.',
+        why: '우리 제품의 모든 화면이 React로 만들어져 있어 필수입니다.',
+        color: 'emerald',
+        icon: '✅'
+      },
+      {
+        name: 'CSS / 스타일링',
+        match: 'strong',
+        match_label: '후보자: 강한 매칭',
+        desc: 'CSS는 웹 페이지의 디자인을 담당합니다. 글자 크기, 색상, 배치를 코드로 지정합니다.',
+        why: '교육 플랫폼은 학생이 사용하므로 직관적이고 예쁜 화면이 중요합니다.',
+        color: 'emerald',
+        icon: '✅'
+      },
+      {
+        name: 'TypeScript',
+        match: 'partial',
+        match_label: '후보자: 부분 매칭 — 기초 수준',
+        desc: 'JavaScript에 타입을 추가한 언어입니다. 맞춤법 검사기처럼 코드 실수를 미리 잡아줍니다.',
+        why: '팀에서 TypeScript를 사용하므로 기본적인 이해가 필요합니다.',
+        color: 'amber',
+        icon: '⚠️'
+      },
+      {
+        name: 'Git / 협업 도구',
+        match: 'match',
+        match_label: '후보자: 매칭',
+        desc: '코드 변경 이력을 관리하고 여러 사람이 함께 작업할 수 있게 하는 도구입니다.',
+        why: '팀으로 일하려면 코드를 함께 관리하는 도구를 사용할 줄 알아야 합니다.',
+        color: 'emerald',
+        icon: '✅'
+      },
+      {
+        name: '테스트 작성',
+        match: 'none',
+        match_label: '후보자: 증거 없음',
+        desc: '코드가 제대로 동작하는지 자동으로 확인하는 코드를 작성하는 것입니다.',
+        why: '코드 품질을 유지하고 수정해도 기존 기능이 안 깨지도록 보장합니다.',
+        color: 'red',
+        icon: '❌'
+      },
+      {
+        name: '접근성 (a11y)',
+        match: 'none',
+        match_label: '후보자: 증거 없음',
+        desc: '모든 사용자가 웹 서비스를 이용할 수 있게 만드는 기술입니다.',
+        why: '교육 플랫폼은 다양한 사용자가 접근해야 하므로 중요합니다.',
+        color: 'red',
+        icon: '❌'
+      }
     ],
     github: {
-      contributions: 120, repos: 8, main_languages: 'JS, TS, CSS',
-      tech_match: '보통 (React, CSS)', tech_match_note: '부트캠프 프로젝트 중심',
-      tenure_pattern: '—', tenure_note: '경력 1.5년', activity_gap: '없음',
+      contributions: 120,
+      repos: 8,
+      main_languages: 'JS, TS, CSS',
+      tech_match: '보통 (React, CSS)',
+      tech_match_note: '부트캠프 프로젝트 중심',
+      tenure_pattern: '—',
+      tenure_note: '경력 1.5년',
+      activity_gap: '없음',
       chart_data: [5, 8, 15, 20, 18, 10, 8, 5, 12, 15, 10, 8]
     },
     linkedin: [
-      { initial: 'E', title: 'Frontend Developer', company: 'EdStart Inc.', detail: '1년 · React/TS · 교육 플랫폼 UI' },
-      { initial: 'E', title: 'Frontend Intern', company: 'EdStart Inc.', detail: '6개월 · 인턴→정규직' },
-      { initial: 'B', title: '수료생', company: 'CodeCamp 부트캠프', detail: '6개월 · 프론트엔드 과정' }
+      {
+        initial: 'E',
+        title: 'Frontend Developer',
+        company: 'EdStart Inc.',
+        detail: '1년 · React/TS · 교육 플랫폼 UI'
+      },
+      {
+        initial: 'E',
+        title: 'Frontend Intern',
+        company: 'EdStart Inc.',
+        detail: '6개월 · 인턴→정규직'
+      },
+      {
+        initial: 'B',
+        title: '수료생',
+        company: 'CodeCamp 부트캠프',
+        detail: '6개월 · 프론트엔드 과정'
+      }
     ],
     linkedin_warning: '실무 경험 1.5년 · 팀 프로젝트 경험 제한적 · CS 학위 없음'
   },
@@ -51,222 +138,4039 @@ window.scenarioSarah = {
     radar_candidate: [75, 60, 45, 70, 50],
     radar_required: [60, 50, 40, 60, 40],
     engineering_dna: [
-      { label: '테스트 커버리지', value: 45, display: '45%', color: 'amber', note: 'GitHub에서 테스트 코드 일부만 발견', tooltip: '코드가 제대로 동작하는지 자동 확인하는 코드의 비율' },
-      { label: '문서화 품질', value: 60, display: '보통', color: 'blue' },
-      { label: '코드 일관성', value: 75, display: '양호', color: 'emerald' }
+      {
+        label: '테스트 커버리지',
+        value: 45,
+        display: '45%',
+        color: 'amber',
+        note: 'GitHub에서 테스트 코드 일부만 발견',
+        tooltip: '코드가 제대로 동작하는지 자동 확인하는 코드의 비율'
+      },
+      {
+        label: '문서화 품질',
+        value: 60,
+        display: '보통',
+        color: 'blue'
+      },
+      {
+        label: '코드 일관성',
+        value: 75,
+        display: '양호',
+        color: 'emerald'
+      }
     ],
     risk_flags: [
-      { label: '실무 경험 부족', detail: '경력 1.5년 (인턴 6개월 포함)' },
-      { label: '팀 프로젝트 경험 제한적', detail: '부트캠프 팀 프로젝트 2회, 실무 1년' },
-      { label: 'CS 기초 불확실', detail: 'CS 학위 없이 부트캠프 출신' }
+      {
+        label: '실무 경험 부족',
+        detail: '경력 1.5년 (인턴 6개월 포함)'
+      },
+      {
+        label: '팀 프로젝트 경험 제한적',
+        detail: '부트캠프 팀 프로젝트 2회, 실무 1년'
+      },
+      {
+        label: 'CS 기초 불확실',
+        detail: 'CS 학위 없이 부트캠프 출신'
+      }
     ],
     skill_table: [
-      { skill: 'React', candidate: 'React', type: 'exact', evidence: 'GitHub: 프로젝트 5개', confidence: 85 },
-      { skill: 'TypeScript', candidate: 'TS (기초)', type: 'partial', evidence: 'GitHub: TS 2개', confidence: 55 },
-      { skill: 'CSS/Styling', candidate: 'CSS, Tailwind', type: 'exact', evidence: 'GitHub: 포트폴리오', confidence: 80 },
-      { skill: 'Git/협업', candidate: 'Git', type: 'similar', evidence: 'GitHub 활동', confidence: 70 },
-      { skill: '테스트', candidate: '—', type: 'partial', evidence: '일부 프로젝트에만', confidence: 30 },
-      { skill: '성능 최적화', candidate: '—', type: 'none', evidence: '증거 없음', confidence: 10 }
+      {
+        skill: 'React',
+        candidate: 'React',
+        type: 'exact',
+        evidence: 'GitHub: 프로젝트 5개',
+        confidence: 85
+      },
+      {
+        skill: 'TypeScript',
+        candidate: 'TS (기초)',
+        type: 'partial',
+        evidence: 'GitHub: TS 2개',
+        confidence: 55
+      },
+      {
+        skill: 'CSS/Styling',
+        candidate: 'CSS, Tailwind',
+        type: 'exact',
+        evidence: 'GitHub: 포트폴리오',
+        confidence: 80
+      },
+      {
+        skill: 'Git/협업',
+        candidate: 'Git',
+        type: 'similar',
+        evidence: 'GitHub 활동',
+        confidence: 70
+      },
+      {
+        skill: '테스트',
+        candidate: '—',
+        type: 'partial',
+        evidence: '일부 프로젝트에만',
+        confidence: 30
+      },
+      {
+        skill: '성능 최적화',
+        candidate: '—',
+        type: 'none',
+        evidence: '증거 없음',
+        confidence: 10
+      }
     ],
     overall_match: 68
   },
   decision: {
     summary: {
-      experience: '1.5년', jd_match: '68%', level: '주니어',
+      experience: '1.5년',
+      jd_match: '68%',
+      level: '주니어',
       strengths: ['React 기본기 탄탄 (포트폴리오 5개)', '학습 의지 높음 (부트캠프→인턴→정규직)', 'CSS/디자인 구현 능력 우수', '커뮤니케이션 적극적'],
       concerns: ['실무 경험 1.5년으로 부족 가능', '테스트 코드 작성 습관 미형성', 'CS 기초 불확실', '복잡한 상태 관리 경험 없음']
     },
     interviewer_guide: {
       resume_based_tips: [
-        { area: '부트캠프 vs 실무', detail: '포트폴리오 대부분이 부트캠프 과제입니다. 본인이 어느 부분을 직접 구현했는지 확인하세요.', source: 'GitHub vs 이력서' },
-        { area: '인턴→정규직', detail: '인턴 6개월 후 정규직 전환은 긍정적입니다. 전환 사유를 물어보세요.', source: '이력서' },
-        { area: 'CS 기초', detail: 'CS 학위 없는 부트캠프 출신입니다. 자료구조/알고리즘 독학 여부 확인 필요.', source: '이력서 vs JD 갭' }
+        {
+          area: '부트캠프 vs 실무',
+          detail: '포트폴리오 대부분이 부트캠프 과제입니다. 본인이 어느 부분을 직접 구현했는지 확인하세요.',
+          source: 'GitHub vs 이력서'
+        },
+        {
+          area: '인턴→정규직',
+          detail: '인턴 6개월 후 정규직 전환은 긍정적입니다. 전환 사유를 물어보세요.',
+          source: '이력서'
+        },
+        {
+          area: 'CS 기초',
+          detail: 'CS 학위 없는 부트캠프 출신입니다. 자료구조/알고리즘 독학 여부 확인 필요.',
+          source: '이력서 vs JD 갭'
+        }
       ],
       cover_letter_insights: [
-        { claim: '사용자 경험에 관심이 많다', verify_with: 'Q4(컴포넌트 설계)에서 사용자 관점 고려 확인' },
-        { claim: '빠르게 배우는 능력이 강점', verify_with: 'Q1(첫 3개월 목표)에서 구체적 학습 계획 확인' },
-        { claim: '팀워크를 중시', verify_with: 'Q7(코드 리뷰)에서 실제 협업 태도 확인' }
+        {
+          claim: '사용자 경험에 관심이 많다',
+          verify_with: 'Q4(컴포넌트 설계)에서 사용자 관점 고려 확인'
+        },
+        {
+          claim: '빠르게 배우는 능력이 강점',
+          verify_with: 'Q1(첫 3개월 목표)에서 구체적 학습 계획 확인'
+        },
+        {
+          claim: '팀워크를 중시',
+          verify_with: 'Q7(코드 리뷰)에서 실제 협업 태도 확인'
+        }
       ],
       interview_flow: '편안한 분위기 → 동기 확인 → 기술 기초 → 문제 해결 태도 → 성장 가능성',
-      time_allocation: { role_fit: '10분', technical: '15분', execution: '15분', communication: '10분', risk: '10분' },
-      red_flags_to_watch: ['기본 개념 못 설명하면서 어려운 기술명만 나열', '혼자 다 했다고 주장', '배우겠다만 하고 구체적 계획 없음', '피드백에 방어적 태도']
-    }
+      time_allocation: {
+        role_fit: '10분',
+        technical: '15분',
+        execution: '15분',
+        communication: '10분',
+        risk: '10분'
+      },
+      red_flags_to_watch: ['기본 개념 못 설명하면서 어려운 기술명만 나열', '혼자 다 했다고 주장', '배우겠다만 하고 구체적 계획 없음', '피드백에 방어적 태도'],
+      positive_signals: [
+        '부트캠프 과제와 실무 프로젝트를 구분하여 본인 역할을 정직하게 설명',
+        '모르는 것을 인정하면서 구체적 학습 계획을 제시',
+        '사용자 관점에서 UI/UX를 고려하는 답변',
+        '코드 리뷰에서 배운 구체적 사례를 공유',
+        '실패나 어려움을 성장 기회로 전환한 경험 공유'
+      ]
+    },
+    jd_competency_map: [
+      {
+        competency: 'React 기본기',
+        weight: 0.9,
+        related_questions: [3, 4, 5]
+      },
+      {
+        competency: 'CSS/디자인 구현',
+        weight: 0.7,
+        related_questions: [4, 6]
+      },
+      {
+        competency: 'TypeScript',
+        weight: 0.5,
+        related_questions: [5, 8]
+      },
+      {
+        competency: 'Git/협업',
+        weight: 0.6,
+        related_questions: [7, 9]
+      },
+      {
+        competency: '성장 가능성',
+        weight: 0.8,
+        related_questions: [1, 2, 10]
+      }
+    ]
   },
   questions: [
-{id:1,category:'role_fit',difficulty:'Easy',title:'첫 3개월 목표',question_text:'우리 팀에 합류하면 첫 3개월간 어떤 목표를 세우시겠습니까?',context_bridge:'저희 팀은 시니어 2명, 주니어 1명으로 구성되어 있고, 멘토링 문화가 있습니다.',why_matters:'주니어의 자기주도 학습 능력과 현실적인 목표 설정 능력을 확인합니다.',listen_for:'무리한 목표가 아닌 현실적이고 구체적인 계획을 제시하는지.',code_reference:null,
-terminology:[{term:'온보딩',pronunciation:'온보딩',explanation:'새로 합류한 사람이 팀에 적응하는 과정입니다.'},{term:'코드베이스',pronunciation:'코드베이스',explanation:'프로젝트의 전체 코드 모음입니다.'},{term:'PR (Pull Request)',pronunciation:'피알',explanation:'내가 수정한 코드를 팀에 보여주고 검토를 요청하는 것입니다.'},{term:'멘토링',pronunciation:'멘토링',explanation:'경험 많은 선배가 후배에게 업무 노하우를 전달하는 것입니다.'},{term:'컴포넌트',pronunciation:'컴포넌트',explanation:'웹 페이지의 독립적인 부품입니다. 버튼, 입력창 등.'},{term:'디자인 시스템',pronunciation:'디자인 시스템',explanation:'통일된 디자인을 위해 미리 만들어둔 부품 모음입니다.'},{term:'코드 리뷰',pronunciation:'코드 리뷰',explanation:'다른 사람이 작성한 코드를 검토하는 것입니다.'}],
-answer_keywords:[{keyword:'코드베이스 이해',importance:'must',explanation:'기존 코드를 먼저 파악해야 기여 가능'},{keyword:'작은 것부터 시작',importance:'must',explanation:'처음부터 큰 기능이 아닌 작은 버그 수정부터'},{keyword:'학습 계획',importance:'good_to_have',explanation:'부족한 부분의 구체적 학습 계획'}],
-scenarios:[{level:'Expert',score:15,text:'1개월: 코드베이스 파악+작은 버그 수정, 2개월: 독립적 컴포넌트 개발, 3개월: 코드 리뷰 참여. 단계별 구체적 계획.'},{level:'Mid',score:8,text:'열심히 배우겠다는 의지 표현. 구체적 단계가 없음.'},{level:'Low',score:0,text:'큰 기능을 바로 개발하겠다는 비현실적 목표.'}],
-follow_ups:[{id:'q1-f1',trigger:'Expert',question_text:'코드베이스를 파악할 때 어떤 방법으로 접근하시나요?',why_matters:'학습 방법론이 체계적인지 확인.',listen_for:'코드 읽기, 문서 확인, 선배에게 질문 등.',good:{text:'문서 먼저 읽고 작은 기능부터 따라가며 모르는 건 질문.',score:8},poor:{text:'그냥 코드를 보면 된다.',score:0}},{id:'q1-f2',trigger:'Mid',question_text:'구체적으로 첫 달에 어떤 종류의 업무를 하고 싶으세요?',why_matters:'추상적 답변을 구체화할 수 있는지.',listen_for:'작은 작업부터 시작하겠다는 인식.',good:{text:'버그 수정이나 작은 UI 개선부터.',score:5},poor:{text:'아무거나 시키는 대로.',score:0}},{id:'q1-f3',trigger:'Low',question_text:'지금 우리 제품을 사용해보셨나요?',why_matters:'회사에 대한 관심과 준비도.',listen_for:'실제로 제품을 사용해보고 의견이 있는지.',good:{text:'제품을 사용해본 경험과 개선 아이디어 공유.',score:5},poor:{text:'아직 안 써봤다.',score:0}}],
-interviewer_note:{business_interpretation:'이 질문은 "스스로 목표를 세우고 단계적으로 성장할 수 있는 사람인지"를 확인합니다.',daily_analogy:'새 학교에 전학 온 학생이 첫 달 계획을 세우는 것과 비슷합니다. "먼저 친구들 이름을 외우고 수업 방식에 적응하겠다"가 좋은 답입니다.',level_expectation:'주니어에게는 거창한 계획보다 "현실을 아는 겸손함"과 "구체적 학습 의지"가 핵심입니다.'},
-expected_answer:{core:'• 1개월: 온보딩+코드베이스 읽기+작은 버그 수정 PR\n• 2개월: 디자인 시스템의 간단한 컴포넌트 독립 개발\n• 3개월: 코드 리뷰 참여+부족한 TypeScript 학습',example:'첫 달은 적응에 집중합니다. 코드를 읽으면서 전체 구조를 파악하고, "good first issue" 태그 버그를 수정하면서 코드 리뷰 과정을 경험합니다. 2개월째에는 간단한 컴포넌트(알림 배지, 토글 버튼)를 혼자 만들어봅니다. 3개월째에는 다른 분의 PR에도 리뷰 의견을 남기기 시작합니다.',key_points:['현실적 목표','단계적 접근','자기 인식']}},
-{id:2,category:'role_fit',difficulty:'Easy',title:'프론트엔드를 선택한 이유',question_text:'개발자가 되기로 결심한 계기와, 프론트엔드를 선택한 이유는?',context_bridge:'저희는 사용자 경험을 중시하는 EdTech 서비스를 만들고 있습니다.',why_matters:'진정한 동기와 프론트엔드에 대한 관심도를 확인합니다.',listen_for:'취업 수단이 아닌 프론트엔드 자체에 대한 관심과 열정.',code_reference:null,
-terminology:[{term:'프론트엔드',pronunciation:'프론트엔드',explanation:'사용자가 보고 만지는 화면 부분입니다.'},{term:'백엔드',pronunciation:'백엔드',explanation:'눈에 보이지 않는 뒷단. 데이터 저장, 계산 등 담당.'},{term:'UI',pronunciation:'유아이',explanation:'사용자 인터페이스. 버튼, 메뉴, 아이콘 등 화면 요소.'},{term:'UX',pronunciation:'유엑스',explanation:'사용자 경험. 서비스를 쓰면서 느끼는 편리함.'},{term:'부트캠프',pronunciation:'부트캠프',explanation:'단기간 집중 코딩 교육 과정.'},{term:'포트폴리오',pronunciation:'포트폴리오',explanation:'자신이 만든 프로젝트를 모아놓은 작품집.'},{term:'풀스택',pronunciation:'풀스택',explanation:'프론트엔드와 백엔드를 모두 할 수 있는 개발자.'}],
-answer_keywords:[{keyword:'사용자 경험 관심',importance:'must',explanation:'프론트엔드의 핵심 가치에 대한 이해'},{keyword:'구체적 계기',importance:'must',explanation:'막연한 동기가 아닌 구체적 경험'},{keyword:'지속적 관심',importance:'good_to_have',explanation:'일시적 관심이 아닌 꾸준한 열정'}],
-scenarios:[{level:'Expert',score:15,text:'구체적 계기와 프론트엔드만의 매력(시각적 결과물, 사용자 피드백)을 연결하여 설명.'},{level:'Mid',score:8,text:'화면 만드는 게 좋아서 등 일반적 답변.'},{level:'Low',score:0,text:'취업이 잘 된다고 해서.'}],
-follow_ups:[{id:'q2-f1',trigger:'Expert',question_text:'가장 자랑스러운 프로젝트를 소개해주세요.',why_matters:'실제 경험의 깊이.',listen_for:'본인이 직접 겪은 문제와 해결 과정.',good:{text:'구체적 프로젝트와 기여, 배운 점을 상세히 공유.',score:8},poor:{text:'특별히 없다.',score:0}},{id:'q2-f2',trigger:'Mid',question_text:'프론트엔드에서 가장 어렵다고 느끼는 부분은?',why_matters:'자기 인식과 성장 영역.',listen_for:'솔직한 어려움 인정과 극복 노력.',good:{text:'구체적 어려움과 학습 노력 공유.',score:5},poor:{text:'특별히 어려운 건 없다.',score:-2}},{id:'q2-f3',trigger:'Low',question_text:'프론트엔드 개발자가 하는 일을 설명해주실 수 있나요?',why_matters:'기본적인 역할 이해도.',listen_for:'화면 개발, 사용자 경험 등.',good:{text:'사용자가 보는 화면을 만드는 것이라고 정확히 설명.',score:5},poor:{text:'잘 모르겠다.',score:0}}],
-interviewer_note:{business_interpretation:'이 질문은 "프론트엔드를 진심으로 좋아하는지"를 확인합니다. 진심으로 좋아하는 사람이 더 빠르게 성장합니다.',daily_analogy:'요리사를 뽑을 때 "왜 요리사가 되고 싶으세요?"라고 묻는 것과 같습니다.',level_expectation:'주니어에게는 전문적 답변보다 "진심 어린 동기"와 "구체적 계기"가 중요합니다.'},
-expected_answer:{core:'• 구체적 계기\n• 프론트엔드 선택 이유: 시각적 결과물, 즉각적 피드백\n• 지속적 관심의 증거',example:'동아리 홈페이지를 만들면서 프로그래밍에 빠졌습니다. "내가 만든 것을 사람들이 직접 사용하는 모습을 볼 수 있기 때문"에 프론트엔드를 선택했습니다. 친구가 제 앱을 쓰면서 피드백을 주었을 때, 그걸 개선하는 과정이 정말 재미있었습니다.',key_points:['구체적 계기','프론트엔드 매력','지속적 관심']}},
-{id:3,category:'technical_depth',difficulty:'Medium',title:'React state와 props의 차이',question_text:'React에서 state와 props의 차이를 설명해주시고, 각각 언제 사용하는지 예를 들어주세요.',context_bridge:'우리 프로젝트에서 React를 사용하므로 기본 개념 이해가 중요합니다.',why_matters:'React의 가장 기본적인 개념 이해도를 확인합니다.',listen_for:'암기식 정의가 아닌 실제 이해를 보여주는 설명.',code_reference:null,
-terminology:[{term:'React',pronunciation:'리액트',explanation:'웹 화면을 만드는 도구. 레고 블록처럼 부품을 조립합니다.'},{term:'State',pronunciation:'스테이트',explanation:'컴포넌트가 기억하는 데이터. 예: 장바구니 물건 수.'},{term:'Props',pronunciation:'프롭스',explanation:'부모가 자식에게 전달하는 데이터.'},{term:'컴포넌트',pronunciation:'컴포넌트',explanation:'화면의 독립적 부품. 버튼, 입력창 등.'},{term:'렌더링',pronunciation:'렌더링',explanation:'데이터를 화면에 그리는 과정.'},{term:'Hook',pronunciation:'훅',explanation:'React에서 state 같은 기능을 쓰게 해주는 함수.'},{term:'useState',pronunciation:'유즈스테이트',explanation:'state를 만들고 변경하는 React Hook.'},{term:'단방향 데이터 흐름',pronunciation:'단방향 데이터 흐름',explanation:'데이터가 부모→자식 한 방향으로만 흐르는 원칙.'}],
-answer_keywords:[{keyword:'state는 내부 데이터',importance:'must',explanation:'컴포넌트가 스스로 관리하는 변경 가능한 데이터'},{keyword:'props는 외부에서 전달',importance:'must',explanation:'부모가 자식에게 전달하는 읽기 전용 데이터'},{keyword:'구체적 예시',importance:'good_to_have',explanation:'실제 사용 사례'}],
-scenarios:[{level:'Expert',score:20,text:'명확한 차이 + 코드 예시 + 선택 기준까지 제시.'},{level:'Mid',score:10,text:'차이는 알지만 설명이 추상적.'},{level:'Low',score:0,text:'차이를 정확히 설명 못함.'}],
-follow_ups:[{id:'q3-f1',trigger:'Expert',question_text:'여러 컴포넌트가 같은 데이터를 공유해야 할 때 어떻게 하시나요?',why_matters:'상태 관리의 확장된 이해.',listen_for:'state 끌어올리기, Context 등.',good:{text:'공통 부모로 state를 올리거나 Context API 사용.',score:8},poor:{text:'모르겠다.',score:0}},{id:'q3-f2',trigger:'Mid',question_text:'장바구니 기능에서 state와 props 중 무엇을 쓰시겠습니까?',why_matters:'개념의 실제 적용.',listen_for:'장바구니 목록은 state, 아이템 표시는 props.',good:{text:'상황에 맞게 구분하여 설명.',score:5},poor:{text:'구분하지 못함.',score:-2}},{id:'q3-f3',trigger:'Low',question_text:'React에서 화면이 자동 업데이트되는 원리를 아시나요?',why_matters:'React 기본 동작 원리.',listen_for:'state가 바뀌면 화면이 다시 그려짐.',good:{text:'state 변경 시 리렌더링 설명.',score:5},poor:{text:'모르겠다.',score:0}}],
-interviewer_note:{business_interpretation:'React의 가장 기본 개념을 진짜 이해하고 있는지 확인합니다.',daily_analogy:'state는 "내 지갑 속 돈", props는 "부모님이 주신 용돈"입니다. 지갑 속 돈은 내가 관리하지만 용돈은 정해진 대로 받습니다.',level_expectation:'주니어에게는 자기 말로 설명할 수 있는 이해가 중요합니다.'},
-expected_answer:{core:'• State: 컴포넌트 내부의 변경 가능한 데이터\n• Props: 부모에서 자식으로 전달하는 읽기 전용 데이터\n• 핵심: state는 변경 가능, props는 읽기 전용',example:'state는 좋아요 버튼의 숫자처럼 내가 관리하는 데이터입니다. props는 상품 카드에 이름, 가격을 전달하는 것처럼 부모가 주는 데이터입니다.',key_points:['state = 내부','props = 외부','읽기전용 vs 변경가능']}},
-{id:4,category:'technical_depth',difficulty:'Medium',title:'재사용 가능한 컴포넌트 설계',question_text:'재사용 가능한 버튼 컴포넌트를 만든다면 어떤 점을 고려하시겠습니까?',context_bridge:'저희 디자인 시스템에 공통 버튼 컴포넌트가 필요합니다.',why_matters:'컴포넌트 설계의 기본 원칙(재사용성, 유연성)을 이해하는지 확인.',listen_for:'다양한 상황에서 쓸 수 있도록 유연하게 설계하는 사고.',code_reference:null,
-terminology:[{term:'재사용성',pronunciation:'재사용성',explanation:'한 번 만든 것을 여러 곳에서 반복해서 쓸 수 있는 것.'},{term:'Props',pronunciation:'프롭스',explanation:'컴포넌트에 전달하는 설정값.'},{term:'Variant',pronunciation:'배리언트',explanation:'같은 컴포넌트의 다른 모양. 기본/위험/비활성 등.'},{term:'Storybook',pronunciation:'스토리북',explanation:'컴포넌트를 독립적으로 보여주고 테스트하는 도구.'},{term:'이벤트 핸들러',pronunciation:'이벤트 핸들러',explanation:'클릭, 입력 등 사용자 동작 시 실행되는 함수.'},{term:'타입 정의',pronunciation:'타입 정의',explanation:'props의 종류와 형태를 미리 지정하는 것.'},{term:'접근성',pronunciation:'접근성',explanation:'장애인도 사용할 수 있게 만드는 것.'}],
-answer_keywords:[{keyword:'다양한 props',importance:'must',explanation:'크기, 색상, 변형 등 유연한 설정'},{keyword:'이벤트 핸들러',importance:'must',explanation:'클릭 동작을 외부에서 지정'},{keyword:'접근성',importance:'good_to_have',explanation:'키보드 조작, 스크린 리더 지원'}],
-scenarios:[{level:'Expert',score:20,text:'크기/색상/변형+이벤트 핸들러+로딩/비활성 상태+접근성까지 고려.'},{level:'Mid',score:10,text:'크기, 색상 정도의 기본 props만 고려.'},{level:'Low',score:0,text:'재사용성 개념을 이해 못하고 각 페이지마다 따로 만들겠다고 함.'}],
-follow_ups:[{id:'q4-f1',trigger:'Expert',question_text:'팀원이 이 버튼을 쉽게 사용하게 하려면?',why_matters:'문서화와 개발자 경험.',listen_for:'Storybook, 타입 정의, 사용 예시.',good:{text:'Storybook으로 예시를 보여주고 TypeScript로 타입 정의.',score:8},poor:{text:'코드를 보면 안다.',score:0}},{id:'q4-f2',trigger:'Mid',question_text:'버튼에 로딩 상태를 추가한다면?',why_matters:'상태에 따른 UI 변화 구현.',listen_for:'isLoading props, 스피너, 클릭 방지.',good:{text:'isLoading prop으로 스피너 표시+클릭 방지.',score:5},poor:{text:'구현 방법 모르겠다.',score:0}},{id:'q4-f3',trigger:'Low',question_text:'같은 디자인 버튼이 10페이지에 필요하면?',why_matters:'재사용 기본 개념.',listen_for:'하나 만들어 여러 곳에서 사용.',good:{text:'하나의 컴포넌트를 만들어 import.',score:5},poor:{text:'10번 복사.',score:0}}],
-interviewer_note:{business_interpretation:'효율적으로 코드를 작성할 수 있는 사람인지 확인합니다.',daily_analogy:'범용 그릇 하나를 만드는 것입니다. 국도 밥도 담을 수 있지만 너무 만능이면 불편합니다.',level_expectation:'주니어에게는 "왜 재사용해야 하는지"를 이해하고 기본 props를 설계할 수 있으면 충분합니다.'},
-expected_answer:{core:'• 필수 Props: 크기, 색상 변형, 클릭 이벤트\n• 상태: 로딩 중, 비활성화\n• 접근성: 키보드 조작, aria-label',example:'primary/secondary/danger 3가지 변형, small/medium/large 크기, onClick으로 동작 지정, isLoading으로 스피너 표시.',key_points:['유연한 props','상태 관리','접근성']}},
-{id:5,category:'execution_ownership',difficulty:'Easy',title:'해결 안 되는 버그 대처법',question_text:'혼자 해결이 안 되는 버그를 만났을 때 어떻게 하시나요?',context_bridge:'개발하다 보면 혼자 해결하기 어려운 문제를 자주 만납니다.',why_matters:'문제 해결 과정과 도움 요청 타이밍을 확인합니다.',listen_for:'먼저 시도하되 적절한 시점에 도움을 요청하는 균형.',code_reference:null,
-terminology:[{term:'디버깅',pronunciation:'디버깅',explanation:'프로그램 오류를 찾아서 고치는 과정.'},{term:'콘솔',pronunciation:'콘솔',explanation:'개발자 도구의 출력 화면. 문제 지점을 확인.'},{term:'Stack Overflow',pronunciation:'스택 오버플로우',explanation:'개발자 Q&A 사이트.'},{term:'에러 메시지',pronunciation:'에러 메시지',explanation:'프로그램이 문제를 알려주는 메시지.'},{term:'구글링',pronunciation:'구글링',explanation:'에러 메시지나 문제를 검색하는 것.'},{term:'로그',pronunciation:'로그',explanation:'프로그램 실행 기록. 문제 원인을 찾는 데 사용.'},{term:'재현',pronunciation:'재현',explanation:'버그를 다시 발생시키는 것. 고치려면 먼저 재현해야 함.'}],
-answer_keywords:[{keyword:'체계적 디버깅',importance:'must',explanation:'에러 메시지→구글링→원인 추적 등 단계적 접근'},{keyword:'적절한 시점에 도움 요청',importance:'must',explanation:'30분~1시간 시도 후 질문'},{keyword:'시도한 것 공유',importance:'good_to_have',explanation:'질문 시 "이것을 해봤는데 안 됐다" 포함'}],
-scenarios:[{level:'Expert',score:15,text:'에러 확인→구글링→원인 좁히기→30분 후 시도한 것과 함께 질문. 체계적 과정.'},{level:'Mid',score:8,text:'구글링은 하는데 질문 시점/방법이 구체적이지 않음.'},{level:'Low',score:0,text:'바로 물어보거나 혼자 너무 오래 붙잡음.'}],
-follow_ups:[{id:'q5-f1',trigger:'Expert',question_text:'선배에게 질문할 때 어떤 정보를 함께 전달하시나요?',why_matters:'효과적인 질문 능력.',listen_for:'에러 메시지, 시도한 방법, 예상 원인.',good:{text:'에러 메시지+시도한 방법+예상 원인을 정리해서 질문.',score:8},poor:{text:'안 되는데 도와주세요.',score:0}},{id:'q5-f2',trigger:'Mid',question_text:'구글링해도 답을 못 찾으면?',why_matters:'대안적 문제 해결.',listen_for:'공식 문서, 범위 좁히기, 동료 도움.',good:{text:'공식 문서를 보거나 문제 범위를 좁혀서 재시도.',score:5},poor:{text:'포기한다.',score:-2}},{id:'q5-f3',trigger:'Low',question_text:'최근 개발하면서 어려웠던 문제가 있었나요?',why_matters:'실제 경험 유무.',listen_for:'구체적 경험.',good:{text:'구체적 문제와 해결 과정 공유.',score:5},poor:{text:'특별히 없었다.',score:0}}],
-interviewer_note:{business_interpretation:'막혔을 때 어떻게 행동하는지 확인합니다. 주니어가 혼자 3일 붙잡고 있으면 팀 전체 피해.',daily_analogy:'길을 잃었을 때: 먼저 지도를 보고, 주변을 둘러보고, 30분 걸어도 못 찾으면 물어보는 것이 좋습니다.',level_expectation:'주니어에게는 "먼저 시도하되 30분~1시간이면 도움을 요청한다"는 균형이 핵심.'},
-expected_answer:{core:'• 1단계: 에러 메시지 정확히 읽기\n• 2단계: 에러 메시지 구글링\n• 3단계: console.log로 범위 좁히기\n• 4단계: 30분~1시간 후 시도한 내용 정리해서 질문',example:'무한 렌더링 버그를 만났을 때 에러 메시지를 확인하고, 구글링하고, console.log로 어떤 useEffect가 반복되는지 찾았습니다. 1시간 넘으면 시도한 내용을 정리해서 선배에게 질문합니다.',key_points:['체계적 접근','적절한 타이밍','질문 품질']}},
-{id:6,category:'execution_ownership',difficulty:'Medium',title:'기한 내 완료 어려운 프로젝트',question_text:'프로젝트 기한 내에 완료하기 어려웠던 경험과 대처 방법을 말씀해주세요.',context_bridge:'스타트업에서는 종종 빠듯한 일정으로 일합니다.',why_matters:'시간 관리와 소통 태도를 확인합니다.',listen_for:'문제를 숨기지 않고 빨리 알리는 태도.',code_reference:null,
-terminology:[{term:'데드라인',pronunciation:'데드라인',explanation:'작업을 끝내야 하는 최종 날짜.'},{term:'스프린트',pronunciation:'스프린트',explanation:'2주 단위로 목표를 정하고 개발하는 짧은 주기.'},{term:'우선순위',pronunciation:'프라이오리티',explanation:'여러 일 중 무엇을 먼저 해야 하는지.'},{term:'스코프',pronunciation:'스코프',explanation:'구현할 기능의 범위.'},{term:'MVP',pronunciation:'엠브이피',explanation:'최소 기능만 갖춘 버전.'},{term:'블로커',pronunciation:'블로커',explanation:'진행을 막는 장애물.'},{term:'스탠드업',pronunciation:'스탠드업',explanation:'매일 아침 짧게 하는 팀 회의.'}],
-answer_keywords:[{keyword:'빠른 소통',importance:'must',explanation:'기한 못 맞출 것 같으면 즉시 알림'},{keyword:'우선순위 조정',importance:'must',explanation:'중요한 것부터'},{keyword:'배운 점',importance:'good_to_have',explanation:'같은 실수 반복 방지'}],
-scenarios:[{level:'Expert',score:20,text:'기한 전에 위험을 감지하고 팀에 알림. 범위 조정으로 핵심 기능은 완료.'},{level:'Mid',score:10,text:'기한을 넘겼지만 원인과 배운 점을 설명.'},{level:'Low',score:0,text:'경험 없음 또는 야근으로 해결했다만 답변.'}],
-follow_ups:[{id:'q6-f1',trigger:'Expert',question_text:'팀에 일정이 어렵다고 알릴 때 어떻게 소통하시나요?',why_matters:'소통 방식의 구체성.',listen_for:'진행률, 남은 작업, 필요한 도움을 정리.',good:{text:'진행률과 대안을 함께 제시.',score:8},poor:{text:'못하겠다고만.',score:0}},{id:'q6-f2',trigger:'Mid',question_text:'다음에 비슷한 상황이면 어떻게 하시겠습니까?',why_matters:'학습과 개선 의지.',listen_for:'더 일찍 알리겠다, 작게 나누겠다.',good:{text:'구체적 개선 방법 제시.',score:5},poor:{text:'더 열심히.',score:0}},{id:'q6-f3',trigger:'Low',question_text:'프로젝트에서 가장 어려웠던 순간은?',why_matters:'경험 유무와 성찰.',listen_for:'구체적 경험과 배운 점.',good:{text:'구체적 어려움과 대처 공유.',score:5},poor:{text:'특별히 없었다.',score:0}}],
-interviewer_note:{business_interpretation:'문제가 생겼을 때 숨기지 않고 빨리 알려주는 사람인지 확인합니다.',daily_analogy:'숙제에 비유하면, "선생님, 핵심 부분만 먼저 하고 나머지는 이틀 후에 제출해도 될까요?"라고 미리 말하는 것이 좋습니다.',level_expectation:'주니어에게는 완벽한 해결보다 "빨리 알리는 용기"와 "배운 점을 말할 수 있는 성찰력"이 핵심.'},
-expected_answer:{core:'• 상황: 기한 2일 전 기능 완성 어려운 상황\n• 대처: 즉시 팀에 알리고 핵심 기능만 우선 완성 합의\n• 배운 점: 일찍 소통하는 것이 중요',example:'부트캠프 프로젝트에서 검색 기능이 예상보다 복잡했습니다. 기한 3일 전에 솔직하게 상황을 공유하고, 기본 검색만 먼저 완성하기로 했습니다. "혼자 끙끙대지 말고 빨리 알리는 것"이 중요하다는 걸 배웠습니다.',key_points:['빠른 소통','우선순위 조정','성찰']}},
-{id:7,category:'communication',difficulty:'Easy',title:'코드 리뷰 피드백 대응',question_text:'코드 리뷰에서 선배가 코드를 고치라고 하면 어떻게 대응하시나요?',context_bridge:'저희 팀은 모든 코드가 리뷰를 거쳐야 합니다.',why_matters:'피드백 수용 태도와 학습 자세를 확인합니다.',listen_for:'열린 태도, 피드백을 학습 기회로 보는 자세.',code_reference:null,
-terminology:[{term:'코드 리뷰',pronunciation:'코드 리뷰',explanation:'다른 개발자가 내 코드를 검토하는 과정.'},{term:'PR',pronunciation:'피알',explanation:'코드 변경을 제안하고 리뷰를 요청하는 것.'},{term:'피드백',pronunciation:'피드백',explanation:'상대방이 주는 의견이나 평가.'},{term:'리팩토링',pronunciation:'리팩토링',explanation:'기능은 그대로 두고 코드 구조를 개선하는 작업.'},{term:'컨벤션',pronunciation:'컨벤션',explanation:'팀에서 합의한 코드 작성 규칙.'},{term:'Approve',pronunciation:'어프루브',explanation:'코드 리뷰에서 승인.'},{term:'Comment',pronunciation:'코멘트',explanation:'특정 줄에 의견을 남기는 것.'}],
-answer_keywords:[{keyword:'열린 태도',importance:'must',explanation:'방어적이지 않게 피드백 수용'},{keyword:'이해 후 반영',importance:'must',explanation:'무조건이 아닌 이유를 이해하고 반영'},{keyword:'질문하기',importance:'good_to_have',explanation:'이해 안 되면 추가 질문'}],
-scenarios:[{level:'Expert',score:15,text:'피드백 이유를 이해하고, 모르면 질문하며, 비슷한 실수를 반복하지 않으려는 노력.'},{level:'Mid',score:8,text:'받아들이겠다는 일반적 답변. 구체적 경험 부족.'},{level:'Low',score:0,text:'방어적이거나 의미 없이 무조건 고치겠다.'}],
-follow_ups:[{id:'q7-f1',trigger:'Expert',question_text:'선배 피드백이 본인 생각과 다를 때는?',why_matters:'건설적 토론 능력.',listen_for:'의견을 말하되 상대도 존중.',good:{text:'이유를 물어보고 본인 생각도 설명한 뒤 더 나은 방법을 함께 찾는다.',score:8},poor:{text:'선배가 무조건 맞으니 따른다.',score:0}},{id:'q7-f2',trigger:'Mid',question_text:'피드백 받아서 코드를 고친 구체적 경험은?',why_matters:'실제 경험.',listen_for:'구체적 피드백 내용과 학습.',good:{text:'구체적 피드백과 학습 내용 공유.',score:5},poor:{text:'사례가 없다.',score:0}},{id:'q7-f3',trigger:'Low',question_text:'다른 사람 의견 듣고 기분 안 좋았던 경험은?',why_matters:'감정 관리.',listen_for:'솔직한 인정과 극복.',good:{text:'처음엔 기분 안 좋았지만 도움이 되었다.',score:5},poor:{text:'화가 난다.',score:0}}],
-interviewer_note:{business_interpretation:'"코칭 가능한(coachable) 사람인지"를 확인합니다. 피드백을 못 받아들이면 성장이 멈춥니다.',daily_analogy:'운동 코치가 자세를 교정해주는 것과 같습니다. "왜 그래야 하나요?"라고 배우는 선수가 빨리 성장합니다.',level_expectation:'주니어에게는 "피드백 = 학습 기회"라는 인식이 핵심입니다.'},
-expected_answer:{core:'• 피드백 이유를 이해하려 노력\n• 이해 안 되면 추가 질문\n• 비슷한 피드백 방지를 위해 노트 정리\n• 개인적 비난이 아닌 코드 개선으로 인식',example:'첫 PR에서 "변수명이 의미 없다, data 대신 studentList로 바꿔라"는 피드백을 받았습니다. 이유를 물어보니 6개월 후 가독성을 위해서라고 해서 변수명 규칙을 노트에 정리했고, 이후 비슷한 피드백은 받지 않았습니다.',key_points:['열린 태도','이해 후 반영','기록과 개선']}},
-{id:8,category:'communication',difficulty:'Medium',title:'디자이너와 기술적 제약 소통',question_text:'디자이너가 준 시안이 기술적으로 구현하기 어려울 때 어떻게 소통하시겠습니까?',context_bridge:'저희 팀에서는 디자이너와 직접 소통하며 일합니다.',why_matters:'비개발 직군과의 소통 능력을 확인합니다.',listen_for:'기술적 한계를 비기술적 언어로 설명하고 대안 제시.',code_reference:null,
-terminology:[{term:'시안',pronunciation:'시안',explanation:'디자이너가 만든 화면 설계도.'},{term:'Figma',pronunciation:'피그마',explanation:'디자이너가 화면을 설계하는 도구.'},{term:'반응형',pronunciation:'반응형',explanation:'화면 크기에 따라 자동으로 레이아웃이 바뀌는 디자인.'},{term:'애니메이션',pronunciation:'애니메이션',explanation:'화면 요소가 움직이는 효과.'},{term:'성능',pronunciation:'퍼포먼스',explanation:'페이지가 얼마나 빠르게 로딩되고 부드럽게 동작하는지.'},{term:'트레이드오프',pronunciation:'트레이드오프',explanation:'하나를 얻으면 다른 하나를 포기해야 하는 상황.'},{term:'프로토타입',pronunciation:'프로토타입',explanation:'완성 전의 시험 버전.'}],
-answer_keywords:[{keyword:'대안 제시',importance:'must',explanation:'"안 됩니다"가 아닌 "이렇게 하면 비슷한 효과"'},{keyword:'이유 설명',importance:'must',explanation:'왜 어려운지를 비기술적 언어로'},{keyword:'협업 자세',importance:'good_to_have',explanation:'디자이너의 의도를 먼저 이해'}],
-scenarios:[{level:'Expert',score:20,text:'디자이너 의도를 먼저 이해하고, 기술적 제약을 쉬운 말로 설명하며 대안 제시.'},{level:'Mid',score:10,text:'어렵다고 말하지만 대안 없이 "안 된다"만.'},{level:'Low',score:0,text:'소통 없이 임의로 변경하거나 무리하게 구현.'}],
-follow_ups:[{id:'q8-f1',trigger:'Expert',question_text:'대안을 제시할 때 어떻게 설득하시나요?',why_matters:'설득력.',listen_for:'프로토타입을 만들어 보여주기.',good:{text:'간단한 프로토타입으로 "이렇게 보입니다"라고 보여준다.',score:8},poor:{text:'말로만.',score:0}},{id:'q8-f2',trigger:'Mid',question_text:'어떤 디자인이 구현하기 어려웠나요?',why_matters:'실제 경험.',listen_for:'구체적 사례.',good:{text:'복잡한 애니메이션, 특수 레이아웃 등.',score:5},poor:{text:'기억 안 남.',score:0}},{id:'q8-f3',trigger:'Low',question_text:'디자이너와 일하면서 좋았던 경험은?',why_matters:'협업 태도.',listen_for:'긍정적 협업 경험.',good:{text:'함께 문제를 해결한 경험.',score:5},poor:{text:'일해본 적 없다.',score:0}}],
-interviewer_note:{business_interpretation:'다른 직군과 소통할 수 있는 사람인지 확인합니다.',daily_analogy:'인테리어 시공업자가 "이 벽은 못 뚫지만 저쪽에 선반을 달면 비슷합니다"라고 대안을 주는 것이 좋은 소통.',level_expectation:'주니어에게는 "디자이너의 의도를 먼저 물어보고 기술적 제약을 솔직하게 말하는 태도"가 핵심.'},
-expected_answer:{core:'• 1단계: 디자이너의 의도 이해\n• 2단계: 기술적 제약을 쉬운 말로 설명\n• 3단계: 비슷한 효과의 대안 제시',example:'복잡한 스크롤 애니메이션 요청에 "가장 중요한 느낌이 뭔가요?"라고 물었고, CSS transition으로 간단하지만 부드러운 효과를 만들어 보여줬더니 디자이너도 만족했습니다.',key_points:['의도 파악','쉬운 말 설명','대안 제시']}},
-{id:9,category:'risk_flags',difficulty:'Easy',title:'GitHub 포트폴리오 부족',is_risk:true,risk_source:'GitHub에서 부트캠프 프로젝트 외 개인 프로젝트가 적음',question_text:'GitHub에 부트캠프 프로젝트가 대부분인데, 개인적으로 진행한 프로젝트가 있으신가요?',context_bridge:'프로필 검토 중 개인 프로젝트가 거의 없는 것을 확인했습니다.',why_matters:'자기주도적 학습 의지와 프로그래밍에 대한 관심도를 확인합니다.',listen_for:'스스로 무언가를 만들어본 경험. 없더라도 솔직한 이유와 향후 계획.',code_reference:null,
-terminology:[{term:'GitHub',pronunciation:'깃허브',explanation:'개발자의 작품을 올리고 공유하는 플랫폼.'},{term:'개인 프로젝트',pronunciation:'사이드 프로젝트',explanation:'본인이 관심 있어서 자발적으로 만드는 프로그램.'},{term:'부트캠프',pronunciation:'부트캠프',explanation:'단기간 집중 코딩 교육.'},{term:'오픈소스',pronunciation:'오픈소스',explanation:'누구나 보고 수정할 수 있게 공개한 프로젝트.'},{term:'TIL',pronunciation:'티아이엘',explanation:'오늘 배운 것을 기록하는 것.'},{term:'기술 블로그',pronunciation:'기술 블로그',explanation:'개발 경험을 글로 정리하는 블로그.'},{term:'레포지토리',pronunciation:'레포지토리',explanation:'GitHub에서 하나의 프로젝트를 담는 폴더.'}],
-answer_keywords:[{keyword:'자발적 활동',importance:'must',explanation:'시키지 않아도 스스로 만들어본 경험'},{keyword:'솔직한 이유',importance:'must',explanation:'없다면 왜 없는지 방어적이지 않게'},{keyword:'향후 계획',importance:'good_to_have',explanation:'앞으로의 계획'}],
-scenarios:[{level:'Expert',score:15,text:'개인 프로젝트가 있고, 왜 만들었는지, 무엇을 배웠는지 설명.'},{level:'Mid',score:8,text:'개인 프로젝트는 없지만 기술 블로그나 TIL 등 다른 학습 활동.'},{level:'Low',score:-5,text:'부트캠프 외 활동 없고, 향후 계획도 없으며 방어적.'}],
-follow_ups:[{id:'q9-f1',trigger:'Expert',question_text:'그 프로젝트에서 가장 어려웠던 기술적 도전은?',why_matters:'자기주도 학습 깊이.',listen_for:'구체적 기술 어려움과 해결.',good:{text:'구체적 문제와 해결 과정.',score:8},poor:{text:'특별히 없었다.',score:0}},{id:'q9-f2',trigger:'Mid',question_text:'앞으로 만들어보고 싶은 프로젝트가 있나요?',why_matters:'미래 성장 의지.',listen_for:'구체적 아이디어.',good:{text:'구체적 프로젝트 아이디어와 기술.',score:5},poor:{text:'특별히 없다.',score:-2}},{id:'q9-f3',trigger:'Low',question_text:'평소 개발 학습은 어떻게 하시나요?',why_matters:'학습 습관.',listen_for:'꾸준한 학습.',good:{text:'구체적 학습 방법과 루틴.',score:5},poor:{text:'특별히 없다.',score:-3}}],
-interviewer_note:{business_interpretation:'"시키지 않아도 스스로 배우는 사람인지"를 확인합니다. 자기주도 학습이 성장 속도를 결정합니다.',daily_analogy:'영어를 배우는 학생: 학원 숙제만 하는 학생 vs 넷플릭스를 영어로 보는 학생의 차이.',level_expectation:'대단한 프로젝트를 기대하지 않습니다. 간단한 앱이라도 "스스로 만들어봤다"가 중요합니다.'},
-expected_answer:{core:'• 개인 프로젝트 경험이 있다면: 무엇을, 왜 만들었고, 무엇을 배웠는지\n• 없다면: 솔직한 이유 + 다른 학습 활동 + 향후 계획',example:'부트캠프 외에 날씨 앱을 만들어봤습니다. 공공 API로 현재 날씨를 보여주는 간단한 앱인데, API 호출과 에러 처리를 혼자 해결하면서 많이 배웠습니다.',key_points:['자발적 학습','구체적 경험','성장 의지']}},
-{id:10,category:'risk_flags',difficulty:'Medium',title:'CS 기초 학습 수준',is_risk:true,risk_source:'이력서에 CS 학위 없음, 부트캠프 출신으로 기초 수준 미확인',question_text:'컴퓨터 과학 기초(자료구조, 알고리즘)를 어느 정도 학습하셨나요? 프론트엔드에서 이 지식이 언제 필요하다고 생각하시나요?',context_bridge:'부트캠프 출신이시라 CS 기초 학습 수준을 확인하고 싶습니다.',why_matters:'기본 CS 지식이 실무에서 필요한 상황을 인지하는지, 학습 의지가 있는지 확인.',listen_for:'현재 수준에 대한 솔직한 평가와 학습 노력.',code_reference:null,
-terminology:[{term:'자료구조',pronunciation:'데이터 스트럭처',explanation:'데이터를 효율적으로 저장/관리하는 방법. 서랍장 정리법과 비슷.'},{term:'알고리즘',pronunciation:'알고리즘',explanation:'문제를 해결하는 단계별 방법. 요리 레시피와 같음.'},{term:'배열',pronunciation:'어레이',explanation:'같은 종류 데이터를 순서대로 나열한 것.'},{term:'객체',pronunciation:'오브젝트',explanation:'여러 종류 데이터를 하나로 묶은 것.'},{term:'시간 복잡도',pronunciation:'타임 컴플렉시티',explanation:'데이터가 늘어날 때 프로그램이 얼마나 느려지는지.'},{term:'Big O',pronunciation:'빅오',explanation:'시간 복잡도를 표현하는 방식.'},{term:'정렬',pronunciation:'소팅',explanation:'데이터를 크기순, 날짜순으로 나열하는 것.'},{term:'검색',pronunciation:'서칭',explanation:'원하는 데이터를 찾는 것.'}],
-answer_keywords:[{keyword:'솔직한 자기 평가',importance:'must',explanation:'모르는 것을 아는 자기 인식'},{keyword:'프론트엔드 관련성',importance:'must',explanation:'배열 정렬, 검색 필터링 등 실무 사례'},{keyword:'학습 계획',importance:'good_to_have',explanation:'부족한 부분을 어떻게 채울 것인지'}],
-scenarios:[{level:'Expert',score:20,text:'현재 수준을 솔직히 말하고, 프론트엔드에서 필요한 상황을 구체적으로 알며, 학습 계획도 있음.'},{level:'Mid',score:10,text:'중요한 것은 알지만 구체적으로 어디에 필요한지 부족.'},{level:'Low',score:-5,text:'프론트엔드에 CS 기초는 필요 없다고 주장하거나 학습 의지 없음.'}],
-follow_ups:[{id:'q10-f1',trigger:'Expert',question_text:'1000개 상품을 가격순 정렬하는 기능을 만든다면?',why_matters:'CS 기초의 실무 적용.',listen_for:'Array.sort(), 비교 함수, 성능.',good:{text:'Array.sort()와 비교 함수 사용, 대량 데이터 시 성능 고려.',score:8},poor:{text:'모르겠다.',score:0}},{id:'q10-f2',trigger:'Mid',question_text:'개발하면서 자료구조/알고리즘이 필요했던 순간은?',why_matters:'실무 관련성 인식.',listen_for:'필터링, 정렬, 중복 제거 경험.',good:{text:'필터링, 정렬 등 실제 사용 경험.',score:5},poor:{text:'없었다.',score:-2}},{id:'q10-f3',trigger:'Low',question_text:'배열(Array)이 무엇인지 설명해주실 수 있나요?',why_matters:'가장 기본적인 자료구조.',listen_for:'순서 있는 데이터 모음.',good:{text:'순서가 있고 인덱스로 접근하는 데이터 모음.',score:5},poor:{text:'모르겠다.',score:-3}}],
-interviewer_note:{business_interpretation:'기초가 부족해도 인지하고 채울 의지가 있는지 확인합니다.',daily_analogy:'부트캠프로 요리를 배운 사람은 레시피는 따라하지만 식재료 특성은 모를 수 있습니다. CS 기초를 아는 개발자가 더 효율적인 코드를 작성합니다.',level_expectation:'알고리즘 전문가를 기대하지 않습니다. "부족하다는 것을 알고 학습하고 있다"는 자세가 중요합니다.'},
-expected_answer:{core:'• 현재 수준: 배열과 객체는 매일 사용하지만 깊은 알고리즘은 부족\n• 필요성: 리스트 정렬, 검색 필터링, 성능 최적화\n• 학습: 매일 코딩 테스트 1문제씩',example:'솔직히 CS 기초가 부족합니다. 하지만 실무에서 상품 필터링/정렬 기능을 만들 때 필요성을 느꼈습니다. 프로그래머스에서 매일 1문제씩 풀고 있고, 배열 조작은 자신 있습니다.',key_points:['솔직한 자기 평가','실무 관련성','학습 의지']}},
-{id:11,category:'role_fit',difficulty:'Medium',title:'팀 문화 적합성',question_text:'지금까지 경험한 팀 중 가장 잘 맞았던 팀은 어떤 분위기였고, 왜 잘 맞았다고 느꼈나요?',context_bridge:'저희 팀은 자율적이지만 적극적으로 소통하는 문화를 지향합니다.',why_matters:'후보자가 선호하는 팀 문화를 파악하고 우리 팀과의 적합성을 판단합니다.',listen_for:'구체적 경험 기반으로 자신의 업무 스타일을 인식하고 있는지.',code_reference:null,
-terminology:[{term:'팀 문화',pronunciation:'팀 컬처',explanation:'팀이 일하는 방식과 분위기. 회사마다 다릅니다.'},{term:'애자일',pronunciation:'애자일',explanation:'짧은 주기로 빠르게 개발하고 피드백을 반영하는 방식.'},{term:'스크럼',pronunciation:'스크럼',explanation:'애자일의 한 방법론. 2주 단위 스프린트로 개발.'},{term:'페어 프로그래밍',pronunciation:'페어 프로그래밍',explanation:'두 사람이 한 컴퓨터로 함께 코딩하는 것.'},{term:'회고',pronunciation:'레트로스펙티브',explanation:'스프린트가 끝난 후 잘된 점과 개선점을 이야기하는 미팅.'},{term:'심리적 안전감',pronunciation:'사이콜로지컬 세이프티',explanation:'실수해도 비난받지 않는다고 느끼는 환경.'},{term:'온보딩',pronunciation:'온보딩',explanation:'새로운 팀원이 팀에 적응하는 과정.'}],
-answer_keywords:[{keyword:'구체적 경험',importance:'must',explanation:'실제 팀에서의 경험을 기반으로 설명'},{keyword:'자기 인식',importance:'must',explanation:'본인의 업무 스타일을 객관적으로 이해'},{keyword:'우리 팀 문화 연결',importance:'good_to_have',explanation:'지원 팀 문화와의 연결점 제시'}],
-scenarios:[{level:'Expert',score:20,text:'구체적 팀 경험을 바탕으로 본인이 잘 맞는 환경과 이유를 명확히 설명하고, 우리 팀 문화와 연결.'},{level:'Mid',score:10,text:'좋은 팀 분위기를 일반적으로 설명하지만 구체적 경험이 부족.'},{level:'Low',score:0,text:'팀 경험이 없거나 "아무 팀이나 괜찮다"는 식의 무관심한 답변.'}],
-follow_ups:[{id:'q11-f1',trigger:'Expert',question_text:'팀에서 갈등이 있었을 때 어떻게 대처하셨나요?',why_matters:'갈등 해결 능력과 성숙도.',listen_for:'구체적 갈등 상황과 건설적 해결 과정.',good:{text:'서로 의견을 나누고 타협점을 찾은 경험을 구체적으로 공유.',score:8},poor:{text:'갈등이 있어본 적 없다.',score:0}},{id:'q11-f2',trigger:'Mid',question_text:'팀에서 본인의 역할은 주로 어떤 편이었나요?',why_matters:'팀 내 역할 인식.',listen_for:'구체적 역할과 기여.',good:{text:'일정 관리나 분위기 메이커 등 구체적 역할 설명.',score:5},poor:{text:'특별한 역할은 없었다.',score:0}},{id:'q11-f3',trigger:'Low',question_text:'팀으로 일해본 경험이 있으신가요?',why_matters:'기본적 협업 경험 유무.',listen_for:'어떤 형태로든 팀 경험.',good:{text:'부트캠프 팀 프로젝트 경험이라도 구체적으로 공유.',score:5},poor:{text:'혼자 작업만 해봤다.',score:0}}],
-interviewer_note:{business_interpretation:'이 사람이 우리 팀에 잘 어울릴지 확인합니다. 실력이 좋아도 팀 문화에 안 맞으면 오래 못 합니다.',daily_analogy:'동아리를 고를 때 "분위기가 나와 맞는지"를 보는 것과 같습니다.',level_expectation:'주니어에게는 대단한 팀 경험보다 "어떤 환경에서 잘 성장하는지" 자기 이해가 중요합니다.'},
-expected_answer:{core:'• 구체적 팀 경험 (부트캠프, 인턴 등)\n• 잘 맞았던 이유: 소통이 자유로운, 질문하기 편한 등\n• 본인의 업무 스타일 인식',example:'인턴 시절 시니어 개발자가 매일 15분 커피챗을 해주셨는데, 질문하기 편한 분위기라 빠르게 성장했습니다. 저는 모르는 것을 바로 물어볼 수 있는 환경에서 가장 잘 배웁니다.',key_points:['구체적 경험','자기 인식','성장 환경']}},
-{id:12,category:'role_fit',difficulty:'Medium',title:'학습 목표와 성장 방향',question_text:'향후 1~2년간 개발자로서 어떤 역량을 키우고 싶으시고, 그를 위해 현재 어떤 노력을 하고 있나요?',context_bridge:'저희 회사는 성장 의지가 있는 분을 적극 지원합니다.',why_matters:'자기주도적 성장 의지와 구체적 계획을 확인합니다.',listen_for:'막연한 목표가 아닌 구체적 계획과 현재 노력.',code_reference:null,
-terminology:[{term:'로드맵',pronunciation:'로드맵',explanation:'목표까지의 단계별 계획.'},{term:'기술 스택',pronunciation:'테크 스택',explanation:'개발에 사용하는 기술의 조합.'},{term:'TypeScript',pronunciation:'타입스크립트',explanation:'JavaScript에 타입을 추가한 언어. 실수를 줄여줌.'},{term:'상태 관리',pronunciation:'스테이트 매니지먼트',explanation:'앱 전체의 데이터를 효율적으로 관리하는 기술.'},{term:'테스트',pronunciation:'테스팅',explanation:'코드가 올바르게 동작하는지 자동으로 확인하는 것.'},{term:'성능 최적화',pronunciation:'퍼포먼스 옵티마이제이션',explanation:'앱이 더 빠르고 부드럽게 동작하도록 개선.'},{term:'접근성',pronunciation:'액세서빌리티',explanation:'모든 사용자가 웹을 이용할 수 있게 만드는 기술.'},{term:'CI/CD',pronunciation:'시아이시디',explanation:'코드를 자동으로 테스트하고 배포하는 파이프라인.'}],
-answer_keywords:[{keyword:'구체적 기술 목표',importance:'must',explanation:'TypeScript 숙련, 테스트 작성 등 명확한 목표'},{keyword:'현재 실천 중인 노력',importance:'must',explanation:'말만이 아닌 실제 행동'},{keyword:'회사 기술과 연결',importance:'good_to_have',explanation:'회사에서 필요한 기술과 연결'}],
-scenarios:[{level:'Expert',score:20,text:'구체적 기술 목표와 현재 학습 내용, 회사 기술 스택과의 연결까지 제시.'},{level:'Mid',score:10,text:'성장하고 싶다는 의지는 있지만 구체적 계획이 부족.'},{level:'Low',score:0,text:'목표가 없거나 "시키는 일을 잘하겠다"는 수동적 답변.'}],
-follow_ups:[{id:'q12-f1',trigger:'Expert',question_text:'지금 학습 중인 것 중 가장 어려운 부분은?',why_matters:'실제 학습 깊이 확인.',listen_for:'구체적 어려움과 극복 방법.',good:{text:'TypeScript 제네릭이 어렵지만 공식 문서와 예제로 연습 중.',score:8},poor:{text:'특별히 어려운 건 없다.',score:0}},{id:'q12-f2',trigger:'Mid',question_text:'관심 있는 기술이 있다면 왜 관심을 갖게 되었나요?',why_matters:'동기의 구체성.',listen_for:'실무 필요성이나 흥미 기반의 이유.',good:{text:'실무에서 필요성을 느끼거나 흥미로운 이유를 구체적으로.',score:5},poor:{text:'유행이라서.',score:0}},{id:'q12-f3',trigger:'Low',question_text:'새로운 기술을 배울 때 주로 어떤 방법을 사용하시나요?',why_matters:'학습 습관.',listen_for:'체계적 학습 방법.',good:{text:'공식 문서, 튜토리얼, 직접 만들어보기 등.',score:5},poor:{text:'특별한 방법 없이 그때그때.',score:0}}],
-interviewer_note:{business_interpretation:'"스스로 성장할 사람인지"를 확인합니다. 회사가 가르쳐줘야만 배우는 사람은 성장이 느립니다.',daily_analogy:'운동선수가 "올해 기록을 10초 줄이겠다"는 구체적 목표가 있는 것과 "열심히 하겠다"만 말하는 것의 차이.',level_expectation:'주니어에게는 거창한 목표보다 "작지만 구체적인 계획"과 "실천 중인 증거"가 핵심.'},
-expected_answer:{core:'• 구체적 기술 목표 (예: TypeScript 숙련, 테스트 코드 작성)\n• 현재 학습 중인 내용\n• 회사 기술과의 연결',example:'단기적으로 TypeScript를 능숙하게 쓰는 것이 목표입니다. 현재 개인 프로젝트를 TS로 마이그레이션하면서 연습 중입니다. 장기적으로는 테스트 코드 작성과 성능 최적화를 배워 더 안정적인 코드를 짜고 싶습니다.',key_points:['구체적 목표','실천 증거','회사 연결']}},
-{id:13,category:'role_fit',difficulty:'Hard',title:'업무 스타일과 자기관리',question_text:'업무 중 집중이 잘 되는 환경은 어떤 환경이고, 스스로 생산성을 높이기 위해 어떤 방법을 쓰시나요?',context_bridge:'저희 팀은 자율 출퇴근+재택 혼합 방식으로 자기관리 역량이 중요합니다.',why_matters:'자기관리 능력과 주도적으로 업무를 조직하는 역량을 확인합니다.',listen_for:'자신의 업무 스타일을 인식하고 능동적으로 관리하는 태도.',code_reference:null,
-terminology:[{term:'생산성',pronunciation:'프로덕티비티',explanation:'같은 시간에 얼마나 많은 성과를 내는지.'},{term:'딥 워크',pronunciation:'딥 워크',explanation:'방해 없이 깊이 집중하는 작업 방식.'},{term:'타임박싱',pronunciation:'타임박싱',explanation:'작업에 시간 제한을 걸어 집중하는 방법.'},{term:'칸반',pronunciation:'칸반',explanation:'할 일, 진행 중, 완료 등으로 작업을 시각화하는 방법.'},{term:'Pomodoro',pronunciation:'포모도로',explanation:'25분 집중 + 5분 휴식을 반복하는 시간 관리 기법.'},{term:'비동기 소통',pronunciation:'비동기 소통',explanation:'실시간이 아닌 메시지/문서로 소통하는 방식.'},{term:'스탠드업',pronunciation:'스탠드업',explanation:'매일 짧게 진행 상황을 공유하는 미팅.'},{term:'블로커',pronunciation:'블로커',explanation:'작업 진행을 막는 장애물.'}],
-answer_keywords:[{keyword:'자기 인식',importance:'must',explanation:'본인의 집중 패턴과 업무 스타일을 아는 것'},{keyword:'구체적 방법',importance:'must',explanation:'실제로 사용하는 생산성 관리 방법'},{keyword:'자율근무 경험',importance:'good_to_have',explanation:'재택이나 자율 환경에서의 자기 관리 경험'}],
-scenarios:[{level:'Expert',score:25,text:'본인의 집중 패턴을 정확히 알고 구체적 관리 방법을 실천. 자율 환경에서의 경험도 공유.'},{level:'Mid',score:12,text:'집중이 잘 되는 환경은 알지만 구체적 관리 방법이 부족.'},{level:'Low',score:0,text:'자기 업무 스타일을 모르거나 "시키면 한다"는 수동적 태도.'}],
-follow_ups:[{id:'q13-f1',trigger:'Expert',question_text:'재택 근무 시 집중이 안 될 때는 어떻게 극복하시나요?',why_matters:'자율 환경에서의 문제 해결.',listen_for:'구체적 극복 전략.',good:{text:'장소 변경, 타이머 사용, 작은 목표 설정 등 구체적 전략.',score:10},poor:{text:'그런 적은 없다.',score:0}},{id:'q13-f2',trigger:'Mid',question_text:'하루에 가장 생산적인 시간대는 언제인가요?',why_matters:'자기 인식 확인.',listen_for:'본인 패턴 인식과 활용.',good:{text:'오전에 집중이 잘 되어 어려운 작업을 배치한다 등.',score:5},poor:{text:'모르겠다.',score:0}},{id:'q13-f3',trigger:'Low',question_text:'할 일이 많을 때 어떤 순서로 처리하시나요?',why_matters:'기본적 작업 관리.',listen_for:'우선순위 판단.',good:{text:'급한 것, 중요한 것 순서로 정리.',score:5},poor:{text:'닥치는 대로 한다.',score:0}}],
-interviewer_note:{business_interpretation:'관리자가 매번 지시하지 않아도 스스로 일할 수 있는 사람인지 확인합니다.',daily_analogy:'시험 공부 스타일처럼, "어떤 과목을 언제 공부하면 잘 되는지" 아는 학생이 성적이 좋습니다.',level_expectation:'주니어에게 완벽한 자기관리를 기대하지 않지만, "나를 아는 노력"이 있는지가 핵심.'},
-expected_answer:{core:'• 집중 환경: 조용한 환경, 오전 집중 등 구체적 인식\n• 관리 방법: 타이머, Todo 리스트, 칸반 보드 등\n• 자율근무 대처: 루틴, 장소 변경 등',example:'오전에 집중이 잘 돼서 어려운 코딩 작업은 오전에 배치합니다. Notion에 할 일을 적고 Pomodoro로 25분씩 집중합니다. 재택 시에는 카페로 장소를 바꾸면 집중이 돌아옵니다.',key_points:['자기 인식','구체적 방법','능동적 관리']}},
-{id:14,category:'technical_depth',difficulty:'Easy',title:'CSS 레이아웃 기초',question_text:'Flexbox와 Grid의 차이를 설명해주시고, 각각 어떤 상황에서 사용하시나요?',context_bridge:'저희 교육 플랫폼은 다양한 레이아웃이 필요해서 CSS 레이아웃 이해가 중요합니다.',why_matters:'CSS 레이아웃의 기본 도구를 이해하고 적절하게 활용할 수 있는지 확인합니다.',listen_for:'단순 암기가 아닌 실제 사용 경험과 상황별 선택 기준.',code_reference:null,
-terminology:[{term:'Flexbox',pronunciation:'플렉스박스',explanation:'요소들을 한 줄(가로 또는 세로)로 배치하는 CSS 기술.'},{term:'Grid',pronunciation:'그리드',explanation:'요소들을 격자(행+열)로 배치하는 CSS 기술.'},{term:'반응형',pronunciation:'리스폰시브',explanation:'화면 크기에 따라 레이아웃이 자동 조절되는 것.'},{term:'justify-content',pronunciation:'저스티파이 컨텐트',explanation:'주축 방향으로 요소를 정렬하는 속성.'},{term:'align-items',pronunciation:'얼라인 아이템즈',explanation:'교차축 방향으로 요소를 정렬하는 속성.'},{term:'gap',pronunciation:'갭',explanation:'요소들 사이의 간격.'},{term:'media query',pronunciation:'미디어 쿼리',explanation:'화면 크기에 따라 다른 스타일을 적용하는 CSS 기능.'}],
-answer_keywords:[{keyword:'Flexbox는 1차원',importance:'must',explanation:'가로 또는 세로 한 방향 배치'},{keyword:'Grid는 2차원',importance:'must',explanation:'행과 열 동시 배치'},{keyword:'상황별 선택',importance:'good_to_have',explanation:'네비게이션은 Flex, 갤러리는 Grid 등'}],
-scenarios:[{level:'Expert',score:15,text:'1차원 vs 2차원 차이를 명확히 설명하고, 실제 프로젝트에서 각각 사용한 사례를 공유.'},{level:'Mid',score:8,text:'차이는 대략 알지만 어떤 상황에서 쓰는지 구체적이지 않음.'},{level:'Low',score:0,text:'차이를 모르거나 하나만 사용해봄.'}],
-follow_ups:[{id:'q14-f1',trigger:'Expert',question_text:'반응형 디자인에서 모바일과 데스크톱 레이아웃이 다를 때 어떻게 처리하시나요?',why_matters:'반응형 구현 능력.',listen_for:'media query, 모바일 퍼스트 접근.',good:{text:'모바일 퍼스트로 작성하고 media query로 데스크톱 스타일 추가.',score:8},poor:{text:'모르겠다.',score:0}},{id:'q14-f2',trigger:'Mid',question_text:'가장 최근에 CSS로 만든 레이아웃을 설명해주세요.',why_matters:'실제 구현 경험.',listen_for:'구체적 레이아웃과 사용한 속성.',good:{text:'카드 목록을 Grid로 만들고 gap으로 간격 조절.',score:5},poor:{text:'기억 안 남.',score:0}},{id:'q14-f3',trigger:'Low',question_text:'요소를 화면 가운데 정렬하려면 어떻게 하시나요?',why_matters:'가장 기본적인 CSS 배치.',listen_for:'Flexbox의 justify-content, align-items.',good:{text:'display:flex에 justify-content:center와 align-items:center.',score:5},poor:{text:'모르겠다.',score:0}}],
-interviewer_note:{business_interpretation:'화면 배치를 능숙하게 할 수 있는지 확인합니다. 레이아웃은 프론트엔드의 기본기입니다.',daily_analogy:'Flexbox는 책꽂이에 책을 한 줄로 세우는 것, Grid는 달력처럼 칸을 나누는 것입니다.',level_expectation:'주니어에게는 Flexbox를 편하게 쓰고 Grid의 기본 개념을 아는 수준이면 충분합니다.'},
-expected_answer:{core:'• Flexbox: 1차원(한 방향) 배치. 네비게이션, 버튼 그룹 등\n• Grid: 2차원(행+열) 배치. 갤러리, 대시보드 등\n• 핵심: 상황에 맞게 선택',example:'네비게이션 바는 가로 한 줄이니 Flexbox로, 상품 카드 목록은 여러 줄의 격자 배치가 필요해서 Grid로 만듭니다.',key_points:['1차원 vs 2차원','상황별 선택','실제 경험']}},
-{id:15,category:'technical_depth',difficulty:'Easy',title:'비동기 처리와 API 호출',question_text:'React에서 서버 API를 호출해서 데이터를 가져올 때 어떤 방식을 사용하시나요? 로딩 상태는 어떻게 처리하시나요?',context_bridge:'저희 플랫폼은 서버에서 수업 데이터, 학생 정보 등을 가져와 화면에 표시합니다.',why_matters:'비동기 데이터 처리와 사용자 경험(로딩 상태)을 함께 고려하는지 확인합니다.',listen_for:'fetch/axios 사용법과 로딩/에러 상태 처리 경험.',code_reference:null,
-terminology:[{term:'API',pronunciation:'에이피아이',explanation:'서버와 데이터를 주고받는 창구. 식당 주문 창구와 비슷.'},{term:'fetch',pronunciation:'페치',explanation:'브라우저에서 서버에 데이터를 요청하는 기본 함수.'},{term:'axios',pronunciation:'악시오스',explanation:'fetch보다 편리한 HTTP 요청 라이브러리.'},{term:'async/await',pronunciation:'어싱크 어웨이트',explanation:'비동기 코드를 읽기 쉽게 작성하는 문법.'},{term:'useEffect',pronunciation:'유즈이펙트',explanation:'컴포넌트가 화면에 나타날 때 API 호출 등을 실행하는 Hook.'},{term:'로딩 상태',pronunciation:'로딩 스테이트',explanation:'데이터를 가져오는 중임을 사용자에게 알려주는 것.'},{term:'에러 핸들링',pronunciation:'에러 핸들링',explanation:'오류가 발생했을 때 적절히 처리하는 것.'}],
-answer_keywords:[{keyword:'useEffect + fetch/axios',importance:'must',explanation:'React에서 API 호출하는 기본 패턴'},{keyword:'로딩 상태 관리',importance:'must',explanation:'isLoading 상태로 스피너 표시'},{keyword:'에러 처리',importance:'good_to_have',explanation:'try-catch로 에러 상황 대응'}],
-scenarios:[{level:'Expert',score:15,text:'useEffect에서 API 호출, 로딩/에러/성공 3가지 상태 관리, cleanup까지 설명.'},{level:'Mid',score:8,text:'API 호출은 하지만 로딩/에러 처리가 부족.'},{level:'Low',score:0,text:'API 호출 경험이 없거나 기본 패턴을 모름.'}],
-follow_ups:[{id:'q15-f1',trigger:'Expert',question_text:'useEffect에서 API 호출 시 cleanup이 왜 필요한가요?',why_matters:'메모리 누수 방지 이해.',listen_for:'컴포넌트 언마운트 시 요청 취소.',good:{text:'컴포넌트가 사라진 후 응답이 오면 에러가 발생하므로 AbortController로 취소.',score:8},poor:{text:'모르겠다.',score:0}},{id:'q15-f2',trigger:'Mid',question_text:'서버 응답이 느릴 때 사용자에게 어떤 화면을 보여주시나요?',why_matters:'UX 관점의 고려.',listen_for:'스피너, 스켈레톤 UI 등.',good:{text:'스켈레톤 UI로 화면 구조를 미리 보여줌.',score:5},poor:{text:'빈 화면을 보여준다.',score:0}},{id:'q15-f3',trigger:'Low',question_text:'서버에서 데이터를 가져온다는 것이 무슨 뜻인가요?',why_matters:'기본 개념 이해.',listen_for:'클라이언트-서버 통신의 기본.',good:{text:'브라우저가 서버에 데이터를 요청하고 받아오는 것.',score:5},poor:{text:'잘 모르겠다.',score:0}}],
-interviewer_note:{business_interpretation:'서버에서 데이터를 가져와 화면에 보여주는 기본 능력을 확인합니다. 거의 모든 화면에 필요한 기술.',daily_analogy:'식당 앱에서 메뉴를 불러올 때, 로딩 중에는 "메뉴를 불러오는 중..."이 나오고, 실패하면 "다시 시도해주세요"가 나오는 것.',level_expectation:'주니어에게는 기본 API 호출 패턴과 로딩 상태 처리가 핵심. 고급 캐싱이나 최적화까지는 불필요.'},
-expected_answer:{core:'• useEffect 안에서 fetch 또는 axios로 API 호출\n• useState로 로딩/에러/데이터 3가지 상태 관리\n• 로딩 중에는 스피너, 에러 시 메시지 표시',example:'useEffect에서 async 함수를 만들어 API를 호출합니다. isLoading이 true면 스피너를 보여주고, 에러가 나면 "다시 시도" 메시지를 표시합니다. 데이터가 오면 화면에 렌더링합니다.',key_points:['useEffect 패턴','3가지 상태 관리','사용자 경험']}},
-{id:16,category:'technical_depth',difficulty:'Hard',title:'브라우저 DevTools 활용',question_text:'브라우저 개발자 도구(DevTools)를 사용해서 문제를 해결한 경험을 이야기해주세요. 어떤 탭을 주로 사용하시나요?',context_bridge:'프론트엔드 개발에서 DevTools는 매일 사용하는 필수 도구입니다.',why_matters:'실무에서 디버깅과 성능 분석 도구를 실제로 활용하는지 확인합니다.',listen_for:'구체적 사용 경험과 각 탭의 용도를 아는지.',code_reference:null,
-terminology:[{term:'DevTools',pronunciation:'데브툴즈',explanation:'브라우저에 내장된 개발자 도구. F12로 열 수 있음.'},{term:'Elements',pronunciation:'엘리먼츠 탭',explanation:'HTML 구조와 CSS 스타일을 실시간으로 확인/수정하는 탭.'},{term:'Console',pronunciation:'콘솔 탭',explanation:'JavaScript 실행 결과와 에러를 보여주는 탭.'},{term:'Network',pronunciation:'네트워크 탭',explanation:'서버와 주고받는 데이터를 보여주는 탭. API 호출 확인.'},{term:'Performance',pronunciation:'퍼포먼스 탭',explanation:'페이지 속도와 성능을 분석하는 탭.'},{term:'Application',pronunciation:'애플리케이션 탭',explanation:'쿠키, 로컬 스토리지 등 브라우저 저장소를 확인하는 탭.'},{term:'breakpoint',pronunciation:'브레이크포인트',explanation:'코드 실행을 특정 줄에서 멈추게 하는 디버깅 기능.'},{term:'console.log',pronunciation:'콘솔로그',explanation:'변수 값을 콘솔에 출력하는 디버깅 방법.'}],
-answer_keywords:[{keyword:'구체적 문제 해결 경험',importance:'must',explanation:'실제 DevTools로 문제를 찾은 사례'},{keyword:'탭별 용도 이해',importance:'must',explanation:'Elements, Console, Network 등 각 탭의 역할'},{keyword:'Network 탭 활용',importance:'good_to_have',explanation:'API 호출 디버깅에 Network 탭 사용'}],
-scenarios:[{level:'Expert',score:25,text:'여러 탭을 상황에 맞게 사용하고, 구체적 문제 해결 사례를 설명. Network 탭으로 API 디버깅 경험.'},{level:'Mid',score:12,text:'Console에서 에러 확인 정도. Elements 탭도 가끔 사용.'},{level:'Low',score:0,text:'DevTools를 거의 사용하지 않거나 console.log만 사용.'}],
-follow_ups:[{id:'q16-f1',trigger:'Expert',question_text:'API 호출이 실패할 때 Network 탭에서 어떤 정보를 확인하시나요?',why_matters:'네트워크 디버깅 능력.',listen_for:'상태 코드, 요청/응답 데이터, 헤더 확인.',good:{text:'상태 코드(404, 500 등) 확인 후 요청 URL과 응답 데이터를 분석.',score:10},poor:{text:'잘 모르겠다.',score:0}},{id:'q16-f2',trigger:'Mid',question_text:'CSS가 안 먹힐 때 어떻게 원인을 찾으시나요?',why_matters:'Elements 탭 활용.',listen_for:'Elements에서 스타일 확인, 취소선 표시 등.',good:{text:'Elements에서 적용된 스타일 확인하고 우선순위 문제인지 체크.',score:5},poor:{text:'코드를 다시 본다.',score:0}},{id:'q16-f3',trigger:'Low',question_text:'console.log는 어떤 상황에서 사용하시나요?',why_matters:'최소한의 디버깅 습관.',listen_for:'변수 값 확인, 함수 실행 순서 확인.',good:{text:'변수 값이 예상과 다를 때 중간중간 출력해서 확인.',score:5},poor:{text:'사용하지 않는다.',score:0}}],
-interviewer_note:{business_interpretation:'문제를 스스로 찾아서 해결할 수 있는 도구를 가지고 있는지 확인합니다.',daily_analogy:'자동차 정비사가 진단 장비를 쓰듯, 개발자는 DevTools로 문제를 진단합니다. 도구를 쓸 줄 모르면 감으로 고치는 것.',level_expectation:'주니어에게는 Console과 Elements 기본 사용이 필수, Network 탭 활용까지 하면 우수.'},
-expected_answer:{core:'• Console: 에러 메시지와 변수 값 확인\n• Elements: CSS 스타일 실시간 수정/확인\n• Network: API 호출 상태 코드와 응답 데이터 확인',example:'화면에 데이터가 안 나와서 Network 탭을 열어보니 API가 404를 반환하고 있었습니다. URL이 잘못된 것을 발견해서 수정했습니다. CSS가 안 먹힐 때는 Elements에서 스타일 우선순위를 확인합니다.',key_points:['탭별 용도','구체적 경험','문제 해결 프로세스']}},
-{id:17,category:'execution_ownership',difficulty:'Easy',title:'업무 우선순위 정하기',question_text:'동시에 여러 작업을 받았을 때 우선순위를 어떻게 정하시나요?',context_bridge:'스타트업에서는 여러 작업이 동시에 들어올 때가 많습니다.',why_matters:'작업의 중요도와 긴급도를 판단하고 주도적으로 관리하는 능력.',listen_for:'기준을 가지고 우선순위를 정하는 체계적 사고.',code_reference:null,
-terminology:[{term:'우선순위',pronunciation:'프라이오리티',explanation:'여러 일 중 무엇을 먼저 해야 하는지 정하는 것.'},{term:'긴급도',pronunciation:'어전시',explanation:'시간적으로 얼마나 급한지.'},{term:'중요도',pronunciation:'임포턴스',explanation:'비즈니스에 미치는 영향이 얼마나 큰지.'},{term:'백로그',pronunciation:'백로그',explanation:'해야 할 일의 대기 목록.'},{term:'티켓',pronunciation:'티켓',explanation:'개발해야 할 작업 단위. Jira 등에서 관리.'},{term:'블로커',pronunciation:'블로커',explanation:'다른 사람의 작업을 막고 있는 것.'},{term:'데일리 스탠드업',pronunciation:'데일리 스탠드업',explanation:'매일 아침 짧게 진행 상황을 공유하는 미팅.'}],
-answer_keywords:[{keyword:'기준 제시',importance:'must',explanation:'긴급도와 중요도 등 판단 기준'},{keyword:'팀과 소통',importance:'must',explanation:'혼자 판단하지 않고 필요시 매니저에게 확인'},{keyword:'도구 활용',importance:'good_to_have',explanation:'Todo 리스트, Jira 등 관리 도구 사용'}],
-scenarios:[{level:'Expert',score:15,text:'긴급도+중요도 기준 제시, 블로커 먼저 처리, 불확실하면 매니저에게 확인. 실제 경험.'},{level:'Mid',score:8,text:'급한 것부터 한다는 일반적 답변. 구체적 기준 부족.'},{level:'Low',score:0,text:'들어온 순서대로 하거나 기준 없이 처리.'}],
-follow_ups:[{id:'q17-f1',trigger:'Expert',question_text:'PM이 모든 작업을 긴급이라고 하면 어떻게 하시나요?',why_matters:'협상과 소통 능력.',listen_for:'구체적 비교 기준을 만들어 확인.',good:{text:'"사용자에게 미치는 영향"이나 "다른 팀 블로커 여부"로 비교해서 재확인.',score:8},poor:{text:'다 긴급이면 어쩔 수 없이 순서대로.',score:0}},{id:'q17-f2',trigger:'Mid',question_text:'작업량을 추정할 때 어떤 기준을 사용하시나요?',why_matters:'작업 규모 추정 능력.',listen_for:'비슷한 경험, 분해 후 추정.',good:{text:'작업을 작게 나누고 비슷한 작업 경험을 기준으로 추정.',score:5},poor:{text:'감으로 추정한다.',score:0}},{id:'q17-f3',trigger:'Low',question_text:'할 일 목록을 어떻게 관리하시나요?',why_matters:'기본적 작업 관리 습관.',listen_for:'어떤 형태로든 기록하는 습관.',good:{text:'노트, 앱 등으로 할 일을 기록.',score:5},poor:{text:'기억에 의존.',score:0}}],
-interviewer_note:{business_interpretation:'여러 요청이 쏟아질 때 패닉하지 않고 정리할 수 있는 사람인지 확인합니다.',daily_analogy:'시험 기간에 여러 과목을 동시에 준비할 때 "내일 시험인 과목"부터 공부하는 것과 같습니다.',level_expectation:'주니어에게는 완벽한 판단보다 "기준을 가지고 생각하고 모르면 물어보는 태도"가 핵심.'},
-expected_answer:{core:'• 1단계: 긴급도와 중요도 기준으로 분류\n• 2단계: 다른 팀 블로커가 되는 것 우선\n• 3단계: 불확실하면 매니저에게 확인',example:'먼저 데드라인을 확인하고, 다른 팀원이 기다리는 작업(블로커)을 먼저 합니다. 비슷한 긴급도면 작은 작업부터 빨리 처리합니다. 판단이 어려우면 매니저에게 물어봅니다.',key_points:['판단 기준','블로커 우선','소통']}},
-{id:18,category:'execution_ownership',difficulty:'Medium',title:'코드 품질 습관',question_text:'본인이 작성한 코드의 품질을 유지하기 위해 어떤 습관을 가지고 있나요?',context_bridge:'저희 팀은 코드 리뷰를 통해 품질을 유지하지만, 개인의 품질 의식도 중요합니다.',why_matters:'코드 품질에 대한 의식과 구체적 실천 습관을 확인합니다.',listen_for:'의미 있는 변수명, 주석, 일관된 스타일 등 실제 습관.',code_reference:null,
-terminology:[{term:'코드 품질',pronunciation:'코드 퀄리티',explanation:'코드가 읽기 쉽고, 유지보수하기 좋고, 버그가 적은 정도.'},{term:'리팩토링',pronunciation:'리팩토링',explanation:'기능은 그대로 두고 코드 구조를 개선하는 것.'},{term:'컨벤션',pronunciation:'코딩 컨벤션',explanation:'팀에서 합의한 코드 작성 규칙.'},{term:'Lint',pronunciation:'린트',explanation:'코드 스타일이나 잠재적 오류를 자동으로 검사하는 도구.'},{term:'Prettier',pronunciation:'프리티어',explanation:'코드 포맷을 자동으로 맞춰주는 도구.'},{term:'ESLint',pronunciation:'이에스린트',explanation:'JavaScript/TypeScript 코드 규칙을 검사하는 도구.'},{term:'네이밍',pronunciation:'네이밍',explanation:'변수, 함수 등에 의미 있는 이름을 짓는 것.'},{term:'DRY',pronunciation:'디알와이',explanation:'같은 코드를 반복하지 않는 원칙.'}],
-answer_keywords:[{keyword:'의미 있는 네이밍',importance:'must',explanation:'변수명과 함수명으로 코드를 읽기 쉽게'},{keyword:'일관된 스타일',importance:'must',explanation:'ESLint/Prettier 등으로 스타일 통일'},{keyword:'셀프 리뷰',importance:'good_to_have',explanation:'PR 올리기 전 본인이 먼저 검토'}],
-scenarios:[{level:'Expert',score:20,text:'네이밍, Lint 도구, 셀프 리뷰, 작은 커밋 단위 등 여러 습관을 구체적으로 설명.'},{level:'Mid',score:10,text:'깔끔하게 짜려고 노력한다는 일반적 답변.'},{level:'Low',score:0,text:'코드 품질에 대한 의식이 없거나 "동작하면 된다"는 태도.'}],
-follow_ups:[{id:'q18-f1',trigger:'Expert',question_text:'본인 코드에서 나중에 개선하고 싶었던 부분이 있었나요?',why_matters:'자기 코드에 대한 비판적 시각.',listen_for:'구체적 개선 포인트와 이유.',good:{text:'초기 프로젝트의 코드를 보면 컴포넌트 분리가 부족했는데 지금은 개선.',score:8},poor:{text:'특별히 없다.',score:0}},{id:'q18-f2',trigger:'Mid',question_text:'변수 이름을 지을 때 어떤 규칙을 따르시나요?',why_matters:'네이밍 습관.',listen_for:'camelCase, 의미 있는 이름 등.',good:{text:'역할을 알 수 있는 이름, camelCase 사용, 약어 지양.',score:5},poor:{text:'특별한 규칙 없이 짧게.',score:0}},{id:'q18-f3',trigger:'Low',question_text:'다른 사람이 내 코드를 읽을 때 중요한 것은 무엇일까요?',why_matters:'가독성 인식.',listen_for:'읽기 쉬운 코드의 중요성.',good:{text:'변수명이 명확하고 구조가 일관되어야 한다.',score:5},poor:{text:'생각해본 적 없다.',score:0}}],
-interviewer_note:{business_interpretation:'"다른 사람이 읽기 좋은 코드를 쓰는 사람인지" 확인합니다. 혼자 개발하는 것이 아니라 팀으로 일하므로.',daily_analogy:'글쓰기에서 맞춤법, 문단 나누기, 제목 달기처럼 다른 사람이 읽기 편하게 정리하는 습관.',level_expectation:'주니어에게는 네이밍 규칙과 Lint 도구 사용 정도면 충분. 아키텍처 수준의 품질까지는 불필요.'},
-expected_answer:{core:'• 의미 있는 변수명/함수명\n• ESLint/Prettier로 스타일 자동 통일\n• PR 전 셀프 리뷰\n• 작은 단위로 커밋',example:'변수명을 data 대신 studentList처럼 명확하게 짓고, ESLint와 Prettier를 설정해서 스타일을 통일합니다. PR을 올리기 전에 diff를 한번 더 확인하고 불필요한 console.log를 제거합니다.',key_points:['네이밍','도구 활용','셀프 리뷰']}},
-{id:19,category:'execution_ownership',difficulty:'Hard',title:'셀프 리뷰와 품질 체크 프로세스',question_text:'PR을 올리기 전에 본인만의 체크 프로세스가 있나요? 어떤 항목을 확인하시나요?',context_bridge:'코드 리뷰 전에 본인이 먼저 검토하는 습관이 팀 효율을 높입니다.',why_matters:'자기 코드에 대한 책임감과 품질 의식을 확인합니다.',listen_for:'체계적인 셀프 체크리스트가 있는지, 실제 적용 경험.',code_reference:null,
-terminology:[{term:'PR (Pull Request)',pronunciation:'피알',explanation:'내 코드를 팀에 보여주고 리뷰를 요청하는 것.'},{term:'diff',pronunciation:'디프',explanation:'변경 전과 후의 차이를 보여주는 것.'},{term:'셀프 리뷰',pronunciation:'셀프 리뷰',explanation:'다른 사람에게 보내기 전 본인이 먼저 검토.'},{term:'체크리스트',pronunciation:'체크리스트',explanation:'확인해야 할 항목 목록.'},{term:'엣지 케이스',pronunciation:'엣지 케이스',explanation:'일반적이지 않은 특수한 상황. 빈 값, 긴 텍스트 등.'},{term:'regression',pronunciation:'리그레션',explanation:'새 코드가 기존 기능을 깨뜨리는 것.'},{term:'console.log',pronunciation:'콘솔로그',explanation:'디버깅용 출력문. 배포 전에 제거해야 함.'},{term:'하드코딩',pronunciation:'하드코딩',explanation:'값을 코드에 직접 입력하는 것. 변수로 관리해야 함.'}],
-answer_keywords:[{keyword:'diff 재검토',importance:'must',explanation:'변경사항을 본인이 먼저 한번 더 확인'},{keyword:'기능 동작 확인',importance:'must',explanation:'실제로 화면에서 동작 테스트'},{keyword:'엣지 케이스 확인',importance:'good_to_have',explanation:'빈 데이터, 긴 텍스트 등 특수 상황 테스트'}],
-scenarios:[{level:'Expert',score:25,text:'구체적 체크리스트: diff 확인, 불필요한 코드 제거, 다양한 화면 크기 테스트, 엣지 케이스 확인까지.'},{level:'Mid',score:12,text:'기능이 동작하는지 확인하는 정도. 체계적 체크리스트 없음.'},{level:'Low',score:0,text:'셀프 리뷰 없이 바로 PR을 올림.'}],
-follow_ups:[{id:'q19-f1',trigger:'Expert',question_text:'엣지 케이스를 발견해서 사전에 버그를 막은 경험이 있나요?',why_matters:'실제 적용 사례.',listen_for:'구체적 사례.',good:{text:'빈 배열이 들어올 때 에러가 나는 것을 발견하고 조건문 추가.',score:10},poor:{text:'특별히 없다.',score:0}},{id:'q19-f2',trigger:'Mid',question_text:'PR에 어떤 내용을 설명으로 쓰시나요?',why_matters:'PR 작성 습관.',listen_for:'변경 사항 요약, 테스트 방법.',good:{text:'무엇을 왜 변경했는지, 어떻게 테스트하는지 작성.',score:5},poor:{text:'특별히 안 쓴다.',score:0}},{id:'q19-f3',trigger:'Low',question_text:'코드를 수정한 후 어떻게 확인하시나요?',why_matters:'기본적 확인 습관.',listen_for:'최소한의 동작 확인.',good:{text:'브라우저에서 직접 클릭해보고 콘솔 에러 확인.',score:5},poor:{text:'확인 안 하고 올린다.',score:0}}],
-interviewer_note:{business_interpretation:'"꼼꼼한 사람인지" 확인합니다. 셀프 리뷰를 하는 사람은 리뷰어의 시간을 절약해줍니다.',daily_analogy:'이메일을 보내기 전에 다시 한번 읽어보는 습관과 같습니다. 오타, 첨부 파일 누락을 스스로 잡습니다.',level_expectation:'주니어에게 완벽한 프로세스를 기대하진 않지만 "보내기 전에 한번 더 보는 습관"이 있는지가 중요.'},
-expected_answer:{core:'• diff에서 불필요한 코드(console.log, 주석) 제거\n• 브라우저에서 직접 기능 테스트\n• 다른 화면 크기에서 깨지지 않는지 확인\n• 엣지 케이스(빈 데이터, 긴 텍스트) 테스트',example:'PR 전에 git diff를 보면서 불필요한 console.log를 제거하고, 브라우저에서 직접 클릭해봅니다. 모바일 크기도 확인하고, 데이터가 없을 때 빈 화면 대신 안내 메시지가 뜨는지 체크합니다.',key_points:['diff 확인','직접 테스트','엣지 케이스']}},
-{id:20,category:'communication',difficulty:'Easy',title:'비개발자에게 기술 설명',question_text:'기술을 모르는 동료(디자이너, 기획자)에게 기술적 이슈를 설명해야 할 때 어떻게 하시나요?',context_bridge:'저희 팀에서는 개발자가 비개발 직군에게 기술 현황을 설명하는 일이 많습니다.',why_matters:'기술적 내용을 비전문가에게 쉽게 전달하는 소통 능력을 확인합니다.',listen_for:'전문 용어를 피하고 비유나 시각 자료를 활용하는 태도.',code_reference:null,
-terminology:[{term:'기술 부채',pronunciation:'테크니컬 뎃',explanation:'빠르게 만들기 위해 나중에 고쳐야 할 것들이 쌓인 것.'},{term:'비유',pronunciation:'아날로지',explanation:'어려운 개념을 일상 사례로 설명하는 방법.'},{term:'시각화',pronunciation:'비주얼라이제이션',explanation:'데이터나 구조를 그림/차트로 보여주는 것.'},{term:'이해관계자',pronunciation:'스테이크홀더',explanation:'프로젝트에 관련된 모든 사람들.'},{term:'요구사항',pronunciation:'리콰이어먼트',explanation:'만들어야 하는 기능의 조건.'},{term:'POC',pronunciation:'피오씨',explanation:'개념 증명. 아이디어가 가능한지 간단히 만들어보는 것.'},{term:'마일스톤',pronunciation:'마일스톤',explanation:'프로젝트의 중요한 중간 목표.'}],
-answer_keywords:[{keyword:'쉬운 말 사용',importance:'must',explanation:'전문 용어 대신 일상 언어'},{keyword:'비유 활용',importance:'must',explanation:'일상적 사례로 비유해서 설명'},{keyword:'시각 자료',importance:'good_to_have',explanation:'그림, 다이어그램으로 보여주기'}],
-scenarios:[{level:'Expert',score:15,text:'상대의 수준에 맞춰 비유와 시각 자료를 활용하며, 실제 경험을 바탕으로 설명.'},{level:'Mid',score:8,text:'쉽게 설명하려 노력하지만 여전히 기술 용어가 섞임.'},{level:'Low',score:0,text:'기술 용어를 그대로 사용하거나 "설명할 필요 없다"는 태도.'}],
-follow_ups:[{id:'q20-f1',trigger:'Expert',question_text:'"이 기능은 시간이 더 걸린다"를 기획자에게 어떻게 설명하시나요?',why_matters:'실무적 소통 능력.',listen_for:'기술적 이유를 비즈니스 관점으로 변환.',good:{text:'"건물 기초를 먼저 다져야 나중에 무너지지 않습니다"처럼 비유.',score:8},poor:{text:'기술적 이유를 그대로 나열.',score:0}},{id:'q20-f2',trigger:'Mid',question_text:'비개발자가 이해 못하는 것 같을 때 어떻게 하시나요?',why_matters:'소통 조정 능력.',listen_for:'다른 방식으로 다시 설명.',good:{text:'그림을 그리거나 다른 비유로 다시 시도.',score:5},poor:{text:'같은 말을 반복.',score:0}},{id:'q20-f3',trigger:'Low',question_text:'최근에 누군가에게 어려운 것을 쉽게 설명한 경험이 있나요?',why_matters:'소통 경험 유무.',listen_for:'어떤 분야든 쉽게 설명한 경험.',good:{text:'부모님에게 스마트폰 기능을 알려드린 경험 등.',score:5},poor:{text:'그런 경험이 없다.',score:0}}],
-interviewer_note:{business_interpretation:'다른 팀원들이 이 사람과 소통하기 편한지 확인합니다. 개발자만의 세계에 갇히지 않는 것이 중요.',daily_analogy:'의사가 환자에게 병명을 쉬운 말로 설명하는 것과 같습니다. "TCP 핸드셰이크" 대신 "서로 인사하고 확인하는 과정".',level_expectation:'주니어에게는 "전문 용어 없이 설명하려는 노력"이 핵심.'},
-expected_answer:{core:'• 전문 용어를 일상 언어로 변환\n• 비유를 활용하여 핵심 전달\n• 상대가 이해했는지 확인',example:'API 오류를 설명할 때 "식당에 주문했는데 주방에서 재료가 없다고 답한 상황"이라고 비유합니다. 기술적 이유보다 "사용자에게 어떤 영향이 있고 언제 고칠 수 있는지"를 먼저 말합니다.',key_points:['쉬운 말','비유 활용','상대 확인']}},
-{id:21,category:'communication',difficulty:'Medium',title:'의견 충돌 해결',question_text:'팀원과 기술적 의견이 다를 때 어떻게 해결하시나요? 실제 경험이 있으면 이야기해주세요.',context_bridge:'저희 팀에서는 기술 결정 시 토론을 통해 합의합니다.',why_matters:'건설적인 의견 교환과 합의 도출 능력을 확인합니다.',listen_for:'감정적이 아닌 논리적 토론, 데이터 기반 판단, 결정 후 따르기.',code_reference:null,
-terminology:[{term:'기술 결정',pronunciation:'테크니컬 디시전',explanation:'어떤 기술이나 방법을 쓸지 선택하는 것.'},{term:'트레이드오프',pronunciation:'트레이드오프',explanation:'하나를 선택하면 다른 것을 포기해야 하는 상황.'},{term:'ADR',pronunciation:'에이디알',explanation:'아키텍처 결정 기록. 왜 이 기술을 선택했는지 기록.'},{term:'POC',pronunciation:'피오씨',explanation:'두 방법 중 어떤 것이 나은지 간단히 만들어 비교.'},{term:'벤치마크',pronunciation:'벤치마크',explanation:'성능을 수치로 비교하는 것.'},{term:'합의',pronunciation:'컨센서스',explanation:'모든 구성원이 동의하는 결론.'},{term:'코드 리뷰',pronunciation:'코드 리뷰',explanation:'코드를 함께 검토하면서 의견을 나누는 과정.'}],
-answer_keywords:[{keyword:'데이터 기반 토론',importance:'must',explanation:'감정이 아닌 사실/데이터로 의견 제시'},{keyword:'상대 의견 경청',importance:'must',explanation:'먼저 상대의 근거를 이해하려는 자세'},{keyword:'결정 후 따르기',importance:'good_to_have',explanation:'합의된 결정에 대한 존중'}],
-scenarios:[{level:'Expert',score:20,text:'상대 의견을 먼저 듣고 데이터로 비교 후 합의. 결정 후에는 따르는 성숙한 태도.'},{level:'Mid',score:10,text:'의견이 다르면 양보한다는 일반적 답변. 구체적 사례 부족.'},{level:'Low',score:0,text:'갈등을 피하거나, 자기 의견만 고집하거나, 경험이 전혀 없음.'}],
-follow_ups:[{id:'q21-f1',trigger:'Expert',question_text:'본인이 양보한 결정이 나중에 문제가 된 경험이 있나요?',why_matters:'결정 후 태도와 학습.',listen_for:'비난하지 않고 함께 해결하는 태도.',good:{text:'당시 결정의 이유가 있었으므로 함께 개선 방향을 찾았다.',score:8},poor:{text:'내가 맞았는데 안 들어서 그렇다.',score:0}},{id:'q21-f2',trigger:'Mid',question_text:'시니어와 의견이 다를 때도 본인 생각을 말하시나요?',why_matters:'주니어의 의견 표현 용기.',listen_for:'예의를 갖추되 의견을 말하는 태도.',good:{text:'근거가 있으면 정중하게 의견을 제시한다.',score:5},poor:{text:'시니어가 무조건 맞으니 말하지 않는다.',score:0}},{id:'q21-f3',trigger:'Low',question_text:'팀에서 결정을 내릴 때 어떤 방식이 좋다고 생각하시나요?',why_matters:'의사결정에 대한 인식.',listen_for:'토론과 합의의 가치.',good:{text:'각자 의견을 나누고 장단점을 비교해서 결정.',score:5},poor:{text:'리더가 정하면 된다.',score:0}}],
-interviewer_note:{business_interpretation:'"의견이 다를 때 감정적이지 않고 건설적으로 해결하는 사람인지" 확인합니다.',daily_analogy:'여행지를 고를 때 "산이 좋다"는 사람과 "바다가 좋다"는 사람이 각각 이유를 말하고, 날씨/비용을 비교해서 결정하는 것.',level_expectation:'주니어에게는 "의견을 말할 용기"와 "결정을 존중하는 태도" 두 가지 균형이 핵심.'},
-expected_answer:{core:'• 상대 의견을 먼저 경청\n• 각자의 근거를 데이터/예시로 비교\n• 합의점을 찾고, 결정 후에는 따르기',example:'CSS-in-JS vs Tailwind 논쟁에서 각각 장단점을 정리하고 팀 상황(러닝커브, 기존 코드)을 기준으로 비교했습니다. 팀이 Tailwind를 선택했고, 처음엔 선호하지 않았지만 사용해보니 장점을 이해했습니다.',key_points:['경청','데이터 기반','결정 존중']}},
-{id:22,category:'communication',difficulty:'Hard',title:'기술 문서 작성과 지식 공유',question_text:'다른 팀원이 참고할 수 있도록 문서를 작성하거나 지식을 공유한 경험이 있나요? 어떤 방식으로 하셨나요?',context_bridge:'저희 팀은 문서화를 중요하게 생각하며, 온보딩 문서와 기술 가이드를 함께 관리합니다.',why_matters:'지식 공유 의식과 문서 작성 능력을 확인합니다.',listen_for:'문서화의 가치를 이해하고 실제로 실천한 경험.',code_reference:null,
-terminology:[{term:'문서화',pronunciation:'도큐멘테이션',explanation:'코드나 프로세스를 글로 정리하여 기록하는 것.'},{term:'README',pronunciation:'리드미',explanation:'프로젝트 설명서. 처음 보는 사람이 이해할 수 있게 작성.'},{term:'Wiki',pronunciation:'위키',explanation:'팀 내 지식을 정리하는 공간.'},{term:'JSDoc',pronunciation:'제이에스독',explanation:'코드에 설명을 달아 자동으로 문서를 만드는 도구.'},{term:'Confluence',pronunciation:'컨플루언스',explanation:'팀 문서를 관리하는 도구.'},{term:'온보딩 문서',pronunciation:'온보딩 도큐먼트',explanation:'새로 합류한 팀원이 참고할 안내 문서.'},{term:'코드 주석',pronunciation:'코멘트',explanation:'코드 사이에 설명을 적는 것.'},{term:'기술 블로그',pronunciation:'테크 블로그',explanation:'기술 경험을 글로 공유하는 블로그.'}],
-answer_keywords:[{keyword:'문서화 경험',importance:'must',explanation:'어떤 형태든 지식을 기록/공유한 경험'},{keyword:'대상 인식',importance:'must',explanation:'누가 읽을지 생각하고 수준에 맞게 작성'},{keyword:'지속적 업데이트',importance:'good_to_have',explanation:'한번 쓰고 방치가 아닌 업데이트 의식'}],
-scenarios:[{level:'Expert',score:25,text:'README, 기술 블로그, 팀 Wiki 등 구체적 문서화 경험과 효과를 공유.'},{level:'Mid',score:12,text:'코드 주석 정도는 달지만 체계적 문서화 경험은 부족.'},{level:'Low',score:0,text:'문서화 경험이 없거나 필요성을 느끼지 못함.'}],
-follow_ups:[{id:'q22-f1',trigger:'Expert',question_text:'좋은 기술 문서의 조건은 무엇이라고 생각하시나요?',why_matters:'문서 품질 의식.',listen_for:'읽기 쉽고, 최신이며, 예시가 있는 문서.',good:{text:'배경/목적/사용법/예시가 있고, 최신 상태로 유지되는 문서.',score:10},poor:{text:'잘 모르겠다.',score:0}},{id:'q22-f2',trigger:'Mid',question_text:'새 팀원이 들어왔을 때 어떤 문서가 있으면 좋을까요?',why_matters:'온보딩 관점의 문서 인식.',listen_for:'환경 설정, 코드 구조, 규칙 등.',good:{text:'개발 환경 세팅 가이드, 코드 구조 설명, 팀 규칙.',score:5},poor:{text:'모르겠다.',score:0}},{id:'q22-f3',trigger:'Low',question_text:'코드에 주석을 달아본 적이 있나요?',why_matters:'가장 기본적인 문서화.',listen_for:'주석의 필요성 인식.',good:{text:'복잡한 로직에 왜 이렇게 했는지 주석을 단다.',score:5},poor:{text:'주석을 안 단다.',score:0}}],
-interviewer_note:{business_interpretation:'"이 사람이 팀의 지식을 늘려주는 사람인지" 확인합니다. 코드만 잘 짜는 것이 아니라 팀을 도울 수 있는가.',daily_analogy:'요리 레시피를 적어두는 것과 같습니다. 나만 알면 내가 없으면 못 만들고, 적어두면 누구든 만들 수 있습니다.',level_expectation:'주니어에게 체계적 문서화를 기대하진 않지만 "기록하려는 습관"과 "공유 의식"이 있으면 우수.'},
-expected_answer:{core:'• 문서화 경험: README, 기술 블로그, TIL 등\n• 읽는 사람을 고려한 작성\n• 지식 공유의 가치 인식',example:'부트캠프에서 프로젝트 README를 작성했고, 개인 TIL 블로그에 매일 배운 것을 정리했습니다. 인턴 때는 환경 설정 과정에서 막혔던 부분을 정리해서 팀 Notion에 올렸더니 다음 인턴이 참고했습니다.',key_points:['문서화 경험','대상 인식','공유 의식']}},
-{id:23,category:'risk_flags',difficulty:'Easy',title:'팀 프로젝트 경험 수준',is_risk:true,risk_source:'이력서/GitHub에서 팀 프로젝트 경험이 부트캠프 2회+실무 1년으로 제한적',question_text:'팀으로 개발한 경험에서 본인의 역할과 기여를 구체적으로 설명해주세요. 팀 규모와 협업 방식도 알려주세요.',context_bridge:'이력서를 보면 팀 프로젝트 경험이 부트캠프 위주인데, 실무에서의 협업 경험이 궁금합니다.',why_matters:'실제 팀 협업 경험의 깊이와 협업 역량을 확인합니다.',listen_for:'구체적 역할과 기여, Git 브랜치 전략, 코드 리뷰 참여 등 실질적 경험.',code_reference:null,
-terminology:[{term:'Git 브랜치',pronunciation:'깃 브랜치',explanation:'코드를 독립적으로 수정할 수 있는 분기. 나뭇가지처럼.'},{term:'merge',pronunciation:'머지',explanation:'분리된 코드를 합치는 것.'},{term:'conflict',pronunciation:'컨플릭트',explanation:'같은 코드를 다르게 수정해서 합칠 때 충돌하는 것.'},{term:'Jira',pronunciation:'지라',explanation:'작업을 관리하는 도구. 할 일, 진행 중, 완료 등.'},{term:'스크럼',pronunciation:'스크럼',explanation:'2주 단위로 목표를 세우고 매일 진행 상황을 공유.'},{term:'역할 분담',pronunciation:'역할 분담',explanation:'팀원마다 담당할 부분을 나누는 것.'},{term:'코드 리뷰',pronunciation:'코드 리뷰',explanation:'서로의 코드를 검토하는 과정.'}],
-answer_keywords:[{keyword:'구체적 역할',importance:'must',explanation:'본인이 담당한 기능/모듈을 명확히'},{keyword:'협업 도구/방식',importance:'must',explanation:'Git, 커뮤니케이션 등 실제 협업 경험'},{keyword:'갈등 해결 경험',importance:'good_to_have',explanation:'팀에서 문제가 있었을 때 대처'}],
-scenarios:[{level:'Expert',score:15,text:'팀 규모, 본인 역할, Git 워크플로우, 코드 리뷰, 갈등 해결까지 구체적으로 설명.'},{level:'Mid',score:8,text:'팀 경험은 있지만 역할이 모호하거나 협업 방식이 체계적이지 않음.'},{level:'Low',score:-5,text:'팀 경험이 거의 없거나 본인 기여를 설명 못함. 혼자 다 했다고 주장.'}],
-follow_ups:[{id:'q23-f1',trigger:'Expert',question_text:'팀에서 merge conflict가 났을 때 어떻게 해결하셨나요?',why_matters:'실질적 Git 협업 경험.',listen_for:'conflict 원인 파악과 해결 과정.',good:{text:'변경 내용을 비교하고 팀원과 상의해서 어떤 코드를 유지할지 결정.',score:8},poor:{text:'conflict를 겪어본 적 없다.',score:0}},{id:'q23-f2',trigger:'Mid',question_text:'다음 팀 프로젝트에서 개선하고 싶은 협업 방식이 있나요?',why_matters:'협업에 대한 성찰.',listen_for:'구체적 개선점.',good:{text:'PR 단위를 더 작게 하고 리뷰를 더 자주 하고 싶다.',score:5},poor:{text:'특별히 없다.',score:0}},{id:'q23-f3',trigger:'Low',question_text:'팀 프로젝트에서 가장 어려운 점은 무엇인가요?',why_matters:'협업 난이도 인식.',listen_for:'소통, 일정 조율 등.',good:{text:'의견을 맞추는 것이 어렵지만 소통으로 해결하려 노력.',score:5},poor:{text:'혼자 하는 게 편하다.',score:-3}}],
-interviewer_note:{business_interpretation:'"실제로 팀에서 일한 경험이 있는지, 협업 준비가 된 사람인지" 확인합니다.',daily_analogy:'조별 과제에서 "저는 발표자료 디자인을 담당했고 매일 카톡방에서 진행 상황을 공유했습니다"처럼 구체적 역할.',level_expectation:'주니어에게 대규모 팀 경험을 기대하진 않습니다. 부트캠프 팀 경험이라도 본인 역할을 구체적으로 말하면 괜찮습니다.'},
-expected_answer:{core:'• 팀 규모와 구성\n• 본인 담당 기능/역할\n• 협업 방식: Git 브랜치, 코드 리뷰, 소통 도구\n• 배운 점',example:'부트캠프에서 4명 팀으로 교육 앱을 만들었습니다. 저는 강의 목록 페이지와 검색 기능을 담당했습니다. Git Flow로 브랜치를 관리하고 매일 Discord에서 진행 상황을 공유했습니다. 처음 conflict가 났을 때 당황했지만 팀원과 함께 해결했습니다.',key_points:['구체적 역할','협업 방식','성장']}},
-{id:24,category:'risk_flags',difficulty:'Medium',title:'테스트 코드 작성 경험',is_risk:true,risk_source:'GitHub에서 테스트 코드가 일부 프로젝트에만 발견, 체계적 테스트 습관 미형성',question_text:'테스트 코드를 작성해본 경험이 있나요? 프론트엔드에서 테스트가 왜 필요하다고 생각하시나요?',context_bridge:'GitHub 코드를 보면 테스트 코드가 거의 없는데, 저희 팀은 테스트를 중요하게 생각합니다.',why_matters:'테스트에 대한 인식과 학습 의지를 확인합니다.',listen_for:'경험 유무보다 테스트의 필요성 인식과 배우려는 태도.',code_reference:null,
-terminology:[{term:'단위 테스트',pronunciation:'유닛 테스트',explanation:'함수 하나가 제대로 동작하는지 확인하는 테스트.'},{term:'Jest',pronunciation:'제스트',explanation:'JavaScript에서 가장 많이 쓰이는 테스트 도구.'},{term:'React Testing Library',pronunciation:'리액트 테스팅 라이브러리',explanation:'React 컴포넌트를 사용자 관점에서 테스트하는 도구.'},{term:'E2E 테스트',pronunciation:'이투이 테스트',explanation:'사용자가 실제로 하는 동작을 처음부터 끝까지 테스트.'},{term:'테스트 커버리지',pronunciation:'테스트 커버리지',explanation:'코드 중 테스트가 확인하는 비율.'},{term:'TDD',pronunciation:'티디디',explanation:'테스트를 먼저 작성하고 코드를 만드는 방법.'},{term:'regression',pronunciation:'리그레션',explanation:'새 코드가 기존 기능을 깨뜨리는 것.'}],
-answer_keywords:[{keyword:'테스트 필요성 인식',importance:'must',explanation:'왜 테스트가 필요한지 이해'},{keyword:'솔직한 현재 수준',importance:'must',explanation:'경험 부족을 인정하고 배우겠다는 태도'},{keyword:'학습 계획',importance:'good_to_have',explanation:'테스트 학습 계획이 있는지'}],
-scenarios:[{level:'Expert',score:20,text:'기본적 테스트 경험이 있고 필요성을 구체적으로 설명. 학습 계획도 있음.'},{level:'Mid',score:10,text:'테스트 필요성은 알지만 경험이 거의 없음. 배우겠다는 의지.'},{level:'Low',score:-5,text:'테스트가 불필요하다고 생각하거나 관심이 전혀 없음.'}],
-follow_ups:[{id:'q24-f1',trigger:'Expert',question_text:'어떤 컴포넌트를 테스트한다면 무엇을 확인하시겠습니까?',why_matters:'테스트 관점 이해.',listen_for:'렌더링, 사용자 상호작용, 상태 변화.',good:{text:'버튼 클릭 시 상태 변화, 올바른 텍스트 렌더링, 에러 상황.',score:8},poor:{text:'모르겠다.',score:0}},{id:'q24-f2',trigger:'Mid',question_text:'테스트 없이 코드를 수정할 때 어떤 점이 불안하나요?',why_matters:'테스트 부재의 문제 인식.',listen_for:'기존 기능이 깨질 수 있다는 인식.',good:{text:'다른 기능이 깨지지 않았는지 확인할 방법이 없어 불안.',score:5},poor:{text:'불안한 적 없다.',score:-2}},{id:'q24-f3',trigger:'Low',question_text:'코드가 올바르게 동작하는지 어떻게 확인하시나요?',why_matters:'최소한의 검증 습관.',listen_for:'브라우저에서 직접 확인이라도.',good:{text:'브라우저에서 직접 클릭하며 확인하고 콘솔 에러 체크.',score:5},poor:{text:'특별히 확인 안 한다.',score:-3}}],
-interviewer_note:{business_interpretation:'"안정적인 코드를 만들 수 있는 사람인지" 확인합니다. 테스트 없으면 수정할 때마다 다른 기능이 깨질 수 있음.',daily_analogy:'맞춤법 검사기 없이 글을 쓰는 것과 비슷합니다. 지금은 괜찮아 보여도 긴 글에서는 실수를 놓치게 됩니다.',level_expectation:'주니어에게 높은 커버리지를 기대하지 않지만 "테스트가 왜 필요한지 아는 것"과 "배우겠다는 태도"가 핵심.'},
-expected_answer:{core:'• 현재: 테스트 경험이 부족함을 인정\n• 인식: 코드 수정 시 기존 기능 보호, 리팩토링 안전망\n• 계획: Jest와 React Testing Library 학습',example:'솔직히 테스트 코드를 체계적으로 작성해본 적은 없습니다. 하지만 인턴 때 버그 수정 후 다른 기능이 깨진 경험이 있어서 테스트의 필요성을 느꼈습니다. Jest 기초 강의를 듣기 시작했고, 새 프로젝트부터는 간단한 테스트라도 작성하려고 합니다.',key_points:['솔직한 인정','필요성 이해','학습 의지']}},
-{id:25,category:'risk_flags',difficulty:'Hard',title:'기술 경험 범위의 한계',is_risk:true,risk_source:'부트캠프 커리큘럼 중심 학습으로 React 외 기술 경험이 매우 제한적',question_text:'React 외에 다른 프론트엔드 기술이나 도구를 사용해본 경험이 있나요? 새로운 기술을 배워야 할 때 어떻게 접근하시나요?',context_bridge:'저희 팀은 React가 주력이지만 Storybook, Cypress 등 다양한 도구를 사용합니다.',why_matters:'기술 범위의 한계를 인식하고 새로운 것을 배울 준비가 되어 있는지 확인합니다.',listen_for:'좁은 경험을 인정하면서도 학습에 대한 적극적 태도.',code_reference:null,
-terminology:[{term:'Storybook',pronunciation:'스토리북',explanation:'컴포넌트를 독립적으로 개발하고 문서화하는 도구.'},{term:'Cypress',pronunciation:'사이프레스',explanation:'브라우저에서 자동으로 테스트를 실행하는 E2E 테스트 도구.'},{term:'Webpack',pronunciation:'웹팩',explanation:'여러 파일을 하나로 묶어주는 빌드 도구.'},{term:'Vite',pronunciation:'비트',explanation:'빠른 개발 서버와 빌드를 제공하는 최신 도구.'},{term:'Next.js',pronunciation:'넥스트제이에스',explanation:'React 기반의 프레임워크. 서버사이드 렌더링 지원.'},{term:'GraphQL',pronunciation:'그래프큐엘',explanation:'서버에서 데이터를 가져오는 쿼리 언어. REST API의 대안.'},{term:'상태 관리',pronunciation:'스테이트 매니지먼트',explanation:'앱 전체의 데이터를 관리하는 기술. Redux, Zustand 등.'},{term:'CI/CD',pronunciation:'시아이시디',explanation:'코드를 자동으로 테스트하고 배포하는 파이프라인.'}],
-answer_keywords:[{keyword:'현재 한계 인정',importance:'must',explanation:'React 외 경험이 부족함을 솔직하게'},{keyword:'학습 방법론',importance:'must',explanation:'새 기술을 배우는 구체적 접근법'},{keyword:'학습 사례',importance:'good_to_have',explanation:'실제로 새 기술을 배운 경험'}],
-scenarios:[{level:'Expert',score:25,text:'한계를 인정하면서 새 기술을 배운 구체적 경험과 체계적 학습법을 공유.'},{level:'Mid',score:12,text:'한계는 인정하지만 학습 방법이 구체적이지 않음.'},{level:'Low',score:-5,text:'React만 알면 된다는 태도이거나, 새 기술에 대한 관심/의지가 없음.'}],
-follow_ups:[{id:'q25-f1',trigger:'Expert',question_text:'가장 최근에 새로 배운 기술은 무엇이고 얼마나 걸렸나요?',why_matters:'학습 속도와 방법.',listen_for:'구체적 기술과 학습 과정.',good:{text:'Tailwind를 2주간 공식 문서+프로젝트 적용으로 익혔다.',score:10},poor:{text:'최근에 새로 배운 건 없다.',score:0}},{id:'q25-f2',trigger:'Mid',question_text:'TypeScript를 더 깊이 배우기 위해 어떤 계획이 있나요?',why_matters:'구체적 학습 의지.',listen_for:'실천 가능한 계획.',good:{text:'기존 JS 프로젝트를 TS로 마이그레이션하면서 학습.',score:5},poor:{text:'필요하면 그때 배우겠다.',score:0}},{id:'q25-f3',trigger:'Low',question_text:'React를 처음 배울 때 어떻게 배우셨나요?',why_matters:'학습 패턴 확인.',listen_for:'자기만의 학습 방법.',good:{text:'공식 문서 읽고 클론 코딩하면서 적용.',score:5},poor:{text:'부트캠프에서 시키는 대로.',score:-3}}],
-interviewer_note:{business_interpretation:'"새로운 도구를 배워야 할 때 적응할 수 있는 사람인지" 확인합니다. 기술은 계속 바뀌므로 학습 능력이 중요.',daily_analogy:'하나의 요리만 할 줄 아는 요리사 vs 새로운 레시피도 빨리 배우는 요리사. 후자가 더 가치 있습니다.',level_expectation:'주니어에게 넓은 기술 스택을 기대하지 않습니다. "한계를 알고 배우려는 태도"가 핵심.'},
-expected_answer:{core:'• 현재: React와 기본 도구 위주 경험\n• 학습법: 공식 문서→간단한 예제→실제 프로젝트 적용\n• 태도: 새 기술에 대한 호기심과 적극성',example:'React 외에는 Next.js를 조금 써봤고, Tailwind CSS를 최근 학습했습니다. 새 기술을 배울 때는 공식 문서의 Getting Started를 따라하고, 간단한 개인 프로젝트에 적용해봅니다. Storybook은 아직 못 써봤지만 컴포넌트 문서화에 좋다고 들어서 관심 있습니다.',key_points:['솔직한 인정','체계적 학습법','호기심']}}
+    {
+      id: 1,
+      category: 'role_fit',
+      difficulty: 'Easy',
+      title: '첫 3개월 목표',
+      question_text: '우리 팀에 합류하면 첫 3개월간 어떤 목표를 세우시겠습니까?',
+      context_bridge: '저희 팀은 시니어 2명, 주니어 1명으로 구성되어 있고, 멘토링 문화가 있습니다.',
+      why_matters: '주니어의 자기주도 학습 능력과 현실적인 목표 설정 능력을 확인합니다.',
+      listen_for: '무리한 목표가 아닌 현실적이고 구체적인 계획을 제시하는지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '온보딩',
+          pronunciation: '온보딩',
+          explanation: '새로 합류한 사람이 팀에 적응하는 과정입니다.',
+          definition: '새로 합류한 사람이 팀에 적응하는 과정입니다.',
+          plain_language: '새로 합류한 사람이 팀에 적응하는 과정입니다.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '코드베이스',
+          pronunciation: '코드베이스',
+          explanation: '프로젝트의 전체 코드 모음입니다.',
+          definition: '프로젝트의 전체 코드 모음입니다.',
+          plain_language: '프로젝트의 전체 코드 모음입니다.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'PR (Pull Request)',
+          pronunciation: '피알',
+          explanation: '내가 수정한 코드를 팀에 보여주고 검토를 요청하는 것입니다.'
+        },
+        {
+          term: '멘토링',
+          pronunciation: '멘토링',
+          explanation: '경험 많은 선배가 후배에게 업무 노하우를 전달하는 것입니다.'
+        },
+        {
+          term: '컴포넌트',
+          pronunciation: '컴포넌트',
+          explanation: '웹 페이지의 독립적인 부품입니다. 버튼, 입력창 등.'
+        },
+        {
+          term: '디자인 시스템',
+          pronunciation: '디자인 시스템',
+          explanation: '통일된 디자인을 위해 미리 만들어둔 부품 모음입니다.'
+        },
+        {
+          term: '코드 리뷰',
+          pronunciation: '코드 리뷰',
+          explanation: '다른 사람이 작성한 코드를 검토하는 것입니다.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '코드베이스 이해',
+          importance: 'must',
+          explanation: '기존 코드를 먼저 파악해야 기여 가능'
+        },
+        {
+          keyword: '작은 것부터 시작',
+          importance: 'must',
+          explanation: '처음부터 큰 기능이 아닌 작은 버그 수정부터'
+        },
+        {
+          keyword: '학습 계획',
+          importance: 'good_to_have',
+          explanation: '부족한 부분의 구체적 학습 계획'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '1개월: 코드베이스 파악+작은 버그 수정, 2개월: 독립적 컴포넌트 개발, 3개월: 코드 리뷰 참여. 단계별 구체적 계획.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '열심히 배우겠다는 의지 표현. 구체적 단계가 없음.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '큰 기능을 바로 개발하겠다는 비현실적 목표.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q1-f1',
+          trigger: 'Expert',
+          question_text: '코드베이스를 파악할 때 어떤 방법으로 접근하시나요?',
+          why_matters: '학습 방법론이 체계적인지 확인.',
+          listen_for: '코드 읽기, 문서 확인, 선배에게 질문 등.',
+          good: {
+            text: '문서 먼저 읽고 작은 기능부터 따라가며 모르는 건 질문.',
+            score: 8
+          },
+          poor: {
+            text: '그냥 코드를 보면 된다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q1-f2',
+          trigger: 'Mid',
+          question_text: '구체적으로 첫 달에 어떤 종류의 업무를 하고 싶으세요?',
+          why_matters: '추상적 답변을 구체화할 수 있는지.',
+          listen_for: '작은 작업부터 시작하겠다는 인식.',
+          good: {
+            text: '버그 수정이나 작은 UI 개선부터.',
+            score: 5
+          },
+          poor: {
+            text: '아무거나 시키는 대로.',
+            score: 0
+          }
+        },
+        {
+          id: 'q1-f3',
+          trigger: 'Low',
+          question_text: '지금 우리 제품을 사용해보셨나요?',
+          why_matters: '회사에 대한 관심과 준비도.',
+          listen_for: '실제로 제품을 사용해보고 의견이 있는지.',
+          good: {
+            text: '제품을 사용해본 경험과 개선 아이디어 공유.',
+            score: 5
+          },
+          poor: {
+            text: '아직 안 써봤다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '이 질문은 "스스로 목표를 세우고 단계적으로 성장할 수 있는 사람인지"를 확인합니다.',
+        daily_analogy: '새 학교에 전학 온 학생이 첫 달 계획을 세우는 것과 비슷합니다. "먼저 친구들 이름을 외우고 수업 방식에 적응하겠다"가 좋은 답입니다.',
+        level_expectation: '주니어에게는 거창한 계획보다 "현실을 아는 겸손함"과 "구체적 학습 의지"가 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 1개월: 온보딩+코드베이스 읽기+작은 버그 수정 PR\n• 2개월: 디자인 시스템의 간단한 컴포넌트 독립 개발\n• 3개월: 코드 리뷰 참여+부족한 TypeScript 학습',
+        example: '첫 달은 적응에 집중합니다. 코드를 읽으면서 전체 구조를 파악하고, "good first issue" 태그 버그를 수정하면서 코드 리뷰 과정을 경험합니다. 2개월째에는 간단한 컴포넌트(알림 배지, 토글 버튼)를 혼자 만들어봅니다. 3개월째에는 다른 분의 PR에도 리뷰 의견을 남기기 시작합니다.',
+        key_points: ['현실적 목표', '단계적 접근', '자기 인식']
+      },
+      jd_competency_link: 'JD 요구사항: "팀 문화 기여 및 적극적 코드 리뷰 참여" → 팀 적합성 검증',
+      generation_rationale: '부트캠프→인턴→정규직 전환 이력에서 성장 가능성 확인 필요',
+      skills_assessed: ['adaptability', 'self_learning'],
+      alternative_phrasings: ['우리 팀에 합류하면 첫 3개월간 어떤 목표를 세우시겠습니까에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 2,
+      category: 'role_fit',
+      difficulty: 'Easy',
+      title: '프론트엔드를 선택한 이유',
+      question_text: '개발자가 되기로 결심한 계기와, 프론트엔드를 선택한 이유는?',
+      context_bridge: '저희는 사용자 경험을 중시하는 EdTech 서비스를 만들고 있습니다.',
+      why_matters: '진정한 동기와 프론트엔드에 대한 관심도를 확인합니다.',
+      listen_for: '취업 수단이 아닌 프론트엔드 자체에 대한 관심과 열정.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '프론트엔드',
+          pronunciation: '프론트엔드',
+          explanation: '사용자가 보고 만지는 화면 부분입니다.',
+          definition: '사용자가 보고 만지는 화면 부분입니다.',
+          plain_language: '사용자가 보고 만지는 화면 부분입니다.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '백엔드',
+          pronunciation: '백엔드',
+          explanation: '눈에 보이지 않는 뒷단. 데이터 저장, 계산 등 담당.',
+          definition: '눈에 보이지 않는 뒷단. 데이터 저장, 계산 등 담당.',
+          plain_language: '눈에 보이지 않는 뒷단. 데이터 저장, 계산 등 담당.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'UI',
+          pronunciation: '유아이',
+          explanation: '사용자 인터페이스. 버튼, 메뉴, 아이콘 등 화면 요소.'
+        },
+        {
+          term: 'UX',
+          pronunciation: '유엑스',
+          explanation: '사용자 경험. 서비스를 쓰면서 느끼는 편리함.'
+        },
+        {
+          term: '부트캠프',
+          pronunciation: '부트캠프',
+          explanation: '단기간 집중 코딩 교육 과정.'
+        },
+        {
+          term: '포트폴리오',
+          pronunciation: '포트폴리오',
+          explanation: '자신이 만든 프로젝트를 모아놓은 작품집.'
+        },
+        {
+          term: '풀스택',
+          pronunciation: '풀스택',
+          explanation: '프론트엔드와 백엔드를 모두 할 수 있는 개발자.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '사용자 경험 관심',
+          importance: 'must',
+          explanation: '프론트엔드의 핵심 가치에 대한 이해'
+        },
+        {
+          keyword: '구체적 계기',
+          importance: 'must',
+          explanation: '막연한 동기가 아닌 구체적 경험'
+        },
+        {
+          keyword: '지속적 관심',
+          importance: 'good_to_have',
+          explanation: '일시적 관심이 아닌 꾸준한 열정'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '구체적 계기와 프론트엔드만의 매력(시각적 결과물, 사용자 피드백)을 연결하여 설명.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '화면 만드는 게 좋아서 등 일반적 답변.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '취업이 잘 된다고 해서.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q2-f1',
+          trigger: 'Expert',
+          question_text: '가장 자랑스러운 프로젝트를 소개해주세요.',
+          why_matters: '실제 경험의 깊이.',
+          listen_for: '본인이 직접 겪은 문제와 해결 과정.',
+          good: {
+            text: '구체적 프로젝트와 기여, 배운 점을 상세히 공유.',
+            score: 8
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q2-f2',
+          trigger: 'Mid',
+          question_text: '프론트엔드에서 가장 어렵다고 느끼는 부분은?',
+          why_matters: '자기 인식과 성장 영역.',
+          listen_for: '솔직한 어려움 인정과 극복 노력.',
+          good: {
+            text: '구체적 어려움과 학습 노력 공유.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 어려운 건 없다.',
+            score: -2
+          }
+        },
+        {
+          id: 'q2-f3',
+          trigger: 'Low',
+          question_text: '프론트엔드 개발자가 하는 일을 설명해주실 수 있나요?',
+          why_matters: '기본적인 역할 이해도.',
+          listen_for: '화면 개발, 사용자 경험 등.',
+          good: {
+            text: '사용자가 보는 화면을 만드는 것이라고 정확히 설명.',
+            score: 5
+          },
+          poor: {
+            text: '잘 모르겠다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '이 질문은 "프론트엔드를 진심으로 좋아하는지"를 확인합니다. 진심으로 좋아하는 사람이 더 빠르게 성장합니다.',
+        daily_analogy: '요리사를 뽑을 때 "왜 요리사가 되고 싶으세요?"라고 묻는 것과 같습니다.',
+        level_expectation: '주니어에게는 전문적 답변보다 "진심 어린 동기"와 "구체적 계기"가 중요합니다.'
+      },
+      expected_answer: {
+        core: '• 구체적 계기\n• 프론트엔드 선택 이유: 시각적 결과물, 즉각적 피드백\n• 지속적 관심의 증거',
+        example: '동아리 홈페이지를 만들면서 프로그래밍에 빠졌습니다. "내가 만든 것을 사람들이 직접 사용하는 모습을 볼 수 있기 때문"에 프론트엔드를 선택했습니다. 친구가 제 앱을 쓰면서 피드백을 주었을 때, 그걸 개선하는 과정이 정말 재미있었습니다.',
+        key_points: ['구체적 계기', '프론트엔드 매력', '지속적 관심']
+      },
+      jd_competency_link: 'JD 요구사항: "팀 문화 기여 및 적극적 코드 리뷰 참여" → 팀 적합성 검증',
+      generation_rationale: '부트캠프→인턴→정규직 전환 이력에서 성장 가능성 확인 필요',
+      skills_assessed: ['adaptability', 'self_learning'],
+      alternative_phrasings: ['개발자가 되기로 결심한 계기와, 프론트엔드를 선택한 이유는에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 3,
+      category: 'technical_depth',
+      difficulty: 'Medium',
+      title: 'React state와 props의 차이',
+      question_text: 'React에서 state와 props의 차이를 설명해주시고, 각각 언제 사용하는지 예를 들어주세요.',
+      context_bridge: '우리 프로젝트에서 React를 사용하므로 기본 개념 이해가 중요합니다.',
+      why_matters: 'React의 가장 기본적인 개념 이해도를 확인합니다.',
+      listen_for: '암기식 정의가 아닌 실제 이해를 보여주는 설명.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'React',
+          pronunciation: '리액트',
+          explanation: '웹 화면을 만드는 도구. 레고 블록처럼 부품을 조립합니다.',
+          definition: '웹 화면을 만드는 도구. 레고 블록처럼 부품을 조립합니다.',
+          plain_language: '웹 화면을 만드는 도구. 레고 블록처럼 부품을 조립합니다.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'State',
+          pronunciation: '스테이트',
+          explanation: '컴포넌트가 기억하는 데이터. 예: 장바구니 물건 수.',
+          definition: '컴포넌트가 기억하는 데이터. 예: 장바구니 물건 수.',
+          plain_language: '컴포넌트가 기억하는 데이터. 예: 장바구니 물건 수.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Props',
+          pronunciation: '프롭스',
+          explanation: '부모가 자식에게 전달하는 데이터.'
+        },
+        {
+          term: '컴포넌트',
+          pronunciation: '컴포넌트',
+          explanation: '화면의 독립적 부품. 버튼, 입력창 등.'
+        },
+        {
+          term: '렌더링',
+          pronunciation: '렌더링',
+          explanation: '데이터를 화면에 그리는 과정.'
+        },
+        {
+          term: 'Hook',
+          pronunciation: '훅',
+          explanation: 'React에서 state 같은 기능을 쓰게 해주는 함수.'
+        },
+        {
+          term: 'useState',
+          pronunciation: '유즈스테이트',
+          explanation: 'state를 만들고 변경하는 React Hook.'
+        },
+        {
+          term: '단방향 데이터 흐름',
+          pronunciation: '단방향 데이터 흐름',
+          explanation: '데이터가 부모→자식 한 방향으로만 흐르는 원칙.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: 'state는 내부 데이터',
+          importance: 'must',
+          explanation: '컴포넌트가 스스로 관리하는 변경 가능한 데이터'
+        },
+        {
+          keyword: 'props는 외부에서 전달',
+          importance: 'must',
+          explanation: '부모가 자식에게 전달하는 읽기 전용 데이터'
+        },
+        {
+          keyword: '구체적 예시',
+          importance: 'good_to_have',
+          explanation: '실제 사용 사례'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '명확한 차이 + 코드 예시 + 선택 기준까지 제시.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '차이는 알지만 설명이 추상적.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '차이를 정확히 설명 못함.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q3-f1',
+          trigger: 'Expert',
+          question_text: '여러 컴포넌트가 같은 데이터를 공유해야 할 때 어떻게 하시나요?',
+          why_matters: '상태 관리의 확장된 이해.',
+          listen_for: 'state 끌어올리기, Context 등.',
+          good: {
+            text: '공통 부모로 state를 올리거나 Context API 사용.',
+            score: 8
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q3-f2',
+          trigger: 'Mid',
+          question_text: '장바구니 기능에서 state와 props 중 무엇을 쓰시겠습니까?',
+          why_matters: '개념의 실제 적용.',
+          listen_for: '장바구니 목록은 state, 아이템 표시는 props.',
+          good: {
+            text: '상황에 맞게 구분하여 설명.',
+            score: 5
+          },
+          poor: {
+            text: '구분하지 못함.',
+            score: -2
+          }
+        },
+        {
+          id: 'q3-f3',
+          trigger: 'Low',
+          question_text: 'React에서 화면이 자동 업데이트되는 원리를 아시나요?',
+          why_matters: 'React 기본 동작 원리.',
+          listen_for: 'state가 바뀌면 화면이 다시 그려짐.',
+          good: {
+            text: 'state 변경 시 리렌더링 설명.',
+            score: 5
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: 'React의 가장 기본 개념을 진짜 이해하고 있는지 확인합니다.',
+        daily_analogy: 'state는 "내 지갑 속 돈", props는 "부모님이 주신 용돈"입니다. 지갑 속 돈은 내가 관리하지만 용돈은 정해진 대로 받습니다.',
+        level_expectation: '주니어에게는 자기 말로 설명할 수 있는 이해가 중요합니다.'
+      },
+      expected_answer: {
+        core: '• State: 컴포넌트 내부의 변경 가능한 데이터\n• Props: 부모에서 자식으로 전달하는 읽기 전용 데이터\n• 핵심: state는 변경 가능, props는 읽기 전용',
+        example: 'state는 좋아요 버튼의 숫자처럼 내가 관리하는 데이터입니다. props는 상품 카드에 이름, 가격을 전달하는 것처럼 부모가 주는 데이터입니다.',
+        key_points: ['state = 내부', 'props = 외부', '읽기전용 vs 변경가능']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['React에서 state와 props의 차이를 설명해주시고, 각각 언제 사용하는지 예를 들어주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 4,
+      category: 'technical_depth',
+      difficulty: 'Medium',
+      title: '재사용 가능한 컴포넌트 설계',
+      question_text: '재사용 가능한 버튼 컴포넌트를 만든다면 어떤 점을 고려하시겠습니까?',
+      context_bridge: '저희 디자인 시스템에 공통 버튼 컴포넌트가 필요합니다.',
+      why_matters: '컴포넌트 설계의 기본 원칙(재사용성, 유연성)을 이해하는지 확인.',
+      listen_for: '다양한 상황에서 쓸 수 있도록 유연하게 설계하는 사고.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '재사용성',
+          pronunciation: '재사용성',
+          explanation: '한 번 만든 것을 여러 곳에서 반복해서 쓸 수 있는 것.',
+          definition: '한 번 만든 것을 여러 곳에서 반복해서 쓸 수 있는 것.',
+          plain_language: '한 번 만든 것을 여러 곳에서 반복해서 쓸 수 있는 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Props',
+          pronunciation: '프롭스',
+          explanation: '컴포넌트에 전달하는 설정값.',
+          definition: '컴포넌트에 전달하는 설정값.',
+          plain_language: '컴포넌트에 전달하는 설정값.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Variant',
+          pronunciation: '배리언트',
+          explanation: '같은 컴포넌트의 다른 모양. 기본/위험/비활성 등.'
+        },
+        {
+          term: 'Storybook',
+          pronunciation: '스토리북',
+          explanation: '컴포넌트를 독립적으로 보여주고 테스트하는 도구.'
+        },
+        {
+          term: '이벤트 핸들러',
+          pronunciation: '이벤트 핸들러',
+          explanation: '클릭, 입력 등 사용자 동작 시 실행되는 함수.'
+        },
+        {
+          term: '타입 정의',
+          pronunciation: '타입 정의',
+          explanation: 'props의 종류와 형태를 미리 지정하는 것.'
+        },
+        {
+          term: '접근성',
+          pronunciation: '접근성',
+          explanation: '장애인도 사용할 수 있게 만드는 것.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '다양한 props',
+          importance: 'must',
+          explanation: '크기, 색상, 변형 등 유연한 설정'
+        },
+        {
+          keyword: '이벤트 핸들러',
+          importance: 'must',
+          explanation: '클릭 동작을 외부에서 지정'
+        },
+        {
+          keyword: '접근성',
+          importance: 'good_to_have',
+          explanation: '키보드 조작, 스크린 리더 지원'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '크기/색상/변형+이벤트 핸들러+로딩/비활성 상태+접근성까지 고려.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '크기, 색상 정도의 기본 props만 고려.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '재사용성 개념을 이해 못하고 각 페이지마다 따로 만들겠다고 함.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q4-f1',
+          trigger: 'Expert',
+          question_text: '팀원이 이 버튼을 쉽게 사용하게 하려면?',
+          why_matters: '문서화와 개발자 경험.',
+          listen_for: 'Storybook, 타입 정의, 사용 예시.',
+          good: {
+            text: 'Storybook으로 예시를 보여주고 TypeScript로 타입 정의.',
+            score: 8
+          },
+          poor: {
+            text: '코드를 보면 안다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q4-f2',
+          trigger: 'Mid',
+          question_text: '버튼에 로딩 상태를 추가한다면?',
+          why_matters: '상태에 따른 UI 변화 구현.',
+          listen_for: 'isLoading props, 스피너, 클릭 방지.',
+          good: {
+            text: 'isLoading prop으로 스피너 표시+클릭 방지.',
+            score: 5
+          },
+          poor: {
+            text: '구현 방법 모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q4-f3',
+          trigger: 'Low',
+          question_text: '같은 디자인 버튼이 10페이지에 필요하면?',
+          why_matters: '재사용 기본 개념.',
+          listen_for: '하나 만들어 여러 곳에서 사용.',
+          good: {
+            text: '하나의 컴포넌트를 만들어 import.',
+            score: 5
+          },
+          poor: {
+            text: '10번 복사.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '효율적으로 코드를 작성할 수 있는 사람인지 확인합니다.',
+        daily_analogy: '범용 그릇 하나를 만드는 것입니다. 국도 밥도 담을 수 있지만 너무 만능이면 불편합니다.',
+        level_expectation: '주니어에게는 "왜 재사용해야 하는지"를 이해하고 기본 props를 설계할 수 있으면 충분합니다.'
+      },
+      expected_answer: {
+        core: '• 필수 Props: 크기, 색상 변형, 클릭 이벤트\n• 상태: 로딩 중, 비활성화\n• 접근성: 키보드 조작, aria-label',
+        example: 'primary/secondary/danger 3가지 변형, small/medium/large 크기, onClick으로 동작 지정, isLoading으로 스피너 표시.',
+        key_points: ['유연한 props', '상태 관리', '접근성']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['재사용 가능한 버튼 컴포넌트를 만든다면 어떤 점을 고려하시겠습니까에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 5,
+      category: 'execution_ownership',
+      difficulty: 'Easy',
+      title: '해결 안 되는 버그 대처법',
+      question_text: '혼자 해결이 안 되는 버그를 만났을 때 어떻게 하시나요?',
+      context_bridge: '개발하다 보면 혼자 해결하기 어려운 문제를 자주 만납니다.',
+      why_matters: '문제 해결 과정과 도움 요청 타이밍을 확인합니다.',
+      listen_for: '먼저 시도하되 적절한 시점에 도움을 요청하는 균형.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '디버깅',
+          pronunciation: '디버깅',
+          explanation: '프로그램 오류를 찾아서 고치는 과정.',
+          definition: '프로그램 오류를 찾아서 고치는 과정.',
+          plain_language: '프로그램 오류를 찾아서 고치는 과정.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '콘솔',
+          pronunciation: '콘솔',
+          explanation: '개발자 도구의 출력 화면. 문제 지점을 확인.',
+          definition: '개발자 도구의 출력 화면. 문제 지점을 확인.',
+          plain_language: '개발자 도구의 출력 화면. 문제 지점을 확인.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Stack Overflow',
+          pronunciation: '스택 오버플로우',
+          explanation: '개발자 Q&A 사이트.'
+        },
+        {
+          term: '에러 메시지',
+          pronunciation: '에러 메시지',
+          explanation: '프로그램이 문제를 알려주는 메시지.'
+        },
+        {
+          term: '구글링',
+          pronunciation: '구글링',
+          explanation: '에러 메시지나 문제를 검색하는 것.'
+        },
+        {
+          term: '로그',
+          pronunciation: '로그',
+          explanation: '프로그램 실행 기록. 문제 원인을 찾는 데 사용.'
+        },
+        {
+          term: '재현',
+          pronunciation: '재현',
+          explanation: '버그를 다시 발생시키는 것. 고치려면 먼저 재현해야 함.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '체계적 디버깅',
+          importance: 'must',
+          explanation: '에러 메시지→구글링→원인 추적 등 단계적 접근'
+        },
+        {
+          keyword: '적절한 시점에 도움 요청',
+          importance: 'must',
+          explanation: '30분~1시간 시도 후 질문'
+        },
+        {
+          keyword: '시도한 것 공유',
+          importance: 'good_to_have',
+          explanation: '질문 시 "이것을 해봤는데 안 됐다" 포함'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '에러 확인→구글링→원인 좁히기→30분 후 시도한 것과 함께 질문. 체계적 과정.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '구글링은 하는데 질문 시점/방법이 구체적이지 않음.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '바로 물어보거나 혼자 너무 오래 붙잡음.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q5-f1',
+          trigger: 'Expert',
+          question_text: '선배에게 질문할 때 어떤 정보를 함께 전달하시나요?',
+          why_matters: '효과적인 질문 능력.',
+          listen_for: '에러 메시지, 시도한 방법, 예상 원인.',
+          good: {
+            text: '에러 메시지+시도한 방법+예상 원인을 정리해서 질문.',
+            score: 8
+          },
+          poor: {
+            text: '안 되는데 도와주세요.',
+            score: 0
+          }
+        },
+        {
+          id: 'q5-f2',
+          trigger: 'Mid',
+          question_text: '구글링해도 답을 못 찾으면?',
+          why_matters: '대안적 문제 해결.',
+          listen_for: '공식 문서, 범위 좁히기, 동료 도움.',
+          good: {
+            text: '공식 문서를 보거나 문제 범위를 좁혀서 재시도.',
+            score: 5
+          },
+          poor: {
+            text: '포기한다.',
+            score: -2
+          }
+        },
+        {
+          id: 'q5-f3',
+          trigger: 'Low',
+          question_text: '최근 개발하면서 어려웠던 문제가 있었나요?',
+          why_matters: '실제 경험 유무.',
+          listen_for: '구체적 경험.',
+          good: {
+            text: '구체적 문제와 해결 과정 공유.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없었다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '막혔을 때 어떻게 행동하는지 확인합니다. 주니어가 혼자 3일 붙잡고 있으면 팀 전체 피해.',
+        daily_analogy: '길을 잃었을 때: 먼저 지도를 보고, 주변을 둘러보고, 30분 걸어도 못 찾으면 물어보는 것이 좋습니다.',
+        level_expectation: '주니어에게는 "먼저 시도하되 30분~1시간이면 도움을 요청한다"는 균형이 핵심.'
+      },
+      expected_answer: {
+        core: '• 1단계: 에러 메시지 정확히 읽기\n• 2단계: 에러 메시지 구글링\n• 3단계: console.log로 범위 좁히기\n• 4단계: 30분~1시간 후 시도한 내용 정리해서 질문',
+        example: '무한 렌더링 버그를 만났을 때 에러 메시지를 확인하고, 구글링하고, console.log로 어떤 useEffect가 반복되는지 찾았습니다. 1시간 넘으면 시도한 내용을 정리해서 선배에게 질문합니다.',
+        key_points: ['체계적 접근', '적절한 타이밍', '질문 품질']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['혼자 해결이 안 되는 버그를 만났을 때 어떻게 하시나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 6,
+      category: 'execution_ownership',
+      difficulty: 'Medium',
+      title: '기한 내 완료 어려운 프로젝트',
+      question_text: '프로젝트 기한 내에 완료하기 어려웠던 경험과 대처 방법을 말씀해주세요.',
+      context_bridge: '스타트업에서는 종종 빠듯한 일정으로 일합니다.',
+      why_matters: '시간 관리와 소통 태도를 확인합니다.',
+      listen_for: '문제를 숨기지 않고 빨리 알리는 태도.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '데드라인',
+          pronunciation: '데드라인',
+          explanation: '작업을 끝내야 하는 최종 날짜.',
+          definition: '작업을 끝내야 하는 최종 날짜.',
+          plain_language: '작업을 끝내야 하는 최종 날짜.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '스프린트',
+          pronunciation: '스프린트',
+          explanation: '2주 단위로 목표를 정하고 개발하는 짧은 주기.',
+          definition: '2주 단위로 목표를 정하고 개발하는 짧은 주기.',
+          plain_language: '2주 단위로 목표를 정하고 개발하는 짧은 주기.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '우선순위',
+          pronunciation: '프라이오리티',
+          explanation: '여러 일 중 무엇을 먼저 해야 하는지.'
+        },
+        {
+          term: '스코프',
+          pronunciation: '스코프',
+          explanation: '구현할 기능의 범위.'
+        },
+        {
+          term: 'MVP',
+          pronunciation: '엠브이피',
+          explanation: '최소 기능만 갖춘 버전.'
+        },
+        {
+          term: '블로커',
+          pronunciation: '블로커',
+          explanation: '진행을 막는 장애물.'
+        },
+        {
+          term: '스탠드업',
+          pronunciation: '스탠드업',
+          explanation: '매일 아침 짧게 하는 팀 회의.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '빠른 소통',
+          importance: 'must',
+          explanation: '기한 못 맞출 것 같으면 즉시 알림'
+        },
+        {
+          keyword: '우선순위 조정',
+          importance: 'must',
+          explanation: '중요한 것부터'
+        },
+        {
+          keyword: '배운 점',
+          importance: 'good_to_have',
+          explanation: '같은 실수 반복 방지'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '기한 전에 위험을 감지하고 팀에 알림. 범위 조정으로 핵심 기능은 완료.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '기한을 넘겼지만 원인과 배운 점을 설명.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '경험 없음 또는 야근으로 해결했다만 답변.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q6-f1',
+          trigger: 'Expert',
+          question_text: '팀에 일정이 어렵다고 알릴 때 어떻게 소통하시나요?',
+          why_matters: '소통 방식의 구체성.',
+          listen_for: '진행률, 남은 작업, 필요한 도움을 정리.',
+          good: {
+            text: '진행률과 대안을 함께 제시.',
+            score: 8
+          },
+          poor: {
+            text: '못하겠다고만.',
+            score: 0
+          }
+        },
+        {
+          id: 'q6-f2',
+          trigger: 'Mid',
+          question_text: '다음에 비슷한 상황이면 어떻게 하시겠습니까?',
+          why_matters: '학습과 개선 의지.',
+          listen_for: '더 일찍 알리겠다, 작게 나누겠다.',
+          good: {
+            text: '구체적 개선 방법 제시.',
+            score: 5
+          },
+          poor: {
+            text: '더 열심히.',
+            score: 0
+          }
+        },
+        {
+          id: 'q6-f3',
+          trigger: 'Low',
+          question_text: '프로젝트에서 가장 어려웠던 순간은?',
+          why_matters: '경험 유무와 성찰.',
+          listen_for: '구체적 경험과 배운 점.',
+          good: {
+            text: '구체적 어려움과 대처 공유.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없었다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '문제가 생겼을 때 숨기지 않고 빨리 알려주는 사람인지 확인합니다.',
+        daily_analogy: '숙제에 비유하면, "선생님, 핵심 부분만 먼저 하고 나머지는 이틀 후에 제출해도 될까요?"라고 미리 말하는 것이 좋습니다.',
+        level_expectation: '주니어에게는 완벽한 해결보다 "빨리 알리는 용기"와 "배운 점을 말할 수 있는 성찰력"이 핵심.'
+      },
+      expected_answer: {
+        core: '• 상황: 기한 2일 전 기능 완성 어려운 상황\n• 대처: 즉시 팀에 알리고 핵심 기능만 우선 완성 합의\n• 배운 점: 일찍 소통하는 것이 중요',
+        example: '부트캠프 프로젝트에서 검색 기능이 예상보다 복잡했습니다. 기한 3일 전에 솔직하게 상황을 공유하고, 기본 검색만 먼저 완성하기로 했습니다. "혼자 끙끙대지 말고 빨리 알리는 것"이 중요하다는 걸 배웠습니다.',
+        key_points: ['빠른 소통', '우선순위 조정', '성찰']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['프로젝트 기한 내에 완료하기 어려웠던 경험과 대처 방법을 말씀해주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 7,
+      category: 'communication',
+      difficulty: 'Easy',
+      title: '코드 리뷰 피드백 대응',
+      question_text: '코드 리뷰에서 선배가 코드를 고치라고 하면 어떻게 대응하시나요?',
+      context_bridge: '저희 팀은 모든 코드가 리뷰를 거쳐야 합니다.',
+      why_matters: '피드백 수용 태도와 학습 자세를 확인합니다.',
+      listen_for: '열린 태도, 피드백을 학습 기회로 보는 자세.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '코드 리뷰',
+          pronunciation: '코드 리뷰',
+          explanation: '다른 개발자가 내 코드를 검토하는 과정.',
+          definition: '다른 개발자가 내 코드를 검토하는 과정.',
+          plain_language: '다른 개발자가 내 코드를 검토하는 과정.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'PR',
+          pronunciation: '피알',
+          explanation: '코드 변경을 제안하고 리뷰를 요청하는 것.',
+          definition: '코드 변경을 제안하고 리뷰를 요청하는 것.',
+          plain_language: '코드 변경을 제안하고 리뷰를 요청하는 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '피드백',
+          pronunciation: '피드백',
+          explanation: '상대방이 주는 의견이나 평가.'
+        },
+        {
+          term: '리팩토링',
+          pronunciation: '리팩토링',
+          explanation: '기능은 그대로 두고 코드 구조를 개선하는 작업.'
+        },
+        {
+          term: '컨벤션',
+          pronunciation: '컨벤션',
+          explanation: '팀에서 합의한 코드 작성 규칙.'
+        },
+        {
+          term: 'Approve',
+          pronunciation: '어프루브',
+          explanation: '코드 리뷰에서 승인.'
+        },
+        {
+          term: 'Comment',
+          pronunciation: '코멘트',
+          explanation: '특정 줄에 의견을 남기는 것.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '열린 태도',
+          importance: 'must',
+          explanation: '방어적이지 않게 피드백 수용'
+        },
+        {
+          keyword: '이해 후 반영',
+          importance: 'must',
+          explanation: '무조건이 아닌 이유를 이해하고 반영'
+        },
+        {
+          keyword: '질문하기',
+          importance: 'good_to_have',
+          explanation: '이해 안 되면 추가 질문'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '피드백 이유를 이해하고, 모르면 질문하며, 비슷한 실수를 반복하지 않으려는 노력.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '받아들이겠다는 일반적 답변. 구체적 경험 부족.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '방어적이거나 의미 없이 무조건 고치겠다.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q7-f1',
+          trigger: 'Expert',
+          question_text: '선배 피드백이 본인 생각과 다를 때는?',
+          why_matters: '건설적 토론 능력.',
+          listen_for: '의견을 말하되 상대도 존중.',
+          good: {
+            text: '이유를 물어보고 본인 생각도 설명한 뒤 더 나은 방법을 함께 찾는다.',
+            score: 8
+          },
+          poor: {
+            text: '선배가 무조건 맞으니 따른다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q7-f2',
+          trigger: 'Mid',
+          question_text: '피드백 받아서 코드를 고친 구체적 경험은?',
+          why_matters: '실제 경험.',
+          listen_for: '구체적 피드백 내용과 학습.',
+          good: {
+            text: '구체적 피드백과 학습 내용 공유.',
+            score: 5
+          },
+          poor: {
+            text: '사례가 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q7-f3',
+          trigger: 'Low',
+          question_text: '다른 사람 의견 듣고 기분 안 좋았던 경험은?',
+          why_matters: '감정 관리.',
+          listen_for: '솔직한 인정과 극복.',
+          good: {
+            text: '처음엔 기분 안 좋았지만 도움이 되었다.',
+            score: 5
+          },
+          poor: {
+            text: '화가 난다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"코칭 가능한(coachable) 사람인지"를 확인합니다. 피드백을 못 받아들이면 성장이 멈춥니다.',
+        daily_analogy: '운동 코치가 자세를 교정해주는 것과 같습니다. "왜 그래야 하나요?"라고 배우는 선수가 빨리 성장합니다.',
+        level_expectation: '주니어에게는 "피드백 = 학습 기회"라는 인식이 핵심입니다.'
+      },
+      expected_answer: {
+        core: '• 피드백 이유를 이해하려 노력\n• 이해 안 되면 추가 질문\n• 비슷한 피드백 방지를 위해 노트 정리\n• 개인적 비난이 아닌 코드 개선으로 인식',
+        example: '첫 PR에서 "변수명이 의미 없다, data 대신 studentList로 바꿔라"는 피드백을 받았습니다. 이유를 물어보니 6개월 후 가독성을 위해서라고 해서 변수명 규칙을 노트에 정리했고, 이후 비슷한 피드백은 받지 않았습니다.',
+        key_points: ['열린 태도', '이해 후 반영', '기록과 개선']
+      },
+      jd_competency_link: 'JD 요구사항: "코드 리뷰 참여 및 피드백 반영" → 협업 및 소통 검증',
+      generation_rationale: '팀 프로젝트 경험이 제한적이어서 협업 역량 확인',
+      skills_assessed: ['collaboration', 'feedback'],
+      alternative_phrasings: ['코드 리뷰에서 선배가 코드를 고치라고 하면 어떻게 대응하시나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 8,
+      category: 'communication',
+      difficulty: 'Medium',
+      title: '디자이너와 기술적 제약 소통',
+      question_text: '디자이너가 준 시안이 기술적으로 구현하기 어려울 때 어떻게 소통하시겠습니까?',
+      context_bridge: '저희 팀에서는 디자이너와 직접 소통하며 일합니다.',
+      why_matters: '비개발 직군과의 소통 능력을 확인합니다.',
+      listen_for: '기술적 한계를 비기술적 언어로 설명하고 대안 제시.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '시안',
+          pronunciation: '시안',
+          explanation: '디자이너가 만든 화면 설계도.',
+          definition: '디자이너가 만든 화면 설계도.',
+          plain_language: '디자이너가 만든 화면 설계도.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Figma',
+          pronunciation: '피그마',
+          explanation: '디자이너가 화면을 설계하는 도구.',
+          definition: '디자이너가 화면을 설계하는 도구.',
+          plain_language: '디자이너가 화면을 설계하는 도구.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '반응형',
+          pronunciation: '반응형',
+          explanation: '화면 크기에 따라 자동으로 레이아웃이 바뀌는 디자인.'
+        },
+        {
+          term: '애니메이션',
+          pronunciation: '애니메이션',
+          explanation: '화면 요소가 움직이는 효과.'
+        },
+        {
+          term: '성능',
+          pronunciation: '퍼포먼스',
+          explanation: '페이지가 얼마나 빠르게 로딩되고 부드럽게 동작하는지.'
+        },
+        {
+          term: '트레이드오프',
+          pronunciation: '트레이드오프',
+          explanation: '하나를 얻으면 다른 하나를 포기해야 하는 상황.'
+        },
+        {
+          term: '프로토타입',
+          pronunciation: '프로토타입',
+          explanation: '완성 전의 시험 버전.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '대안 제시',
+          importance: 'must',
+          explanation: '"안 됩니다"가 아닌 "이렇게 하면 비슷한 효과"'
+        },
+        {
+          keyword: '이유 설명',
+          importance: 'must',
+          explanation: '왜 어려운지를 비기술적 언어로'
+        },
+        {
+          keyword: '협업 자세',
+          importance: 'good_to_have',
+          explanation: '디자이너의 의도를 먼저 이해'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '디자이너 의도를 먼저 이해하고, 기술적 제약을 쉬운 말로 설명하며 대안 제시.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '어렵다고 말하지만 대안 없이 "안 된다"만.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '소통 없이 임의로 변경하거나 무리하게 구현.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q8-f1',
+          trigger: 'Expert',
+          question_text: '대안을 제시할 때 어떻게 설득하시나요?',
+          why_matters: '설득력.',
+          listen_for: '프로토타입을 만들어 보여주기.',
+          good: {
+            text: '간단한 프로토타입으로 "이렇게 보입니다"라고 보여준다.',
+            score: 8
+          },
+          poor: {
+            text: '말로만.',
+            score: 0
+          }
+        },
+        {
+          id: 'q8-f2',
+          trigger: 'Mid',
+          question_text: '어떤 디자인이 구현하기 어려웠나요?',
+          why_matters: '실제 경험.',
+          listen_for: '구체적 사례.',
+          good: {
+            text: '복잡한 애니메이션, 특수 레이아웃 등.',
+            score: 5
+          },
+          poor: {
+            text: '기억 안 남.',
+            score: 0
+          }
+        },
+        {
+          id: 'q8-f3',
+          trigger: 'Low',
+          question_text: '디자이너와 일하면서 좋았던 경험은?',
+          why_matters: '협업 태도.',
+          listen_for: '긍정적 협업 경험.',
+          good: {
+            text: '함께 문제를 해결한 경험.',
+            score: 5
+          },
+          poor: {
+            text: '일해본 적 없다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '다른 직군과 소통할 수 있는 사람인지 확인합니다.',
+        daily_analogy: '인테리어 시공업자가 "이 벽은 못 뚫지만 저쪽에 선반을 달면 비슷합니다"라고 대안을 주는 것이 좋은 소통.',
+        level_expectation: '주니어에게는 "디자이너의 의도를 먼저 물어보고 기술적 제약을 솔직하게 말하는 태도"가 핵심.'
+      },
+      expected_answer: {
+        core: '• 1단계: 디자이너의 의도 이해\n• 2단계: 기술적 제약을 쉬운 말로 설명\n• 3단계: 비슷한 효과의 대안 제시',
+        example: '복잡한 스크롤 애니메이션 요청에 "가장 중요한 느낌이 뭔가요?"라고 물었고, CSS transition으로 간단하지만 부드러운 효과를 만들어 보여줬더니 디자이너도 만족했습니다.',
+        key_points: ['의도 파악', '쉬운 말 설명', '대안 제시']
+      },
+      jd_competency_link: 'JD 요구사항: "코드 리뷰 참여 및 피드백 반영" → 협업 및 소통 검증',
+      generation_rationale: '팀 프로젝트 경험이 제한적이어서 협업 역량 확인',
+      skills_assessed: ['collaboration', 'feedback'],
+      alternative_phrasings: ['디자이너가 준 시안이 기술적으로 구현하기 어려울 때 어떻게 소통하시겠습니까에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 9,
+      category: 'risk_flags',
+      difficulty: 'Easy',
+      title: 'GitHub 포트폴리오 부족',
+      is_risk: true,
+      risk_source: 'GitHub에서 부트캠프 프로젝트 외 개인 프로젝트가 적음',
+      question_text: 'GitHub에 부트캠프 프로젝트가 대부분인데, 개인적으로 진행한 프로젝트가 있으신가요?',
+      context_bridge: '프로필 검토 중 개인 프로젝트가 거의 없는 것을 확인했습니다.',
+      why_matters: '자기주도적 학습 의지와 프로그래밍에 대한 관심도를 확인합니다.',
+      listen_for: '스스로 무언가를 만들어본 경험. 없더라도 솔직한 이유와 향후 계획.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'GitHub',
+          pronunciation: '깃허브',
+          explanation: '개발자의 작품을 올리고 공유하는 플랫폼.',
+          definition: '개발자의 작품을 올리고 공유하는 플랫폼.',
+          plain_language: '개발자의 작품을 올리고 공유하는 플랫폼.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '개인 프로젝트',
+          pronunciation: '사이드 프로젝트',
+          explanation: '본인이 관심 있어서 자발적으로 만드는 프로그램.',
+          definition: '본인이 관심 있어서 자발적으로 만드는 프로그램.',
+          plain_language: '본인이 관심 있어서 자발적으로 만드는 프로그램.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '부트캠프',
+          pronunciation: '부트캠프',
+          explanation: '단기간 집중 코딩 교육.'
+        },
+        {
+          term: '오픈소스',
+          pronunciation: '오픈소스',
+          explanation: '누구나 보고 수정할 수 있게 공개한 프로젝트.'
+        },
+        {
+          term: 'TIL',
+          pronunciation: '티아이엘',
+          explanation: '오늘 배운 것을 기록하는 것.'
+        },
+        {
+          term: '기술 블로그',
+          pronunciation: '기술 블로그',
+          explanation: '개발 경험을 글로 정리하는 블로그.'
+        },
+        {
+          term: '레포지토리',
+          pronunciation: '레포지토리',
+          explanation: 'GitHub에서 하나의 프로젝트를 담는 폴더.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '자발적 활동',
+          importance: 'must',
+          explanation: '시키지 않아도 스스로 만들어본 경험'
+        },
+        {
+          keyword: '솔직한 이유',
+          importance: 'must',
+          explanation: '없다면 왜 없는지 방어적이지 않게'
+        },
+        {
+          keyword: '향후 계획',
+          importance: 'good_to_have',
+          explanation: '앞으로의 계획'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '개인 프로젝트가 있고, 왜 만들었는지, 무엇을 배웠는지 설명.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '개인 프로젝트는 없지만 기술 블로그나 TIL 등 다른 학습 활동.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: '부트캠프 외 활동 없고, 향후 계획도 없으며 방어적.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q9-f1',
+          trigger: 'Expert',
+          question_text: '그 프로젝트에서 가장 어려웠던 기술적 도전은?',
+          why_matters: '자기주도 학습 깊이.',
+          listen_for: '구체적 기술 어려움과 해결.',
+          good: {
+            text: '구체적 문제와 해결 과정.',
+            score: 8
+          },
+          poor: {
+            text: '특별히 없었다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q9-f2',
+          trigger: 'Mid',
+          question_text: '앞으로 만들어보고 싶은 프로젝트가 있나요?',
+          why_matters: '미래 성장 의지.',
+          listen_for: '구체적 아이디어.',
+          good: {
+            text: '구체적 프로젝트 아이디어와 기술.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: -2
+          }
+        },
+        {
+          id: 'q9-f3',
+          trigger: 'Low',
+          question_text: '평소 개발 학습은 어떻게 하시나요?',
+          why_matters: '학습 습관.',
+          listen_for: '꾸준한 학습.',
+          good: {
+            text: '구체적 학습 방법과 루틴.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: -3
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"시키지 않아도 스스로 배우는 사람인지"를 확인합니다. 자기주도 학습이 성장 속도를 결정합니다.',
+        daily_analogy: '영어를 배우는 학생: 학원 숙제만 하는 학생 vs 넷플릭스를 영어로 보는 학생의 차이.',
+        level_expectation: '대단한 프로젝트를 기대하지 않습니다. 간단한 앱이라도 "스스로 만들어봤다"가 중요합니다.'
+      },
+      expected_answer: {
+        core: '• 개인 프로젝트 경험이 있다면: 무엇을, 왜 만들었고, 무엇을 배웠는지\n• 없다면: 솔직한 이유 + 다른 학습 활동 + 향후 계획',
+        example: '부트캠프 외에 날씨 앱을 만들어봤습니다. 공공 API로 현재 날씨를 보여주는 간단한 앱인데, API 호출과 에러 처리를 혼자 해결하면서 많이 배웠습니다.',
+        key_points: ['자발적 학습', '구체적 경험', '성장 의지']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['GitHub에 부트캠프 프로젝트가 대부분인데, 개인적으로 진행한 프로젝트가 있으신가요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 10,
+      category: 'risk_flags',
+      difficulty: 'Medium',
+      title: 'CS 기초 학습 수준',
+      is_risk: true,
+      risk_source: '이력서에 CS 학위 없음, 부트캠프 출신으로 기초 수준 미확인',
+      question_text: '컴퓨터 과학 기초(자료구조, 알고리즘)를 어느 정도 학습하셨나요? 프론트엔드에서 이 지식이 언제 필요하다고 생각하시나요?',
+      context_bridge: '부트캠프 출신이시라 CS 기초 학습 수준을 확인하고 싶습니다.',
+      why_matters: '기본 CS 지식이 실무에서 필요한 상황을 인지하는지, 학습 의지가 있는지 확인.',
+      listen_for: '현재 수준에 대한 솔직한 평가와 학습 노력.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '자료구조',
+          pronunciation: '데이터 스트럭처',
+          explanation: '데이터를 효율적으로 저장/관리하는 방법. 서랍장 정리법과 비슷.',
+          definition: '데이터를 효율적으로 저장/관리하는 방법. 서랍장 정리법과 비슷.',
+          plain_language: '데이터를 효율적으로 저장/관리하는 방법. 서랍장 정리법과 비슷.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '알고리즘',
+          pronunciation: '알고리즘',
+          explanation: '문제를 해결하는 단계별 방법. 요리 레시피와 같음.',
+          definition: '문제를 해결하는 단계별 방법. 요리 레시피와 같음.',
+          plain_language: '문제를 해결하는 단계별 방법. 요리 레시피와 같음.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '배열',
+          pronunciation: '어레이',
+          explanation: '같은 종류 데이터를 순서대로 나열한 것.'
+        },
+        {
+          term: '객체',
+          pronunciation: '오브젝트',
+          explanation: '여러 종류 데이터를 하나로 묶은 것.'
+        },
+        {
+          term: '시간 복잡도',
+          pronunciation: '타임 컴플렉시티',
+          explanation: '데이터가 늘어날 때 프로그램이 얼마나 느려지는지.'
+        },
+        {
+          term: 'Big O',
+          pronunciation: '빅오',
+          explanation: '시간 복잡도를 표현하는 방식.'
+        },
+        {
+          term: '정렬',
+          pronunciation: '소팅',
+          explanation: '데이터를 크기순, 날짜순으로 나열하는 것.'
+        },
+        {
+          term: '검색',
+          pronunciation: '서칭',
+          explanation: '원하는 데이터를 찾는 것.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '솔직한 자기 평가',
+          importance: 'must',
+          explanation: '모르는 것을 아는 자기 인식'
+        },
+        {
+          keyword: '프론트엔드 관련성',
+          importance: 'must',
+          explanation: '배열 정렬, 검색 필터링 등 실무 사례'
+        },
+        {
+          keyword: '학습 계획',
+          importance: 'good_to_have',
+          explanation: '부족한 부분을 어떻게 채울 것인지'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '현재 수준을 솔직히 말하고, 프론트엔드에서 필요한 상황을 구체적으로 알며, 학습 계획도 있음.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '중요한 것은 알지만 구체적으로 어디에 필요한지 부족.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: '프론트엔드에 CS 기초는 필요 없다고 주장하거나 학습 의지 없음.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q10-f1',
+          trigger: 'Expert',
+          question_text: '1000개 상품을 가격순 정렬하는 기능을 만든다면?',
+          why_matters: 'CS 기초의 실무 적용.',
+          listen_for: 'Array.sort(), 비교 함수, 성능.',
+          good: {
+            text: 'Array.sort()와 비교 함수 사용, 대량 데이터 시 성능 고려.',
+            score: 8
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q10-f2',
+          trigger: 'Mid',
+          question_text: '개발하면서 자료구조/알고리즘이 필요했던 순간은?',
+          why_matters: '실무 관련성 인식.',
+          listen_for: '필터링, 정렬, 중복 제거 경험.',
+          good: {
+            text: '필터링, 정렬 등 실제 사용 경험.',
+            score: 5
+          },
+          poor: {
+            text: '없었다.',
+            score: -2
+          }
+        },
+        {
+          id: 'q10-f3',
+          trigger: 'Low',
+          question_text: '배열(Array)이 무엇인지 설명해주실 수 있나요?',
+          why_matters: '가장 기본적인 자료구조.',
+          listen_for: '순서 있는 데이터 모음.',
+          good: {
+            text: '순서가 있고 인덱스로 접근하는 데이터 모음.',
+            score: 5
+          },
+          poor: {
+            text: '모르겠다.',
+            score: -3
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '기초가 부족해도 인지하고 채울 의지가 있는지 확인합니다.',
+        daily_analogy: '부트캠프로 요리를 배운 사람은 레시피는 따라하지만 식재료 특성은 모를 수 있습니다. CS 기초를 아는 개발자가 더 효율적인 코드를 작성합니다.',
+        level_expectation: '알고리즘 전문가를 기대하지 않습니다. "부족하다는 것을 알고 학습하고 있다"는 자세가 중요합니다.'
+      },
+      expected_answer: {
+        core: '• 현재 수준: 배열과 객체는 매일 사용하지만 깊은 알고리즘은 부족\n• 필요성: 리스트 정렬, 검색 필터링, 성능 최적화\n• 학습: 매일 코딩 테스트 1문제씩',
+        example: '솔직히 CS 기초가 부족합니다. 하지만 실무에서 상품 필터링/정렬 기능을 만들 때 필요성을 느꼈습니다. 프로그래머스에서 매일 1문제씩 풀고 있고, 배열 조작은 자신 있습니다.',
+        key_points: ['솔직한 자기 평가', '실무 관련성', '학습 의지']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: [
+        '컴퓨터 과학 기초(자료구조, 알고리즘)를 어느 정도 학습하셨나요? 프론트엔드에서 이 지식이 언제 필요하다고 생각하시나요에 대해 이야기해 주세요.',
+        '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.'
+      ]
+    },
+    {
+      id: 11,
+      category: 'role_fit',
+      difficulty: 'Medium',
+      title: '팀 문화 적합성',
+      question_text: '지금까지 경험한 팀 중 가장 잘 맞았던 팀은 어떤 분위기였고, 왜 잘 맞았다고 느꼈나요?',
+      context_bridge: '저희 팀은 자율적이지만 적극적으로 소통하는 문화를 지향합니다.',
+      why_matters: '후보자가 선호하는 팀 문화를 파악하고 우리 팀과의 적합성을 판단합니다.',
+      listen_for: '구체적 경험 기반으로 자신의 업무 스타일을 인식하고 있는지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '팀 문화',
+          pronunciation: '팀 컬처',
+          explanation: '팀이 일하는 방식과 분위기. 회사마다 다릅니다.',
+          definition: '팀이 일하는 방식과 분위기. 회사마다 다릅니다.',
+          plain_language: '팀이 일하는 방식과 분위기. 회사마다 다릅니다.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '애자일',
+          pronunciation: '애자일',
+          explanation: '짧은 주기로 빠르게 개발하고 피드백을 반영하는 방식.',
+          definition: '짧은 주기로 빠르게 개발하고 피드백을 반영하는 방식.',
+          plain_language: '짧은 주기로 빠르게 개발하고 피드백을 반영하는 방식.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '스크럼',
+          pronunciation: '스크럼',
+          explanation: '애자일의 한 방법론. 2주 단위 스프린트로 개발.'
+        },
+        {
+          term: '페어 프로그래밍',
+          pronunciation: '페어 프로그래밍',
+          explanation: '두 사람이 한 컴퓨터로 함께 코딩하는 것.'
+        },
+        {
+          term: '회고',
+          pronunciation: '레트로스펙티브',
+          explanation: '스프린트가 끝난 후 잘된 점과 개선점을 이야기하는 미팅.'
+        },
+        {
+          term: '심리적 안전감',
+          pronunciation: '사이콜로지컬 세이프티',
+          explanation: '실수해도 비난받지 않는다고 느끼는 환경.'
+        },
+        {
+          term: '온보딩',
+          pronunciation: '온보딩',
+          explanation: '새로운 팀원이 팀에 적응하는 과정.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '구체적 경험',
+          importance: 'must',
+          explanation: '실제 팀에서의 경험을 기반으로 설명'
+        },
+        {
+          keyword: '자기 인식',
+          importance: 'must',
+          explanation: '본인의 업무 스타일을 객관적으로 이해'
+        },
+        {
+          keyword: '우리 팀 문화 연결',
+          importance: 'good_to_have',
+          explanation: '지원 팀 문화와의 연결점 제시'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '구체적 팀 경험을 바탕으로 본인이 잘 맞는 환경과 이유를 명확히 설명하고, 우리 팀 문화와 연결.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '좋은 팀 분위기를 일반적으로 설명하지만 구체적 경험이 부족.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '팀 경험이 없거나 "아무 팀이나 괜찮다"는 식의 무관심한 답변.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q11-f1',
+          trigger: 'Expert',
+          question_text: '팀에서 갈등이 있었을 때 어떻게 대처하셨나요?',
+          why_matters: '갈등 해결 능력과 성숙도.',
+          listen_for: '구체적 갈등 상황과 건설적 해결 과정.',
+          good: {
+            text: '서로 의견을 나누고 타협점을 찾은 경험을 구체적으로 공유.',
+            score: 8
+          },
+          poor: {
+            text: '갈등이 있어본 적 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q11-f2',
+          trigger: 'Mid',
+          question_text: '팀에서 본인의 역할은 주로 어떤 편이었나요?',
+          why_matters: '팀 내 역할 인식.',
+          listen_for: '구체적 역할과 기여.',
+          good: {
+            text: '일정 관리나 분위기 메이커 등 구체적 역할 설명.',
+            score: 5
+          },
+          poor: {
+            text: '특별한 역할은 없었다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q11-f3',
+          trigger: 'Low',
+          question_text: '팀으로 일해본 경험이 있으신가요?',
+          why_matters: '기본적 협업 경험 유무.',
+          listen_for: '어떤 형태로든 팀 경험.',
+          good: {
+            text: '부트캠프 팀 프로젝트 경험이라도 구체적으로 공유.',
+            score: 5
+          },
+          poor: {
+            text: '혼자 작업만 해봤다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '이 사람이 우리 팀에 잘 어울릴지 확인합니다. 실력이 좋아도 팀 문화에 안 맞으면 오래 못 합니다.',
+        daily_analogy: '동아리를 고를 때 "분위기가 나와 맞는지"를 보는 것과 같습니다.',
+        level_expectation: '주니어에게는 대단한 팀 경험보다 "어떤 환경에서 잘 성장하는지" 자기 이해가 중요합니다.'
+      },
+      expected_answer: {
+        core: '• 구체적 팀 경험 (부트캠프, 인턴 등)\n• 잘 맞았던 이유: 소통이 자유로운, 질문하기 편한 등\n• 본인의 업무 스타일 인식',
+        example: '인턴 시절 시니어 개발자가 매일 15분 커피챗을 해주셨는데, 질문하기 편한 분위기라 빠르게 성장했습니다. 저는 모르는 것을 바로 물어볼 수 있는 환경에서 가장 잘 배웁니다.',
+        key_points: ['구체적 경험', '자기 인식', '성장 환경']
+      },
+      jd_competency_link: 'JD 요구사항: "팀 문화 기여 및 적극적 코드 리뷰 참여" → 팀 적합성 검증',
+      generation_rationale: '부트캠프→인턴→정규직 전환 이력에서 성장 가능성 확인 필요',
+      skills_assessed: ['adaptability', 'self_learning'],
+      alternative_phrasings: ['지금까지 경험한 팀 중 가장 잘 맞았던 팀은 어떤 분위기였고, 왜 잘 맞았다고 느꼈나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 12,
+      category: 'role_fit',
+      difficulty: 'Medium',
+      title: '학습 목표와 성장 방향',
+      question_text: '향후 1~2년간 개발자로서 어떤 역량을 키우고 싶으시고, 그를 위해 현재 어떤 노력을 하고 있나요?',
+      context_bridge: '저희 회사는 성장 의지가 있는 분을 적극 지원합니다.',
+      why_matters: '자기주도적 성장 의지와 구체적 계획을 확인합니다.',
+      listen_for: '막연한 목표가 아닌 구체적 계획과 현재 노력.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '로드맵',
+          pronunciation: '로드맵',
+          explanation: '목표까지의 단계별 계획.',
+          definition: '목표까지의 단계별 계획.',
+          plain_language: '목표까지의 단계별 계획.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '기술 스택',
+          pronunciation: '테크 스택',
+          explanation: '개발에 사용하는 기술의 조합.',
+          definition: '개발에 사용하는 기술의 조합.',
+          plain_language: '개발에 사용하는 기술의 조합.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'TypeScript',
+          pronunciation: '타입스크립트',
+          explanation: 'JavaScript에 타입을 추가한 언어. 실수를 줄여줌.'
+        },
+        {
+          term: '상태 관리',
+          pronunciation: '스테이트 매니지먼트',
+          explanation: '앱 전체의 데이터를 효율적으로 관리하는 기술.'
+        },
+        {
+          term: '테스트',
+          pronunciation: '테스팅',
+          explanation: '코드가 올바르게 동작하는지 자동으로 확인하는 것.'
+        },
+        {
+          term: '성능 최적화',
+          pronunciation: '퍼포먼스 옵티마이제이션',
+          explanation: '앱이 더 빠르고 부드럽게 동작하도록 개선.'
+        },
+        {
+          term: '접근성',
+          pronunciation: '액세서빌리티',
+          explanation: '모든 사용자가 웹을 이용할 수 있게 만드는 기술.'
+        },
+        {
+          term: 'CI/CD',
+          pronunciation: '시아이시디',
+          explanation: '코드를 자동으로 테스트하고 배포하는 파이프라인.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '구체적 기술 목표',
+          importance: 'must',
+          explanation: 'TypeScript 숙련, 테스트 작성 등 명확한 목표'
+        },
+        {
+          keyword: '현재 실천 중인 노력',
+          importance: 'must',
+          explanation: '말만이 아닌 실제 행동'
+        },
+        {
+          keyword: '회사 기술과 연결',
+          importance: 'good_to_have',
+          explanation: '회사에서 필요한 기술과 연결'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '구체적 기술 목표와 현재 학습 내용, 회사 기술 스택과의 연결까지 제시.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '성장하고 싶다는 의지는 있지만 구체적 계획이 부족.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '목표가 없거나 "시키는 일을 잘하겠다"는 수동적 답변.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q12-f1',
+          trigger: 'Expert',
+          question_text: '지금 학습 중인 것 중 가장 어려운 부분은?',
+          why_matters: '실제 학습 깊이 확인.',
+          listen_for: '구체적 어려움과 극복 방법.',
+          good: {
+            text: 'TypeScript 제네릭이 어렵지만 공식 문서와 예제로 연습 중.',
+            score: 8
+          },
+          poor: {
+            text: '특별히 어려운 건 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q12-f2',
+          trigger: 'Mid',
+          question_text: '관심 있는 기술이 있다면 왜 관심을 갖게 되었나요?',
+          why_matters: '동기의 구체성.',
+          listen_for: '실무 필요성이나 흥미 기반의 이유.',
+          good: {
+            text: '실무에서 필요성을 느끼거나 흥미로운 이유를 구체적으로.',
+            score: 5
+          },
+          poor: {
+            text: '유행이라서.',
+            score: 0
+          }
+        },
+        {
+          id: 'q12-f3',
+          trigger: 'Low',
+          question_text: '새로운 기술을 배울 때 주로 어떤 방법을 사용하시나요?',
+          why_matters: '학습 습관.',
+          listen_for: '체계적 학습 방법.',
+          good: {
+            text: '공식 문서, 튜토리얼, 직접 만들어보기 등.',
+            score: 5
+          },
+          poor: {
+            text: '특별한 방법 없이 그때그때.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"스스로 성장할 사람인지"를 확인합니다. 회사가 가르쳐줘야만 배우는 사람은 성장이 느립니다.',
+        daily_analogy: '운동선수가 "올해 기록을 10초 줄이겠다"는 구체적 목표가 있는 것과 "열심히 하겠다"만 말하는 것의 차이.',
+        level_expectation: '주니어에게는 거창한 목표보다 "작지만 구체적인 계획"과 "실천 중인 증거"가 핵심.'
+      },
+      expected_answer: {
+        core: '• 구체적 기술 목표 (예: TypeScript 숙련, 테스트 코드 작성)\n• 현재 학습 중인 내용\n• 회사 기술과의 연결',
+        example: '단기적으로 TypeScript를 능숙하게 쓰는 것이 목표입니다. 현재 개인 프로젝트를 TS로 마이그레이션하면서 연습 중입니다. 장기적으로는 테스트 코드 작성과 성능 최적화를 배워 더 안정적인 코드를 짜고 싶습니다.',
+        key_points: ['구체적 목표', '실천 증거', '회사 연결']
+      },
+      jd_competency_link: 'JD 요구사항: "팀 문화 기여 및 적극적 코드 리뷰 참여" → 팀 적합성 검증',
+      generation_rationale: '부트캠프→인턴→정규직 전환 이력에서 성장 가능성 확인 필요',
+      skills_assessed: ['adaptability', 'self_learning'],
+      alternative_phrasings: ['향후 1~2년간 개발자로서 어떤 역량을 키우고 싶으시고, 그를 위해 현재 어떤 노력을 하고 있나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 13,
+      category: 'role_fit',
+      difficulty: 'Hard',
+      title: '업무 스타일과 자기관리',
+      question_text: '업무 중 집중이 잘 되는 환경은 어떤 환경이고, 스스로 생산성을 높이기 위해 어떤 방법을 쓰시나요?',
+      context_bridge: '저희 팀은 자율 출퇴근+재택 혼합 방식으로 자기관리 역량이 중요합니다.',
+      why_matters: '자기관리 능력과 주도적으로 업무를 조직하는 역량을 확인합니다.',
+      listen_for: '자신의 업무 스타일을 인식하고 능동적으로 관리하는 태도.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '생산성',
+          pronunciation: '프로덕티비티',
+          explanation: '같은 시간에 얼마나 많은 성과를 내는지.',
+          definition: '같은 시간에 얼마나 많은 성과를 내는지.',
+          plain_language: '같은 시간에 얼마나 많은 성과를 내는지.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '딥 워크',
+          pronunciation: '딥 워크',
+          explanation: '방해 없이 깊이 집중하는 작업 방식.',
+          definition: '방해 없이 깊이 집중하는 작업 방식.',
+          plain_language: '방해 없이 깊이 집중하는 작업 방식.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '타임박싱',
+          pronunciation: '타임박싱',
+          explanation: '작업에 시간 제한을 걸어 집중하는 방법.'
+        },
+        {
+          term: '칸반',
+          pronunciation: '칸반',
+          explanation: '할 일, 진행 중, 완료 등으로 작업을 시각화하는 방법.'
+        },
+        {
+          term: 'Pomodoro',
+          pronunciation: '포모도로',
+          explanation: '25분 집중 + 5분 휴식을 반복하는 시간 관리 기법.'
+        },
+        {
+          term: '비동기 소통',
+          pronunciation: '비동기 소통',
+          explanation: '실시간이 아닌 메시지/문서로 소통하는 방식.'
+        },
+        {
+          term: '스탠드업',
+          pronunciation: '스탠드업',
+          explanation: '매일 짧게 진행 상황을 공유하는 미팅.'
+        },
+        {
+          term: '블로커',
+          pronunciation: '블로커',
+          explanation: '작업 진행을 막는 장애물.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '자기 인식',
+          importance: 'must',
+          explanation: '본인의 집중 패턴과 업무 스타일을 아는 것'
+        },
+        {
+          keyword: '구체적 방법',
+          importance: 'must',
+          explanation: '실제로 사용하는 생산성 관리 방법'
+        },
+        {
+          keyword: '자율근무 경험',
+          importance: 'good_to_have',
+          explanation: '재택이나 자율 환경에서의 자기 관리 경험'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '본인의 집중 패턴을 정확히 알고 구체적 관리 방법을 실천. 자율 환경에서의 경험도 공유.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '집중이 잘 되는 환경은 알지만 구체적 관리 방법이 부족.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '자기 업무 스타일을 모르거나 "시키면 한다"는 수동적 태도.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q13-f1',
+          trigger: 'Expert',
+          question_text: '재택 근무 시 집중이 안 될 때는 어떻게 극복하시나요?',
+          why_matters: '자율 환경에서의 문제 해결.',
+          listen_for: '구체적 극복 전략.',
+          good: {
+            text: '장소 변경, 타이머 사용, 작은 목표 설정 등 구체적 전략.',
+            score: 10
+          },
+          poor: {
+            text: '그런 적은 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q13-f2',
+          trigger: 'Mid',
+          question_text: '하루에 가장 생산적인 시간대는 언제인가요?',
+          why_matters: '자기 인식 확인.',
+          listen_for: '본인 패턴 인식과 활용.',
+          good: {
+            text: '오전에 집중이 잘 되어 어려운 작업을 배치한다 등.',
+            score: 5
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q13-f3',
+          trigger: 'Low',
+          question_text: '할 일이 많을 때 어떤 순서로 처리하시나요?',
+          why_matters: '기본적 작업 관리.',
+          listen_for: '우선순위 판단.',
+          good: {
+            text: '급한 것, 중요한 것 순서로 정리.',
+            score: 5
+          },
+          poor: {
+            text: '닥치는 대로 한다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '관리자가 매번 지시하지 않아도 스스로 일할 수 있는 사람인지 확인합니다.',
+        daily_analogy: '시험 공부 스타일처럼, "어떤 과목을 언제 공부하면 잘 되는지" 아는 학생이 성적이 좋습니다.',
+        level_expectation: '주니어에게 완벽한 자기관리를 기대하지 않지만, "나를 아는 노력"이 있는지가 핵심.'
+      },
+      expected_answer: {
+        core: '• 집중 환경: 조용한 환경, 오전 집중 등 구체적 인식\n• 관리 방법: 타이머, Todo 리스트, 칸반 보드 등\n• 자율근무 대처: 루틴, 장소 변경 등',
+        example: '오전에 집중이 잘 돼서 어려운 코딩 작업은 오전에 배치합니다. Notion에 할 일을 적고 Pomodoro로 25분씩 집중합니다. 재택 시에는 카페로 장소를 바꾸면 집중이 돌아옵니다.',
+        key_points: ['자기 인식', '구체적 방법', '능동적 관리']
+      },
+      jd_competency_link: 'JD 요구사항: "팀 문화 기여 및 적극적 코드 리뷰 참여" → 팀 적합성 검증',
+      generation_rationale: '부트캠프→인턴→정규직 전환 이력에서 성장 가능성 확인 필요',
+      skills_assessed: ['adaptability', 'self_learning'],
+      alternative_phrasings: ['업무 중 집중이 잘 되는 환경은 어떤 환경이고, 스스로 생산성을 높이기 위해 어떤 방법을 쓰시나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 14,
+      category: 'technical_depth',
+      difficulty: 'Easy',
+      title: 'CSS 레이아웃 기초',
+      question_text: 'Flexbox와 Grid의 차이를 설명해주시고, 각각 어떤 상황에서 사용하시나요?',
+      context_bridge: '저희 교육 플랫폼은 다양한 레이아웃이 필요해서 CSS 레이아웃 이해가 중요합니다.',
+      why_matters: 'CSS 레이아웃의 기본 도구를 이해하고 적절하게 활용할 수 있는지 확인합니다.',
+      listen_for: '단순 암기가 아닌 실제 사용 경험과 상황별 선택 기준.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'Flexbox',
+          pronunciation: '플렉스박스',
+          explanation: '요소들을 한 줄(가로 또는 세로)로 배치하는 CSS 기술.',
+          definition: '요소들을 한 줄(가로 또는 세로)로 배치하는 CSS 기술.',
+          plain_language: '요소들을 한 줄(가로 또는 세로)로 배치하는 CSS 기술.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Grid',
+          pronunciation: '그리드',
+          explanation: '요소들을 격자(행+열)로 배치하는 CSS 기술.',
+          definition: '요소들을 격자(행+열)로 배치하는 CSS 기술.',
+          plain_language: '요소들을 격자(행+열)로 배치하는 CSS 기술.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '반응형',
+          pronunciation: '리스폰시브',
+          explanation: '화면 크기에 따라 레이아웃이 자동 조절되는 것.'
+        },
+        {
+          term: 'justify-content',
+          pronunciation: '저스티파이 컨텐트',
+          explanation: '주축 방향으로 요소를 정렬하는 속성.'
+        },
+        {
+          term: 'align-items',
+          pronunciation: '얼라인 아이템즈',
+          explanation: '교차축 방향으로 요소를 정렬하는 속성.'
+        },
+        {
+          term: 'gap',
+          pronunciation: '갭',
+          explanation: '요소들 사이의 간격.'
+        },
+        {
+          term: 'media query',
+          pronunciation: '미디어 쿼리',
+          explanation: '화면 크기에 따라 다른 스타일을 적용하는 CSS 기능.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: 'Flexbox는 1차원',
+          importance: 'must',
+          explanation: '가로 또는 세로 한 방향 배치'
+        },
+        {
+          keyword: 'Grid는 2차원',
+          importance: 'must',
+          explanation: '행과 열 동시 배치'
+        },
+        {
+          keyword: '상황별 선택',
+          importance: 'good_to_have',
+          explanation: '네비게이션은 Flex, 갤러리는 Grid 등'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '1차원 vs 2차원 차이를 명확히 설명하고, 실제 프로젝트에서 각각 사용한 사례를 공유.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '차이는 대략 알지만 어떤 상황에서 쓰는지 구체적이지 않음.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '차이를 모르거나 하나만 사용해봄.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q14-f1',
+          trigger: 'Expert',
+          question_text: '반응형 디자인에서 모바일과 데스크톱 레이아웃이 다를 때 어떻게 처리하시나요?',
+          why_matters: '반응형 구현 능력.',
+          listen_for: 'media query, 모바일 퍼스트 접근.',
+          good: {
+            text: '모바일 퍼스트로 작성하고 media query로 데스크톱 스타일 추가.',
+            score: 8
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q14-f2',
+          trigger: 'Mid',
+          question_text: '가장 최근에 CSS로 만든 레이아웃을 설명해주세요.',
+          why_matters: '실제 구현 경험.',
+          listen_for: '구체적 레이아웃과 사용한 속성.',
+          good: {
+            text: '카드 목록을 Grid로 만들고 gap으로 간격 조절.',
+            score: 5
+          },
+          poor: {
+            text: '기억 안 남.',
+            score: 0
+          }
+        },
+        {
+          id: 'q14-f3',
+          trigger: 'Low',
+          question_text: '요소를 화면 가운데 정렬하려면 어떻게 하시나요?',
+          why_matters: '가장 기본적인 CSS 배치.',
+          listen_for: 'Flexbox의 justify-content, align-items.',
+          good: {
+            text: 'display:flex에 justify-content:center와 align-items:center.',
+            score: 5
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '화면 배치를 능숙하게 할 수 있는지 확인합니다. 레이아웃은 프론트엔드의 기본기입니다.',
+        daily_analogy: 'Flexbox는 책꽂이에 책을 한 줄로 세우는 것, Grid는 달력처럼 칸을 나누는 것입니다.',
+        level_expectation: '주니어에게는 Flexbox를 편하게 쓰고 Grid의 기본 개념을 아는 수준이면 충분합니다.'
+      },
+      expected_answer: {
+        core: '• Flexbox: 1차원(한 방향) 배치. 네비게이션, 버튼 그룹 등\n• Grid: 2차원(행+열) 배치. 갤러리, 대시보드 등\n• 핵심: 상황에 맞게 선택',
+        example: '네비게이션 바는 가로 한 줄이니 Flexbox로, 상품 카드 목록은 여러 줄의 격자 배치가 필요해서 Grid로 만듭니다.',
+        key_points: ['1차원 vs 2차원', '상황별 선택', '실제 경험']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['Flexbox와 Grid의 차이를 설명해주시고, 각각 어떤 상황에서 사용하시나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 15,
+      category: 'technical_depth',
+      difficulty: 'Easy',
+      title: '비동기 처리와 API 호출',
+      question_text: 'React에서 서버 API를 호출해서 데이터를 가져올 때 어떤 방식을 사용하시나요? 로딩 상태는 어떻게 처리하시나요?',
+      context_bridge: '저희 플랫폼은 서버에서 수업 데이터, 학생 정보 등을 가져와 화면에 표시합니다.',
+      why_matters: '비동기 데이터 처리와 사용자 경험(로딩 상태)을 함께 고려하는지 확인합니다.',
+      listen_for: 'fetch/axios 사용법과 로딩/에러 상태 처리 경험.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'API',
+          pronunciation: '에이피아이',
+          explanation: '서버와 데이터를 주고받는 창구. 식당 주문 창구와 비슷.',
+          definition: '서버와 데이터를 주고받는 창구. 식당 주문 창구와 비슷.',
+          plain_language: '서버와 데이터를 주고받는 창구. 식당 주문 창구와 비슷.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'fetch',
+          pronunciation: '페치',
+          explanation: '브라우저에서 서버에 데이터를 요청하는 기본 함수.',
+          definition: '브라우저에서 서버에 데이터를 요청하는 기본 함수.',
+          plain_language: '브라우저에서 서버에 데이터를 요청하는 기본 함수.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'axios',
+          pronunciation: '악시오스',
+          explanation: 'fetch보다 편리한 HTTP 요청 라이브러리.'
+        },
+        {
+          term: 'async/await',
+          pronunciation: '어싱크 어웨이트',
+          explanation: '비동기 코드를 읽기 쉽게 작성하는 문법.'
+        },
+        {
+          term: 'useEffect',
+          pronunciation: '유즈이펙트',
+          explanation: '컴포넌트가 화면에 나타날 때 API 호출 등을 실행하는 Hook.'
+        },
+        {
+          term: '로딩 상태',
+          pronunciation: '로딩 스테이트',
+          explanation: '데이터를 가져오는 중임을 사용자에게 알려주는 것.'
+        },
+        {
+          term: '에러 핸들링',
+          pronunciation: '에러 핸들링',
+          explanation: '오류가 발생했을 때 적절히 처리하는 것.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: 'useEffect + fetch/axios',
+          importance: 'must',
+          explanation: 'React에서 API 호출하는 기본 패턴'
+        },
+        {
+          keyword: '로딩 상태 관리',
+          importance: 'must',
+          explanation: 'isLoading 상태로 스피너 표시'
+        },
+        {
+          keyword: '에러 처리',
+          importance: 'good_to_have',
+          explanation: 'try-catch로 에러 상황 대응'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: 'useEffect에서 API 호출, 로딩/에러/성공 3가지 상태 관리, cleanup까지 설명.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: 'API 호출은 하지만 로딩/에러 처리가 부족.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: 'API 호출 경험이 없거나 기본 패턴을 모름.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q15-f1',
+          trigger: 'Expert',
+          question_text: 'useEffect에서 API 호출 시 cleanup이 왜 필요한가요?',
+          why_matters: '메모리 누수 방지 이해.',
+          listen_for: '컴포넌트 언마운트 시 요청 취소.',
+          good: {
+            text: '컴포넌트가 사라진 후 응답이 오면 에러가 발생하므로 AbortController로 취소.',
+            score: 8
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q15-f2',
+          trigger: 'Mid',
+          question_text: '서버 응답이 느릴 때 사용자에게 어떤 화면을 보여주시나요?',
+          why_matters: 'UX 관점의 고려.',
+          listen_for: '스피너, 스켈레톤 UI 등.',
+          good: {
+            text: '스켈레톤 UI로 화면 구조를 미리 보여줌.',
+            score: 5
+          },
+          poor: {
+            text: '빈 화면을 보여준다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q15-f3',
+          trigger: 'Low',
+          question_text: '서버에서 데이터를 가져온다는 것이 무슨 뜻인가요?',
+          why_matters: '기본 개념 이해.',
+          listen_for: '클라이언트-서버 통신의 기본.',
+          good: {
+            text: '브라우저가 서버에 데이터를 요청하고 받아오는 것.',
+            score: 5
+          },
+          poor: {
+            text: '잘 모르겠다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '서버에서 데이터를 가져와 화면에 보여주는 기본 능력을 확인합니다. 거의 모든 화면에 필요한 기술.',
+        daily_analogy: '식당 앱에서 메뉴를 불러올 때, 로딩 중에는 "메뉴를 불러오는 중..."이 나오고, 실패하면 "다시 시도해주세요"가 나오는 것.',
+        level_expectation: '주니어에게는 기본 API 호출 패턴과 로딩 상태 처리가 핵심. 고급 캐싱이나 최적화까지는 불필요.'
+      },
+      expected_answer: {
+        core: '• useEffect 안에서 fetch 또는 axios로 API 호출\n• useState로 로딩/에러/데이터 3가지 상태 관리\n• 로딩 중에는 스피너, 에러 시 메시지 표시',
+        example: 'useEffect에서 async 함수를 만들어 API를 호출합니다. isLoading이 true면 스피너를 보여주고, 에러가 나면 "다시 시도" 메시지를 표시합니다. 데이터가 오면 화면에 렌더링합니다.',
+        key_points: ['useEffect 패턴', '3가지 상태 관리', '사용자 경험']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: [
+        'React에서 서버 API를 호출해서 데이터를 가져올 때 어떤 방식을 사용하시나요? 로딩 상태는 어떻게 처리하시나요에 대해 이야기해 주세요.',
+        '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.'
+      ]
+    },
+    {
+      id: 16,
+      category: 'technical_depth',
+      difficulty: 'Hard',
+      title: '브라우저 DevTools 활용',
+      question_text: '브라우저 개발자 도구(DevTools)를 사용해서 문제를 해결한 경험을 이야기해주세요. 어떤 탭을 주로 사용하시나요?',
+      context_bridge: '프론트엔드 개발에서 DevTools는 매일 사용하는 필수 도구입니다.',
+      why_matters: '실무에서 디버깅과 성능 분석 도구를 실제로 활용하는지 확인합니다.',
+      listen_for: '구체적 사용 경험과 각 탭의 용도를 아는지.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'DevTools',
+          pronunciation: '데브툴즈',
+          explanation: '브라우저에 내장된 개발자 도구. F12로 열 수 있음.',
+          definition: '브라우저에 내장된 개발자 도구. F12로 열 수 있음.',
+          plain_language: '브라우저에 내장된 개발자 도구. F12로 열 수 있음.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Elements',
+          pronunciation: '엘리먼츠 탭',
+          explanation: 'HTML 구조와 CSS 스타일을 실시간으로 확인/수정하는 탭.',
+          definition: 'HTML 구조와 CSS 스타일을 실시간으로 확인/수정하는 탭.',
+          plain_language: 'HTML 구조와 CSS 스타일을 실시간으로 확인/수정하는 탭.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Console',
+          pronunciation: '콘솔 탭',
+          explanation: 'JavaScript 실행 결과와 에러를 보여주는 탭.'
+        },
+        {
+          term: 'Network',
+          pronunciation: '네트워크 탭',
+          explanation: '서버와 주고받는 데이터를 보여주는 탭. API 호출 확인.'
+        },
+        {
+          term: 'Performance',
+          pronunciation: '퍼포먼스 탭',
+          explanation: '페이지 속도와 성능을 분석하는 탭.'
+        },
+        {
+          term: 'Application',
+          pronunciation: '애플리케이션 탭',
+          explanation: '쿠키, 로컬 스토리지 등 브라우저 저장소를 확인하는 탭.'
+        },
+        {
+          term: 'breakpoint',
+          pronunciation: '브레이크포인트',
+          explanation: '코드 실행을 특정 줄에서 멈추게 하는 디버깅 기능.'
+        },
+        {
+          term: 'console.log',
+          pronunciation: '콘솔로그',
+          explanation: '변수 값을 콘솔에 출력하는 디버깅 방법.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '구체적 문제 해결 경험',
+          importance: 'must',
+          explanation: '실제 DevTools로 문제를 찾은 사례'
+        },
+        {
+          keyword: '탭별 용도 이해',
+          importance: 'must',
+          explanation: 'Elements, Console, Network 등 각 탭의 역할'
+        },
+        {
+          keyword: 'Network 탭 활용',
+          importance: 'good_to_have',
+          explanation: 'API 호출 디버깅에 Network 탭 사용'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '여러 탭을 상황에 맞게 사용하고, 구체적 문제 해결 사례를 설명. Network 탭으로 API 디버깅 경험.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: 'Console에서 에러 확인 정도. Elements 탭도 가끔 사용.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: 'DevTools를 거의 사용하지 않거나 console.log만 사용.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q16-f1',
+          trigger: 'Expert',
+          question_text: 'API 호출이 실패할 때 Network 탭에서 어떤 정보를 확인하시나요?',
+          why_matters: '네트워크 디버깅 능력.',
+          listen_for: '상태 코드, 요청/응답 데이터, 헤더 확인.',
+          good: {
+            text: '상태 코드(404, 500 등) 확인 후 요청 URL과 응답 데이터를 분석.',
+            score: 10
+          },
+          poor: {
+            text: '잘 모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q16-f2',
+          trigger: 'Mid',
+          question_text: 'CSS가 안 먹힐 때 어떻게 원인을 찾으시나요?',
+          why_matters: 'Elements 탭 활용.',
+          listen_for: 'Elements에서 스타일 확인, 취소선 표시 등.',
+          good: {
+            text: 'Elements에서 적용된 스타일 확인하고 우선순위 문제인지 체크.',
+            score: 5
+          },
+          poor: {
+            text: '코드를 다시 본다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q16-f3',
+          trigger: 'Low',
+          question_text: 'console.log는 어떤 상황에서 사용하시나요?',
+          why_matters: '최소한의 디버깅 습관.',
+          listen_for: '변수 값 확인, 함수 실행 순서 확인.',
+          good: {
+            text: '변수 값이 예상과 다를 때 중간중간 출력해서 확인.',
+            score: 5
+          },
+          poor: {
+            text: '사용하지 않는다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '문제를 스스로 찾아서 해결할 수 있는 도구를 가지고 있는지 확인합니다.',
+        daily_analogy: '자동차 정비사가 진단 장비를 쓰듯, 개발자는 DevTools로 문제를 진단합니다. 도구를 쓸 줄 모르면 감으로 고치는 것.',
+        level_expectation: '주니어에게는 Console과 Elements 기본 사용이 필수, Network 탭 활용까지 하면 우수.'
+      },
+      expected_answer: {
+        core: '• Console: 에러 메시지와 변수 값 확인\n• Elements: CSS 스타일 실시간 수정/확인\n• Network: API 호출 상태 코드와 응답 데이터 확인',
+        example: '화면에 데이터가 안 나와서 Network 탭을 열어보니 API가 404를 반환하고 있었습니다. URL이 잘못된 것을 발견해서 수정했습니다. CSS가 안 먹힐 때는 Elements에서 스타일 우선순위를 확인합니다.',
+        key_points: ['탭별 용도', '구체적 경험', '문제 해결 프로세스']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: [
+        '브라우저 개발자 도구(DevTools)를 사용해서 문제를 해결한 경험을 이야기해주세요. 어떤 탭을 주로 사용하시나요에 대해 이야기해 주세요.',
+        '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.'
+      ]
+    },
+    {
+      id: 17,
+      category: 'execution_ownership',
+      difficulty: 'Easy',
+      title: '업무 우선순위 정하기',
+      question_text: '동시에 여러 작업을 받았을 때 우선순위를 어떻게 정하시나요?',
+      context_bridge: '스타트업에서는 여러 작업이 동시에 들어올 때가 많습니다.',
+      why_matters: '작업의 중요도와 긴급도를 판단하고 주도적으로 관리하는 능력.',
+      listen_for: '기준을 가지고 우선순위를 정하는 체계적 사고.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '우선순위',
+          pronunciation: '프라이오리티',
+          explanation: '여러 일 중 무엇을 먼저 해야 하는지 정하는 것.',
+          definition: '여러 일 중 무엇을 먼저 해야 하는지 정하는 것.',
+          plain_language: '여러 일 중 무엇을 먼저 해야 하는지 정하는 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '긴급도',
+          pronunciation: '어전시',
+          explanation: '시간적으로 얼마나 급한지.',
+          definition: '시간적으로 얼마나 급한지.',
+          plain_language: '시간적으로 얼마나 급한지.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '중요도',
+          pronunciation: '임포턴스',
+          explanation: '비즈니스에 미치는 영향이 얼마나 큰지.'
+        },
+        {
+          term: '백로그',
+          pronunciation: '백로그',
+          explanation: '해야 할 일의 대기 목록.'
+        },
+        {
+          term: '티켓',
+          pronunciation: '티켓',
+          explanation: '개발해야 할 작업 단위. Jira 등에서 관리.'
+        },
+        {
+          term: '블로커',
+          pronunciation: '블로커',
+          explanation: '다른 사람의 작업을 막고 있는 것.'
+        },
+        {
+          term: '데일리 스탠드업',
+          pronunciation: '데일리 스탠드업',
+          explanation: '매일 아침 짧게 진행 상황을 공유하는 미팅.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '기준 제시',
+          importance: 'must',
+          explanation: '긴급도와 중요도 등 판단 기준'
+        },
+        {
+          keyword: '팀과 소통',
+          importance: 'must',
+          explanation: '혼자 판단하지 않고 필요시 매니저에게 확인'
+        },
+        {
+          keyword: '도구 활용',
+          importance: 'good_to_have',
+          explanation: 'Todo 리스트, Jira 등 관리 도구 사용'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '긴급도+중요도 기준 제시, 블로커 먼저 처리, 불확실하면 매니저에게 확인. 실제 경험.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '급한 것부터 한다는 일반적 답변. 구체적 기준 부족.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '들어온 순서대로 하거나 기준 없이 처리.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q17-f1',
+          trigger: 'Expert',
+          question_text: 'PM이 모든 작업을 긴급이라고 하면 어떻게 하시나요?',
+          why_matters: '협상과 소통 능력.',
+          listen_for: '구체적 비교 기준을 만들어 확인.',
+          good: {
+            text: '"사용자에게 미치는 영향"이나 "다른 팀 블로커 여부"로 비교해서 재확인.',
+            score: 8
+          },
+          poor: {
+            text: '다 긴급이면 어쩔 수 없이 순서대로.',
+            score: 0
+          }
+        },
+        {
+          id: 'q17-f2',
+          trigger: 'Mid',
+          question_text: '작업량을 추정할 때 어떤 기준을 사용하시나요?',
+          why_matters: '작업 규모 추정 능력.',
+          listen_for: '비슷한 경험, 분해 후 추정.',
+          good: {
+            text: '작업을 작게 나누고 비슷한 작업 경험을 기준으로 추정.',
+            score: 5
+          },
+          poor: {
+            text: '감으로 추정한다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q17-f3',
+          trigger: 'Low',
+          question_text: '할 일 목록을 어떻게 관리하시나요?',
+          why_matters: '기본적 작업 관리 습관.',
+          listen_for: '어떤 형태로든 기록하는 습관.',
+          good: {
+            text: '노트, 앱 등으로 할 일을 기록.',
+            score: 5
+          },
+          poor: {
+            text: '기억에 의존.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '여러 요청이 쏟아질 때 패닉하지 않고 정리할 수 있는 사람인지 확인합니다.',
+        daily_analogy: '시험 기간에 여러 과목을 동시에 준비할 때 "내일 시험인 과목"부터 공부하는 것과 같습니다.',
+        level_expectation: '주니어에게는 완벽한 판단보다 "기준을 가지고 생각하고 모르면 물어보는 태도"가 핵심.'
+      },
+      expected_answer: {
+        core: '• 1단계: 긴급도와 중요도 기준으로 분류\n• 2단계: 다른 팀 블로커가 되는 것 우선\n• 3단계: 불확실하면 매니저에게 확인',
+        example: '먼저 데드라인을 확인하고, 다른 팀원이 기다리는 작업(블로커)을 먼저 합니다. 비슷한 긴급도면 작은 작업부터 빨리 처리합니다. 판단이 어려우면 매니저에게 물어봅니다.',
+        key_points: ['판단 기준', '블로커 우선', '소통']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['동시에 여러 작업을 받았을 때 우선순위를 어떻게 정하시나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 18,
+      category: 'execution_ownership',
+      difficulty: 'Medium',
+      title: '코드 품질 습관',
+      question_text: '본인이 작성한 코드의 품질을 유지하기 위해 어떤 습관을 가지고 있나요?',
+      context_bridge: '저희 팀은 코드 리뷰를 통해 품질을 유지하지만, 개인의 품질 의식도 중요합니다.',
+      why_matters: '코드 품질에 대한 의식과 구체적 실천 습관을 확인합니다.',
+      listen_for: '의미 있는 변수명, 주석, 일관된 스타일 등 실제 습관.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '코드 품질',
+          pronunciation: '코드 퀄리티',
+          explanation: '코드가 읽기 쉽고, 유지보수하기 좋고, 버그가 적은 정도.',
+          definition: '코드가 읽기 쉽고, 유지보수하기 좋고, 버그가 적은 정도.',
+          plain_language: '코드가 읽기 쉽고, 유지보수하기 좋고, 버그가 적은 정도.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '리팩토링',
+          pronunciation: '리팩토링',
+          explanation: '기능은 그대로 두고 코드 구조를 개선하는 것.',
+          definition: '기능은 그대로 두고 코드 구조를 개선하는 것.',
+          plain_language: '기능은 그대로 두고 코드 구조를 개선하는 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '컨벤션',
+          pronunciation: '코딩 컨벤션',
+          explanation: '팀에서 합의한 코드 작성 규칙.'
+        },
+        {
+          term: 'Lint',
+          pronunciation: '린트',
+          explanation: '코드 스타일이나 잠재적 오류를 자동으로 검사하는 도구.'
+        },
+        {
+          term: 'Prettier',
+          pronunciation: '프리티어',
+          explanation: '코드 포맷을 자동으로 맞춰주는 도구.'
+        },
+        {
+          term: 'ESLint',
+          pronunciation: '이에스린트',
+          explanation: 'JavaScript/TypeScript 코드 규칙을 검사하는 도구.'
+        },
+        {
+          term: '네이밍',
+          pronunciation: '네이밍',
+          explanation: '변수, 함수 등에 의미 있는 이름을 짓는 것.'
+        },
+        {
+          term: 'DRY',
+          pronunciation: '디알와이',
+          explanation: '같은 코드를 반복하지 않는 원칙.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '의미 있는 네이밍',
+          importance: 'must',
+          explanation: '변수명과 함수명으로 코드를 읽기 쉽게'
+        },
+        {
+          keyword: '일관된 스타일',
+          importance: 'must',
+          explanation: 'ESLint/Prettier 등으로 스타일 통일'
+        },
+        {
+          keyword: '셀프 리뷰',
+          importance: 'good_to_have',
+          explanation: 'PR 올리기 전 본인이 먼저 검토'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '네이밍, Lint 도구, 셀프 리뷰, 작은 커밋 단위 등 여러 습관을 구체적으로 설명.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '깔끔하게 짜려고 노력한다는 일반적 답변.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '코드 품질에 대한 의식이 없거나 "동작하면 된다"는 태도.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q18-f1',
+          trigger: 'Expert',
+          question_text: '본인 코드에서 나중에 개선하고 싶었던 부분이 있었나요?',
+          why_matters: '자기 코드에 대한 비판적 시각.',
+          listen_for: '구체적 개선 포인트와 이유.',
+          good: {
+            text: '초기 프로젝트의 코드를 보면 컴포넌트 분리가 부족했는데 지금은 개선.',
+            score: 8
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q18-f2',
+          trigger: 'Mid',
+          question_text: '변수 이름을 지을 때 어떤 규칙을 따르시나요?',
+          why_matters: '네이밍 습관.',
+          listen_for: 'camelCase, 의미 있는 이름 등.',
+          good: {
+            text: '역할을 알 수 있는 이름, camelCase 사용, 약어 지양.',
+            score: 5
+          },
+          poor: {
+            text: '특별한 규칙 없이 짧게.',
+            score: 0
+          }
+        },
+        {
+          id: 'q18-f3',
+          trigger: 'Low',
+          question_text: '다른 사람이 내 코드를 읽을 때 중요한 것은 무엇일까요?',
+          why_matters: '가독성 인식.',
+          listen_for: '읽기 쉬운 코드의 중요성.',
+          good: {
+            text: '변수명이 명확하고 구조가 일관되어야 한다.',
+            score: 5
+          },
+          poor: {
+            text: '생각해본 적 없다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"다른 사람이 읽기 좋은 코드를 쓰는 사람인지" 확인합니다. 혼자 개발하는 것이 아니라 팀으로 일하므로.',
+        daily_analogy: '글쓰기에서 맞춤법, 문단 나누기, 제목 달기처럼 다른 사람이 읽기 편하게 정리하는 습관.',
+        level_expectation: '주니어에게는 네이밍 규칙과 Lint 도구 사용 정도면 충분. 아키텍처 수준의 품질까지는 불필요.'
+      },
+      expected_answer: {
+        core: '• 의미 있는 변수명/함수명\n• ESLint/Prettier로 스타일 자동 통일\n• PR 전 셀프 리뷰\n• 작은 단위로 커밋',
+        example: '변수명을 data 대신 studentList처럼 명확하게 짓고, ESLint와 Prettier를 설정해서 스타일을 통일합니다. PR을 올리기 전에 diff를 한번 더 확인하고 불필요한 console.log를 제거합니다.',
+        key_points: ['네이밍', '도구 활용', '셀프 리뷰']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['본인이 작성한 코드의 품질을 유지하기 위해 어떤 습관을 가지고 있나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 19,
+      category: 'execution_ownership',
+      difficulty: 'Hard',
+      title: '셀프 리뷰와 품질 체크 프로세스',
+      question_text: 'PR을 올리기 전에 본인만의 체크 프로세스가 있나요? 어떤 항목을 확인하시나요?',
+      context_bridge: '코드 리뷰 전에 본인이 먼저 검토하는 습관이 팀 효율을 높입니다.',
+      why_matters: '자기 코드에 대한 책임감과 품질 의식을 확인합니다.',
+      listen_for: '체계적인 셀프 체크리스트가 있는지, 실제 적용 경험.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'PR (Pull Request)',
+          pronunciation: '피알',
+          explanation: '내 코드를 팀에 보여주고 리뷰를 요청하는 것.',
+          definition: '내 코드를 팀에 보여주고 리뷰를 요청하는 것.',
+          plain_language: '내 코드를 팀에 보여주고 리뷰를 요청하는 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'diff',
+          pronunciation: '디프',
+          explanation: '변경 전과 후의 차이를 보여주는 것.',
+          definition: '변경 전과 후의 차이를 보여주는 것.',
+          plain_language: '변경 전과 후의 차이를 보여주는 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '셀프 리뷰',
+          pronunciation: '셀프 리뷰',
+          explanation: '다른 사람에게 보내기 전 본인이 먼저 검토.'
+        },
+        {
+          term: '체크리스트',
+          pronunciation: '체크리스트',
+          explanation: '확인해야 할 항목 목록.'
+        },
+        {
+          term: '엣지 케이스',
+          pronunciation: '엣지 케이스',
+          explanation: '일반적이지 않은 특수한 상황. 빈 값, 긴 텍스트 등.'
+        },
+        {
+          term: 'regression',
+          pronunciation: '리그레션',
+          explanation: '새 코드가 기존 기능을 깨뜨리는 것.'
+        },
+        {
+          term: 'console.log',
+          pronunciation: '콘솔로그',
+          explanation: '디버깅용 출력문. 배포 전에 제거해야 함.'
+        },
+        {
+          term: '하드코딩',
+          pronunciation: '하드코딩',
+          explanation: '값을 코드에 직접 입력하는 것. 변수로 관리해야 함.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: 'diff 재검토',
+          importance: 'must',
+          explanation: '변경사항을 본인이 먼저 한번 더 확인'
+        },
+        {
+          keyword: '기능 동작 확인',
+          importance: 'must',
+          explanation: '실제로 화면에서 동작 테스트'
+        },
+        {
+          keyword: '엣지 케이스 확인',
+          importance: 'good_to_have',
+          explanation: '빈 데이터, 긴 텍스트 등 특수 상황 테스트'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '구체적 체크리스트: diff 확인, 불필요한 코드 제거, 다양한 화면 크기 테스트, 엣지 케이스 확인까지.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '기능이 동작하는지 확인하는 정도. 체계적 체크리스트 없음.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '셀프 리뷰 없이 바로 PR을 올림.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q19-f1',
+          trigger: 'Expert',
+          question_text: '엣지 케이스를 발견해서 사전에 버그를 막은 경험이 있나요?',
+          why_matters: '실제 적용 사례.',
+          listen_for: '구체적 사례.',
+          good: {
+            text: '빈 배열이 들어올 때 에러가 나는 것을 발견하고 조건문 추가.',
+            score: 10
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q19-f2',
+          trigger: 'Mid',
+          question_text: 'PR에 어떤 내용을 설명으로 쓰시나요?',
+          why_matters: 'PR 작성 습관.',
+          listen_for: '변경 사항 요약, 테스트 방법.',
+          good: {
+            text: '무엇을 왜 변경했는지, 어떻게 테스트하는지 작성.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 안 쓴다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q19-f3',
+          trigger: 'Low',
+          question_text: '코드를 수정한 후 어떻게 확인하시나요?',
+          why_matters: '기본적 확인 습관.',
+          listen_for: '최소한의 동작 확인.',
+          good: {
+            text: '브라우저에서 직접 클릭해보고 콘솔 에러 확인.',
+            score: 5
+          },
+          poor: {
+            text: '확인 안 하고 올린다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"꼼꼼한 사람인지" 확인합니다. 셀프 리뷰를 하는 사람은 리뷰어의 시간을 절약해줍니다.',
+        daily_analogy: '이메일을 보내기 전에 다시 한번 읽어보는 습관과 같습니다. 오타, 첨부 파일 누락을 스스로 잡습니다.',
+        level_expectation: '주니어에게 완벽한 프로세스를 기대하진 않지만 "보내기 전에 한번 더 보는 습관"이 있는지가 중요.'
+      },
+      expected_answer: {
+        core: '• diff에서 불필요한 코드(console.log, 주석) 제거\n• 브라우저에서 직접 기능 테스트\n• 다른 화면 크기에서 깨지지 않는지 확인\n• 엣지 케이스(빈 데이터, 긴 텍스트) 테스트',
+        example: 'PR 전에 git diff를 보면서 불필요한 console.log를 제거하고, 브라우저에서 직접 클릭해봅니다. 모바일 크기도 확인하고, 데이터가 없을 때 빈 화면 대신 안내 메시지가 뜨는지 체크합니다.',
+        key_points: ['diff 확인', '직접 테스트', '엣지 케이스']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['PR을 올리기 전에 본인만의 체크 프로세스가 있나요? 어떤 항목을 확인하시나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 20,
+      category: 'communication',
+      difficulty: 'Easy',
+      title: '비개발자에게 기술 설명',
+      question_text: '기술을 모르는 동료(디자이너, 기획자)에게 기술적 이슈를 설명해야 할 때 어떻게 하시나요?',
+      context_bridge: '저희 팀에서는 개발자가 비개발 직군에게 기술 현황을 설명하는 일이 많습니다.',
+      why_matters: '기술적 내용을 비전문가에게 쉽게 전달하는 소통 능력을 확인합니다.',
+      listen_for: '전문 용어를 피하고 비유나 시각 자료를 활용하는 태도.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '기술 부채',
+          pronunciation: '테크니컬 뎃',
+          explanation: '빠르게 만들기 위해 나중에 고쳐야 할 것들이 쌓인 것.',
+          definition: '빠르게 만들기 위해 나중에 고쳐야 할 것들이 쌓인 것.',
+          plain_language: '빠르게 만들기 위해 나중에 고쳐야 할 것들이 쌓인 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '비유',
+          pronunciation: '아날로지',
+          explanation: '어려운 개념을 일상 사례로 설명하는 방법.',
+          definition: '어려운 개념을 일상 사례로 설명하는 방법.',
+          plain_language: '어려운 개념을 일상 사례로 설명하는 방법.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '시각화',
+          pronunciation: '비주얼라이제이션',
+          explanation: '데이터나 구조를 그림/차트로 보여주는 것.'
+        },
+        {
+          term: '이해관계자',
+          pronunciation: '스테이크홀더',
+          explanation: '프로젝트에 관련된 모든 사람들.'
+        },
+        {
+          term: '요구사항',
+          pronunciation: '리콰이어먼트',
+          explanation: '만들어야 하는 기능의 조건.'
+        },
+        {
+          term: 'POC',
+          pronunciation: '피오씨',
+          explanation: '개념 증명. 아이디어가 가능한지 간단히 만들어보는 것.'
+        },
+        {
+          term: '마일스톤',
+          pronunciation: '마일스톤',
+          explanation: '프로젝트의 중요한 중간 목표.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '쉬운 말 사용',
+          importance: 'must',
+          explanation: '전문 용어 대신 일상 언어'
+        },
+        {
+          keyword: '비유 활용',
+          importance: 'must',
+          explanation: '일상적 사례로 비유해서 설명'
+        },
+        {
+          keyword: '시각 자료',
+          importance: 'good_to_have',
+          explanation: '그림, 다이어그램으로 보여주기'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '상대의 수준에 맞춰 비유와 시각 자료를 활용하며, 실제 경험을 바탕으로 설명.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '쉽게 설명하려 노력하지만 여전히 기술 용어가 섞임.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '기술 용어를 그대로 사용하거나 "설명할 필요 없다"는 태도.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q20-f1',
+          trigger: 'Expert',
+          question_text: '"이 기능은 시간이 더 걸린다"를 기획자에게 어떻게 설명하시나요?',
+          why_matters: '실무적 소통 능력.',
+          listen_for: '기술적 이유를 비즈니스 관점으로 변환.',
+          good: {
+            text: '"건물 기초를 먼저 다져야 나중에 무너지지 않습니다"처럼 비유.',
+            score: 8
+          },
+          poor: {
+            text: '기술적 이유를 그대로 나열.',
+            score: 0
+          }
+        },
+        {
+          id: 'q20-f2',
+          trigger: 'Mid',
+          question_text: '비개발자가 이해 못하는 것 같을 때 어떻게 하시나요?',
+          why_matters: '소통 조정 능력.',
+          listen_for: '다른 방식으로 다시 설명.',
+          good: {
+            text: '그림을 그리거나 다른 비유로 다시 시도.',
+            score: 5
+          },
+          poor: {
+            text: '같은 말을 반복.',
+            score: 0
+          }
+        },
+        {
+          id: 'q20-f3',
+          trigger: 'Low',
+          question_text: '최근에 누군가에게 어려운 것을 쉽게 설명한 경험이 있나요?',
+          why_matters: '소통 경험 유무.',
+          listen_for: '어떤 분야든 쉽게 설명한 경험.',
+          good: {
+            text: '부모님에게 스마트폰 기능을 알려드린 경험 등.',
+            score: 5
+          },
+          poor: {
+            text: '그런 경험이 없다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '다른 팀원들이 이 사람과 소통하기 편한지 확인합니다. 개발자만의 세계에 갇히지 않는 것이 중요.',
+        daily_analogy: '의사가 환자에게 병명을 쉬운 말로 설명하는 것과 같습니다. "TCP 핸드셰이크" 대신 "서로 인사하고 확인하는 과정".',
+        level_expectation: '주니어에게는 "전문 용어 없이 설명하려는 노력"이 핵심.'
+      },
+      expected_answer: {
+        core: '• 전문 용어를 일상 언어로 변환\n• 비유를 활용하여 핵심 전달\n• 상대가 이해했는지 확인',
+        example: 'API 오류를 설명할 때 "식당에 주문했는데 주방에서 재료가 없다고 답한 상황"이라고 비유합니다. 기술적 이유보다 "사용자에게 어떤 영향이 있고 언제 고칠 수 있는지"를 먼저 말합니다.',
+        key_points: ['쉬운 말', '비유 활용', '상대 확인']
+      },
+      jd_competency_link: 'JD 요구사항: "코드 리뷰 참여 및 피드백 반영" → 협업 및 소통 검증',
+      generation_rationale: '팀 프로젝트 경험이 제한적이어서 협업 역량 확인',
+      skills_assessed: ['collaboration', 'feedback'],
+      alternative_phrasings: ['기술을 모르는 동료(디자이너, 기획자)에게 기술적 이슈를 설명해야 할 때 어떻게 하시나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 21,
+      category: 'communication',
+      difficulty: 'Medium',
+      title: '의견 충돌 해결',
+      question_text: '팀원과 기술적 의견이 다를 때 어떻게 해결하시나요? 실제 경험이 있으면 이야기해주세요.',
+      context_bridge: '저희 팀에서는 기술 결정 시 토론을 통해 합의합니다.',
+      why_matters: '건설적인 의견 교환과 합의 도출 능력을 확인합니다.',
+      listen_for: '감정적이 아닌 논리적 토론, 데이터 기반 판단, 결정 후 따르기.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '기술 결정',
+          pronunciation: '테크니컬 디시전',
+          explanation: '어떤 기술이나 방법을 쓸지 선택하는 것.',
+          definition: '어떤 기술이나 방법을 쓸지 선택하는 것.',
+          plain_language: '어떤 기술이나 방법을 쓸지 선택하는 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: '트레이드오프',
+          pronunciation: '트레이드오프',
+          explanation: '하나를 선택하면 다른 것을 포기해야 하는 상황.',
+          definition: '하나를 선택하면 다른 것을 포기해야 하는 상황.',
+          plain_language: '하나를 선택하면 다른 것을 포기해야 하는 상황.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'ADR',
+          pronunciation: '에이디알',
+          explanation: '아키텍처 결정 기록. 왜 이 기술을 선택했는지 기록.'
+        },
+        {
+          term: 'POC',
+          pronunciation: '피오씨',
+          explanation: '두 방법 중 어떤 것이 나은지 간단히 만들어 비교.'
+        },
+        {
+          term: '벤치마크',
+          pronunciation: '벤치마크',
+          explanation: '성능을 수치로 비교하는 것.'
+        },
+        {
+          term: '합의',
+          pronunciation: '컨센서스',
+          explanation: '모든 구성원이 동의하는 결론.'
+        },
+        {
+          term: '코드 리뷰',
+          pronunciation: '코드 리뷰',
+          explanation: '코드를 함께 검토하면서 의견을 나누는 과정.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '데이터 기반 토론',
+          importance: 'must',
+          explanation: '감정이 아닌 사실/데이터로 의견 제시'
+        },
+        {
+          keyword: '상대 의견 경청',
+          importance: 'must',
+          explanation: '먼저 상대의 근거를 이해하려는 자세'
+        },
+        {
+          keyword: '결정 후 따르기',
+          importance: 'good_to_have',
+          explanation: '합의된 결정에 대한 존중'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '상대 의견을 먼저 듣고 데이터로 비교 후 합의. 결정 후에는 따르는 성숙한 태도.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '의견이 다르면 양보한다는 일반적 답변. 구체적 사례 부족.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '갈등을 피하거나, 자기 의견만 고집하거나, 경험이 전혀 없음.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q21-f1',
+          trigger: 'Expert',
+          question_text: '본인이 양보한 결정이 나중에 문제가 된 경험이 있나요?',
+          why_matters: '결정 후 태도와 학습.',
+          listen_for: '비난하지 않고 함께 해결하는 태도.',
+          good: {
+            text: '당시 결정의 이유가 있었으므로 함께 개선 방향을 찾았다.',
+            score: 8
+          },
+          poor: {
+            text: '내가 맞았는데 안 들어서 그렇다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q21-f2',
+          trigger: 'Mid',
+          question_text: '시니어와 의견이 다를 때도 본인 생각을 말하시나요?',
+          why_matters: '주니어의 의견 표현 용기.',
+          listen_for: '예의를 갖추되 의견을 말하는 태도.',
+          good: {
+            text: '근거가 있으면 정중하게 의견을 제시한다.',
+            score: 5
+          },
+          poor: {
+            text: '시니어가 무조건 맞으니 말하지 않는다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q21-f3',
+          trigger: 'Low',
+          question_text: '팀에서 결정을 내릴 때 어떤 방식이 좋다고 생각하시나요?',
+          why_matters: '의사결정에 대한 인식.',
+          listen_for: '토론과 합의의 가치.',
+          good: {
+            text: '각자 의견을 나누고 장단점을 비교해서 결정.',
+            score: 5
+          },
+          poor: {
+            text: '리더가 정하면 된다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"의견이 다를 때 감정적이지 않고 건설적으로 해결하는 사람인지" 확인합니다.',
+        daily_analogy: '여행지를 고를 때 "산이 좋다"는 사람과 "바다가 좋다"는 사람이 각각 이유를 말하고, 날씨/비용을 비교해서 결정하는 것.',
+        level_expectation: '주니어에게는 "의견을 말할 용기"와 "결정을 존중하는 태도" 두 가지 균형이 핵심.'
+      },
+      expected_answer: {
+        core: '• 상대 의견을 먼저 경청\n• 각자의 근거를 데이터/예시로 비교\n• 합의점을 찾고, 결정 후에는 따르기',
+        example: 'CSS-in-JS vs Tailwind 논쟁에서 각각 장단점을 정리하고 팀 상황(러닝커브, 기존 코드)을 기준으로 비교했습니다. 팀이 Tailwind를 선택했고, 처음엔 선호하지 않았지만 사용해보니 장점을 이해했습니다.',
+        key_points: ['경청', '데이터 기반', '결정 존중']
+      },
+      jd_competency_link: 'JD 요구사항: "코드 리뷰 참여 및 피드백 반영" → 협업 및 소통 검증',
+      generation_rationale: '팀 프로젝트 경험이 제한적이어서 협업 역량 확인',
+      skills_assessed: ['collaboration', 'feedback'],
+      alternative_phrasings: ['팀원과 기술적 의견이 다를 때 어떻게 해결하시나요? 실제 경험이 있으면 이야기해주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 22,
+      category: 'communication',
+      difficulty: 'Hard',
+      title: '기술 문서 작성과 지식 공유',
+      question_text: '다른 팀원이 참고할 수 있도록 문서를 작성하거나 지식을 공유한 경험이 있나요? 어떤 방식으로 하셨나요?',
+      context_bridge: '저희 팀은 문서화를 중요하게 생각하며, 온보딩 문서와 기술 가이드를 함께 관리합니다.',
+      why_matters: '지식 공유 의식과 문서 작성 능력을 확인합니다.',
+      listen_for: '문서화의 가치를 이해하고 실제로 실천한 경험.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '문서화',
+          pronunciation: '도큐멘테이션',
+          explanation: '코드나 프로세스를 글로 정리하여 기록하는 것.',
+          definition: '코드나 프로세스를 글로 정리하여 기록하는 것.',
+          plain_language: '코드나 프로세스를 글로 정리하여 기록하는 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'README',
+          pronunciation: '리드미',
+          explanation: '프로젝트 설명서. 처음 보는 사람이 이해할 수 있게 작성.',
+          definition: '프로젝트 설명서. 처음 보는 사람이 이해할 수 있게 작성.',
+          plain_language: '프로젝트 설명서. 처음 보는 사람이 이해할 수 있게 작성.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Wiki',
+          pronunciation: '위키',
+          explanation: '팀 내 지식을 정리하는 공간.'
+        },
+        {
+          term: 'JSDoc',
+          pronunciation: '제이에스독',
+          explanation: '코드에 설명을 달아 자동으로 문서를 만드는 도구.'
+        },
+        {
+          term: 'Confluence',
+          pronunciation: '컨플루언스',
+          explanation: '팀 문서를 관리하는 도구.'
+        },
+        {
+          term: '온보딩 문서',
+          pronunciation: '온보딩 도큐먼트',
+          explanation: '새로 합류한 팀원이 참고할 안내 문서.'
+        },
+        {
+          term: '코드 주석',
+          pronunciation: '코멘트',
+          explanation: '코드 사이에 설명을 적는 것.'
+        },
+        {
+          term: '기술 블로그',
+          pronunciation: '테크 블로그',
+          explanation: '기술 경험을 글로 공유하는 블로그.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '문서화 경험',
+          importance: 'must',
+          explanation: '어떤 형태든 지식을 기록/공유한 경험'
+        },
+        {
+          keyword: '대상 인식',
+          importance: 'must',
+          explanation: '누가 읽을지 생각하고 수준에 맞게 작성'
+        },
+        {
+          keyword: '지속적 업데이트',
+          importance: 'good_to_have',
+          explanation: '한번 쓰고 방치가 아닌 업데이트 의식'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: 'README, 기술 블로그, 팀 Wiki 등 구체적 문서화 경험과 효과를 공유.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '코드 주석 정도는 달지만 체계적 문서화 경험은 부족.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: 0,
+          text: '문서화 경험이 없거나 필요성을 느끼지 못함.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q22-f1',
+          trigger: 'Expert',
+          question_text: '좋은 기술 문서의 조건은 무엇이라고 생각하시나요?',
+          why_matters: '문서 품질 의식.',
+          listen_for: '읽기 쉽고, 최신이며, 예시가 있는 문서.',
+          good: {
+            text: '배경/목적/사용법/예시가 있고, 최신 상태로 유지되는 문서.',
+            score: 10
+          },
+          poor: {
+            text: '잘 모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q22-f2',
+          trigger: 'Mid',
+          question_text: '새 팀원이 들어왔을 때 어떤 문서가 있으면 좋을까요?',
+          why_matters: '온보딩 관점의 문서 인식.',
+          listen_for: '환경 설정, 코드 구조, 규칙 등.',
+          good: {
+            text: '개발 환경 세팅 가이드, 코드 구조 설명, 팀 규칙.',
+            score: 5
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q22-f3',
+          trigger: 'Low',
+          question_text: '코드에 주석을 달아본 적이 있나요?',
+          why_matters: '가장 기본적인 문서화.',
+          listen_for: '주석의 필요성 인식.',
+          good: {
+            text: '복잡한 로직에 왜 이렇게 했는지 주석을 단다.',
+            score: 5
+          },
+          poor: {
+            text: '주석을 안 단다.',
+            score: 0
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"이 사람이 팀의 지식을 늘려주는 사람인지" 확인합니다. 코드만 잘 짜는 것이 아니라 팀을 도울 수 있는가.',
+        daily_analogy: '요리 레시피를 적어두는 것과 같습니다. 나만 알면 내가 없으면 못 만들고, 적어두면 누구든 만들 수 있습니다.',
+        level_expectation: '주니어에게 체계적 문서화를 기대하진 않지만 "기록하려는 습관"과 "공유 의식"이 있으면 우수.'
+      },
+      expected_answer: {
+        core: '• 문서화 경험: README, 기술 블로그, TIL 등\n• 읽는 사람을 고려한 작성\n• 지식 공유의 가치 인식',
+        example: '부트캠프에서 프로젝트 README를 작성했고, 개인 TIL 블로그에 매일 배운 것을 정리했습니다. 인턴 때는 환경 설정 과정에서 막혔던 부분을 정리해서 팀 Notion에 올렸더니 다음 인턴이 참고했습니다.',
+        key_points: ['문서화 경험', '대상 인식', '공유 의식']
+      },
+      jd_competency_link: 'JD 요구사항: "코드 리뷰 참여 및 피드백 반영" → 협업 및 소통 검증',
+      generation_rationale: '팀 프로젝트 경험이 제한적이어서 협업 역량 확인',
+      skills_assessed: ['collaboration', 'feedback'],
+      alternative_phrasings: ['다른 팀원이 참고할 수 있도록 문서를 작성하거나 지식을 공유한 경험이 있나요? 어떤 방식으로 하셨나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 23,
+      category: 'risk_flags',
+      difficulty: 'Easy',
+      title: '팀 프로젝트 경험 수준',
+      is_risk: true,
+      risk_source: '이력서/GitHub에서 팀 프로젝트 경험이 부트캠프 2회+실무 1년으로 제한적',
+      question_text: '팀으로 개발한 경험에서 본인의 역할과 기여를 구체적으로 설명해주세요. 팀 규모와 협업 방식도 알려주세요.',
+      context_bridge: '이력서를 보면 팀 프로젝트 경험이 부트캠프 위주인데, 실무에서의 협업 경험이 궁금합니다.',
+      why_matters: '실제 팀 협업 경험의 깊이와 협업 역량을 확인합니다.',
+      listen_for: '구체적 역할과 기여, Git 브랜치 전략, 코드 리뷰 참여 등 실질적 경험.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'Git 브랜치',
+          pronunciation: '깃 브랜치',
+          explanation: '코드를 독립적으로 수정할 수 있는 분기. 나뭇가지처럼.',
+          definition: '코드를 독립적으로 수정할 수 있는 분기. 나뭇가지처럼.',
+          plain_language: '코드를 독립적으로 수정할 수 있는 분기. 나뭇가지처럼.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'merge',
+          pronunciation: '머지',
+          explanation: '분리된 코드를 합치는 것.',
+          definition: '분리된 코드를 합치는 것.',
+          plain_language: '분리된 코드를 합치는 것.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'conflict',
+          pronunciation: '컨플릭트',
+          explanation: '같은 코드를 다르게 수정해서 합칠 때 충돌하는 것.'
+        },
+        {
+          term: 'Jira',
+          pronunciation: '지라',
+          explanation: '작업을 관리하는 도구. 할 일, 진행 중, 완료 등.'
+        },
+        {
+          term: '스크럼',
+          pronunciation: '스크럼',
+          explanation: '2주 단위로 목표를 세우고 매일 진행 상황을 공유.'
+        },
+        {
+          term: '역할 분담',
+          pronunciation: '역할 분담',
+          explanation: '팀원마다 담당할 부분을 나누는 것.'
+        },
+        {
+          term: '코드 리뷰',
+          pronunciation: '코드 리뷰',
+          explanation: '서로의 코드를 검토하는 과정.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '구체적 역할',
+          importance: 'must',
+          explanation: '본인이 담당한 기능/모듈을 명확히'
+        },
+        {
+          keyword: '협업 도구/방식',
+          importance: 'must',
+          explanation: 'Git, 커뮤니케이션 등 실제 협업 경험'
+        },
+        {
+          keyword: '갈등 해결 경험',
+          importance: 'good_to_have',
+          explanation: '팀에서 문제가 있었을 때 대처'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 15,
+          text: '팀 규모, 본인 역할, Git 워크플로우, 코드 리뷰, 갈등 해결까지 구체적으로 설명.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 8,
+          text: '팀 경험은 있지만 역할이 모호하거나 협업 방식이 체계적이지 않음.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: '팀 경험이 거의 없거나 본인 기여를 설명 못함. 혼자 다 했다고 주장.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q23-f1',
+          trigger: 'Expert',
+          question_text: '팀에서 merge conflict가 났을 때 어떻게 해결하셨나요?',
+          why_matters: '실질적 Git 협업 경험.',
+          listen_for: 'conflict 원인 파악과 해결 과정.',
+          good: {
+            text: '변경 내용을 비교하고 팀원과 상의해서 어떤 코드를 유지할지 결정.',
+            score: 8
+          },
+          poor: {
+            text: 'conflict를 겪어본 적 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q23-f2',
+          trigger: 'Mid',
+          question_text: '다음 팀 프로젝트에서 개선하고 싶은 협업 방식이 있나요?',
+          why_matters: '협업에 대한 성찰.',
+          listen_for: '구체적 개선점.',
+          good: {
+            text: 'PR 단위를 더 작게 하고 리뷰를 더 자주 하고 싶다.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q23-f3',
+          trigger: 'Low',
+          question_text: '팀 프로젝트에서 가장 어려운 점은 무엇인가요?',
+          why_matters: '협업 난이도 인식.',
+          listen_for: '소통, 일정 조율 등.',
+          good: {
+            text: '의견을 맞추는 것이 어렵지만 소통으로 해결하려 노력.',
+            score: 5
+          },
+          poor: {
+            text: '혼자 하는 게 편하다.',
+            score: -3
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"실제로 팀에서 일한 경험이 있는지, 협업 준비가 된 사람인지" 확인합니다.',
+        daily_analogy: '조별 과제에서 "저는 발표자료 디자인을 담당했고 매일 카톡방에서 진행 상황을 공유했습니다"처럼 구체적 역할.',
+        level_expectation: '주니어에게 대규모 팀 경험을 기대하진 않습니다. 부트캠프 팀 경험이라도 본인 역할을 구체적으로 말하면 괜찮습니다.'
+      },
+      expected_answer: {
+        core: '• 팀 규모와 구성\n• 본인 담당 기능/역할\n• 협업 방식: Git 브랜치, 코드 리뷰, 소통 도구\n• 배운 점',
+        example: '부트캠프에서 4명 팀으로 교육 앱을 만들었습니다. 저는 강의 목록 페이지와 검색 기능을 담당했습니다. Git Flow로 브랜치를 관리하고 매일 Discord에서 진행 상황을 공유했습니다. 처음 conflict가 났을 때 당황했지만 팀원과 함께 해결했습니다.',
+        key_points: ['구체적 역할', '협업 방식', '성장']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['팀으로 개발한 경험에서 본인의 역할과 기여를 구체적으로 설명해주세요. 팀 규모와 협업 방식도 알려주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 24,
+      category: 'risk_flags',
+      difficulty: 'Medium',
+      title: '테스트 코드 작성 경험',
+      is_risk: true,
+      risk_source: 'GitHub에서 테스트 코드가 일부 프로젝트에만 발견, 체계적 테스트 습관 미형성',
+      question_text: '테스트 코드를 작성해본 경험이 있나요? 프론트엔드에서 테스트가 왜 필요하다고 생각하시나요?',
+      context_bridge: 'GitHub 코드를 보면 테스트 코드가 거의 없는데, 저희 팀은 테스트를 중요하게 생각합니다.',
+      why_matters: '테스트에 대한 인식과 학습 의지를 확인합니다.',
+      listen_for: '경험 유무보다 테스트의 필요성 인식과 배우려는 태도.',
+      code_reference: null,
+      terminology: [
+        {
+          term: '단위 테스트',
+          pronunciation: '유닛 테스트',
+          explanation: '함수 하나가 제대로 동작하는지 확인하는 테스트.',
+          definition: '함수 하나가 제대로 동작하는지 확인하는 테스트.',
+          plain_language: '함수 하나가 제대로 동작하는지 확인하는 테스트.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Jest',
+          pronunciation: '제스트',
+          explanation: 'JavaScript에서 가장 많이 쓰이는 테스트 도구.',
+          definition: 'JavaScript에서 가장 많이 쓰이는 테스트 도구.',
+          plain_language: 'JavaScript에서 가장 많이 쓰이는 테스트 도구.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'React Testing Library',
+          pronunciation: '리액트 테스팅 라이브러리',
+          explanation: 'React 컴포넌트를 사용자 관점에서 테스트하는 도구.'
+        },
+        {
+          term: 'E2E 테스트',
+          pronunciation: '이투이 테스트',
+          explanation: '사용자가 실제로 하는 동작을 처음부터 끝까지 테스트.'
+        },
+        {
+          term: '테스트 커버리지',
+          pronunciation: '테스트 커버리지',
+          explanation: '코드 중 테스트가 확인하는 비율.'
+        },
+        {
+          term: 'TDD',
+          pronunciation: '티디디',
+          explanation: '테스트를 먼저 작성하고 코드를 만드는 방법.'
+        },
+        {
+          term: 'regression',
+          pronunciation: '리그레션',
+          explanation: '새 코드가 기존 기능을 깨뜨리는 것.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '테스트 필요성 인식',
+          importance: 'must',
+          explanation: '왜 테스트가 필요한지 이해'
+        },
+        {
+          keyword: '솔직한 현재 수준',
+          importance: 'must',
+          explanation: '경험 부족을 인정하고 배우겠다는 태도'
+        },
+        {
+          keyword: '학습 계획',
+          importance: 'good_to_have',
+          explanation: '테스트 학습 계획이 있는지'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 20,
+          text: '기본적 테스트 경험이 있고 필요성을 구체적으로 설명. 학습 계획도 있음.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 10,
+          text: '테스트 필요성은 알지만 경험이 거의 없음. 배우겠다는 의지.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: '테스트가 불필요하다고 생각하거나 관심이 전혀 없음.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q24-f1',
+          trigger: 'Expert',
+          question_text: '어떤 컴포넌트를 테스트한다면 무엇을 확인하시겠습니까?',
+          why_matters: '테스트 관점 이해.',
+          listen_for: '렌더링, 사용자 상호작용, 상태 변화.',
+          good: {
+            text: '버튼 클릭 시 상태 변화, 올바른 텍스트 렌더링, 에러 상황.',
+            score: 8
+          },
+          poor: {
+            text: '모르겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q24-f2',
+          trigger: 'Mid',
+          question_text: '테스트 없이 코드를 수정할 때 어떤 점이 불안하나요?',
+          why_matters: '테스트 부재의 문제 인식.',
+          listen_for: '기존 기능이 깨질 수 있다는 인식.',
+          good: {
+            text: '다른 기능이 깨지지 않았는지 확인할 방법이 없어 불안.',
+            score: 5
+          },
+          poor: {
+            text: '불안한 적 없다.',
+            score: -2
+          }
+        },
+        {
+          id: 'q24-f3',
+          trigger: 'Low',
+          question_text: '코드가 올바르게 동작하는지 어떻게 확인하시나요?',
+          why_matters: '최소한의 검증 습관.',
+          listen_for: '브라우저에서 직접 확인이라도.',
+          good: {
+            text: '브라우저에서 직접 클릭하며 확인하고 콘솔 에러 체크.',
+            score: 5
+          },
+          poor: {
+            text: '특별히 확인 안 한다.',
+            score: -3
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"안정적인 코드를 만들 수 있는 사람인지" 확인합니다. 테스트 없으면 수정할 때마다 다른 기능이 깨질 수 있음.',
+        daily_analogy: '맞춤법 검사기 없이 글을 쓰는 것과 비슷합니다. 지금은 괜찮아 보여도 긴 글에서는 실수를 놓치게 됩니다.',
+        level_expectation: '주니어에게 높은 커버리지를 기대하지 않지만 "테스트가 왜 필요한지 아는 것"과 "배우겠다는 태도"가 핵심.'
+      },
+      expected_answer: {
+        core: '• 현재: 테스트 경험이 부족함을 인정\n• 인식: 코드 수정 시 기존 기능 보호, 리팩토링 안전망\n• 계획: Jest와 React Testing Library 학습',
+        example: '솔직히 테스트 코드를 체계적으로 작성해본 적은 없습니다. 하지만 인턴 때 버그 수정 후 다른 기능이 깨진 경험이 있어서 테스트의 필요성을 느꼈습니다. Jest 기초 강의를 듣기 시작했고, 새 프로젝트부터는 간단한 테스트라도 작성하려고 합니다.',
+        key_points: ['솔직한 인정', '필요성 이해', '학습 의지']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: ['테스트 코드를 작성해본 경험이 있나요? 프론트엔드에서 테스트가 왜 필요하다고 생각하시나요에 대해 이야기해 주세요.', '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.']
+    },
+    {
+      id: 25,
+      category: 'risk_flags',
+      difficulty: 'Hard',
+      title: '기술 경험 범위의 한계',
+      is_risk: true,
+      risk_source: '부트캠프 커리큘럼 중심 학습으로 React 외 기술 경험이 매우 제한적',
+      question_text: 'React 외에 다른 프론트엔드 기술이나 도구를 사용해본 경험이 있나요? 새로운 기술을 배워야 할 때 어떻게 접근하시나요?',
+      context_bridge: '저희 팀은 React가 주력이지만 Storybook, Cypress 등 다양한 도구를 사용합니다.',
+      why_matters: '기술 범위의 한계를 인식하고 새로운 것을 배울 준비가 되어 있는지 확인합니다.',
+      listen_for: '좁은 경험을 인정하면서도 학습에 대한 적극적 태도.',
+      code_reference: null,
+      terminology: [
+        {
+          term: 'Storybook',
+          pronunciation: '스토리북',
+          explanation: '컴포넌트를 독립적으로 개발하고 문서화하는 도구.',
+          definition: '컴포넌트를 독립적으로 개발하고 문서화하는 도구.',
+          plain_language: '컴포넌트를 독립적으로 개발하고 문서화하는 도구.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Cypress',
+          pronunciation: '사이프레스',
+          explanation: '브라우저에서 자동으로 테스트를 실행하는 E2E 테스트 도구.',
+          definition: '브라우저에서 자동으로 테스트를 실행하는 E2E 테스트 도구.',
+          plain_language: '브라우저에서 자동으로 테스트를 실행하는 E2E 테스트 도구.',
+          context: '주니어 프론트엔드 면접에서 자주 등장하는 용어'
+        },
+        {
+          term: 'Webpack',
+          pronunciation: '웹팩',
+          explanation: '여러 파일을 하나로 묶어주는 빌드 도구.'
+        },
+        {
+          term: 'Vite',
+          pronunciation: '비트',
+          explanation: '빠른 개발 서버와 빌드를 제공하는 최신 도구.'
+        },
+        {
+          term: 'Next.js',
+          pronunciation: '넥스트제이에스',
+          explanation: 'React 기반의 프레임워크. 서버사이드 렌더링 지원.'
+        },
+        {
+          term: 'GraphQL',
+          pronunciation: '그래프큐엘',
+          explanation: '서버에서 데이터를 가져오는 쿼리 언어. REST API의 대안.'
+        },
+        {
+          term: '상태 관리',
+          pronunciation: '스테이트 매니지먼트',
+          explanation: '앱 전체의 데이터를 관리하는 기술. Redux, Zustand 등.'
+        },
+        {
+          term: 'CI/CD',
+          pronunciation: '시아이시디',
+          explanation: '코드를 자동으로 테스트하고 배포하는 파이프라인.'
+        }
+      ],
+      answer_keywords: [
+        {
+          keyword: '현재 한계 인정',
+          importance: 'must',
+          explanation: 'React 외 경험이 부족함을 솔직하게'
+        },
+        {
+          keyword: '학습 방법론',
+          importance: 'must',
+          explanation: '새 기술을 배우는 구체적 접근법'
+        },
+        {
+          keyword: '학습 사례',
+          importance: 'good_to_have',
+          explanation: '실제로 새 기술을 배운 경험'
+        }
+      ],
+      scenarios: [
+        {
+          level: 'Expert',
+          score: 25,
+          text: '한계를 인정하면서 새 기술을 배운 구체적 경험과 체계적 학습법을 공유.',
+          depth_expectations: '구체적 경험과 결과를 들어 설명. 학습 과정의 어려움과 극복 방법까지 공유.'
+        },
+        {
+          level: 'Mid',
+          score: 12,
+          text: '한계는 인정하지만 학습 방법이 구체적이지 않음.',
+          depth_expectations: '기본 이해는 있으나 실제 적용 경험이 부족. 추가 질문으로 잠재력 확인.'
+        },
+        {
+          level: 'Low',
+          score: -5,
+          text: 'React만 알면 된다는 태도이거나, 새 기술에 대한 관심/의지가 없음.',
+          depth_expectations: '기본 개념 이해 부족. 학습 의지나 방법론도 불명확.'
+        }
+      ],
+      follow_ups: [
+        {
+          id: 'q25-f1',
+          trigger: 'Expert',
+          question_text: '가장 최근에 새로 배운 기술은 무엇이고 얼마나 걸렸나요?',
+          why_matters: '학습 속도와 방법.',
+          listen_for: '구체적 기술과 학습 과정.',
+          good: {
+            text: 'Tailwind를 2주간 공식 문서+프로젝트 적용으로 익혔다.',
+            score: 10
+          },
+          poor: {
+            text: '최근에 새로 배운 건 없다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q25-f2',
+          trigger: 'Mid',
+          question_text: 'TypeScript를 더 깊이 배우기 위해 어떤 계획이 있나요?',
+          why_matters: '구체적 학습 의지.',
+          listen_for: '실천 가능한 계획.',
+          good: {
+            text: '기존 JS 프로젝트를 TS로 마이그레이션하면서 학습.',
+            score: 5
+          },
+          poor: {
+            text: '필요하면 그때 배우겠다.',
+            score: 0
+          }
+        },
+        {
+          id: 'q25-f3',
+          trigger: 'Low',
+          question_text: 'React를 처음 배울 때 어떻게 배우셨나요?',
+          why_matters: '학습 패턴 확인.',
+          listen_for: '자기만의 학습 방법.',
+          good: {
+            text: '공식 문서 읽고 클론 코딩하면서 적용.',
+            score: 5
+          },
+          poor: {
+            text: '부트캠프에서 시키는 대로.',
+            score: -3
+          }
+        }
+      ],
+      interviewer_note: {
+        business_interpretation: '"새로운 도구를 배워야 할 때 적응할 수 있는 사람인지" 확인합니다. 기술은 계속 바뀌므로 학습 능력이 중요.',
+        daily_analogy: '하나의 요리만 할 줄 아는 요리사 vs 새로운 레시피도 빨리 배우는 요리사. 후자가 더 가치 있습니다.',
+        level_expectation: '주니어에게 넓은 기술 스택을 기대하지 않습니다. "한계를 알고 배우려는 태도"가 핵심.'
+      },
+      expected_answer: {
+        core: '• 현재: React와 기본 도구 위주 경험\n• 학습법: 공식 문서→간단한 예제→실제 프로젝트 적용\n• 태도: 새 기술에 대한 호기심과 적극성',
+        example: 'React 외에는 Next.js를 조금 써봤고, Tailwind CSS를 최근 학습했습니다. 새 기술을 배울 때는 공식 문서의 Getting Started를 따라하고, 간단한 개인 프로젝트에 적용해봅니다. Storybook은 아직 못 써봤지만 컴포넌트 문서화에 좋다고 들어서 관심 있습니다.',
+        key_points: ['솔직한 인정', '체계적 학습법', '호기심']
+      },
+      jd_competency_link: 'JD 요구사항 연결',
+      generation_rationale: '후보자 프로필 기반 질문 생성',
+      skills_assessed: ['general'],
+      alternative_phrasings: [
+        'React 외에 다른 프론트엔드 기술이나 도구를 사용해본 경험이 있나요? 새로운 기술을 배워야 할 때 어떻게 접근하시나요에 대해 이야기해 주세요.',
+        '이 주제에 대한 본인의 경험이나 생각을 자유롭게 공유해 주세요.'
+      ]
+    }
   ]
 };
