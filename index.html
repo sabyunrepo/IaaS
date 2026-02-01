@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verdict - AI 기술 면접 스크립트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #f8fafc; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-item { transition: all 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: #f1f5f9; }
+        .nav-item.active { background-color: #e0f2fe; border-left-color: #0284c7; }
+        .tab-btn { position: relative; transition: color 0.2s; }
+        .tab-btn::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #0284c7; transition: width 0.3s; }
+        .tab-btn.active { color: #0284c7; font-weight: 700; }
+        .tab-btn.active::after { width: 100%; }
+        .scenario-card { transition: all 0.2s; border: 2px solid #e2e8f0; cursor: pointer; }
+        .scenario-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .selected-expert { border-color: #10b981; background-color: #ecfdf5; }
+        .selected-mid { border-color: #f59e0b; background-color: #fffbeb; }
+        .selected-low { border-color: #ef4444; background-color: #fef2f2; }
+        .fu-card { transition: all 0.3s; }
+        .fu-card.dimmed { opacity: 0.35; }
+        .fu-card.highlighted { border-left: 3px solid; }
+        .fu-good { border-color: #10b981; background-color: #f0fdf4; cursor: pointer; }
+        .fu-poor { border-color: #ef4444; background-color: #fef2f2; cursor: pointer; }
+        .fu-good.active { ring: 2px solid #10b981; box-shadow: 0 0 0 2px #10b981; }
+        .fu-poor.active { ring: 2px solid #ef4444; box-shadow: 0 0 0 2px #ef4444; }
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .collapsible-content.open { max-height: 5000px; }
+        .section-nav-item { transition: all 0.2s; }
+        .section-nav-item:hover { color: #0284c7; }
+        .section-nav-item.active-section { color: #0284c7; font-weight: 700; border-right: 2px solid #0284c7; }
+        .kw-badge { transition: all 0.2s; cursor: pointer; user-select: none; }
+        .kw-badge.checked { opacity: 1; ring: 2px; }
+        .kw-badge.unchecked { opacity: 0.6; }
+        .stepper-item { position: relative; }
+        .stepper-item::after { content:''; position:absolute; top:50%; right:-1rem; width:2rem; height:2px; background:#cbd5e1; }
+        .stepper-item:last-child::after { display:none; }
+        .stepper-item.active-step { background-color:#e0f2fe; border-color:#0284c7; color:#0284c7; }
+        .stepper-item.done-step { background-color:#ecfdf5; border-color:#10b981; color:#10b981; }
+        .section-side-nav { position:sticky; top:1rem; }
+        .section-side-link { transition: all 0.2s; border-left: 2px solid transparent; }
+        .section-side-link:hover { border-left-color: #94a3b8; }
+        .section-side-link.active-nav { border-left-color: #0284c7; color: #0284c7; font-weight: 700; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col z-20 shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-xl">V</div>
+            <div>
+                <span class="font-bold text-xl text-slate-900 tracking-tight">Verdict</span>
+                <div class="text-[10px] text-slate-400 font-medium">Sniper v4.0</div>
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4">
+            <div class="px-6 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Active Pipeline</div>
+            <div class="nav-item active p-3 cursor-pointer flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">A</div>
+                <div><div class="text-sm font-bold text-slate-800">Alex Chen</div><div class="text-[10px] text-slate-500">CTO Candidate</div></div>
+            </div>
+            <div class="nav-item p-3 cursor-pointer flex items-center gap-3 opacity-50">
+                <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold">S</div>
+                <div><div class="text-sm font-bold text-slate-600">Sarah Connor</div><div class="text-[10px] text-slate-500">Full-Stack Lead</div></div>
+            </div>
+            <div class="px-6 mt-8 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Archived</div>
+            <div class="opacity-60">
+                <div class="nav-item p-3 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-400">J</div>
+                    <div class="text-sm text-slate-400 font-medium line-through">John Doe</div>
+                </div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-slate-100 bg-slate-50">
+            <button class="w-full py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100 shadow-sm transition">+ New Interview</button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative">
+        <header class="bg-white border-b border-slate-200 px-8 py-5 flex justify-between items-center shadow-sm z-10">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Alex Chen</h1>
+                <div class="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                    <span>CTO Candidate</span><span>•</span>
+                    <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">Series A FinTech</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="text-right">
+                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Score</div>
+                    <div class="text-3xl font-bold text-blue-600 leading-none" id="total-score">0 <span class="text-sm text-slate-300 font-normal">/ 200</span></div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">+ 보너스 <span id="bonus-score" class="font-bold text-emerald-500">0</span></div>
+                </div>
+                <div class="h-10 w-px bg-slate-200"></div>
+                <button class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg transition flex items-center gap-2 text-sm">Export PDF</button>
+            </div>
+        </header>
+
+        <div class="bg-white border-b border-slate-200 px-8 sticky top-0 z-10">
+            <nav class="flex space-x-8" id="main-tabs"></nav>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-8 scroll-smooth" id="content-area">
+
+            <!-- TAB 1: INTEL BRIEF -->
+            <div id="view-intel" class="space-y-8 fade-in hidden">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4">📋 채용공고 (JD) 분석</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <div class="text-xs font-bold text-blue-600 uppercase mb-1">Chief Technology Officer</div>
+                            <div class="text-xs text-blue-500 mb-3">Series A FinTech Startup</div>
+                            <div class="text-xs font-bold text-blue-600 uppercase mb-2">핵심 요구사항</div>
+                            <ul class="space-y-2 text-sm text-blue-900">
+                                <li>✅ <strong>FastAPI/Python</strong> 백엔드 전문가</li>
+                                <li>✅ <strong>MSA 아키텍처</strong> 설계 경험</li>
+                                <li>✅ <strong>AWS & Kubernetes</strong> 인프라 운영</li>
+                                <li>✅ <strong>팀 리더십</strong> (8-15명 엔지니어)</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <div class="text-xs font-bold text-slate-500 uppercase mb-2">성공 지표 (첫 90일)</div>
+                            <ul class="space-y-2 text-sm text-slate-700">
+                                <li>• 레거시 모놀리스 시스템 안정화</li>
+                                <li>• 시니어 엔지니어 3명 채용</li>
+                                <li>• 배포 시간 50% 단축</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <div class="collapsible-toggle flex items-center gap-2 text-xs font-bold text-slate-500 uppercase cursor-pointer" onclick="toggleC(this)">
+                            <span class="transform transition-transform">▶</span> 채용공고 원문 보기
+                        </div>
+                        <div class="collapsible-content mt-2">
+                            <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-600 leading-relaxed">
+                                <p>저희 FinTech 스타트업은 Series A 투자를 유치하고 빠르게 성장 중입니다. 레거시 모놀리스 시스템을 현대화하고, 8-15명 규모의 엔지니어링 팀을 리드할 CTO를 찾고 있습니다.</p>
+                                <p class="mt-2"><strong>주요 업무:</strong> 기술 전략 수립, 팀 빌딩 및 채용, 제품 아키텍처 설계, 인프라 현대화, 보안 컴플라이언스(SOC2) 구축</p>
+                                <p class="mt-2"><strong>자격 요건:</strong> 7년+ 소프트웨어 개발 경험, Python/FastAPI 전문성, MSA 전환 경험, AWS & K8s 운영 경험, 팀 리더십 경험</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="text-xs font-bold text-slate-500 uppercase mb-3">이 직무에 필요한 핵심 역량</div>
+                        <div class="space-y-2">
+                            <div class="p-3 bg-white rounded border border-slate-200"><div class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✅</span><div><div class="text-sm font-bold text-slate-700">백엔드 시스템 설계</div><div class="text-xs text-slate-500">서버(뒷단 시스템)를 설계하고 만드는 능력. 많은 사용자가 동시에 사용해도 안정적으로 작동하는 시스템을 구축합니다.</div></div></div></div>
+                            <div class="p-3 bg-white rounded border border-slate-200"><div class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✅</span><div><div class="text-sm font-bold text-slate-700">시스템 현대화 (레거시 → MSA)</div><div class="text-xs text-slate-500">오래된 하나의 큰 프로그램을 작은 독립 프로그램들로 나누는 작업. 마치 대형 공장 하나를 전문 공방 여러 개로 분리하는 것과 같습니다.</div></div></div></div>
+                            <div class="p-3 bg-white rounded border border-slate-200"><div class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">⚠️</span><div><div class="text-sm font-bold text-slate-700">클라우드 인프라 운영 (AWS, K8s)</div><div class="text-xs text-slate-500">회사의 서비스가 돌아가는 '가상 서버 환경'을 관리하는 능력. AWS는 아마존이 제공하는 클라우드 서비스, K8s(쿠버네티스)는 여러 서버를 자동으로 관리해주는 도구입니다.</div></div></div></div>
+                            <div class="p-3 bg-white rounded border border-slate-200"><div class="flex items-start gap-2"><span class="text-red-500 mt-0.5">❌</span><div><div class="text-sm font-bold text-slate-700">보안 컴플라이언스 (SOC2)</div><div class="text-xs text-slate-500">고객 데이터를 안전하게 보호한다는 것을 증명하는 국제 인증. 금융 서비스에서는 필수이며, 후보자에게 이 경험이 확인되지 않았습니다.</div></div></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4">💻 GitHub 기여 활동</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="h-40 w-full bg-slate-50 rounded border border-slate-200 p-2"><canvas id="chart-contribution"></canvas></div>
+                            <div class="flex gap-4 mt-3 text-xs text-slate-500">
+                                <span>기여: <strong>342</strong></span><span>레포: <strong>23</strong></span><span>주 언어: <strong>TS, Python, Go</strong></span>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-slate-50 rounded border border-slate-200"><div class="text-xs font-bold text-slate-400 uppercase">기술스택 매칭</div><div class="text-sm font-bold text-emerald-600">높음 (Python, AWS)</div><div class="text-xs text-slate-500 mt-1">K8s 증거 부족</div></div>
+                            <div class="p-3 bg-slate-50 rounded border border-slate-200"><div class="text-xs font-bold text-slate-400 uppercase">재직 패턴</div><div class="text-sm font-bold text-slate-800">평균 2.3년</div><div class="text-xs text-amber-600 mt-1">⚠ 최근 짧은 재직</div></div>
+                            <div class="p-3 bg-amber-50 rounded border border-amber-100"><div class="text-xs font-bold text-amber-600 uppercase">활동 공백</div><div class="text-sm font-bold text-amber-700">Q2 2024</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4">👤 LinkedIn 경력</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-4 p-3 bg-slate-50 rounded-lg"><div class="w-10 h-10 rounded bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">T</div><div><div class="text-sm font-bold">Engineering Lead</div><div class="text-xs text-slate-500">TechStartup Inc. · 2년 · 4-6명 리드 · 제품 2개 런칭</div></div></div>
+                        <div class="flex items-start gap-4 p-3 bg-slate-50 rounded-lg"><div class="w-10 h-10 rounded bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm">M</div><div><div class="text-sm font-bold">Senior Engineer</div><div class="text-xs text-slate-500">MidSize Corp · 3년</div></div></div>
+                        <div class="flex items-start gap-4 p-3 bg-slate-50 rounded-lg"><div class="w-10 h-10 rounded bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm">B</div><div><div class="text-sm font-bold">Software Engineer</div><div class="text-xs text-slate-500">BigTech Co. · 2년</div></div></div>
+                    </div>
+                    <div class="mt-4 p-3 bg-amber-50 rounded border border-amber-100 text-xs text-amber-800">⚠ CTO/VP 타이틀 경험 없음 · MBA 언급되나 상세 불명</div>
+                </div>
+            </div>
+
+            <!-- TAB 2: DEEP ANALYSIS -->
+            <div id="view-analysis" class="space-y-8 fade-in hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4">스킬 역량 vs 요구사항</h3>
+                        <div class="relative h-72"><canvas id="chart-radar"></canvas></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4">Engineering DNA</h3>
+                        <div class="space-y-5">
+                            <div><div class="flex justify-between text-sm mb-1"><span>테스트 커버리지</span><span class="font-bold text-emerald-600">82%</span></div><div class="w-full bg-slate-100 rounded-full h-2"><div class="bg-emerald-500 h-2 rounded-full" style="width:82%"></div></div></div>
+                            <div><div class="flex justify-between text-sm mb-1"><span>문서화 품질</span><span class="font-bold text-blue-600">우수</span></div><div class="w-full bg-slate-100 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" style="width:90%"></div></div></div>
+                            <div><div class="flex justify-between text-sm mb-1"><span>IaC <span class="text-slate-400 text-xs font-normal">(인프라를 코드로 관리)</span></span><span class="font-bold text-red-500">미확인</span></div><div class="w-full bg-slate-100 rounded-full h-2"><div class="bg-red-400 h-2 rounded-full" style="width:5%"></div></div></div>
+                        </div>
+                        <div class="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-100">
+                            <div class="text-xs font-bold text-amber-700 uppercase mb-2">리스크 플래그</div>
+                            <ul class="text-sm text-amber-800 space-y-1">
+                                <li>• <strong>이력 공백:</strong> 2023.11 - 2024.02 (3개월)</li>
+                                <li>• <strong>프레임워크 의존:</strong> 특정 라이브러리 높은 의존</li>
+                                <li>• <strong>팀 규모 갭:</strong> 경험 4-6명 → 요구 8-15명</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-4">스킬 매칭 상세</h3>
+                    <table class="w-full text-sm">
+                        <thead><tr class="border-b border-slate-200"><th class="text-left py-2 text-slate-500">요구 스킬</th><th class="text-left py-2 text-slate-500">후보자</th><th class="text-left py-2 text-slate-500">유형</th><th class="text-left py-2 text-slate-500">증거</th><th class="text-right py-2 text-slate-500">신뢰도</th></tr></thead>
+                        <tbody>
+                            <tr class="border-b border-slate-100"><td class="py-2 font-medium">Python/FastAPI</td><td class="text-emerald-600 font-medium">Python, FastAPI</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-bold">exact</span></td><td class="text-xs text-slate-500">GitHub: api-server</td><td class="text-right font-bold">95%</td></tr>
+                            <tr class="border-b border-slate-100"><td class="py-2 font-medium">MSA</td><td class="text-blue-600 font-medium">Microservices</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-bold">similar</span></td><td class="text-xs text-slate-500">이력서: MSA 전환 리드</td><td class="text-right font-bold">80%</td></tr>
+                            <tr class="border-b border-slate-100"><td class="py-2 font-medium">AWS</td><td class="text-emerald-600 font-medium">AWS</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-bold">exact</span></td><td class="text-xs text-slate-500">GitHub: terraform</td><td class="text-right font-bold">90%</td></tr>
+                            <tr class="border-b border-slate-100"><td class="py-2 font-medium">Kubernetes</td><td class="text-amber-600 font-medium">Docker</td><td><span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-bold">partial</span></td><td class="text-xs text-slate-500">K8s manifest 없음</td><td class="text-right font-bold">40%</td></tr>
+                            <tr class="border-b border-slate-100"><td class="py-2 font-medium">팀 리더십 8-15명</td><td class="text-amber-600 font-medium">4-6명 경험</td><td><span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-bold">partial</span></td><td class="text-xs text-slate-500">LinkedIn</td><td class="text-right font-bold">55%</td></tr>
+                            <tr><td class="py-2 font-medium">SOC2</td><td class="text-red-500 font-medium">—</td><td><span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-bold">none</span></td><td class="text-xs text-slate-500">증거 없음</td><td class="text-right font-bold">0%</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="mt-4 flex items-center gap-3"><span class="text-sm text-slate-500">전체 매칭:</span><span class="text-2xl font-bold text-blue-600">78%</span><div class="flex-1 bg-slate-100 rounded-full h-3"><div class="bg-blue-500 h-3 rounded-full" style="width:78%"></div></div></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: LIVE INTERVIEW -->
+            <div id="view-interview" class="fade-in hidden">
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg mb-4">
+                    <h3 class="text-sm font-bold text-indigo-900 uppercase">비개발자 면접관을 위한 안내</h3>
+                    <p class="text-sm text-indigo-800 mt-1">개발 용어를 모르셔도 됩니다. 각 질문의 <strong>"이 질문이 중요한 이유"</strong>와 <strong>"이런 답변을 들어보세요"</strong>를 참고하세요. 질문을 그대로 읽어주시면 됩니다. 답변 후 해당하는 수준을 클릭하면 <strong>맞춤 꼬리질문</strong>이 자동으로 표시됩니다.</p>
+                </div>
+                <!-- Progress Bar -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-bold text-slate-700" id="progress-label">0 / 10 질문 채점 완료</span>
+                        <span class="text-xs text-slate-400" id="progress-time">예상 잔여: ~50분</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5"><div class="bg-blue-500 h-2.5 rounded-full transition-all" id="progress-bar" style="width:0%"></div></div>
+                </div>
+                <!-- Category Stepper -->
+                <div class="flex items-center justify-center gap-4 mb-6 flex-wrap" id="category-stepper">
+                </div>
+                <!-- Main Layout: Questions + Side Nav -->
+                <div class="flex gap-6">
+                    <div class="flex-1 min-w-0" id="questions-container"></div>
+                    <!-- Right Side Navigation -->
+                    <div class="hidden lg:block w-48 shrink-0">
+                        <div class="section-side-nav space-y-1" id="section-side-nav"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: DECISION -->
+            <div id="view-decision" class="space-y-6 fade-in hidden">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-4">후보자 요약</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-3 bg-slate-50 rounded-lg"><div class="text-2xl font-bold text-slate-800">7년</div><div class="text-xs text-slate-500">경력</div></div>
+                        <div class="text-center p-3 bg-blue-50 rounded-lg"><div class="text-2xl font-bold text-blue-600">78%</div><div class="text-xs text-blue-500">JD 매칭</div></div>
+                        <div class="text-center p-3 bg-slate-50 rounded-lg"><div class="text-2xl font-bold text-slate-800">시니어</div><div class="text-xs text-slate-500">레벨</div></div>
+                        <div class="text-center p-3 bg-slate-50 rounded-lg" id="decision-score-card"><div class="text-2xl font-bold" id="decision-total">0</div><div class="text-xs text-slate-500">면접 점수</div></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100"><div class="text-xs font-bold text-emerald-700 uppercase mb-2">강점</div><ul class="text-sm text-emerald-800 space-y-1"><li>• Python/FastAPI 전문성 (높은 매칭)</li><li>• 제품 0→1 런칭 경험 2회</li><li>• 테스트 커버리지 82%</li><li>• 문서화 품질 우수</li></ul></div>
+                        <div class="p-4 bg-amber-50 rounded-lg border border-amber-100"><div class="text-xs font-bold text-amber-700 uppercase mb-2">확인 필요</div><ul class="text-sm text-amber-800 space-y-1"><li>• K8s 실무 경험 수준</li><li>• 팀 규모 확장 전략</li><li>• 이력 공백기 사유</li><li>• SOC2 컴플라이언스 이해도</li></ul></div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-4">카테고리별 점수</h3>
+                    <div id="category-scores" class="space-y-3"></div>
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <div class="flex justify-between text-sm mb-1"><span class="text-emerald-600 font-medium">꼬리질문 보너스</span><span class="font-bold text-emerald-600" id="cat-bonus">0</span></div>
+                        <div class="w-full bg-slate-100 rounded-full h-2"><div class="bg-emerald-400 h-2 rounded-full transition-all" id="cat-bonus-bar" style="width:0%"></div></div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-4">면접관 가이드</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <div class="text-xs font-bold text-slate-500 uppercase mb-2">면접 시간: 약 60분</div>
+                            <p class="text-sm text-slate-600">Role Fit → Technical Depth → Execution → Communication → Risk Flags 순으로 진행합니다. 편안한 분위기에서 시작하여 점점 깊이 들어가고, 마지막에 위험 신호를 확인합니다.</p>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-500 uppercase mb-2">진행 팁</div>
+                            <ul class="text-sm text-slate-600 space-y-1"><li>💡 질문을 그대로 읽어주세요</li><li>💡 꼬리질문으로 깊이를 확인하세요</li><li>💡 채점은 면접 직후 바로 해주세요</li></ul>
+                            <div class="text-xs font-bold text-red-500 uppercase mb-2 mt-3">주의 신호</div>
+                            <ul class="text-sm text-red-600 space-y-1"><li>🚩 구체적 사례 없이 추상적 답변</li><li>🚩 실패 경험을 전혀 인정하지 않음</li><li>🚩 기술 유행만 쫓고 비즈니스 관점 부재</li></ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- Keyword Achievement -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm" id="keyword-summary-card">
+                    <h3 class="font-bold text-slate-800 mb-4">키워드 달성 현황</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-100 text-center">
+                            <div class="text-2xl font-bold text-red-600" id="kw-must-count">0 / 0</div>
+                            <div class="text-xs text-red-500 font-medium">필수 키워드 확인</div>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-lg border border-blue-100 text-center">
+                            <div class="text-2xl font-bold text-blue-600" id="kw-good-count">0 / 0</div>
+                            <div class="text-xs text-blue-500 font-medium">가산 키워드 확인</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="recommendation-card" class="p-8 rounded-xl border-2 border-slate-200 bg-slate-50 text-center">
+                    <div class="text-sm font-bold uppercase tracking-wider mb-2 text-slate-500" id="rec-label">채점 진행 중</div>
+                    <div class="text-3xl font-bold mb-2 text-slate-400" id="rec-text">면접을 완료해주세요</div>
+                    <div class="text-sm text-slate-400" id="rec-detail">질문을 채점하면 추천이 자동 업데이트됩니다.</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<script>
+// ===== CATEGORIES =====
+const CATS = [
+    { id: 'role_fit', label: '역할 적합성', icon: '🎯', color: 'blue' },
+    { id: 'technical_depth', label: '기술 역량', icon: '⚙️', color: 'purple' },
+    { id: 'execution_ownership', label: '실행 & 오너십', icon: '🚀', color: 'indigo' },
+    { id: 'communication', label: '소통 & 협업', icon: '💬', color: 'teal' },
+    { id: 'risk_flags', label: '위험 신호 검증', icon: '⚠️', color: 'amber' }
+];
+
+// ===== QUESTIONS =====
+const questions = [
+// ── 🎯 역할 적합성 ──
+{
+    id:1, category:'role_fit', difficulty:'Medium', title:'첫 90일 우선순위',
+    question_text:'CTO로서 첫 90일 동안 가장 집중하실 3가지 우선순위는 무엇이며, 그것들을 어떤 순서로 실행하시겠습니까?',
+    context_bridge:'현재 저희는 8명의 엔지니어를 채용해야 하고, 제품 로드맵도 밀려있습니다.',
+    why_matters:'초기 스타트업 CTO는 코딩·채용·전략 사이에서 균형을 잡아야 합니다. 불확실한 상황에서 우선순위를 정하는 능력을 테스트합니다.',
+    listen_for:'기술적 부채 해결보다 "비즈니스 목표"와 "팀 빌딩"의 조화를 말하는지 확인하세요.',
+    code_reference:null,
+    terminology:[
+        {term:'Technical Debt',pronunciation:'테크니컬 뎃',explanation:'빨리 만들기 위해 대충 짠 코드가 나중에 문제를 일으키는 것. "빚"처럼 갚아야 합니다.'},
+        {term:'Roadmap',pronunciation:'로드맵',explanation:'제품이 앞으로 어떻게 발전할지 그린 계획표입니다.'}
+    ],
+    answer_keywords:[
+        {keyword:'팀 진단',importance:'must',explanation:'현재 팀의 역량과 구조를 먼저 파악해야 올바른 의사결정이 가능'},
+        {keyword:'단계적 접근',importance:'must',explanation:'한 번에 모든 것을 바꾸려는 것은 리스크가 높음'},
+        {keyword:'비즈니스 목표 연결',importance:'good_to_have',explanation:'기술 결정이 비즈니스 성과로 연결되어야 함'}
+    ],
+    scenarios:[
+        {level:'Expert',score:20,text:'현재 팀과 아키텍처 진단(2주) → 핵심 채용 및 병목 해결(1달) → 장기 로드맵 수립 순으로 단계적 접근을 제시함.'},
+        {level:'Mid',score:10,text:'열심히 코딩해서 밀린 기능을 빨리 개발하겠다고 함. (IC 마인드셋)'},
+        {level:'Low',score:0,text:'구체적 계획 없이 상황 봐서 결정하겠다고 함.'}
+    ],
+    follow_ups:[
+        {id:'q1-f1',trigger:'Expert',question_text:'진단 결과 팀의 핵심 역량이 부족하다면, 외부 채용과 내부 육성 중 어떤 기준으로 선택하시겠습니까?',
+         why_matters:'리더의 인재 전략을 확인합니다. 단기 성과와 장기 팀 건강의 균형 감각이 중요합니다.',
+         listen_for:'상황별 기준(시급성, 역할, 시장 상황)을 구분하는지 확인하세요.',
+         good:{text:'역할의 시급성과 내부 성장 가능성을 구분하여 답변. 핵심 포지션은 외부 채용, 나머지는 내부 육성이라는 원칙 제시.',score:8},
+         poor:{text:'무조건 채용 또는 무조건 육성이라고 답변.',score:0}},
+        {id:'q1-f2',trigger:'Mid',question_text:'코딩에 집중하겠다고 하셨는데, 채용과 전략은 누가 담당하게 되나요?',
+         why_matters:'IC 마인드셋에서 리더십으로 전환할 준비가 되어있는지 확인합니다.',
+         listen_for:'역할 전환에 대한 인식이 있는지, 위임 계획이 있는지 확인하세요.',
+         good:{text:'리더십 역할의 중요성을 인식하고 수정된 답변을 제시함.',score:5},
+         poor:{text:'여전히 코딩이 최우선이라고 주장함.',score:-3}},
+        {id:'q1-f3',trigger:'Low',question_text:'예를 들어, 팀의 배포가 주 1회밖에 안 되고 버그가 많은 상황이라면 무엇부터 하시겠습니까?',
+         why_matters:'구체적 시나리오를 주어 문제 해결 과정을 다시 확인합니다.',
+         listen_for:'구체적 상황에서 논리적으로 우선순위를 세울 수 있는지 확인하세요.',
+         good:{text:'시나리오에 맞춰 구체적 우선순위를 제시함.',score:5},
+         poor:{text:'여전히 막연한 답변.',score:0}}
+    ],
+    expected_answer:{
+        core:'• 1단계: 현상 진단 (팀, 코드, 인프라)\n• 2단계: 핵심 채용 + 최대 병목 해결\n• 3단계: 6개월 기술 로드맵 수립',
+        example:'첫 2주는 모든 팀원과 1:1 미팅을 하면서 현재 가장 큰 문제가 무엇인지 파악합니다. 코드 상태와 배포 프로세스도 직접 확인합니다. 3주째부터는 가장 시급한 인력 채용과 당장 서비스에 문제를 일으키는 기술적 병목을 동시에 해결합니다. 6주째에 CEO와 함께 6개월 기술 로드맵을 만들어 이사회에 발표하겠습니다.',
+        key_points:['단계적 접근','팀 진단 우선','비즈니스-기술 연결']
+    }
+},
+{
+    id:2, category:'role_fit', difficulty:'Easy', title:'핸즈온 vs 리더십 균형',
+    question_text:'코드를 직접 작성하는 것과 리더십/전략에 집중하는 것의 균형을 어떻게 잡으시겠습니까?',
+    context_bridge:'이 역할은 초기에 40-50% 핸즈온 코딩이 필요하지만, 팀이 커지면서 리더십 비중이 높아져야 합니다.',
+    why_matters:'CTO 역할은 유연성이 핵심입니다. 상황에 맞게 역할을 전환할 수 있는지 확인합니다.',
+    listen_for:'개인적 선호에 대한 솔직한 성찰과, 회사 필요에 따라 적응할 수 있는 능력을 확인하세요.',
+    code_reference:null,
+    terminology:[{term:'IC (Individual Contributor)',pronunciation:'아이씨',explanation:'팀을 관리하지 않고 개인으로 기술 기여를 하는 역할입니다.'}],
+    answer_keywords:[
+        {keyword:'단계별 비율 변화',importance:'must',explanation:'팀 규모에 따라 코딩 비율이 달라져야 함을 인식'},
+        {keyword:'레버리지',importance:'good_to_have',explanation:'리더는 개인 코딩보다 팀을 통한 곱하기 효과가 더 큼'}
+    ],
+    scenarios:[
+        {level:'Expert',score:20,text:'회사 단계별 비율 변화를 인지하고, 구체적 전환 기준(팀 규모, 제품 안정성)을 제시.'},
+        {level:'Mid',score:10,text:'코딩도 좋아하고 리더십도 할 수 있다고 일반적으로 답변.'},
+        {level:'Low',score:0,text:'코딩만 하고 싶다거나 관리만 하겠다고 극단적 답변.'}
+    ],
+    follow_ups:[
+        {id:'q2-f1',trigger:'Expert',question_text:'팀이 15명으로 커졌을 때, 본인이 직접 코드 리뷰를 하는 것과 리뷰 문화를 만드는 것 중 어떤 것이 더 효과적일까요?',
+         why_matters:'규모 확장 시 리더의 역할 전환 깊이를 확인합니다.',
+         listen_for:'시스템/문화를 만드는 것이 개인 기여보다 중요하다는 인식.',
+         good:{text:'리뷰 문화와 가이드라인을 만드는 것이 확장 가능하다고 답변.',score:8},
+         poor:{text:'본인이 모든 코드를 리뷰해야 한다고 주장.',score:0}},
+        {id:'q2-f2',trigger:'Mid',question_text:'구체적으로 팀이 몇 명일 때 코딩 비율을 줄이기 시작하시겠습니까?',
+         why_matters:'추상적 답변을 구체화하여 실질적 계획이 있는지 확인.',
+         listen_for:'숫자와 기준을 제시하는지.',
+         good:{text:'7-10명 기준, 30% 이하로 줄이겠다 등 구체적 답변.',score:5},
+         poor:{text:'잘 모르겠다, 상황에 따라 다르다.',score:-2}},
+        {id:'q2-f3',trigger:'Low',question_text:'그렇다면 CTO의 가장 중요한 역할은 무엇이라고 생각하시나요?',
+         why_matters:'역할에 대한 기본 이해를 재확인.',
+         listen_for:'기술 비전, 팀 빌딩, 비즈니스 연결 중 최소 하나.',
+         good:{text:'역할에 대한 균형 잡힌 이해를 보여줌.',score:5},
+         poor:{text:'코딩이 가장 중요하다고 답변.',score:0}}
+    ],
+    expected_answer:{
+        core:'• 초기(~10명): 60% 코딩, 40% 리더십\n• 중기(10-20명): 30% 코딩, 70% 리더십\n• 핵심 전환 기준: 팀의 자율 실행력',
+        example:'리더의 가장 큰 레버리지는 사람을 통한 곱하기 효과입니다. 팀이 10명을 넘으면 코딩을 줄이고 아키텍처 리뷰와 멘토링에 집중하겠습니다.',
+        key_points:['상황별 유연성','자기인식','팀 성장 전환']
+    }
+},
+// ── ⚙️ 기술 역량 ──
+{
+    id:3, category:'technical_depth', difficulty:'Hard', title:'실시간 결제 알림 시스템 설계',
+    question_text:'초당 10,000건의 트랜잭션을 처리하면서 99.99% 가용성을 보장하는 실시간 결제 알림 시스템을 어떻게 설계하시겠습니까?',
+    context_bridge:'저희 플랫폼은 결제 서비스를 운영하는데, 실시간 알림이 핵심 기능입니다.',
+    why_matters:'실제 기술적 깊이와 복잡한 분산 시스템 설계 능력을 테스트합니다.',
+    listen_for:'체계적 접근, 트레이드오프 인식, 운영 현실에 대한 이해. 기술 이름 나열만으로는 부족합니다.',
+    code_reference:{file_path:'api-server/src/notifications/handler.py',snippet:'async def process_notification(event: PaymentEvent):\n    async with kafka_producer() as producer:\n        await producer.send(\n            topic=\'payment-notifications\',\n            value=event.serialize()\n        )',explanation:'후보자 GitHub에서 발견된 알림 처리 코드. Kafka 비동기 메시지 처리 패턴 확인.'},
+    terminology:[
+        {term:'Kafka',pronunciation:'카프카',explanation:'대량의 메시지를 빠르게 전달하는 우편 시스템입니다. 발송인과 수신인 사이에서 메시지를 안전하게 전달합니다.'},
+        {term:'99.99% Uptime',pronunciation:'포나인',explanation:'1년 중 약 52분만 중단되는 수준의 안정성입니다.'},
+        {term:'Circuit Breaker',pronunciation:'서킷 브레이커',explanation:'연쇄 장애를 막기 위해 문제가 생긴 부분을 자동으로 차단하는 안전장치입니다.'}
+    ],
+    answer_keywords:[
+        {keyword:'이벤트 기반 아키텍처',importance:'must',explanation:'실시간 대량 처리에 필수적인 패턴'},
+        {keyword:'Kafka / 메시지 큐',importance:'must',explanation:'10K TPS 처리에 적합한 기술'},
+        {keyword:'Circuit Breaker',importance:'good_to_have',explanation:'장애 격리 인식을 보여줌'},
+        {keyword:'DLQ (Dead Letter Queue)',importance:'good_to_have',explanation:'실패 메시지 재처리 전략'}
+    ],
+    scenarios:[
+        {level:'Expert',score:25,text:'Kafka + 이벤트 소싱 + Circuit Breaker + 멀티 리전 failover 포함 체계적 아키텍처 제시. 모니터링과 alerting도 언급.'},
+        {level:'Mid',score:12,text:'메시지 전달 시스템(Kafka)은 알고 있지만, 시스템이 고장났을 때 어떻게 대처할지, 사용자가 갑자기 늘어날 때 어떻게 확장할지에 대한 계획이 부족합니다.'},
+        {level:'Low',score:0,text:'가장 기본적인 방식(하나하나 직접 확인하는 방식)을 제안합니다. 초당 1만 건을 처리해야 하는 규모에 대한 이해가 부족합니다.'}
+    ],
+    follow_ups:[
+        {id:'q3-f1',trigger:'Expert',question_text:'Kafka 클러스터 자체가 장애가 나면 어떻게 대응하시겠습니까?',
+         why_matters:'메시지 브로커 의존성에 대한 깊은 이해를 확인합니다.',
+         listen_for:'멀티 클러스터, fallback 큐, 로컬 버퍼링 등 구체적 전략.',
+         good:{text:'멀티 리전 클러스터 + 로컬 WAL 버퍼링 + alerting 전략 제시.',score:10},
+         poor:{text:'Kafka는 잘 안 죽는다고 답변.',score:0}},
+        {id:'q3-f2',trigger:'Mid',question_text:'만약 일부 알림이 누락되면 어떻게 탐지하고 복구하시겠습니까?',
+         why_matters:'장애 복구 전략의 구체성을 확인합니다.',
+         listen_for:'모니터링, DLQ, 재처리 로직 등.',
+         good:{text:'consumer lag 모니터링 + DLQ + 재처리 배치 언급.',score:5},
+         poor:{text:'로그를 확인하겠다 정도의 답변.',score:-3}},
+        {id:'q3-f3',trigger:'Low',question_text:'동시에 많은 요청이 들어오면 데이터베이스에 직접 쓰는 것과 메시지 큐를 사용하는 것의 차이가 무엇인가요?',
+         why_matters:'기본적인 비동기 처리 개념 이해를 확인.',
+         listen_for:'동기/비동기 차이, 병목 지점에 대한 기본 이해.',
+         good:{text:'DB 병목 vs 큐의 버퍼링 효과를 설명.',score:5},
+         poor:{text:'차이를 설명하지 못함.',score:0}}
+    ],
+    expected_answer:{
+        core:'• 메시지 브로커: Kafka (파티션별 순서 보장)\n• 프로세싱: 비동기 컨슈머 그룹\n• 장애 대응: Circuit Breaker + DLQ + 재처리\n• 모니터링: 실시간 지연 시간 추적',
+        example:'대량의 알림을 안정적으로 전달하기 위해 Kafka라는 메시지 전달 시스템을 사용합니다. 사용자별로 알림 순서가 뒤바뀌지 않도록 설계하고, 처리 서버를 여러 대로 늘려서 초당 1만 건을 소화합니다. 만약 일부 알림 전송이 실패하면 별도 보관함(DLQ)에 모아두었다가 자동으로 재시도합니다. 그리고 장애가 퍼지지 않도록 문제가 생긴 부분은 자동으로 차단(Circuit Breaker)합니다.',
+        key_points:['이벤트 기반','장애 격리','수평 확장','모니터링']
+    }
+},
+{
+    id:4, category:'technical_depth', difficulty:'Medium', title:'모놀리스 → MSA 전환 판단',
+    question_text:'현재의 모놀리식 구조를 마이크로서비스로 전환해야 할지 결정하는 기준은 무엇이며, 전환한다면 위험을 어떻게 최소화하시겠습니까?',
+    context_bridge:'저희 시스템은 모놀리식인데, 트래픽이 늘면서 배포가 느려지고 있습니다.',
+    why_matters:'너무 이르게 MSA를 도입하다 실패하는 스타트업이 많습니다. 유행보다 실용성을 중시하는지 확인합니다.',
+    listen_for:'MSA의 단점(복잡도, 운영 비용)을 인지하는지. "Strangler Fig Pattern" 같은 점진적 전략을 언급하면 좋습니다.',
+    code_reference:null,
+    terminology:[
+        {term:'Monolith',pronunciation:'모놀리스',explanation:'모든 기능이 하나의 큰 프로그램에 합쳐진 구조입니다.'},
+        {term:'Microservices (MSA)',pronunciation:'마이크로서비스',explanation:'기능별로 작은 프로그램들을 나눠서 각각 독립적으로 배포하는 방식입니다.'},
+        {term:'Strangler Fig Pattern',pronunciation:'스트랭글러 피그 패턴',explanation:'기존 시스템을 한번에 바꾸지 않고 새 시스템이 점점 대체하는 전략입니다.'}
+    ],
+    answer_keywords:[
+        {keyword:'Strangler Fig Pattern',importance:'must',explanation:'점진적 전환의 핵심 전략'},
+        {keyword:'도메인 경계',importance:'must',explanation:'어디를 먼저 분리할지 판단하는 기준'},
+        {keyword:'인프라 성숙도',importance:'good_to_have',explanation:'MSA 전에 CI/CD, 모니터링이 갖춰져야 함'}
+    ],
+    scenarios:[
+        {level:'Expert',score:25,text:'도메인 경계 명확하고 독립 배포가 빈번한 모듈부터 점진적 분리. 인프라 성숙도 선행 강조.'},
+        {level:'Mid',score:12,text:'"요즘 다들 하니까"라는 식으로 유행을 따르는 답변. 왜 우리 회사에 필요한지 구체적 이유가 없습니다.'},
+        {level:'Low',score:5,text:'마이크로서비스가 무엇인지 정확히 설명하지 못하거나, 단순히 "서버를 여러 개로 나누는 것"이라고만 이해하고 있습니다.'}
+    ],
+    follow_ups:[
+        {id:'q4-f1',trigger:'Expert',question_text:'모놀리스를 유지하면서도 배포 속도를 개선할 방법이 있다면 무엇이 있을까요?',
+         why_matters:'MSA가 유일한 해법이 아님을 아는지 확인.',
+         listen_for:'모듈화, 기능 플래그, 병렬 빌드 등 대안적 접근.',
+         good:{text:'모놀리스 내 모듈화 + 기능 플래그 + 빌드 최적화 등 대안 제시.',score:8},
+         poor:{text:'모놀리스면 무조건 느릴 수밖에 없다고 답변.',score:0}},
+        {id:'q4-f2',trigger:'Mid',question_text:'MSA 도입 시 가장 큰 위험은 무엇이라고 생각하시나요?',
+         why_matters:'MSA의 현실적 단점을 인지하는지 확인.',
+         listen_for:'운영 복잡도, 분산 트랜잭션, 디버깅 어려움 등.',
+         good:{text:'구체적 위험(분산 트레이싱, 데이터 일관성)을 언급.',score:5},
+         poor:{text:'위험은 크지 않다, 잘 하면 된다.',score:-3}},
+        {id:'q4-f3',trigger:'Low',question_text:'그렇다면 하나의 큰 프로그램(모놀리스)의 장점은 무엇이 있을까요?',
+         why_matters:'기본 아키텍처 이해도를 재확인.',
+         listen_for:'단순성, 배포 용이성, 디버깅 편의성 등.',
+         good:{text:'모놀리스의 장점을 이해하고 설명.',score:5},
+         poor:{text:'장점이 없다고 답변.',score:0}}
+    ],
+    expected_answer:{
+        core:'• 전환 기준: 배포 빈도, 팀 규모, 도메인 경계 명확성\n• 전략: Strangler Fig Pattern\n• 선행 조건: CI/CD, 모니터링, 서비스 디스커버리',
+        example:'무조건 MSA가 아니라, 배포 병목이 심하고 팀이 독립 작업해야 할 때만 전환합니다. 가장 변경이 잦은 모듈부터 Strangler Fig 패턴으로 분리합니다.',
+        key_points:['실용적 판단','점진적 전환','선행 조건 인식']
+    }
+},
+// ── 🚀 실행 & 오너십 ──
+{
+    id:5, category:'execution_ownership', difficulty:'Medium', title:'불완전한 정보 하의 기술 결정',
+    question_text:'정보가 불완전하고 시간 압박이 있는 상황에서 중요한 기술적 결정을 내려야 했던 경험을 말씀해주세요.',
+    context_bridge:'스타트업에서는 항상 정보가 부족한 상황에서 빠르게 결정해야 합니다.',
+    why_matters:'불확실성 속 의사결정 능력을 테스트합니다.',
+    listen_for:'"충분한" 정보만 모아 판단하는 체계적 접근과 결과에 대한 책임감.',
+    code_reference:null,
+    terminology:[{term:'Trade-off',pronunciation:'트레이드오프',explanation:'하나를 얻기 위해 다른 것을 포기해야 하는 선택 상황입니다.'}],
+    answer_keywords:[
+        {keyword:'가역적/비가역적 구분',importance:'must',explanation:'되돌릴 수 있는 결정과 없는 결정을 다르게 접근해야 함'},
+        {keyword:'70% 규칙',importance:'good_to_have',explanation:'Jeff Bezos의 원칙: 70% 정보면 결정하라'},
+        {keyword:'회귀 계획',importance:'good_to_have',explanation:'결정이 틀렸을 때 돌아갈 수 있는 Plan B'}
+    ],
+    scenarios:[
+        {level:'Expert',score:20,text:'구체적 사례와 함께 결정 프레임워크 제시. 가역/비가역 구분, 70% 정보 원칙 등.'},
+        {level:'Mid',score:10,text:'경험은 있으나 체계적 프레임워크보다 직감 의존.'},
+        {level:'Low',score:0,text:'구체적 사례 없음. 결정을 다른 사람에게 미루는 답변.'}
+    ],
+    follow_ups:[
+        {id:'q5-f1',trigger:'Expert',question_text:'그 결정이 틀렸다는 것을 언제, 어떻게 알 수 있었나요? 그때 어떻게 대처하셨습니까?',
+         why_matters:'결정 이후 피드백 루프와 수정 능력을 확인.',
+         listen_for:'사전에 정한 검증 기준, 빠른 피봇, 팀 커뮤니케이션.',
+         good:{text:'사전 메트릭 설정 + 빠른 피봇 경험을 구체적으로 공유.',score:8},
+         poor:{text:'결정이 틀린 적이 없다고 답변.',score:-3}},
+        {id:'q5-f2',trigger:'Mid',question_text:'직감으로 결정하신다면, 그 직감이 틀릴 때는 어떻게 하시나요?',
+         why_matters:'직감 의존의 한계를 인식하는지 확인.',
+         listen_for:'직감 + 데이터의 조합, 빠른 실험 등.',
+         good:{text:'직감으로 시작하되 데이터로 검증하는 프로세스 설명.',score:5},
+         poor:{text:'직감이 대체로 맞다고 주장.',score:0}},
+        {id:'q5-f3',trigger:'Low',question_text:'만약 DB를 PostgreSQL과 MongoDB 중 선택해야 한다면, 어떤 기준으로 결정하시겠습니까?',
+         why_matters:'구체적 시나리오에서 의사결정 과정을 유도.',
+         listen_for:'데이터 구조, 쿼리 패턴, 일관성 요구 등 기준.',
+         good:{text:'사용 패턴에 따른 합리적 기준 제시.',score:5},
+         poor:{text:'둘 다 좋다, 아무거나.',score:0}}
+    ],
+    expected_answer:{
+        core:'• 상황: 구체적 기술 결정 사례\n• 프로세스: 정보 수집 → 옵션 평가 → 결정 + 회귀 계획\n• 결과: 오너십과 학습',
+        example:'DB 마이그레이션 시 PostgreSQL과 MongoDB 사이에서 3일간 핵심 쿼리 패턴만 분석 후, 가역 가능한 PostgreSQL을 선택하고 회귀 계획을 세웠습니다.',
+        key_points:['체계적 프레임워크','가역성 판단','결과 오너십']
+    }
+},
+{
+    id:6, category:'execution_ownership', difficulty:'Medium', title:'엔지니어링 메트릭 설정',
+    question_text:'엔지니어링 팀 메트릭을 어떻게 설정하고 추적하시겠습니까? 첫 6개월 동안 어떤 지표를 도입하시겠습니까?',
+    context_bridge:'현재 저희는 엔지니어링 생산성이나 품질을 측정하는 지표가 없습니다.',
+    why_matters:'측정 철학과 선행/후행 지표 구분 능력을 확인합니다.',
+    listen_for:'생산성과 품질 지표의 균형, 게이밍 리스크 인식.',
+    code_reference:null,
+    terminology:[
+        {term:'DORA Metrics',pronunciation:'도라 메트릭스',explanation:'소프트웨어 팀 효율성을 측정하는 4가지 핵심 지표: 배포 빈도, 변경 리드타임, 복구 시간, 실패율.'},
+        {term:'Leading Indicator',pronunciation:'리딩 인디케이터',explanation:'미래 결과를 예측하는 지표. 예: 코드 리뷰 속도 → 배포 속도 예측.'}
+    ],
+    answer_keywords:[
+        {keyword:'DORA Metrics',importance:'must',explanation:'업계 표준 엔지니어링 지표'},
+        {keyword:'베이스라인 측정',importance:'must',explanation:'현재 상태를 먼저 파악해야 개선 가능'},
+        {keyword:'게이밍 방지',importance:'good_to_have',explanation:'지표를 조작하는 행위에 대한 인식'}
+    ],
+    scenarios:[
+        {level:'Expert',score:20,text:'DORA 기반 + 팀 상황 커스터마이즈. 게이밍 방지와 지표 한계도 인식.'},
+        {level:'Mid',score:10,text:'코드를 얼마나 자주 올렸는지(커밋 수)처럼 "행동 횟수"만 측정하려 합니다. 실제 결과물의 품질이나 고객에게 전달되는 속도 같은 "성과 지표"가 빠져 있습니다.'},
+        {level:'Low',score:0,text:'지표 불필요하다거나 특별한 계획 없음.'}
+    ],
+    follow_ups:[
+        {id:'q6-f1',trigger:'Expert',question_text:'팀원이 DORA 메트릭에 반발한다면 어떻게 설득하시겠습니까?',
+         why_matters:'리더십과 변화 관리 능력을 확인.',
+         listen_for:'팀 합의 프로세스, 목적 공유, 점진적 도입.',
+         good:{text:'팀과 함께 목표를 설정하고 측정의 목적을 투명하게 공유.',score:8},
+         poor:{text:'리더가 정하면 따라야 한다.',score:0}},
+        {id:'q6-f2',trigger:'Mid',question_text:'커밋 수가 높은데 버그도 많은 개발자가 있다면 어떻게 평가하시겠습니까?',
+         why_matters:'단일 지표의 한계를 인식하는지 확인.',
+         listen_for:'다면 평가, 품질 지표와의 조합.',
+         good:{text:'활동 지표와 품질 지표를 함께 봐야 한다는 인식.',score:5},
+         poor:{text:'커밋이 많으면 열심히 하는 것.',score:-3}},
+        {id:'q6-f3',trigger:'Low',question_text:'팀이 잘 하고 있는지 어떻게 알 수 있을까요? 지표 없이 어떻게 판단하시나요?',
+         why_matters:'측정의 필요성을 재인식시키기 위한 질문.',
+         listen_for:'결국 무언가를 측정해야 한다는 인식.',
+         good:{text:'측정의 필요성을 인정하고 간단한 지표라도 제시.',score:5},
+         poor:{text:'느낌으로 안다.',score:0}}
+    ],
+    expected_answer:{
+        core:'• 핵심: DORA 4 metrics\n• 품질: 테스트 커버리지, 버그 탈출율\n• 주의: 게이밍 방지, 팀 합의',
+        example:'첫 달은 베이스라인 측정에 집중하고, DORA 중 배포 빈도와 리드타임부터 시작합니다. 지표는 팀과 합의하여 도입합니다.',
+        key_points:['DORA 기반','베이스라인 측정','게이밍 인식']
+    }
+},
+// ── 💬 소통 & 협업 ──
+{
+    id:7, category:'communication', difficulty:'Medium', title:'CEO와의 일정 갈등',
+    question_text:'CEO가 핵심 고객을 위해 6주 안에 대형 기능을 약속하고 싶어합니다. 팀은 10주가 필요하다고 추정합니다. 이 대화를 어떻게 진행하시겠습니까?',
+    context_bridge:'비즈니스 요구와 기술 현실 사이의 갈등은 CTO의 일상입니다.',
+    why_matters:'비즈니스-엔지니어링 긴장에서 건설적 문제해결 능력을 테스트합니다.',
+    listen_for:'단순 거부도, 무조건 수용도 아닌, 창의적 문제해결과 명확한 커뮤니케이션.',
+    code_reference:null,
+    terminology:[
+        {term:'MVP',pronunciation:'엠브이피',explanation:'최소 기능만 갖춘 첫 번째 버전. 완벽하지 않아도 핵심 가치를 전달합니다.'},
+        {term:'Scope',pronunciation:'스코프',explanation:'구현할 기능의 범위. 범위를 줄이면 시간을 절약할 수 있습니다.'}
+    ],
+    answer_keywords:[
+        {keyword:'범위 협상 (Scope negotiation)',importance:'must',explanation:'일정 vs 범위 트레이드오프를 제시해야 함'},
+        {keyword:'MVP 제안',importance:'must',explanation:'핵심 기능만 먼저 전달하는 대안'},
+        {keyword:'비즈니스 목표 이해',importance:'good_to_have',explanation:'CEO의 동기를 먼저 파악'}
+    ],
+    scenarios:[
+        {level:'Expert',score:20,text:'6주 MVP 범위를 제안하고 나머지를 2차 릴리스로 분리. CEO 목표를 존중하면서 리스크 투명 공유.'},
+        {level:'Mid',score:10,text:'야근해서 맞추겠다거나 무조건 안 된다고 거부.'},
+        {level:'Low',score:0,text:'CEO와의 대화를 회피하거나 거짓으로 약속.'}
+    ],
+    follow_ups:[
+        {id:'q7-f1',trigger:'Expert',question_text:'CEO가 범위 축소를 거부하고 전체 기능을 6주에 원한다면 최종적으로 어떻게 하시겠습니까?',
+         why_matters:'갈등 상황에서의 최종 의사결정과 원칙을 확인.',
+         listen_for:'데이터 기반 설득, 리스크 문서화, 최종 결정 수용 but 리스크 기록.',
+         good:{text:'리스크를 문서화하고 CEO가 최종 결정하되 품질 타협의 결과를 투명하게 공유.',score:8},
+         poor:{text:'CEO가 원하면 무조건 따르겠다.',score:0}},
+        {id:'q7-f2',trigger:'Mid',question_text:'야근으로 해결한다면 팀의 번아웃 위험은 어떻게 관리하시겠습니까?',
+         why_matters:'지속가능성과 팀 관리 의식.',
+         listen_for:'번아웃 인식, 대안적 접근, 팀 보호.',
+         good:{text:'단기적 해결임을 인지하고 보상/휴식 계획 포함.',score:5},
+         poor:{text:'스타트업이니까 당연히 야근해야 한다.',score:-3}},
+        {id:'q7-f3',trigger:'Low',question_text:'만약 약속한 기한에 기능을 못 만들면 어떤 결과가 생길까요?',
+         why_matters:'결과에 대한 인식과 책임감.',
+         listen_for:'비즈니스 영향 이해, 선제적 커뮤니케이션.',
+         good:{text:'고객 신뢰 손상과 비즈니스 영향을 구체적으로 인지.',score:5},
+         poor:{text:'그때 가서 생각하겠다.',score:0}}
+    ],
+    expected_answer:{
+        core:'• 1단계: CEO의 비즈니스 목표 이해\n• 2단계: Must/Nice-to-have 분류\n• 3단계: 6주 MVP + 4주 후속 제안\n• 4단계: 리스크 투명 공유',
+        example:'먼저 왜 6주인지 비즈니스 맥락을 이해합니다. 핵심 기능만 MVP로 6주에 납품하고, 나머지를 4주 후 릴리스하는 안을 제시합니다.',
+        key_points:['비즈니스 이해','범위 협상','투명한 커뮤니케이션']
+    }
+},
+{
+    id:8, category:'communication', difficulty:'Easy', title:'비기술 이해관계자와의 소통',
+    question_text:'기술적 트레이드오프를 비기술적인 이사회 멤버나 투자자에게 어떻게 설명하시나요?',
+    context_bridge:'CTO는 기술과 비즈니스 세계를 연결해야 합니다.',
+    why_matters:'기술-비즈니스 소통 능력은 CTO의 핵심 역량입니다.',
+    listen_for:'비유 사용, 비즈니스 임팩트 중심 설명, 정확성을 잃지 않는 단순화.',
+    code_reference:null,
+    terminology:[],
+    answer_keywords:[
+        {keyword:'비유 활용',importance:'must',explanation:'기술 개념을 일상적 비유로 변환해야 함'},
+        {keyword:'비즈니스 임팩트',importance:'must',explanation:'"이것이 매출/비용에 어떤 영향"으로 번역'},
+        {keyword:'청중 맞춤',importance:'good_to_have',explanation:'투자자, 이사회, CEO 각각 다르게'}
+    ],
+    scenarios:[
+        {level:'Expert',score:15,text:'구체적 비유와 비즈니스 언어로 설명하는 실제 예시 제시. 청중에 따라 수준 조절.'},
+        {level:'Mid',score:8,text:'설명하려 노력하지만 기술 용어를 많이 사용.'},
+        {level:'Low',score:0,text:'"기술적인 부분은 믿어주세요"라거나 설명 포기.'}
+    ],
+    follow_ups:[
+        {id:'q8-f1',trigger:'Expert',question_text:'이사회에서 "왜 기술 부채 해결에 2개월을 써야 하는가"라는 질문을 받으면 어떻게 답하시겠습니까?',
+         why_matters:'추상적 기술 개념의 비즈니스 가치 설득력.',
+         listen_for:'비용 절감, 개발 속도 향상 등 구체적 비즈니스 메트릭.',
+         good:{text:'기술 부채의 비용을 숫자로 환산(개발 속도 30% 저하 → 매출 영향)하여 설명.',score:8},
+         poor:{text:'기술적으로 필요하니까라고 답변.',score:0}},
+        {id:'q8-f2',trigger:'Mid',question_text:'방금 답변에서 사용하신 기술 용어를 저(비개발자)에게 다시 설명해주실 수 있나요?',
+         why_matters:'실시간으로 청중 수준에 맞출 수 있는지.',
+         listen_for:'즉석에서 비유로 전환하는 능력.',
+         good:{text:'즉시 비유나 일상 언어로 재설명.',score:5},
+         poor:{text:'같은 기술 용어로 반복 설명.',score:-2}},
+        {id:'q8-f3',trigger:'Low',question_text:'기술을 모르는 사람에게 "서버"가 무엇인지 설명한다면 어떻게 하시겠습니까?',
+         why_matters:'가장 기본적인 설명 능력 확인.',
+         listen_for:'일상적 비유로의 변환 시도.',
+         good:{text:'"24시간 편의점 같은 컴퓨터" 등 비유 시도.',score:5},
+         poor:{text:'서버는 서버라고 답변.',score:0}}
+    ],
+    expected_answer:{
+        core:'• 비유: 기술 개념 → 일상 비유\n• 비즈니스 임팩트: "이것이 매출/비용에 어떤 영향"\n• 청중 맞춤: 투자자, 이사회, CEO 각각 다르게',
+        example:'기술 부채를 설명할 때 "지금 빌리는 시간이 나중에 이자가 붙어 돌아옵니다"라고 합니다. 항상 비즈니스 영향으로 번역합니다.',
+        key_points:['비유 활용','비즈니스 임팩트','청중 맞춤']
+    }
+},
+// ── ⚠️ 위험 신호 검증 ──
+{
+    id:9, category:'risk_flags', difficulty:'Easy', title:'GitHub 활동 공백 확인', is_risk:true,
+    risk_source:'GitHub 활동 분석에서 Q2 2024 기간 커밋 거의 없음 탐지',
+    question_text:'지난 1년간 GitHub 활동에 공백이 있는 기간이 보입니다. 해당 기간에 어떤 활동을 하고 계셨는지 말씀해주실 수 있나요?',
+    context_bridge:'프로필 검토 중 Q2 2024에 GitHub 활동이 거의 없는 것을 확인했습니다.',
+    why_matters:'프로필 리뷰에서 발견된 우려 사항을 직접 확인합니다. 솔직함과 자기인식을 테스트합니다.',
+    listen_for:'방어적/변명하는 태도 vs 재충전/학습 등 목적 있는 시간이었는지.',
+    code_reference:null,
+    terminology:[],
+    answer_keywords:[
+        {keyword:'솔직한 설명',importance:'must',explanation:'회피하지 않고 투명하게 답변하는 것이 핵심'},
+        {keyword:'그 기간의 성장',importance:'good_to_have',explanation:'공백 기간에도 학습/성장이 있었다면 긍정적'}
+    ],
+    scenarios:[
+        {level:'Expert',score:15,text:'번아웃 관리나 개인 프로젝트 등 솔직하고 건설적인 설명.'},
+        {level:'Mid',score:8,text:'개인 사정이라고 짧게 얼버무림.'},
+        {level:'Low',score:-10,text:'답변 회피하거나 앞뒤가 안 맞는 설명.'}
+    ],
+    follow_ups:[
+        {id:'q9-f1',trigger:'Expert',question_text:'번아웃을 경험하셨다면, 이 역할에서 번아웃을 예방하기 위해 어떤 전략을 가지고 계신가요?',
+         why_matters:'자기 관리 능력과 지속가능성을 확인.',
+         listen_for:'구체적 예방 전략, 팀에도 적용할 수 있는 인식.',
+         good:{text:'개인 루틴 + 팀 차원 예방 전략(온콜 로테이션 등) 모두 언급.',score:8},
+         poor:{text:'이제는 괜찮다고만 답변.',score:0}},
+        {id:'q9-f2',trigger:'Mid',question_text:'개인 사정이라고 하셨는데, 그 기간에 기술적으로 무언가 학습하신 것이 있다면 공유해주실 수 있나요?',
+         why_matters:'공백 기간의 성장을 확인. 솔직함에 추가 기회 부여.',
+         listen_for:'구체적 학습 내용이 있는지.',
+         good:{text:'구체적 학습(새 언어, 기술 서적 등)을 공유.',score:5},
+         poor:{text:'특별히 없다.',score:0}},
+        {id:'q9-f3',trigger:'Low',question_text:'혹시 이 기간에 다른 곳에서 일을 하고 계셨거나, 이력서에 기재되지 않은 활동이 있으신가요?',
+         why_matters:'정합성 검증. 비난이 아닌 확인.',
+         listen_for:'일관된 답변인지, 추가 정보 제공 의지.',
+         good:{text:'솔직하게 추가 맥락 제공.',score:5},
+         poor:{text:'답변 거부 또는 모순.',score:-5}}
+    ],
+    expected_answer:{
+        core:'• 공백 사유를 솔직하게 설명\n• 그 기간의 성장/학습\n• 현재 역할과 연결',
+        example:'솔직히 이전 직장에서 번아웃이 와서 2개월 쉬며 Go 언어를 학습하고 사이드 프로젝트를 만들었습니다.',
+        key_points:['솔직함','성장 마인드셋','건설적 활용']
+    }
+},
+{
+    id:10, category:'risk_flags', difficulty:'Hard', title:'팀 규모 확장 역량', is_risk:true,
+    risk_source:'LinkedIn 분석에서 최대 리드 경험 4-6명으로 확인. JD 요구 8-15명과 갭.',
+    question_text:'4-6명의 팀을 리드한 경험이 있으신데, 이 역할은 15명 이상의 팀을 관리해야 합니다. 이 점프를 할 수 있다고 확신하시는 이유는 무엇인가요?',
+    context_bridge:'이력서를 보면 최대 6명까지 리드한 경험이 있으십니다.',
+    why_matters:'경험 갭을 직접 확인합니다. 자기인식과 성장 마인드셋을 테스트합니다.',
+    listen_for:'갭에 대한 솔직한 인정, 극복할 구체적 계획, 전이 가능한 경험.',
+    code_reference:null,
+    terminology:[{term:'Span of Control',pronunciation:'스팬 오브 컨트롤',explanation:'한 관리자가 직접 관리하는 팀원 수. 일반적으로 7-10명이 효과적입니다.'}],
+    answer_keywords:[
+        {keyword:'갭 인정',importance:'must',explanation:'6명→15명은 질적으로 다른 도전임을 인지'},
+        {keyword:'계층화 전략',importance:'must',explanation:'EM/Tech Lead 채용으로 중간 관리 레이어 구축'},
+        {keyword:'스쿼드 구조',importance:'good_to_have',explanation:'5-6명 단위로 자율적 팀 분리'}
+    ],
+    scenarios:[
+        {level:'Expert',score:20,text:'갭을 솔직히 인정하고, 중간 관리자 채용 + 팀 구조화 + 외부 멘토링 등 구체적 전략 제시.'},
+        {level:'Mid',score:10,text:'자신감은 있지만 구체적 전략 부족. "잘 할 수 있다" 일반론.'},
+        {level:'Low',score:-5,text:'갭을 인정하지 않거나, 15명 관리가 6명과 같다고 주장.'}
+    ],
+    follow_ups:[
+        {id:'q10-f1',trigger:'Expert',question_text:'첫 번째로 채용할 Engineering Manager의 자격 요건과 면접 질문은 무엇이 될까요?',
+         why_matters:'팀 빌딩의 구체성과 실행력.',
+         listen_for:'구체적 자격 요건, 면접 기준, 문화 적합성.',
+         good:{text:'기술적 깊이 + 피플 매니지먼트 경험 + 문화 적합성 등 구체적 기준.',score:10},
+         poor:{text:'좋은 사람이면 된다.',score:0}},
+        {id:'q10-f2',trigger:'Mid',question_text:'15명을 관리할 때 6명과 가장 크게 달라지는 점은 무엇이라고 생각하시나요?',
+         why_matters:'규모 확장의 현실적 도전을 이해하는지.',
+         listen_for:'소통 오버헤드, 위임 필요성, 프로세스 변화.',
+         good:{text:'소통 비용 증가, 1:1 한계, 중간 레이어 필요성 언급.',score:5},
+         poor:{text:'크게 다르지 않다.',score:-3}},
+        {id:'q10-f3',trigger:'Low',question_text:'6명을 리드할 때 가장 어려웠던 점은 무엇이었고, 어떻게 해결하셨나요?',
+         why_matters:'현재 수준에서의 리더십 경험이라도 확인.',
+         listen_for:'구체적 어려움과 해결 과정.',
+         good:{text:'구체적 사례와 학습 포인트 공유.',score:5},
+         poor:{text:'어려운 점이 없었다.',score:0}}
+    ],
+    expected_answer:{
+        core:'• 갭 인정: 6명→15명은 질적으로 다름\n• 전략: EM 2명 채용, 스쿼드(5-6명) 분리\n• 보완: 코칭/멘토링 활용',
+        example:'솔직히 6명과 15명은 다릅니다. 경험 있는 EM을 2명 채용하고, 5-6명씩 스쿼드로 나눠 자율 운영하면서 제가 아키텍처 방향성을 잡겠습니다.',
+        key_points:['솔직한 인정','계층화 전략','자율 조직']
+    }
+}
+];
+
+// ===== STATE =====
+let state = { currentTab:'view-intel', scores:{}, fuScores:{}, keywordsChecked:{} };
+let charts = {};
+
+// ===== INIT =====
+window.onload = function() {
+    renderTabs();
+    renderStepper();
+    renderSideNav();
+    renderQuestions();
+    switchTab('view-intel');
+    setupScrollSpy();
+};
+
+function renderStepper() {
+    document.getElementById('category-stepper').innerHTML = CATS.map(cat =>
+        `<div class="stepper-item px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium text-slate-500 cursor-pointer flex items-center gap-1" id="step-${cat.id}" onclick="scrollToSection('${cat.id}')">
+            <span>${cat.icon}</span><span class="hidden sm:inline">${cat.label}</span>
+        </div>`
+    ).join('');
+}
+
+function renderSideNav() {
+    document.getElementById('section-side-nav').innerHTML = CATS.map(cat => {
+        const count = questions.filter(q => q.category === cat.id).length;
+        return `<a href="#section-${cat.id}" onclick="event.preventDefault();scrollToSection('${cat.id}')" class="section-side-link block px-3 py-2 text-xs text-slate-500" id="side-${cat.id}">
+            ${cat.icon} ${cat.label} <span class="text-slate-300">(${count})</span>
+        </a>`;
+    }).join('');
+}
+
+function scrollToSection(catId) {
+    const el = document.getElementById('section-' + catId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function setupScrollSpy() {
+    const area = document.getElementById('content-area');
+    area.addEventListener('scroll', () => {
+        if (state.currentTab !== 'view-interview') return;
+        let current = CATS[0].id;
+        CATS.forEach(cat => {
+            const el = document.getElementById('section-' + cat.id);
+            if (el && el.getBoundingClientRect().top < 200) current = cat.id;
+        });
+        CATS.forEach(cat => {
+            const side = document.getElementById('side-' + cat.id);
+            const step = document.getElementById('step-' + cat.id);
+            if (!side || !step) return;
+            const isCurrent = cat.id === current;
+            const catScored = questions.filter(q => q.category === cat.id).every(q => state.scores[q.id]);
+            side.classList.toggle('active-nav', isCurrent);
+            step.classList.toggle('active-step', isCurrent && !catScored);
+            step.classList.toggle('done-step', catScored);
+        });
+    });
+}
+
+function renderTabs() {
+    const tabs = [{id:'view-intel',label:'1. Intel Brief'},{id:'view-analysis',label:'2. Deep Analysis'},{id:'view-interview',label:'3. Live Interview'},{id:'view-decision',label:'4. Decision'}];
+    document.getElementById('main-tabs').innerHTML = tabs.map(t =>
+        `<button onclick="switchTab('${t.id}')" class="tab-btn py-4 text-sm font-medium text-slate-500 hover:text-slate-800 ${state.currentTab===t.id?'active':''}">${t.label}</button>`
+    ).join('');
+}
+
+function switchTab(tabId) {
+    state.currentTab = tabId;
+    renderTabs();
+    ['view-intel','view-analysis','view-interview','view-decision'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById(tabId).classList.remove('hidden');
+    if (tabId === 'view-intel' || tabId === 'view-analysis') setTimeout(renderCharts, 100);
+    if (tabId === 'view-decision') { renderCategoryScores(); updateRecommendation(); renderKeywordSummary(); }
+}
+
+// ===== QUESTIONS =====
+function renderQuestions() {
+    const container = document.getElementById('questions-container');
+    let html = '';
+    let qIndex = 0;
+
+    CATS.forEach(cat => {
+        const catQuestions = questions.filter(q => q.category === cat.id);
+        if (!catQuestions.length) return;
+
+        html += `<div class="mb-10" id="section-${cat.id}">
+            <div class="flex items-center gap-3 mb-6 pb-3 border-b-2 border-${cat.color}-200">
+                <span class="text-2xl">${cat.icon}</span>
+                <h2 class="text-xl font-bold text-slate-800">${cat.label}</h2>
+                <span class="text-sm text-slate-400">${catQuestions.length}문항</span>
+                <span class="ml-auto text-sm font-bold text-${cat.color}-600" id="section-score-${cat.id}">0점</span>
+            </div>
+            <div class="space-y-8">`;
+
+        catQuestions.forEach(q => {
+            qIndex++;
+            html += renderQuestion(q, qIndex);
+        });
+
+        html += `</div></div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function renderQuestion(q, idx) {
+    const isRisk = q.is_risk;
+    return `
+    <div class="bg-white rounded-xl border ${isRisk?'border-amber-200':'border-slate-200'} shadow-sm overflow-hidden" id="question-${q.id}">
+        <div class="p-6 border-b border-slate-100 ${isRisk?'bg-amber-50/50':'bg-slate-50/50'}">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 ${isRisk?'bg-amber-200 text-amber-800':'bg-slate-200 text-slate-700'} text-xs font-bold rounded uppercase tracking-wide">${isRisk?'⚠ 위험 신호 검증':CATS.find(c=>c.id===q.category).label}</span>
+                    <span class="px-2 py-0.5 ${q.difficulty==='Hard'?'bg-red-100 text-red-700':q.difficulty==='Medium'?'bg-amber-100 text-amber-700':'bg-emerald-100 text-emerald-700'} text-xs font-bold rounded">${q.difficulty}</span>
+                </div>
+                <div class="flex items-center gap-2"><span class="text-xs text-slate-300">⏱ ~${q.difficulty==='Hard'?7:q.difficulty==='Medium'?5:3}분</span><span class="text-xs text-slate-400 font-medium">Q${idx} / 10</span></div>
+            </div>
+            ${isRisk&&q.risk_source?`<div class="text-xs text-amber-600 mb-2 italic">탐지 근거: ${q.risk_source}</div>`:''}
+            <h3 class="text-xl font-bold text-slate-800 mb-4">${q.title}</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <div class="bg-white p-3 rounded border border-slate-200">
+                    <div class="text-[10px] font-bold text-blue-600 uppercase mb-1">이 질문이 중요한 이유</div>
+                    <p class="text-xs text-slate-700 leading-relaxed">${q.why_matters}</p>
+                </div>
+                <div class="bg-white p-3 rounded border border-slate-200">
+                    <div class="text-[10px] font-bold text-emerald-600 uppercase mb-1">이런 답변을 들어보세요</div>
+                    <p class="text-xs text-slate-700 leading-relaxed">${q.listen_for}</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+                <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">질문 (그대로 읽어주세요)</div>
+                <div class="mb-2 text-sm text-slate-500 italic">"${q.context_bridge}"</div>
+                <p class="text-lg font-bold text-slate-900">"${q.question_text}"</p>
+            </div>
+
+            ${q.code_reference?`
+            <div class="mt-4 p-4 bg-slate-900 rounded-lg">
+                <div class="text-[10px] font-bold text-slate-400 uppercase mb-2">📁 코드 참조</div>
+                <div class="flex items-center gap-2 mb-2 text-xs text-slate-400">
+                    <span class="px-2 py-0.5 bg-slate-800 rounded text-slate-300">📦 api-server</span>
+                    <span>→</span>
+                    <span class="text-green-400">${q.code_reference.file_path}</span>
+                </div>
+                <pre class="text-green-400 text-xs overflow-x-auto"><code>${q.code_reference.snippet}</code></pre>
+                <div class="text-xs text-slate-400 mt-2 italic">${q.code_reference.explanation}</div>
+            </div>`:''}
+
+            ${q.terminology.length?`
+            <div class="mt-4">
+                <div class="collapsible-toggle flex items-center gap-2 text-xs font-bold text-slate-500 uppercase cursor-pointer" onclick="toggleC(this)">
+                    <span class="transform transition-transform">▶</span> 용어 설명 (${q.terminology.length}개)
+                </div>
+                <div class="collapsible-content mt-2"><div class="space-y-2">
+                    ${q.terminology.map(t=>`<div class="p-2 bg-white rounded border border-slate-200 text-xs"><span class="font-bold text-slate-800">${t.term}</span> <span class="text-slate-400">[${t.pronunciation}]</span> <span class="text-slate-600 ml-1">${t.explanation}</span></div>`).join('')}
+                </div></div>
+            </div>`:''}
+        </div>
+
+        <div class="p-6">
+            <div class="text-center mb-4" id="expand-btn-${q.id}">
+                <button onclick="expandScoring(${q.id})" class="px-6 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg text-sm font-bold hover:bg-blue-100 transition">📝 답변 채점 시작</button>
+            </div>
+            <div id="scoring-area-${q.id}" style="display:none">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">답변 채점 (클릭하세요)</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${q.scenarios.map(s=>`
+                <div onclick="rateAnswer(${q.id},'${s.level}',${s.score},'${q.category}')" id="q${q.id}-${s.level}" class="scenario-card bg-white p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-bold ${s.level==='Expert'?'text-emerald-600':s.level==='Mid'?'text-amber-600':'text-red-600'}">${s.level==='Expert'?'🟢 우수':s.level==='Mid'?'🟡 보통':'🔴 미흡'}</span>
+                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">${s.score>0?'+':''}${s.score}점</span>
+                    </div>
+                    <p class="text-sm text-slate-600">${s.text}</p>
+                </div>`).join('')}
+            </div>
+
+            <!-- Keywords -->
+            ${q.answer_keywords&&q.answer_keywords.length?`
+            <div class="mt-5">
+                <div class="text-xs font-bold text-slate-400 uppercase mb-2">핵심 키워드 체크 <span class="font-normal text-slate-300">(답변에서 들리면 체크)</span></div>
+                <div class="flex flex-wrap gap-2">
+                    ${q.answer_keywords.map((k,ki)=>`
+                    <span onclick="toggleKeyword(${q.id},${ki})" id="kw-${q.id}-${ki}" class="kw-badge unchecked px-3 py-1 rounded-full text-xs font-medium border-2 ${k.importance==='must'?'border-red-300 bg-red-50 text-red-700':'border-blue-300 bg-blue-50 text-blue-700'}" title="${k.explanation}">
+                        ${k.importance==='must'?'필수':'가산'} ${k.keyword}
+                    </span>`).join('')}
+                </div>
+            </div>`:''}
+
+            <!-- Follow-ups -->
+            <div class="mt-5" id="fu-section-${q.id}">
+                <div class="text-xs font-bold text-slate-400 uppercase mb-3">꼬리질문 <span class="font-normal text-slate-300">(채점 후 자동으로 추천 질문이 강조됩니다)</span></div>
+                <div class="space-y-3">
+                    ${q.follow_ups.map(fu => {
+                        const triggerLabel = fu.trigger==='Expert'?'📗 우수 답변 시':fu.trigger==='Mid'?'📙 보통 답변 시':'📕 미흡 답변 시';
+                        const triggerColor = fu.trigger==='Expert'?'emerald':fu.trigger==='Mid'?'amber':'red';
+                        return `
+                    <div class="fu-card p-4 rounded-lg border border-slate-200 bg-slate-50" id="fu-${fu.id}" data-trigger="${fu.trigger}">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs font-bold text-${triggerColor}-600 bg-${triggerColor}-100 px-2 py-0.5 rounded">${triggerLabel}</span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-800 mb-2">"${fu.question_text}"</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                            <div class="text-xs"><span class="font-bold text-blue-600">왜 중요:</span> ${fu.why_matters}</div>
+                            <div class="text-xs"><span class="font-bold text-emerald-600">들어볼 것:</span> ${fu.listen_for}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="rateFU('${fu.id}',${fu.good.score},'good','${q.category}')" id="fu-${fu.id}-good" class="flex-1 p-2 rounded border border-emerald-200 bg-emerald-50 text-xs hover:bg-emerald-100 transition">
+                                <span class="font-bold text-emerald-700">👍 좋은 답변</span> <span class="text-emerald-600">(+${fu.good.score})</span>
+                                <div class="text-emerald-600 mt-1">${fu.good.text}</div>
+                            </button>
+                            <button onclick="rateFU('${fu.id}',${fu.poor.score},'poor','${q.category}')" id="fu-${fu.id}-poor" class="flex-1 p-2 rounded border border-red-200 bg-red-50 text-xs hover:bg-red-100 transition">
+                                <span class="font-bold text-red-700">👎 부족한 답변</span> <span class="text-red-600">(${fu.poor.score>=0?'+':''}${fu.poor.score})</span>
+                                <div class="text-red-600 mt-1">${fu.poor.text}</div>
+                            </button>
+                        </div>
+                    </div>`;
+                    }).join('')}
+                </div>
+            </div>
+
+            <!-- Expected Answer -->
+            <div class="mt-5">
+                <div class="collapsible-toggle flex items-center gap-2 text-xs font-bold text-slate-500 uppercase cursor-pointer" onclick="toggleC(this)">
+                    <span class="transform transition-transform">▶</span> 면접관 참고 노트
+                </div>
+                <div class="collapsible-content mt-2">
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4">
+                        <div>
+                            <div class="text-[10px] font-bold text-blue-600 uppercase mb-1">💡 이 질문의 핵심 (비개발자 관점)</div>
+                            <p class="text-sm text-slate-700">${q.expected_answer.core.replace(/\n/g,'<br>')}</p>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-bold text-emerald-600 uppercase mb-1">✅ CTO 수준에서 기대하는 답변</div>
+                            <p class="text-sm text-slate-600 italic">"${q.expected_answer.example}"</p>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">🎯 평가 포인트</div>
+                            <div class="flex flex-wrap gap-2">${q.expected_answer.key_points.map(k=>`<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">${k}</span>`).join('')}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+// ===== INTERACTIONS =====
+function expandScoring(qId) {
+    document.getElementById('expand-btn-' + qId).style.display = 'none';
+    document.getElementById('scoring-area-' + qId).style.display = '';
+}
+
+function toggleC(el) {
+    const c = el.nextElementSibling;
+    const a = el.querySelector('span');
+    c.classList.toggle('open');
+    a.style.transform = c.classList.contains('open') ? 'rotate(90deg)' : '';
+}
+
+function rateAnswer(qId, level, score, category) {
+    state.scores[qId] = { score, level, category };
+    ['Expert','Mid','Low'].forEach(l => {
+        const el = document.getElementById(`q${qId}-${l}`);
+        if (el) el.className = 'scenario-card bg-white p-4 rounded-lg opacity-40';
+    });
+    const cls = level==='Expert'?'selected-expert':level==='Mid'?'selected-mid':'selected-low';
+    const sel = document.getElementById(`q${qId}-${level}`);
+    if (sel) sel.className = `scenario-card p-4 rounded-lg ${cls} opacity-100`;
+
+    // Show only matching follow-up
+    const fuSection = document.getElementById(`fu-section-${qId}`);
+    if (fuSection) {
+        fuSection.querySelectorAll('.fu-card').forEach(card => {
+            const trigger = card.dataset.trigger;
+            if (trigger === level) {
+                card.style.display = '';
+                card.classList.remove('dimmed');
+                card.classList.add('highlighted');
+                card.style.borderLeftColor = level==='Expert'?'#10b981':level==='Mid'?'#f59e0b':'#ef4444';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    updateScores();
+}
+
+function rateFU(fuId, score, type, category) {
+    state.fuScores[fuId] = { score, type, category };
+    const goodEl = document.getElementById(`fu-${fuId}-good`);
+    const poorEl = document.getElementById(`fu-${fuId}-poor`);
+    if (type === 'good') {
+        goodEl.style.boxShadow = '0 0 0 2px #10b981';
+        goodEl.style.opacity = '1';
+        poorEl.style.boxShadow = '';
+        poorEl.style.opacity = '0.4';
+    } else {
+        poorEl.style.boxShadow = '0 0 0 2px #ef4444';
+        poorEl.style.opacity = '1';
+        goodEl.style.boxShadow = '';
+        goodEl.style.opacity = '0.4';
+    }
+    updateScores();
+}
+
+function toggleKeyword(qId, ki) {
+    const key = `${qId}-${ki}`;
+    state.keywordsChecked[key] = !state.keywordsChecked[key];
+    const el = document.getElementById(`kw-${qId}-${ki}`);
+    if (state.keywordsChecked[key]) {
+        el.classList.remove('unchecked');
+        el.classList.add('checked');
+        el.style.opacity = '1';
+        el.style.boxShadow = '0 0 0 2px currentColor';
+    } else {
+        el.classList.remove('checked');
+        el.classList.add('unchecked');
+        el.style.opacity = '0.6';
+        el.style.boxShadow = '';
+    }
+}
+
+function updateScores() {
+    const mainTotal = Object.values(state.scores).reduce((a,b) => a + b.score, 0);
+    const bonusTotal = Object.values(state.fuScores).reduce((a,b) => a + b.score, 0);
+    document.getElementById('total-score').innerHTML = `${mainTotal} <span class="text-sm text-slate-300 font-normal">/ 200</span>`;
+    document.getElementById('bonus-score').textContent = bonusTotal >= 0 ? `+${bonusTotal}` : bonusTotal;
+
+    // Section scores
+    CATS.forEach(cat => {
+        const catMain = Object.values(state.scores).filter(s => s.category === cat.id).reduce((a,b) => a + b.score, 0);
+        const catBonus = Object.values(state.fuScores).filter(s => s.category === cat.id).reduce((a,b) => a + b.score, 0);
+        const el = document.getElementById(`section-score-${cat.id}`);
+        if (el) el.textContent = `${catMain}점${catBonus?` (+${catBonus})`:''}`;
+    });
+
+    if (document.getElementById('decision-total')) {
+        document.getElementById('decision-total').textContent = mainTotal + bonusTotal;
+        const total = mainTotal + bonusTotal;
+        const sc = document.getElementById('decision-score-card');
+        if (sc) sc.className = `text-center p-3 rounded-lg ${total>=180?'bg-emerald-50':total>=120?'bg-blue-50':total>=70?'bg-amber-50':'bg-red-50'}`;
+    }
+    // Progress bar
+    const answered = Object.keys(state.scores).length;
+    const pLabel = document.getElementById('progress-label');
+    const pBar = document.getElementById('progress-bar');
+    const pTime = document.getElementById('progress-time');
+    if (pLabel) pLabel.textContent = `${answered} / 10 질문 채점 완료`;
+    if (pBar) pBar.style.width = `${answered*10}%`;
+    if (pTime) {
+        const remaining = questions.filter(q => !state.scores[q.id]);
+        const mins = remaining.reduce((a,q) => a + (q.difficulty==='Hard'?7:q.difficulty==='Medium'?5:3), 0);
+        pTime.textContent = remaining.length ? `예상 잔여: ~${mins}분` : '✅ 완료!';
+    }
+}
+
+// ===== TAB 4: DECISION =====
+function renderCategoryScores() {
+    const container = document.getElementById('category-scores');
+    if (!container) return;
+    const maxScores = {};
+    questions.forEach(q => { const max = Math.max(...q.scenarios.map(s=>s.score)); maxScores[q.category] = (maxScores[q.category]||0) + max; });
+    container.innerHTML = CATS.map(cat => {
+        const earned = Object.values(state.scores).filter(s=>s.category===cat.id).reduce((a,b)=>a+b.score,0);
+        const max = maxScores[cat.id]||1;
+        const pct = Math.max(0, Math.round((earned/max)*100));
+        return `<div><div class="flex justify-between text-sm mb-1"><span class="text-slate-600">${cat.icon} ${cat.label}</span><span class="font-bold">${earned} / ${max}</span></div><div class="w-full bg-slate-100 rounded-full h-2"><div class="bg-${cat.color}-500 h-2 rounded-full transition-all" style="width:${pct}%"></div></div></div>`;
+    }).join('');
+
+    const bonus = Object.values(state.fuScores).reduce((a,b)=>a+b.score,0);
+    document.getElementById('cat-bonus').textContent = bonus >= 0 ? `+${bonus}` : bonus;
+    document.getElementById('cat-bonus-bar').style.width = `${Math.min(100, Math.max(0, (bonus/50)*100))}%`;
+}
+
+function updateRecommendation() {
+    const main = Object.values(state.scores).reduce((a,b)=>a+b.score,0);
+    const bonus = Object.values(state.fuScores).reduce((a,b)=>a+b.score,0);
+    const total = main + bonus;
+    const answered = Object.keys(state.scores).length;
+    const card = document.getElementById('recommendation-card');
+    const label = document.getElementById('rec-label');
+    const text = document.getElementById('rec-text');
+    const detail = document.getElementById('rec-detail');
+
+    if (answered < 5) {
+        card.className='p-8 rounded-xl border-2 border-slate-200 bg-slate-50 text-center';
+        label.textContent=`${answered}/10 질문 채점 완료`; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-slate-500';
+        text.textContent='면접을 완료해주세요'; text.className='text-3xl font-bold mb-2 text-slate-400';
+        detail.textContent='최소 5개 이상 채점하면 추천이 표시됩니다.';
+    } else if (total >= 180) {
+        card.className='p-8 rounded-xl border-2 border-emerald-300 bg-emerald-50 text-center';
+        label.textContent='STRONG HIRE'; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-emerald-600';
+        text.textContent='강력 추천'; text.className='text-3xl font-bold mb-2 text-emerald-700';
+        detail.textContent=`총점 ${total}점. 핵심 역량과 리더십 잠재력이 모두 우수합니다. 빠른 의사결정을 권장합니다.`;
+    } else if (total >= 120) {
+        card.className='p-8 rounded-xl border-2 border-blue-300 bg-blue-50 text-center';
+        label.textContent='HIRE'; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-blue-600';
+        text.textContent='채용 추천'; text.className='text-3xl font-bold mb-2 text-blue-700';
+        detail.textContent=`총점 ${total}점. 전반적으로 역량이 충분합니다. 약점 영역에 대한 보완 계획을 확인하세요.`;
+    } else if (total >= 70) {
+        card.className='p-8 rounded-xl border-2 border-amber-300 bg-amber-50 text-center';
+        label.textContent='MAYBE'; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-amber-600';
+        text.textContent='추가 검토 필요'; text.className='text-3xl font-bold mb-2 text-amber-700';
+        detail.textContent=`총점 ${total}점. 일부 강점이 있으나 주요 역량에서 부족함이 있습니다. 2차 면접을 고려하세요.`;
+    } else {
+        card.className='p-8 rounded-xl border-2 border-red-300 bg-red-50 text-center';
+        label.textContent='NO HIRE'; label.className='text-sm font-bold uppercase tracking-wider mb-2 text-red-600';
+        text.textContent='채용 비추천'; text.className='text-3xl font-bold mb-2 text-red-700';
+        detail.textContent=`총점 ${total}점. 핵심 역량이 요구 수준에 미달합니다.`;
+    }
+}
+
+// ===== KEYWORD SUMMARY =====
+function renderKeywordSummary() {
+    let mustTotal=0, mustChecked=0, goodTotal=0, goodChecked=0;
+    questions.forEach(q => {
+        if (!q.answer_keywords) return;
+        q.answer_keywords.forEach((k,ki) => {
+            if (k.importance==='must') { mustTotal++; if (state.keywordsChecked[`${q.id}-${ki}`]) mustChecked++; }
+            else { goodTotal++; if (state.keywordsChecked[`${q.id}-${ki}`]) goodChecked++; }
+        });
+    });
+    const m = document.getElementById('kw-must-count');
+    const g = document.getElementById('kw-good-count');
+    if (m) m.textContent = `${mustChecked} / ${mustTotal}`;
+    if (g) g.textContent = `${goodChecked} / ${goodTotal}`;
+}
+
+// ===== CHARTS =====
+function renderCharts() {
+    if(charts['contribution']) charts['contribution'].destroy();
+    if(charts['radar']) charts['radar'].destroy();
+    const ctx1 = document.getElementById('chart-contribution');
+    if(ctx1) {
+        charts['contribution'] = new Chart(ctx1, {
+            type:'bar', data:{ labels:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+            datasets:[{label:'Commits',data:[12,19,3,5,2,3,45,60,55,40,25,30],backgroundColor:ctx=>ctx.raw<5?'#fca5a5':'#93c5fd',borderRadius:2}]},
+            options:{maintainAspectRatio:false,scales:{x:{display:false},y:{display:false}},plugins:{legend:{display:false}}}
+        });
+    }
+    const ctx2 = document.getElementById('chart-radar');
+    if(ctx2) {
+        charts['radar'] = new Chart(ctx2, {
+            type:'radar', data:{labels:['Backend','System Design','DevOps','Leadership','Product Sense'],
+            datasets:[{label:'후보자',data:[90,85,40,80,85],backgroundColor:'rgba(37,99,235,0.2)',borderColor:'#2563eb',pointBackgroundColor:'#2563eb'},
+                      {label:'요구수준',data:[80,80,60,70,70],borderColor:'#94a3b8',borderDash:[5,5],fill:false,pointRadius:0}]},
+            options:{maintainAspectRatio:false}
+        });
+    }
+}
+</script>
+</body>
+</html>

@@ -17,6 +17,8 @@
 | **Workflow** | Temporal 워크플로우 설계 | [03-workflow.md](./03-workflow.md) |
 | **Infrastructure** | 인프라 및 배포 설정 | [04-infrastructure.md](./04-infrastructure.md) |
 | **API Spec** | REST API 명세 | [05-api-spec.md](./05-api-spec.md) |
+| **Output Spec** | 최종 출력 명세 (질문 구조, 뷰 설계, 레벨별 차별화) | [06-output-spec.md](./06-output-spec.md) |
+| **Prompt Guide** | 질문 생성 프롬프트 엔지니어링 가이드 | [07-prompt-guide.md](./07-prompt-guide.md) |
 
 ### Agent Skills (에이전트 참조용)
 | 스킬 | 역할 | 경로 |
@@ -182,6 +184,8 @@ vantict-sniper/
 │       ├── 03-workflow.md
 │       ├── 04-infrastructure.md
 │       ├── 05-api-spec.md
+│       ├── 06-output-spec.md
+│       ├── 07-prompt-guide.md
 │       └── skills/
 │           ├── planner/
 │           ├── document-manager/
@@ -235,6 +239,8 @@ copilot deploy --env production
 - 워크플로우: [03-workflow.md](./03-workflow.md)
 - 인프라: [04-infrastructure.md](./04-infrastructure.md)
 - API 명세: [05-api-spec.md](./05-api-spec.md)
+- 출력 명세: [06-output-spec.md](./06-output-spec.md)
+- 프롬프트 가이드: [07-prompt-guide.md](./07-prompt-guide.md)
 
 ---
 
