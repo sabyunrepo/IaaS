@@ -7,7 +7,7 @@ const PAGE_SIZE = 10
 
 export function JobListPage() {
   const { t } = useTranslation()
-  const { jobs, loading, fetchJobs, deleteJob } = useJob()
+  const { jobs, loading, error, fetchJobs, deleteJob } = useJob()
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -15,6 +15,7 @@ export function JobListPage() {
   }, [fetchJobs])
 
   if (loading) return <p>{t('loading')}</p>
+  if (error) return <p className="text-red-600">{t('fetch_error')}</p>
 
   const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE))
   const paginated = jobs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)

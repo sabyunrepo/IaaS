@@ -11,14 +11,16 @@ interface Job {
 export function useJob() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchJobs = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const data = await apiFetch('/jobs')
       setJobs(data)
     } catch (e) {
-      console.error('Failed to fetch jobs:', e)
+      setError(String(e))
     } finally {
       setLoading(false)
     }
@@ -40,5 +42,5 @@ export function useJob() {
     setJobs((prev) => prev.filter((j) => j.job_id !== jobId))
   }, [])
 
-  return { jobs, loading, fetchJobs, createJob, getJob, deleteJob }
+  return { jobs, loading, error, fetchJobs, createJob, getJob, deleteJob }
 }

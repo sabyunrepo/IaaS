@@ -60,6 +60,11 @@ const resources = {
       // Error boundary
       error_occurred: '오류가 발생했습니다',
       retry: '다시 시도',
+      // 404
+      page_not_found: '페이지를 찾을 수 없습니다.',
+      go_home: '홈으로 돌아가기',
+      // Error states
+      fetch_error: '데이터를 불러오는 데 실패했습니다.',
     },
   },
   en: {
@@ -114,6 +119,9 @@ const resources = {
       minutes: 'min',
       error_occurred: 'An error occurred',
       retry: 'Retry',
+      page_not_found: 'Page not found.',
+      go_home: 'Go Home',
+      fetch_error: 'Failed to load data.',
     },
   },
 }

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-const BACKEND = 'http://localhost:8000'
+const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 export function LoginPage() {
   const { t } = useTranslation()
