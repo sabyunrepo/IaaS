@@ -9,10 +9,13 @@ from temporalio.worker import Worker
 
 from app.core.config import settings
 from app.core.temporal import get_temporal_client
-from app.workflows.interview_workflow import InterviewGenerationWorkflow
+from app.workflows.interview_workflow import InterviewGenerationWorkflow, WORKFLOW_VERSION
 
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
+
+# Worker build ID for Temporal versioning
+WORKER_BUILD_ID = f"vantict-worker-v{WORKFLOW_VERSION}"
 
 # Activity 함수 등록
 from app.workflows.activities.input_enrichment import enrich_input
@@ -63,7 +66,10 @@ async def main():
         activities=ACTIVITIES,
     )
 
-    logger.info(f"Worker started, listening on task queue: {settings.TEMPORAL_TASK_QUEUE}")
+    logger.info(
+        f"Worker started (build={WORKER_BUILD_ID}), "
+        f"listening on task queue: {settings.TEMPORAL_TASK_QUEUE}"
+    )
     await worker.run()
 
 

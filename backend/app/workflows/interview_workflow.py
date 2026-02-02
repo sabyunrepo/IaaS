@@ -29,6 +29,10 @@ with workflow.unsafe.imports_passed_through():
 
 logger = logging.getLogger(__name__)
 
+# Workflow version — increment when making breaking changes to the workflow logic.
+# Use workflow.patched() for backward-compatible changes to running workflows.
+WORKFLOW_VERSION = "1.0.0"
+
 # Retry policies
 DEFAULT_RETRY = RetryPolicy(
     initial_interval=timedelta(seconds=1),
@@ -65,9 +69,12 @@ class InterviewGenerationWorkflow:
     @workflow.run
     async def run(self, input_data: dict) -> dict:
         """메인 실행"""
-        logger.info(f"Starting interview generation workflow")
+        logger.info(f"Starting interview generation workflow v{WORKFLOW_VERSION}")
 
         try:
+            # Version gate: 향후 워크플로우 로직 변경 시 patched()로 분기
+            use_enhanced_pipeline = workflow.patched("enhanced-pipeline-v1")
+
             # Phase 0: Input Enrichment
             self._update_status(JobStatus.ENRICHING, "Phase 0: Input Enrichment", 5)
             enriched = await workflow.execute_activity(
