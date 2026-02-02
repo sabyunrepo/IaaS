@@ -20,7 +20,12 @@ from app.workflows.activities.planning import create_execution_plan
 from app.workflows.activities.document_analysis import analyze_documents
 from app.workflows.activities.code_analysis import analyze_code
 from app.workflows.activities.jd_analysis import analyze_jd
-from app.workflows.activities.question_generation import select_topics, craft_question
+from app.workflows.activities.question_generation import (
+    select_topics, craft_question,
+    enhance_terminology, craft_evaluation_scenarios,
+    design_follow_ups, generate_interviewer_notes,
+    generate_decision_guide, revise_questions,
+)
 from app.workflows.activities.quality_review import review_questions
 from app.workflows.activities.finalization import finalize_output
 from app.workflows.activities.persist_result import persist_result
@@ -34,6 +39,12 @@ ACTIVITIES = [
     analyze_jd,
     select_topics,
     craft_question,
+    enhance_terminology,
+    craft_evaluation_scenarios,
+    design_follow_ups,
+    generate_interviewer_notes,
+    generate_decision_guide,
+    revise_questions,
     review_questions,
     finalize_output,
     persist_result,

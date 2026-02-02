@@ -15,7 +15,12 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.document_analysis import analyze_documents
     from app.workflows.activities.code_analysis import analyze_code
     from app.workflows.activities.jd_analysis import analyze_jd
-    from app.workflows.activities.question_generation import select_topics, craft_question
+    from app.workflows.activities.question_generation import (
+        select_topics, craft_question,
+        enhance_terminology, craft_evaluation_scenarios,
+        design_follow_ups, generate_interviewer_notes,
+        generate_decision_guide, revise_questions,
+    )
     from app.workflows.activities.quality_review import review_questions
     from app.workflows.activities.finalization import finalize_output
     from app.workflows.activities.persist_result import persist_result
@@ -133,6 +138,67 @@ class InterviewGenerationWorkflow:
             questions = await asyncio.gather(*question_tasks)
             questions = list(questions)
 
+            # Phase 3c-3g: Enhancement Agents (병렬)
+            self._update_status(JobStatus.GENERATING, "Phase 3: Enhancement", 70)
+
+            enhancement_tasks = [
+                # 3c. Terminology Agent
+                workflow.execute_activity(
+                    enhance_terminology,
+                    args=[questions, enriched],
+                    start_to_close_timeout=timedelta(minutes=3),
+                ),
+                # 3d. Scenario Writer Agent
+                workflow.execute_activity(
+                    craft_evaluation_scenarios,
+                    args=[questions, enriched],
+                    start_to_close_timeout=timedelta(minutes=3),
+                ),
+                # 3e. Follow-up Designer Agent
+                workflow.execute_activity(
+                    design_follow_ups,
+                    args=[questions, enriched],
+                    start_to_close_timeout=timedelta(minutes=3),
+                ),
+            ]
+
+            guide_tasks = [
+                # 3f. Interviewer Note Agent
+                workflow.execute_activity(
+                    generate_interviewer_notes,
+                    args=[questions, enriched],
+                    start_to_close_timeout=timedelta(minutes=3),
+                ),
+                # 3g. Decision Guide Agent
+                workflow.execute_activity(
+                    generate_decision_guide,
+                    args=[analysis, enriched],
+                    start_to_close_timeout=timedelta(minutes=3),
+                ),
+            ]
+
+            # Run all enhancement agents in parallel
+            all_enhancements = await asyncio.gather(
+                *enhancement_tasks, *guide_tasks
+            )
+            terminology = all_enhancements[0]
+            scenarios = all_enhancements[1]
+            follow_ups = all_enhancements[2]
+            interviewer_notes = all_enhancements[3]
+            decision_guide = all_enhancements[4]
+
+            # Merge enhancements into questions
+            for q in questions:
+                q_id = q.get("question_id") or q.get("topic", "")
+                if q_id in terminology:
+                    q["terminology"] = terminology[q_id]
+                if q_id in scenarios:
+                    q["evaluation_scenarios"] = scenarios[q_id]
+                if q_id in follow_ups:
+                    q["follow_up_questions"] = follow_ups[q_id]
+                if q_id in interviewer_notes:
+                    q["interviewer_note"] = interviewer_notes[q_id]
+
             # Phase 4: Quality Review + Finalization
             self._update_status(JobStatus.REVIEWING, "Phase 4: Review", 85)
 
@@ -143,6 +209,31 @@ class InterviewGenerationWorkflow:
                 start_to_close_timeout=timedelta(minutes=3),
             )
 
+            # 4a-1. Revision loop (최대 3회)
+            revision_count = 0
+            max_revisions = 3
+            while (
+                isinstance(review, dict)
+                and review.get("needs_revision")
+                and revision_count < max_revisions
+            ):
+                revision_count += 1
+                self._update_status(
+                    JobStatus.REVIEWING,
+                    f"Phase 4: Revision {revision_count}/{max_revisions}",
+                    85 + revision_count,
+                )
+                questions = await workflow.execute_activity(
+                    revise_questions,
+                    args=[questions, review, enriched],
+                    start_to_close_timeout=timedelta(minutes=3),
+                )
+                review = await workflow.execute_activity(
+                    review_questions,
+                    questions,
+                    start_to_close_timeout=timedelta(minutes=3),
+                )
+
             # 4b. 최종화
             self._update_status(JobStatus.REVIEWING, "Phase 4: Finalization", 90)
             final_script = await workflow.execute_activity(
@@ -151,6 +242,9 @@ class InterviewGenerationWorkflow:
                 start_to_close_timeout=timedelta(minutes=5),
                 heartbeat_timeout=timedelta(seconds=60),
             )
+            # Attach decision guide to final output
+            if isinstance(final_script, dict) and decision_guide:
+                final_script["decision_guide"] = decision_guide
 
             # DB에 결과 저장
             job_id = input_data.get("job_id")

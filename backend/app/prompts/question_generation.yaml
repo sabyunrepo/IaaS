@@ -29,3 +29,109 @@ prompts:
       6. terminology: technical terms with plain_language_explanation
       7. interviewer_note: guidance for the interviewer
       8. time_allocation_minutes: suggested time
+
+  enhance_terminology:
+    description: "질문 내 전문용어에 비개발자용 설명 추가"
+    template: |
+      Review the following interview questions and enhance all technical terminology
+      with plain-language explanations suitable for non-technical interviewers.
+
+      Language: {output_language}
+      Questions:
+      {questions_json}
+
+      For each question, return a list of terminology entries:
+      - term: the technical term
+      - plain_language_explanation: everyday analogy or simple description
+      - business_relevance: why this matters for the business
+
+      Return JSON: {{"question_id": [...terminology entries]}}
+
+  craft_evaluation_scenarios:
+    description: "3단계 평가 시나리오 텍스트 생성"
+    template: |
+      For each interview question below, create detailed evaluation scenarios
+      at three levels: Expert, Mid-level, Low-level.
+
+      Language: {output_language}
+      Experience Level: {experience_level}
+      Questions:
+      {questions_json}
+
+      For each question return:
+      - expert: {{description, trigger_keywords, behavioral_indicators}}
+      - mid_level: {{description, trigger_keywords, behavioral_indicators}}
+      - low_level: {{description, trigger_keywords, behavioral_indicators}}
+
+      Return JSON: {{"question_id": {{expert, mid_level, low_level}}}}
+
+  design_follow_ups:
+    description: "후속질문 분기 설계 (Expert/Mid/Low 트리거별)"
+    template: |
+      Design follow-up question branches for each interview question.
+      Each follow-up should probe deeper based on the candidate's response level.
+
+      Language: {output_language}
+      Experience Level: {experience_level}
+      Questions:
+      {questions_json}
+
+      For each question, create follow-ups triggered by response quality:
+      - expert_trigger: follow-up for strong answers (probe deeper expertise)
+      - mid_trigger: follow-up for adequate answers (clarify understanding)
+      - low_trigger: follow-up for weak answers (provide scaffolding)
+
+      Return JSON: {{"question_id": [{{trigger, question_text, purpose}}]}}
+
+  generate_interviewer_notes:
+    description: "면접관 참고 노트 생성 (비즈니스 해석, 일상 비유)"
+    template: |
+      Generate interviewer guidance notes for each question.
+      Target audience: non-technical interviewers (HR, hiring managers).
+
+      Language: {output_language}
+      Questions:
+      {questions_json}
+
+      For each question provide:
+      - business_interpretation: what this question reveals about the candidate in business terms
+      - daily_analogy: everyday analogy to understand the technical concept
+      - red_flags: warning signs in candidate's answer
+      - green_flags: positive indicators in candidate's answer
+
+      Return JSON: {{"question_id": {{business_interpretation, daily_analogy, red_flags, green_flags}}}}
+
+  generate_decision_guide:
+    description: "채용 의사결정 가이드 생성"
+    template: |
+      Based on the candidate analysis and interview questions, generate a decision guide
+      for the hiring committee.
+
+      Language: {output_language}
+      Experience Level: {experience_level}
+      Analysis Summary:
+      {analysis_summary}
+      Question Categories:
+      {category_summary}
+
+      Generate:
+      - scoring_weights: category weights by experience level
+      - decision_thresholds: {{strong_hire: 90, hire: 60, no_hire: 35}}
+      - category_insights: key evaluation focus per category
+      - risk_assessment: identified risks and mitigation questions
+
+      Return JSON with the above structure.
+
+  revise_questions:
+    description: "품질 검토 후 질문 수정"
+    template: |
+      Revise the following interview questions based on quality review feedback.
+
+      Language: {output_language}
+      Questions:
+      {questions_json}
+      Review Feedback:
+      {review_feedback}
+
+      Apply the feedback to improve each flagged question. Preserve question IDs.
+      Return the revised questions as a JSON list.

@@ -16,6 +16,12 @@ class TestActivityRegistration:
             "analyze_jd",
             "select_topics",
             "craft_question",
+            "enhance_terminology",
+            "craft_evaluation_scenarios",
+            "design_follow_ups",
+            "generate_interviewer_notes",
+            "generate_decision_guide",
+            "revise_questions",
             "review_questions",
             "finalize_output",
             "persist_result",
@@ -24,7 +30,7 @@ class TestActivityRegistration:
         assert names == expected
 
     def test_activity_count(self):
-        assert len(ACTIVITIES) == 11
+        assert len(ACTIVITIES) == 17
 
 
 class TestWorkflow:
