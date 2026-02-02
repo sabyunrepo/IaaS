@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
+import { useWebSocket } from '../hooks/useWebSocket'
 
 const PHASE_LABELS: Record<string, string> = {
   pending: '대기 중',
@@ -18,9 +19,11 @@ export function JobStatusPage() {
   const { t } = useTranslation()
   const { jobId } = useParams<{ jobId: string }>()
   const { getJob } = useJob()
+  const { progress: wsProgress, connected } = useWebSocket(jobId)
   const [job, setJob] = useState<Record<string, unknown> | null>(null)
   const [error, setError] = useState('')
 
+  // Initial fetch + polling fallback (when WS not connected)
   useEffect(() => {
     if (!jobId) return
     const fetchStatus = async () => {
@@ -32,35 +35,56 @@ export function JobStatusPage() {
       }
     }
     fetchStatus()
-    const interval = setInterval(fetchStatus, 3000)
-    return () => clearInterval(interval)
-  }, [jobId, getJob])
 
-  if (error) return <p className="text-red-600">{error}</p>
-  if (!job) return <p>{t('loading')}</p>
+    // Poll only if WebSocket is not connected
+    if (!connected) {
+      const interval = setInterval(fetchStatus, 3000)
+      return () => clearInterval(interval)
+    }
+  }, [jobId, getJob, connected])
 
-  const status = String(job.status || 'pending')
-  const phaseLabel = PHASE_LABELS[status] || status
+  if (error) return <p className="text-red-600 p-4">{error}</p>
+  if (!job) {
+    return (
+      <div className="max-w-2xl mx-auto flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <span className="ml-3 text-gray-500">{t('loading')}</span>
+      </div>
+    )
+  }
+
+  // Prefer WebSocket progress over polled status
+  const status = wsProgress?.status || String(job.status || 'pending')
+  const progressPercent = wsProgress?.progress ?? getProgressPercent(status)
+  const phaseLabel = wsProgress?.phase || PHASE_LABELS[status] || status
+
+  const isTerminal = status === 'completed' || status === 'failed'
 
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-4">Job: {jobId?.slice(0, 8)}...</h1>
 
       <div className="bg-white rounded-lg shadow p-6 space-y-4">
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
           <span className="text-gray-600">{t('status')}</span>
-          <span className={`font-medium ${status === 'completed' ? 'text-green-600' : status === 'failed' ? 'text-red-600' : 'text-blue-600'}`}>
-            {phaseLabel}
-          </span>
+          <div className="flex items-center gap-2">
+            {!isTerminal && (
+              <span className={`inline-block h-2 w-2 rounded-full ${connected ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
+            )}
+            <span className={`font-medium ${status === 'completed' ? 'text-green-600' : status === 'failed' ? 'text-red-600' : 'text-blue-600'}`}>
+              {phaseLabel}
+            </span>
+          </div>
         </div>
 
         {/* Progress bar */}
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div
-            className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-            style={{ width: `${getProgressPercent(status)}%` }}
+            className={`h-3 rounded-full transition-all duration-500 ${status === 'failed' ? 'bg-red-500' : 'bg-blue-600'}`}
+            style={{ width: `${progressPercent}%` }}
           />
         </div>
+        <div className="text-right text-xs text-gray-400">{progressPercent}%</div>
 
         <div className="text-sm text-gray-500">
           생성일: {job.created_at ? new Date(String(job.created_at)).toLocaleString() : '-'}
@@ -75,6 +99,15 @@ export function JobStatusPage() {
             >
               결과 보기
             </Link>
+          </div>
+        )}
+
+        {status === 'failed' && (
+          <div className="mt-4 p-4 bg-red-50 rounded-lg">
+            <p className="text-red-800 font-medium">생성에 실패했습니다</p>
+            <p className="text-red-600 text-sm mt-1">
+              {String((job as Record<string, unknown>).error_message || '알 수 없는 오류')}
+            </p>
           </div>
         )}
       </div>
