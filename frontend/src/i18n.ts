@@ -65,6 +65,14 @@ const resources = {
       go_home: '홈으로 돌아가기',
       // Error states
       fetch_error: '데이터를 불러오는 데 실패했습니다.',
+      // Create job
+      jd_label: '채용공고 (JD)',
+      experience_level: '경험 레벨',
+      level_entry: '신입',
+      level_junior: '주니어',
+      level_mid: '미들',
+      level_senior: '시니어',
+      level_executive: 'CTO/VP',
     },
   },
   en: {
@@ -122,6 +130,13 @@ const resources = {
       page_not_found: 'Page not found.',
       go_home: 'Go Home',
       fetch_error: 'Failed to load data.',
+      jd_label: 'Job Description (JD)',
+      experience_level: 'Experience Level',
+      level_entry: 'Entry',
+      level_junior: 'Junior',
+      level_mid: 'Mid-level',
+      level_senior: 'Senior',
+      level_executive: 'CTO/VP',
     },
   },
 }

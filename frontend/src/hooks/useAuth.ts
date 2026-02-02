@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { setToken, getToken } from '../lib/api'
 
+const BACKEND = import.meta.env.VITE_BACKEND_URL || ''
+
 interface User {
   id: string
   email: string
@@ -19,7 +21,7 @@ export function useAuth() {
       return
     }
     try {
-      const res = await fetch('/auth/me', {
+      const res = await fetch(`${BACKEND}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) throw new Error('Unauthorized')

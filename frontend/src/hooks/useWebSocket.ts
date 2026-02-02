@@ -14,15 +14,20 @@ interface UseWebSocketReturn {
   error: string | null
 }
 
+const MAX_RECONNECT_ATTEMPTS = 5
+const BASE_DELAY_MS = 1000
+
 export function useWebSocket(jobId: string | undefined): UseWebSocketReturn {
   const [progress, setProgress] = useState<WSProgress | null>(null)
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const attemptRef = useRef(0)
+  const terminalRef = useRef(false)
 
   const connect = useCallback(() => {
-    if (!jobId) return
+    if (!jobId || terminalRef.current) return
 
     const token = getToken()
     if (!token) return
@@ -38,6 +43,7 @@ export function useWebSocket(jobId: string | undefined): UseWebSocketReturn {
       ws.onopen = () => {
         setConnected(true)
         setError(null)
+        attemptRef.current = 0
       }
 
       ws.onmessage = (event) => {
@@ -45,8 +51,8 @@ export function useWebSocket(jobId: string | undefined): UseWebSocketReturn {
           const data = JSON.parse(event.data) as WSProgress
           setProgress(data)
 
-          // Terminal states — close connection
           if (data.event === 'done' || data.status === 'completed' || data.status === 'failed') {
+            terminalRef.current = true
             ws.close()
           }
         } catch {
@@ -57,6 +63,13 @@ export function useWebSocket(jobId: string | undefined): UseWebSocketReturn {
       ws.onclose = () => {
         setConnected(false)
         wsRef.current = null
+
+        // Auto-reconnect with exponential backoff if not terminal
+        if (!terminalRef.current && attemptRef.current < MAX_RECONNECT_ATTEMPTS) {
+          const delay = BASE_DELAY_MS * Math.pow(2, attemptRef.current)
+          attemptRef.current += 1
+          reconnectRef.current = setTimeout(connect, delay)
+        }
       }
 
       ws.onerror = () => {
@@ -69,9 +82,12 @@ export function useWebSocket(jobId: string | undefined): UseWebSocketReturn {
   }, [jobId])
 
   useEffect(() => {
+    terminalRef.current = false
+    attemptRef.current = 0
     connect()
 
     return () => {
+      terminalRef.current = true
       if (wsRef.current) {
         wsRef.current.close()
         wsRef.current = null

@@ -11,12 +11,14 @@ export function CreateJobPage() {
   const [jdText, setJdText] = useState('')
   const [experienceLevel, setExperienceLevel] = useState('미들')
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!jdText.trim()) return
 
     setSubmitting(true)
+    setError(null)
     try {
       const job = await createJob({
         jd_text: jdText,
@@ -24,7 +26,7 @@ export function CreateJobPage() {
       })
       navigate(`/jobs/${job.job_id}`)
     } catch (err) {
-      console.error('Failed to create job:', err)
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setSubmitting(false)
     }
@@ -36,7 +38,7 @@ export function CreateJobPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            채용공고 (JD) *
+            {t('jd_label')} *
           </label>
           <textarea
             value={jdText}
@@ -51,20 +53,26 @@ export function CreateJobPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            경험 레벨
+            {t('experience_level')}
           </label>
           <select
             value={experienceLevel}
             onChange={(e) => setExperienceLevel(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
           >
-            <option value="신입">신입</option>
-            <option value="주니어">주니어</option>
-            <option value="미들">미들</option>
-            <option value="시니어">시니어</option>
-            <option value="CTO/VP">CTO/VP</option>
+            <option value="신입">{t('level_entry')}</option>
+            <option value="주니어">{t('level_junior')}</option>
+            <option value="미들">{t('level_mid')}</option>
+            <option value="시니어">{t('level_senior')}</option>
+            <option value="CTO/VP">{t('level_executive')}</option>
           </select>
         </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
 
         <button
           type="submit"
