@@ -24,6 +24,7 @@ from app.workflows.activities.question_generation import select_topics, craft_qu
 from app.workflows.activities.quality_review import review_questions
 from app.workflows.activities.finalization import finalize_output
 from app.workflows.activities.persist_result import persist_result
+from app.workflows.activities.send_webhook import send_webhook
 
 ACTIVITIES = [
     enrich_input,
@@ -36,6 +37,7 @@ ACTIVITIES = [
     review_questions,
     finalize_output,
     persist_result,
+    send_webhook,
 ]
 
 
