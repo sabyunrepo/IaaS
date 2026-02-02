@@ -12,6 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.core.config import settings
 from app.exceptions import VantictBaseError
 from app.api.health import router as health_router
+from app.api.routes.auth import router as auth_router
 
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ async def vantict_error_handler(request: Request, exc: VantictBaseError):
 # --- Routers ---
 
 app.include_router(health_router)
+app.include_router(auth_router)
 
 
 @app.get("/")
