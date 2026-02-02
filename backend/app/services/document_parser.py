@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 logger = logging.getLogger(__name__)
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".doc", ".txt", ".md", ".html"}
+MAX_FILE_SIZE_MB = 50
+MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 
 @dataclass
@@ -30,6 +32,12 @@ async def parse_document(file_path: str) -> ParseResult:
     """파일에서 구조화된 파싱 결과 반환"""
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
+
+    file_size = os.path.getsize(file_path)
+    if file_size > MAX_FILE_SIZE_BYTES:
+        raise ValueError(
+            f"File too large: {file_size / 1024 / 1024:.1f}MB (max {MAX_FILE_SIZE_MB}MB)"
+        )
 
     ext = os.path.splitext(file_path)[1].lower()
     if ext not in SUPPORTED_EXTENSIONS:
