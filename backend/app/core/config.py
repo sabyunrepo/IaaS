@@ -32,14 +32,16 @@ class Settings(BaseSettings):
     TEMPORAL_TLS_KEY: str | None = None
     TEMPORAL_API_KEY: str | None = None
 
-    # Object Storage
+    # Object Storage (local | r2)
     STORAGE_BACKEND: str = "local"
-    S3_ENDPOINT: str | None = None
-    S3_BUCKET: str = "vantict-data"
-    AWS_ACCESS_KEY_ID: str | None = None
-    AWS_SECRET_ACCESS_KEY: str | None = None
-    AWS_REGION: str = "ap-northeast-2"
     LOCAL_STORAGE_PATH: str = "./data"
+
+    # Cloudflare R2 (S3-compatible)
+    R2_ACCOUNT_ID: str | None = None
+    R2_ACCESS_KEY_ID: str | None = None
+    R2_SECRET_ACCESS_KEY: str | None = None
+    R2_BUCKET: str = "vantict-data"
+    R2_PUBLIC_URL: str | None = None  # e.g. https://pub-xxx.r2.dev
 
     # GitHub
     GITHUB_TOKEN: str | None = None
@@ -81,17 +83,20 @@ class Settings(BaseSettings):
         return self.ENV == "local"
 
     @property
+    def r2_endpoint(self) -> str | None:
+        if self.R2_ACCOUNT_ID:
+            return f"https://{self.R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+        return None
+
+    @property
     def storage_config(self) -> dict:
-        if self.STORAGE_BACKEND == "local":
-            return {"backend": "local", "path": self.LOCAL_STORAGE_PATH}
-        config = {
-            "backend": self.STORAGE_BACKEND,
-            "region_name": self.AWS_REGION,
-            "bucket": self.S3_BUCKET,
-        }
-        if self.S3_ENDPOINT:
-            config["endpoint_url"] = self.S3_ENDPOINT
-        return config
+        if self.STORAGE_BACKEND == "r2":
+            return {
+                "backend": "r2",
+                "endpoint_url": self.r2_endpoint,
+                "bucket": self.R2_BUCKET,
+            }
+        return {"backend": "local", "path": self.LOCAL_STORAGE_PATH}
 
 
 @lru_cache
