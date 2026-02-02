@@ -4,6 +4,16 @@ import { useTranslation } from 'react-i18next'
 import { apiFetch } from '../lib/api'
 import { QuestionCard } from '../components/QuestionCard'
 
+function downloadJSON(data: unknown, filename: string) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 const CATEGORIES = [
   { key: 'all', label: '전체' },
   { key: 'role_fit', label: '직무 적합성' },
@@ -57,11 +67,25 @@ export function ResultPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">면접 스크립트</h1>
-        {maxScore > 0 && (
-          <div className="text-lg font-semibold text-gray-700">
-            점수: {totalScore}/{maxScore} ({Math.round((totalScore / maxScore) * 100)}%)
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {maxScore > 0 && (
+            <div className="text-lg font-semibold text-gray-700">
+              점수: {totalScore}/{maxScore} ({Math.round((totalScore / maxScore) * 100)}%)
+            </div>
+          )}
+          <button
+            onClick={() => downloadJSON(script, `interview-${jobId?.slice(0, 8)}.json`)}
+            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+          >
+            JSON 내보내기
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+          >
+            PDF 인쇄
+          </button>
+        </div>
       </div>
 
       {/* Candidate Summary */}
