@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from './components/Layout'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { LoginPage } from './pages/LoginPage'
 import { JobListPage } from './pages/JobListPage'
 import { CreateJobPage } from './pages/CreateJobPage'
@@ -20,6 +21,7 @@ function App() {
   }
 
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <Routes>
         <Route element={<Layout user={user} onLogout={logout} />}>
@@ -44,6 +46,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </ErrorBoundary>
   )
 }
 
