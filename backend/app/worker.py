@@ -16,8 +16,9 @@ logger = logging.getLogger(__name__)
 
 # Activity 함수 등록
 from app.workflows.activities.input_enrichment import enrich_input
+from app.workflows.activities.planning import create_execution_plan
 
-ACTIVITIES = [enrich_input]
+ACTIVITIES = [enrich_input, create_execution_plan]
 
 
 async def main():
