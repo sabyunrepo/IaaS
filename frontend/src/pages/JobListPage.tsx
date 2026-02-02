@@ -1,17 +1,23 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
 
+const PAGE_SIZE = 10
+
 export function JobListPage() {
   const { t } = useTranslation()
   const { jobs, loading, fetchJobs, deleteJob } = useJob()
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     fetchJobs()
   }, [fetchJobs])
 
   if (loading) return <p>{t('loading')}</p>
+
+  const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE))
+  const paginated = jobs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div>
@@ -28,27 +34,52 @@ export function JobListPage() {
       {jobs.length === 0 ? (
         <p className="text-gray-500">{t('no_jobs')}</p>
       ) : (
-        <div className="space-y-3">
-          {jobs.map((job) => (
-            <div key={job.job_id} className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
-              <div>
-                <Link to={`/jobs/${job.job_id}`} className="text-blue-600 hover:underline font-medium">
-                  {job.job_id.slice(0, 8)}...
-                </Link>
-                <span className="ml-3 text-sm text-gray-500">{job.status}</span>
-                <span className="ml-3 text-sm text-gray-400">
-                  {new Date(job.created_at).toLocaleString()}
-                </span>
+        <>
+          <div className="space-y-3">
+            {paginated.map((job) => (
+              <div key={job.job_id} className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
+                <div>
+                  <Link to={`/jobs/${job.job_id}`} className="text-blue-600 hover:underline font-medium">
+                    {job.job_id.slice(0, 8)}...
+                  </Link>
+                  <span className="ml-3 text-sm text-gray-500">{job.status}</span>
+                  <span className="ml-3 text-sm text-gray-400">
+                    {new Date(job.created_at).toLocaleString()}
+                  </span>
+                </div>
+                <button
+                  onClick={() => deleteJob(job.job_id)}
+                  className="text-sm text-red-500 hover:text-red-700"
+                >
+                  삭제
+                </button>
               </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
               <button
-                onClick={() => deleteJob(job.job_id)}
-                className="text-sm text-red-500 hover:text-red-700"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1 text-sm rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-100"
               >
-                삭제
+                이전
+              </button>
+              <span className="text-sm text-gray-600">
+                {page} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1 text-sm rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-100"
+              >
+                다음
               </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   )
