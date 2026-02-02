@@ -134,6 +134,143 @@ async def craft_question(
     return question
 
 
+@activity.defn
+async def enhance_terminology(questions: list[dict], enriched_input: dict) -> dict:
+    """3c. Terminology Agent — 전문용어에 비개발자용 설명 추가"""
+    from app.services.cached_llm import CachedLLMService
+    from app.prompts import get_prompt
+    import json
+
+    llm = CachedLLMService()
+    raw_input = enriched_input.get("raw_input", {})
+    output_language = raw_input.get("language_config", {}).get("output_language", "ko")
+
+    prompt = get_prompt(
+        "question_generation.yaml", "enhance_terminology",
+        output_language=output_language,
+        questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
+    )
+    result = await llm.run(prompt)
+    return result if isinstance(result, dict) else {}
+
+
+@activity.defn
+async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict) -> dict:
+    """3d. Scenario Writer Agent — 3단계 평가 시나리오 생성"""
+    from app.services.cached_llm import CachedLLMService
+    from app.prompts import get_prompt
+    import json
+
+    llm = CachedLLMService()
+    raw_input = enriched_input.get("raw_input", {})
+    output_language = raw_input.get("language_config", {}).get("output_language", "ko")
+    experience_level = raw_input.get("experience_level", "미들")
+
+    prompt = get_prompt(
+        "question_generation.yaml", "craft_evaluation_scenarios",
+        output_language=output_language,
+        experience_level=experience_level,
+        questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
+    )
+    result = await llm.run(prompt)
+    return result if isinstance(result, dict) else {}
+
+
+@activity.defn
+async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict:
+    """3e. Follow-up Designer Agent — 후속질문 분기 설계"""
+    from app.services.cached_llm import CachedLLMService
+    from app.prompts import get_prompt
+    import json
+
+    llm = CachedLLMService()
+    raw_input = enriched_input.get("raw_input", {})
+    output_language = raw_input.get("language_config", {}).get("output_language", "ko")
+    experience_level = raw_input.get("experience_level", "미들")
+
+    prompt = get_prompt(
+        "question_generation.yaml", "design_follow_ups",
+        output_language=output_language,
+        experience_level=experience_level,
+        questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
+    )
+    result = await llm.run(prompt)
+    return result if isinstance(result, dict) else {}
+
+
+@activity.defn
+async def generate_interviewer_notes(questions: list[dict], enriched_input: dict) -> dict:
+    """3f. Interviewer Note Agent — 면접관 참고 노트"""
+    from app.services.cached_llm import CachedLLMService
+    from app.prompts import get_prompt
+    import json
+
+    llm = CachedLLMService()
+    raw_input = enriched_input.get("raw_input", {})
+    output_language = raw_input.get("language_config", {}).get("output_language", "ko")
+
+    prompt = get_prompt(
+        "question_generation.yaml", "generate_interviewer_notes",
+        output_language=output_language,
+        questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
+    )
+    result = await llm.run(prompt)
+    return result if isinstance(result, dict) else {}
+
+
+@activity.defn
+async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
+    """3g. Decision Guide Agent — 채용 의사결정 가이드"""
+    from app.services.cached_llm import CachedLLMService
+    from app.prompts import get_prompt
+    import json
+
+    llm = CachedLLMService()
+    raw_input = enriched_input.get("raw_input", {})
+    output_language = raw_input.get("language_config", {}).get("output_language", "ko")
+    experience_level = raw_input.get("experience_level", "미들")
+
+    # Summarize analysis for the prompt
+    analysis_summary = json.dumps({
+        k: v.get("summary", str(v)[:500]) if isinstance(v, dict) else str(v)[:500]
+        for k, v in analysis.items()
+    }, ensure_ascii=False, default=str)
+
+    categories = ["role_fit", "technical_depth", "execution_ownership", "communication", "risk_flags"]
+    category_summary = json.dumps(categories, ensure_ascii=False)
+
+    prompt = get_prompt(
+        "question_generation.yaml", "generate_decision_guide",
+        output_language=output_language,
+        experience_level=experience_level,
+        analysis_summary=analysis_summary,
+        category_summary=category_summary,
+    )
+    result = await llm.run(prompt)
+    return result if isinstance(result, dict) else {}
+
+
+@activity.defn
+async def revise_questions(questions: list[dict], review_feedback: dict, enriched_input: dict) -> list[dict]:
+    """3h. Quality Review revision — 피드백 기반 질문 수정"""
+    from app.services.cached_llm import CachedLLMService
+    from app.prompts import get_prompt
+    import json
+
+    llm = CachedLLMService()
+    raw_input = enriched_input.get("raw_input", {})
+    output_language = raw_input.get("language_config", {}).get("output_language", "ko")
+
+    prompt = get_prompt(
+        "question_generation.yaml", "revise_questions",
+        output_language=output_language,
+        questions_json=json.dumps(questions, ensure_ascii=False, default=str),
+        review_feedback=json.dumps(review_feedback, ensure_ascii=False, default=str),
+    )
+    result = await llm.run(prompt)
+    return result if isinstance(result, list) else questions
+
+
 def _format_candidates(candidates: list[dict]) -> str:
     lines = []
     for i, c in enumerate(candidates[:30]):
