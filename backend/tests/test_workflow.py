@@ -18,11 +18,12 @@ class TestActivityRegistration:
             "craft_question",
             "review_questions",
             "finalize_output",
+            "persist_result",
         ]
         assert names == expected
 
     def test_activity_count(self):
-        assert len(ACTIVITIES) == 9
+        assert len(ACTIVITIES) == 10
 
 
 class TestWorkflow:

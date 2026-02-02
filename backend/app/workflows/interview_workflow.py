@@ -18,6 +18,7 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.question_generation import select_topics, craft_question
     from app.workflows.activities.quality_review import review_questions
     from app.workflows.activities.finalization import finalize_output
+    from app.workflows.activities.persist_result import persist_result
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +151,16 @@ class InterviewGenerationWorkflow:
                 heartbeat_timeout=timedelta(seconds=60),
             )
 
+            # DB에 결과 저장
+            job_id = input_data.get("job_id")
+            if job_id:
+                self._update_status(JobStatus.REVIEWING, "Persisting result", 95)
+                await workflow.execute_activity(
+                    persist_result,
+                    args=[job_id, final_script],
+                    start_to_close_timeout=timedelta(minutes=1),
+                )
+
             self._update_status(JobStatus.COMPLETED, "completed", 100)
             return {"status": "completed", "script": final_script}
 
@@ -157,6 +168,18 @@ class InterviewGenerationWorkflow:
             self._status = JobStatus.FAILED.value
             self._current_phase = "failed"
             logger.error(f"Workflow failed: {e}")
+
+            # DB에 실패 상태 저장
+            job_id = input_data.get("job_id")
+            if job_id:
+                try:
+                    await workflow.execute_activity(
+                        persist_result,
+                        args=[job_id, {"error": str(e)}],
+                        start_to_close_timeout=timedelta(minutes=1),
+                    )
+                except Exception:
+                    logger.error("Failed to persist error status to DB")
             raise
 
     @workflow.query

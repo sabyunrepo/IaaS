@@ -34,13 +34,15 @@ async def create_job(
     try:
         from app.core.temporal import get_temporal_client
         from app.workflows.interview_workflow import InterviewGenerationWorkflow
+        from app.core.config import settings
         client = await get_temporal_client()
         workflow_id = f"interview-{job.id}"
+        workflow_input = {**input_data, "job_id": str(job.id)}
         await client.start_workflow(
             InterviewGenerationWorkflow.run,
-            input_data,
+            workflow_input,
             id=workflow_id,
-            task_queue="interview-generation",
+            task_queue=settings.TEMPORAL_TASK_QUEUE,
         )
         job.temporal_workflow_id = workflow_id
     except Exception:
