@@ -7,6 +7,7 @@ import logging
 from fastapi import APIRouter
 
 from app.core.config import settings
+from app.workflows.interview_workflow import WORKFLOW_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ async def health_check():
     checks = {
         "service": "ok",
         "version": "4.0.0",
+        "workflow_version": WORKFLOW_VERSION,
         "env": settings.ENV,
     }
 
