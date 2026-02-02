@@ -19,11 +19,12 @@ class TestActivityRegistration:
             "review_questions",
             "finalize_output",
             "persist_result",
+            "send_webhook",
         ]
         assert names == expected
 
     def test_activity_count(self):
-        assert len(ACTIVITIES) == 10
+        assert len(ACTIVITIES) == 11
 
 
 class TestWorkflow:

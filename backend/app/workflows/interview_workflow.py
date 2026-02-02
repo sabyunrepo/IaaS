@@ -19,6 +19,7 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.quality_review import review_questions
     from app.workflows.activities.finalization import finalize_output
     from app.workflows.activities.persist_result import persist_result
+    from app.workflows.activities.send_webhook import send_webhook
 
 logger = logging.getLogger(__name__)
 
@@ -161,6 +162,18 @@ class InterviewGenerationWorkflow:
                     start_to_close_timeout=timedelta(minutes=1),
                 )
 
+            # Webhook callback (fire-and-forget, 실패해도 워크플로우 성공)
+            callback_url = input_data.get("callback_url")
+            if callback_url and job_id:
+                try:
+                    await workflow.execute_activity(
+                        send_webhook,
+                        args=[job_id, callback_url, "completed", final_script],
+                        start_to_close_timeout=timedelta(seconds=30),
+                    )
+                except Exception as we:
+                    logger.warning(f"Webhook delivery failed (non-fatal): {we}")
+
             self._update_status(JobStatus.COMPLETED, "completed", 100)
             return {"status": "completed", "script": final_script}
 
@@ -180,6 +193,18 @@ class InterviewGenerationWorkflow:
                     )
                 except Exception:
                     logger.error("Failed to persist error status to DB")
+
+            # Webhook callback for failure
+            callback_url = input_data.get("callback_url")
+            if callback_url and job_id:
+                try:
+                    await workflow.execute_activity(
+                        send_webhook,
+                        args=[job_id, callback_url, "failed", {"error": str(e)}],
+                        start_to_close_timeout=timedelta(seconds=30),
+                    )
+                except Exception:
+                    logger.warning("Webhook delivery for failure failed (non-fatal)")
             raise
 
     @workflow.query
