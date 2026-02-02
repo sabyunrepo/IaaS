@@ -20,6 +20,9 @@ from app.workflows.activities.planning import create_execution_plan
 from app.workflows.activities.document_analysis import analyze_documents
 from app.workflows.activities.code_analysis import analyze_code
 from app.workflows.activities.jd_analysis import analyze_jd
+from app.workflows.activities.question_generation import select_topics, craft_question
+from app.workflows.activities.quality_review import review_questions
+from app.workflows.activities.finalization import finalize_output
 
 ACTIVITIES = [
     enrich_input,
@@ -27,6 +30,10 @@ ACTIVITIES = [
     analyze_documents,
     analyze_code,
     analyze_jd,
+    select_topics,
+    craft_question,
+    review_questions,
+    finalize_output,
 ]
 
 

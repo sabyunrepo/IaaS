@@ -15,6 +15,9 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.document_analysis import analyze_documents
     from app.workflows.activities.code_analysis import analyze_code
     from app.workflows.activities.jd_analysis import analyze_jd
+    from app.workflows.activities.question_generation import select_topics, craft_question
+    from app.workflows.activities.quality_review import review_questions
+    from app.workflows.activities.finalization import finalize_output
 
 logger = logging.getLogger(__name__)
 
@@ -107,14 +110,48 @@ class InterviewGenerationWorkflow:
 
             # Phase 3: Question Generation
             self._update_status(JobStatus.GENERATING, "Phase 3: Generation", 60)
-            # TODO: Step 11 — question generation activities
+
+            # 3a. 토픽 선정
+            topics = await workflow.execute_activity(
+                select_topics,
+                args=[analysis, enriched],
+                start_to_close_timeout=timedelta(minutes=3),
+            )
+
+            # 3b. 개별 질문 생성 (병렬)
+            question_tasks = []
+            for topic in topics:
+                question_tasks.append(
+                    workflow.execute_activity(
+                        craft_question,
+                        args=[topic, analysis, enriched],
+                        start_to_close_timeout=timedelta(minutes=2),
+                    )
+                )
+            questions = await asyncio.gather(*question_tasks)
+            questions = list(questions)
 
             # Phase 4: Quality Review + Finalization
             self._update_status(JobStatus.REVIEWING, "Phase 4: Review", 85)
-            # TODO: Step 12 — review + finalize activities
+
+            # 4a. 품질 검토
+            review = await workflow.execute_activity(
+                review_questions,
+                questions,
+                start_to_close_timeout=timedelta(minutes=3),
+            )
+
+            # 4b. 최종화
+            self._update_status(JobStatus.REVIEWING, "Phase 4: Finalization", 90)
+            final_script = await workflow.execute_activity(
+                finalize_output,
+                args=[questions, analysis, enriched],
+                start_to_close_timeout=timedelta(minutes=5),
+                heartbeat_timeout=timedelta(seconds=60),
+            )
 
             self._update_status(JobStatus.COMPLETED, "completed", 100)
-            return {"status": "completed", "message": "Interview script generated"}
+            return {"status": "completed", "script": final_script}
 
         except Exception as e:
             self._status = JobStatus.FAILED.value
