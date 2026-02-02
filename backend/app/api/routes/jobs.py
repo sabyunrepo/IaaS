@@ -4,10 +4,11 @@ Job CRUD API 엔드포인트
 """
 import logging
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.rate_limit import limiter
 from app.api.deps import get_current_user_or_api_key
 from app.models.database import UserDB
 from app.models.input import CreateJobRequest, CreateJobResponse
@@ -28,16 +29,18 @@ def _job_to_dict(job) -> dict:
 
 
 @router.post("", status_code=201)
+@limiter.limit("10/minute")
 async def create_job(
-    request: CreateJobRequest,
+    request: Request,
+    body: CreateJobRequest,
     user: UserDB = Depends(get_current_user_or_api_key),
     db: AsyncSession = Depends(get_db),
 ):
     """면접 스크립트 생성 요청"""
     job = await job_service.create_job(
         user_id=user.id,
-        input_data=request.input_data.model_dump(mode="json"),
-        callback_url=request.callback_url,
+        input_data=body.input_data.model_dump(mode="json"),
+        callback_url=body.callback_url,
         db=db,
     )
 
