@@ -82,15 +82,12 @@ async def finalize_output(
 
     activity.heartbeat("Saving output...")
 
-    # 5. 로컬 저장 (S3는 인프라 연결 후)
-    import os
-    output_dir = os.path.join(settings.LOCAL_STORAGE_PATH, "outputs")
-    os.makedirs(output_dir, exist_ok=True)
-
-    # JSON 저장
-    output_path = os.path.join(output_dir, "interview_script.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(final_script, f, ensure_ascii=False, indent=2, default=str)
+    # 5. 저장 (local 또는 S3)
+    from app.services.storage_service import get_storage
+    storage = get_storage()
+    job_id = enriched_input.get("job_id", "unknown")
+    storage_key = f"outputs/{job_id}/interview_script.json"
+    output_path = storage.upload_json(storage_key, final_script)
 
     logger.info(f"Interview script saved to {output_path}")
     final_script["output_path"] = output_path
