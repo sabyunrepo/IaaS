@@ -2,6 +2,7 @@
 backend/app/workflows/interview_workflow.py
 메인 워크플로우: InterviewGenerationWorkflow
 """
+import asyncio
 import logging
 from datetime import timedelta
 
@@ -11,6 +12,9 @@ with workflow.unsafe.imports_passed_through():
     from app.models.enums import JobStatus
     from app.workflows.activities.input_enrichment import enrich_input
     from app.workflows.activities.planning import create_execution_plan
+    from app.workflows.activities.document_analysis import analyze_documents
+    from app.workflows.activities.code_analysis import analyze_code
+    from app.workflows.activities.jd_analysis import analyze_jd
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +54,56 @@ class InterviewGenerationWorkflow:
 
             # Phase 2: Parallel Analysis
             self._update_status(JobStatus.ANALYZING, "Phase 2: Analysis", 25)
-            # TODO: Step 10 — parallel analysis activities
+            raw_input = enriched.get("raw_input", {})
+            phases = {p["name"]: p["enabled"] for p in execution_plan.get("phases", [])}
+
+            analysis_tasks = []
+
+            # JD Analysis (항상 실행)
+            analysis_tasks.append(
+                workflow.execute_activity(
+                    analyze_jd,
+                    raw_input.get("jd_text", ""),
+                    start_to_close_timeout=timedelta(minutes=3),
+                )
+            )
+
+            # Document Analysis (조건부)
+            if phases.get("document_analysis"):
+                analysis_tasks.append(
+                    workflow.execute_activity(
+                        analyze_documents,
+                        raw_input,
+                        start_to_close_timeout=timedelta(minutes=5),
+                        heartbeat_timeout=timedelta(seconds=60),
+                    )
+                )
+
+            # Code Analysis (조건부)
+            if phases.get("code_analysis"):
+                analysis_tasks.append(
+                    workflow.execute_activity(
+                        analyze_code,
+                        args=[
+                            enriched.get("github_urls", []),
+                            raw_input,
+                            execution_plan,
+                        ],
+                        start_to_close_timeout=timedelta(minutes=10),
+                        heartbeat_timeout=timedelta(seconds=120),
+                    )
+                )
+
+            analysis_results = await asyncio.gather(*analysis_tasks)
+
+            # Aggregate results
+            analysis = {"jd_analysis": analysis_results[0]}
+            idx = 1
+            if phases.get("document_analysis"):
+                analysis["document_analysis"] = analysis_results[idx]
+                idx += 1
+            if phases.get("code_analysis"):
+                analysis["code_analysis"] = analysis_results[idx]
 
             # Phase 3: Question Generation
             self._update_status(JobStatus.GENERATING, "Phase 3: Generation", 60)
