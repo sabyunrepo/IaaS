@@ -7,7 +7,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     Boolean, Column, DateTime, ForeignKey, Index, String, Text, BigInteger,
-    func,
+    UniqueConstraint, func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, relationship
@@ -94,3 +94,20 @@ class JobDB(Base):
     completed_at = Column(DateTime(timezone=True))
 
     user = relationship("UserDB", back_populates="jobs")
+    checkpoints = relationship("CheckpointDB", back_populates="job", cascade="all, delete-orphan")
+
+
+class CheckpointDB(Base):
+    __tablename__ = "checkpoints"
+    __table_args__ = (
+        Index("idx_checkpoints_job", "job_id"),
+        UniqueConstraint("job_id", "phase", name="uq_checkpoints_job_phase"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
+    phase = Column(String(50), nullable=False)
+    data = Column(JSONB, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    job = relationship("JobDB", back_populates="checkpoints")
