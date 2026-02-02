@@ -61,13 +61,9 @@ async def review_questions(questions: list[dict]) -> dict:
     # 3. LLM 기반 중복/품질 검토
     if len(questions) > 0:
         question_texts = [q.get("question_text", "") for q in questions[:25]]
-        prompt = (
-            "Review these interview questions for quality:\n"
-            "1. Identify any duplicate or very similar questions (list indices)\n"
-            "2. Rate overall quality 1-10\n"
-            "3. Suggest any improvements\n\n"
-            + "\n".join(f"{i+1}. {t}" for i, t in enumerate(question_texts))
-        )
+        from app.prompts import get_prompt
+        formatted_questions = "\n".join(f"{i+1}. {t}" for i, t in enumerate(question_texts))
+        prompt = get_prompt("quality_review.yaml", "review", questions=formatted_questions)
         review_result = await llm.run(prompt)
         if isinstance(review_result, dict):
             if review_result.get("duplicates"):

@@ -1,0 +1,31 @@
+prompts:
+  select_topics:
+    description: "면접 질문 토픽 25개 선정 (5카테고리 × 5개)"
+    template: |
+      Select {max_questions} interview question topics for a {experience_level} level candidate.
+      Distribute across 5 categories (5 each): role_fit, technical_depth, execution_ownership, communication, risk_flags.
+      For each topic, assign difficulty (Easy/Medium/Medium/Hard) with distribution: 2 Easy, 2 Medium, 1 Hard per category.
+
+      Available candidates:
+      {candidates}
+
+      Return a JSON list of objects with: category, topic, difficulty, source, evidence_summary.
+
+  craft_question:
+    description: "개별 면접 질문 생성 (후속질문, 평가 시나리오 포함)"
+    template: |
+      Generate a detailed interview question in {output_language} for a {experience_level} level candidate.
+
+      Topic: {topic}
+      Category: {category}
+      Difficulty: {difficulty}
+
+      Include:
+      1. question_text: Main question
+      2. alternative_phrasings: 2 alternative ways to ask
+      3. expected_answer: {{expert, mid_level, low_level}} responses
+      4. evaluation_scenarios: 3 levels with trigger keywords
+      5. follow_up_questions: 2-3 follow-ups
+      6. terminology: technical terms with plain_language_explanation
+      7. interviewer_note: guidance for the interviewer
+      8. time_allocation_minutes: suggested time

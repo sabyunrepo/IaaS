@@ -22,16 +22,8 @@ async def analyze_jd(jd_text: str) -> dict:
 
     llm = CachedLLMService()
 
-    prompt = (
-        "Analyze the following job description and extract:\n"
-        "1. job_title\n"
-        "2. company_name\n"
-        "3. requirements (list of {skill, category: '필수'|'우대', level})\n"
-        "4. responsibilities (list of strings)\n"
-        "5. company_culture (list of strings)\n"
-        "6. tech_stack (list of technology names)\n\n"
-        f"Job Description:\n{jd_text}"
-    )
+    from app.prompts import get_prompt
+    prompt = get_prompt("jd_analysis.yaml", "analyze", jd_text=jd_text)
 
     result = await llm.run(prompt)
 

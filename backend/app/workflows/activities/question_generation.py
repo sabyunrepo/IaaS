@@ -53,12 +53,12 @@ async def select_topics(analysis: dict, enriched_input: dict) -> list[dict]:
 
     activity.heartbeat(f"Selecting {max_questions} topics from {len(candidates)} candidates...")
 
-    prompt = (
-        f"Select {max_questions} interview question topics for a {experience_level} level candidate.\n"
-        f"Distribute across 5 categories (5 each): role_fit, technical_depth, execution_ownership, communication, risk_flags.\n"
-        f"For each topic, assign difficulty (Easy/Medium/Hard) with distribution: 2 Easy, 2 Medium, 1 Hard per category.\n\n"
-        f"Available candidates:\n{_format_candidates(candidates)}\n\n"
-        f"Return a JSON list of objects with: category, topic, difficulty, source, evidence_summary."
+    from app.prompts import get_prompt
+    prompt = get_prompt(
+        "question_generation.yaml", "select_topics",
+        max_questions=max_questions,
+        experience_level=experience_level,
+        candidates=_format_candidates(candidates),
     )
 
     result = await llm.run(prompt)
@@ -112,20 +112,14 @@ async def craft_question(
     output_language = language_config.get("output_language", "ko")
     experience_level = raw_input.get("experience_level", "미들")
 
-    prompt = (
-        f"Generate a detailed interview question in {output_language} for a {experience_level} level candidate.\n\n"
-        f"Topic: {topic.get('topic')}\n"
-        f"Category: {topic.get('category')}\n"
-        f"Difficulty: {topic.get('difficulty')}\n\n"
-        f"Include:\n"
-        f"1. question_text: Main question\n"
-        f"2. alternative_phrasings: 2 alternative ways to ask\n"
-        f"3. expected_answer: {{expert, mid_level, low_level}} responses\n"
-        f"4. evaluation_scenarios: 3 levels with trigger keywords\n"
-        f"5. follow_up_questions: 2-3 follow-ups\n"
-        f"6. terminology: technical terms with plain_language_explanation\n"
-        f"7. interviewer_note: guidance for the interviewer\n"
-        f"8. time_allocation_minutes: suggested time\n"
+    from app.prompts import get_prompt
+    prompt = get_prompt(
+        "question_generation.yaml", "craft_question",
+        output_language=output_language,
+        experience_level=experience_level,
+        topic=topic.get("topic"),
+        category=topic.get("category"),
+        difficulty=topic.get("difficulty"),
     )
 
     result = await llm.run(prompt)

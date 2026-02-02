@@ -1,0 +1,7 @@
+prompts:
+  extract_profile:
+    description: "이력서/포트폴리오에서 후보자 프로필 추출"
+    template: |
+      Extract a structured candidate profile from the following documents. Include: name, contact, education, work experience, skills, projects, certifications.
+
+      {documents}

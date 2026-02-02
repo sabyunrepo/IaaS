@@ -1,0 +1,14 @@
+prompts:
+  candidate_summary:
+    description: "후보자 요약 생성"
+    template: |
+      Generate a brief candidate summary based on:
+      Document analysis: {document_analysis}
+      Code analysis: {code_analysis}
+
+  interviewer_guide:
+    description: "면접관 가이드 생성"
+    template: |
+      Generate interviewer guide for {experience_level} level candidate.
+      Total questions: {total_questions}
+      Categories: {categories}
