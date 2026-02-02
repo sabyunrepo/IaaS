@@ -11,7 +11,11 @@ from app.core.database import get_db
 from app.core.rate_limit import limiter
 from app.api.deps import get_current_user_or_api_key
 from app.models.database import UserDB
+from pydantic import BaseModel
+from sqlalchemy import select
+
 from app.models.input import CreateJobRequest, CreateJobResponse
+from app.models.database import CheckpointDB
 from app.services import job_service
 
 logger = logging.getLogger(__name__)
@@ -107,6 +111,129 @@ async def get_job_result(
         from app.exceptions import ValidationError
         raise ValidationError("Job is not completed yet")
     return job.final_output
+
+
+WORKFLOW_STEPS = [
+    "enrich_input", "plan", "document_analysis", "code_analysis",
+    "jd_analysis", "aggregate_analysis", "select_topics",
+    "craft_questions", "enhance_questions", "review_quality", "finalize",
+]
+
+
+class RetryRequest(BaseModel):
+    from_step: str | None = None
+    force_rerun: bool = False
+
+
+@router.post("/{job_id}/retry")
+async def retry_job(
+    job_id: str,
+    body: RetryRequest = RetryRequest(),
+    user: UserDB = Depends(get_current_user_or_api_key),
+    db: AsyncSession = Depends(get_db),
+):
+    """실패한 Job을 체크포인트부터 재시작"""
+    import uuid as _uuid
+    job = await job_service.get_job(job_id, user.id, db)
+
+    if job.status not in ("failed", "completed"):
+        from app.exceptions import ValidationError
+        raise ValidationError("Only failed or completed jobs can be retried")
+
+    # Determine resume point
+    result = await db.execute(
+        select(CheckpointDB)
+        .where(CheckpointDB.job_id == _uuid.UUID(job_id))
+        .order_by(CheckpointDB.created_at.desc())
+    )
+    checkpoints = list(result.scalars().all())
+    completed_phases = {cp.phase for cp in checkpoints}
+
+    if body.from_step:
+        resume_from = body.from_step
+    else:
+        # Auto-detect: first step without checkpoint
+        resume_from = WORKFLOW_STEPS[-1]
+        for step in WORKFLOW_STEPS:
+            if step not in completed_phases:
+                resume_from = step
+                break
+
+    # Determine skipped/cached steps
+    resume_idx = WORKFLOW_STEPS.index(resume_from) if resume_from in WORKFLOW_STEPS else 0
+    skipped = WORKFLOW_STEPS[:resume_idx]
+    cached = [s for s in skipped if s in completed_phases]
+
+    # Start new Temporal workflow
+    try:
+        from app.core.temporal import get_temporal_client
+        from app.workflows.interview_workflow import InterviewGenerationWorkflow
+        from app.core.config import settings
+
+        client = await get_temporal_client()
+        workflow_id = f"interview-{job.id}-retry"
+        workflow_input = {
+            **(job.input_data or {}),
+            "job_id": str(job.id),
+            "resume_from": resume_from,
+            "force_rerun": body.force_rerun,
+        }
+        await client.start_workflow(
+            InterviewGenerationWorkflow.run,
+            workflow_input,
+            id=workflow_id,
+            task_queue=settings.TEMPORAL_TASK_QUEUE,
+        )
+        job.temporal_workflow_id = workflow_id
+        job.status = "retrying"
+    except Exception as e:
+        logger.error(f"Failed to start retry workflow: {e}")
+        from app.exceptions import ValidationError
+        raise ValidationError(f"Could not start retry: {e}")
+
+    return {
+        "job_id": str(job.id),
+        "status": "retrying",
+        "resume_from": resume_from,
+        "skipped_steps": skipped,
+        "cached_steps": cached,
+    }
+
+
+@router.get("/{job_id}/checkpoints")
+async def get_checkpoints(
+    job_id: str,
+    user: UserDB = Depends(get_current_user_or_api_key),
+    db: AsyncSession = Depends(get_db),
+):
+    """Job의 체크포인트 상태 조회"""
+    import uuid as _uuid
+    # Verify ownership
+    await job_service.get_job(job_id, user.id, db)
+
+    result = await db.execute(
+        select(CheckpointDB)
+        .where(CheckpointDB.job_id == _uuid.UUID(job_id))
+        .order_by(CheckpointDB.created_at)
+    )
+    checkpoints = list(result.scalars().all())
+    completed_phases = {cp.phase for cp in checkpoints}
+
+    steps = []
+    resume_point = None
+    for step in WORKFLOW_STEPS:
+        status = "completed" if step in completed_phases else "pending"
+        steps.append({"name": step, "status": status})
+        if status == "pending" and resume_point is None:
+            resume_point = step
+
+    return {
+        "job_id": job_id,
+        "steps": steps,
+        "resume_point": resume_point,
+        "total_steps": len(WORKFLOW_STEPS),
+        "completed_count": len(completed_phases & set(WORKFLOW_STEPS)),
+    }
 
 
 @router.delete("/{job_id}", status_code=204)
