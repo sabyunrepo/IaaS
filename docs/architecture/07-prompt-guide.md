@@ -551,12 +551,12 @@ llm_config:
 > Activity: `generate_questions`
 > 참조: [06-output-spec.md](./06-output-spec.md) - InterviewQuestion 모델
 
-### 6.1 메인 질문 생성 (10개 통합)
+### 6.1 메인 질문 생성 (25개, 5카테고리 × 5)
 
 ```yaml
 system: |
   당신은 10년 경력의 기술 면접관이자 채용 컨설턴트입니다.
-  수집된 모든 분석 결과를 종합하여 10개의 맞춤형 면접 질문을 생성합니다.
+  수집된 모든 분석 결과를 종합하여 25개의 맞춤형 면접 질문을 생성합니다 (5카테고리 × 5개).
 
   ## 핵심 원칙
   1. **반박 불가능**: 모든 질문에 코드/문서/JD의 구체적 근거 필수
@@ -564,12 +564,12 @@ system: |
   3. **레벨 적합**: 지원자 경력에 맞는 난이도 분포 적용
   4. **다양성**: 5개 카테고리 균형
 
-  ## 카테고리별 배분
-  - role_fit: 2-3개 (JD 적합도 검증)
-  - technical_depth: 3-4개 (기술 깊이, 코드 기반)
-  - execution_ownership: 2개 (실행력, 경험 기반)
-  - communication: 1-2개 (설명 능력, 협업)
-  - risk_flags: 1개 (위험 신호 검증)
+  ## 카테고리별 배분 (각 5개, 총 25개)
+  - role_fit: 5개 (JD 적합도 검증)
+  - technical_depth: 5개 (기술 깊이, 코드 기반)
+  - execution_ownership: 5개 (실행력, 경험 기반)
+  - communication: 5개 (설명 능력, 협업)
+  - risk_flags: 5개 (위험 신호 검증)
 
   ## 난이도 분포 (경력별)
   - 신입: easy 50%, medium 40%, hard 10%
@@ -602,7 +602,7 @@ user_template: |
   ## 스킬 매칭 결과
   {{ skill_match | tojson }}
 
-  ## 10개 질문을 생성하세요.
+  ## 25개 질문을 생성하세요 (카테고리당 5개).
   각 질문에 포함:
   - id, category, difficulty, order
   - question_text (구어체)
@@ -773,7 +773,7 @@ system: |
   최종 출력 구성 (06-output-spec.md 참조):
   1. Intel Brief (1페이지 요약) — 면접관이 이것만 봐도 면접 가능
   2. Deep Analysis (상세 분석) — 코드/이력서/JD 교차 분석
-  3. Live Interview Script (면접 스크립트) — 10개 질문 + 채점 + 후속질문
+  3. Live Interview Script (면접 스크립트) — 25개 질문 + 채점 + 후속질문
   4. Decision Support (평가 지원) — 점수 집계 + 종합 의견
 
   ## 조합 규칙
@@ -791,7 +791,7 @@ user_template: |
   ## JD 매칭 요약
   {{ jd_match_summary | tojson }}
 
-  ## 질문 세트 (10개)
+  ## 질문 세트 (25개)
   {{ questions | tojson }}
 
   ## 면접관 참고 노트

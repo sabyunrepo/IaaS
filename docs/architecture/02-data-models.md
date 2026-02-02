@@ -16,17 +16,11 @@ class JobIdentifier(BaseModel):
     """작업 식별자 - 모든 데이터 격리의 기준"""
     job_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str                      # 소유자 (API Key → User UUID)
-    session_id: str                   # 서버 자동생성
-    tenant_id: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @staticmethod
-    def create(user_id: str, session_id: str, tenant_id: str | None = None) -> "JobIdentifier":
-        return JobIdentifier(
-            user_id=user_id,
-            session_id=session_id,
-            tenant_id=tenant_id,
-        )
+    def create(user_id: str) -> "JobIdentifier":
+        return JobIdentifier(user_id=user_id)
 ```
 
 ### 1.2 Job Status
@@ -45,6 +39,80 @@ class JobStatus(str, Enum):
     COMPLETED = "completed"       # 완료
     FAILED = "failed"            # 실패
     CANCELLED = "cancelled"       # 취소됨
+```
+
+---
+
+## 1.5 인증 모델
+
+### 이중 인증 구조
+- **프론트엔드 (React SPA)**: FastAPI OAuth 엔드포인트 → JWT 발급 → Authorization 헤더
+- **프로그래밍 API**: API Key (SHA-256 해시) → 직접 호출
+
+```python
+class User(BaseModel):
+    """사용자 (OAuth 로그인 시 자동 생성)"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: str
+    name: str | None = None
+    image: str | None = None          # OAuth 프로필 이미지
+    plan: Literal["free", "pro", "enterprise"] = "free"
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class OAuthAccount(BaseModel):
+    """OAuth 연결 계정"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    provider: str                      # "google" | "github"
+    provider_account_id: str           # OAuth provider의 고유 ID
+    access_token: str | None = None
+    refresh_token: str | None = None
+    expires_at: int | None = None      # Unix timestamp
+    token_type: str | None = None
+    scope: str | None = None
+
+class APIKey(BaseModel):
+    """API Key (프로그래밍 접근용, 원본은 생성 시 1회만 반환)"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    key_prefix: str             # "vnt_xxxx" (식별용)
+    name: str | None = None
+    is_active: bool = True
+    last_used_at: datetime | None = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+```
+
+### OAuth 로그인 시퀀스
+
+> React SPA → FastAPI가 OAuth를 직접 처리 → JWT 발급 → React가 메모리에 저장
+
+```
+[React SPA] → "Google로 로그인" 클릭
+    │
+    ▼
+[FastAPI GET /api/v1/auth/login/google]
+    → authorization_url 생성 → 302 Redirect
+    │
+    ▼
+[Google OAuth 동의 화면]
+    → 사용자 동의 → code 발급
+    │
+    ▼
+[FastAPI GET /api/v1/auth/callback/google?code=xxx]
+    │
+    ├─ 1. code → access_token 교환 (Google API)
+    ├─ 2. access_token → 사용자 정보 조회 (email, name, image)
+    ├─ 3. users upsert + oauth_accounts upsert (트랜잭션)
+    └─ 4. 자체 JWT 발급 (HS256, user_id + plan 포함)
+    │
+    ▼
+[302 Redirect → React SPA /auth/callback?token=<jwt>]
+    │
+    ▼
+[React SPA]
+    ├─ URL에서 JWT 추출 → 메모리 저장
+    └─ 이후 모든 API 호출: Authorization: Bearer <jwt>
 ```
 
 ---
@@ -70,6 +138,7 @@ class InputData(BaseModel):
     # 문서 입력
     resume_path: str | None = Field(None, description="이력서 파일 경로 (S3 key)")
     portfolio_path: str | None = Field(None, description="포트폴리오 파일 경로")
+    cover_letter_path: str | None = Field(None, description="자기소개서/커버레터 파일 경로")
 
     # LinkedIn
     linkedin_url: str | None = Field(
@@ -91,7 +160,7 @@ class InputData(BaseModel):
     jd_text: str = Field(..., min_length=50, description="채용공고 텍스트")
 
     # 옵션
-    experience_level: Literal["신입", "주니어", "미들", "시니어"] = Field(
+    experience_level: Literal["신입", "주니어", "미들", "시니어", "CTO/VP"] = Field(
         ...,
         description="후보자 경험 레벨"
     )
@@ -101,7 +170,7 @@ class InputData(BaseModel):
         description="언어 설정"
     )
 
-    max_questions: int = Field(10, ge=5, le=20, description="생성할 질문 수")
+    max_questions: int = Field(25, ge=5, le=25, description="생성할 질문 수 (기본 25, 카테고리별 5개)")
     include_expected_answers: bool = Field(True, description="예상 답변 포함 여부")
     focus_areas: list[str] | None = Field(None, description="집중할 기술 영역")
 
@@ -398,19 +467,12 @@ class JDAnalysis(BaseModel):
 ### 4.1 Terminology (용어 설명)
 ```python
 class TerminologyEntry(BaseModel):
-    """용어집 항목 (다국어 + LLM 동적 생성)"""
-    term: str  # 원본 기술 용어 (영문)
-    category: str  # database, framework, pattern, etc.
-
-    # 다국어 지원
-    translations: dict[str, str]  # {"ko": "레디스", "en": "Redis"}
-    synonyms: dict[str, list[str]]  # {"ko": ["인메모리 캐시", "메모리 DB"]}
-    pronunciation: dict[str, str] | None  # {"ko": "레디스"}
-    simple_explanation: dict[str, str]  # 비개발자용 설명
-
-    # 메타데이터
-    llm_generated: bool = False  # LLM이 동적으로 생성했는지
-    confidence: float = 1.0  # LLM 생성 시 신뢰도
+    """기술 용어 설명 (비개발자 친화)"""
+    term: str                       # "Strangler Fig Pattern"
+    definition: str                 # 전문 정의
+    plain_language_explanation: str  # 비개발자용 쉬운 설명
+    # 예: "오래된 시스템을 한번에 바꾸지 않고, 새 시스템을 옆에 만들면서 조금씩 옮겨가는 방법"
+    context: str                    # 이 질문에서 왜 이 용어가 등장하는지
 ```
 
 ### 4.2 Expected Answer (예상 답변)
@@ -424,71 +486,149 @@ class CodeEvidence(BaseModel):
     explanation: str
 
 class ExpectedAnswer(BaseModel):
-    """예상 답변 스크립트"""
-    # 핵심 답변 포인트
-    core_answer: str  # 불릿 포인트 형식
-
-    # 실제 대화체 예시
-    example_script: str  # 자연스러운 답변 예시
-
-    # 코드 증거
-    code_evidence: list[CodeEvidence]
+    """예상 답변 (확장)"""
+    core_answer: str                    # 불릿 포인트 핵심 답변
+    example_script: str                 # 자연스러운 답변 예시
 
     # 핵심 키워드
-    key_points: list[str]
+    answer_keywords: list[AnswerKeyword]
 
     # 레벨별 기대치
     depth_expectations: dict[str, str]  # {"신입": "...", "시니어": "..."}
+
+    # 코드 증거
+    code_evidence: list[CodeEvidence]
+    key_points: list[str]
 ```
 
-### 4.3 Interview Question (면접 질문)
+### 4.3 Question Category & Supporting Models
 ```python
+from enum import Enum
+
+class QuestionCategory(str, Enum):
+    """질문 카테고리"""
+    ROLE_FIT = "role_fit"
+    TECHNICAL_DEPTH = "technical_depth"
+    EXECUTION_OWNERSHIP = "execution_ownership"
+    COMMUNICATION = "communication"
+    RISK_FLAGS = "risk_flags"
+
+class AnswerKeyword(BaseModel):
+    """답변에서 기대되는 핵심 키워드"""
+    keyword: str                    # "Strangler Fig Pattern"
+    importance: Literal["must", "good_to_have"]  # 필수 vs 언급하면 가산
+    explanation: str                # 왜 이 키워드가 중요한지
+
+class FollowUpScoring(BaseModel):
+    """꼬리질문 채점 (2단계 간소화)"""
+    good: str                       # 좋은 답변 시나리오
+    good_score: int                 # +5 ~ +10
+    poor: str                       # 부족한 답변 시나리오
+    poor_score: int                 # 0 ~ -5
+
+class FollowUpQuestion(BaseModel):
+    """꼬리질문 (메인질문 답변 수준에 따라 분기)"""
+    id: str                         # "q1-f1"
+    trigger_level: Literal["expert", "mid", "low", "any"]
+    # expert: 우수 답변 시 더 깊이 파고드는 질문
+    # mid: 보통 답변 시 구체성을 유도하는 질문
+    # low: 미흡 답변 시 기본을 확인하는 질문
+    # any: 모든 수준에서 물어볼 수 있는 질문
+
+    question_text: str              # 꼬리질문 텍스트
+    why_matters: str                # 이 꼬리질문이 중요한 이유
+    listen_for: str                 # 답변에서 들어야 할 것
+
+    # 채점 (간소화된 2단계)
+    scoring: FollowUpScoring
+
+    # 용어 (필요 시)
+    terminology: list[TerminologyEntry]
+
+class JDCompetencyMapping(BaseModel):
+    """채용공고 역량 매핑"""
+    competency: str                 # "MSA 아키텍처 설계 경험"
+    jd_original_text: str           # 채용공고 원문 발췌
+    why_important: str              # 왜 이 역량이 이 직무에 중요한지 (쉬운 말로)
+    related_questions: list[str]    # 관련 질문 ID 리스트 ["q2", "q3", "q7"]
+    assessment_weight: float        # 이 역량의 중요도 (0.0 ~ 1.0)
+```
+
+### 4.4 Interview Question (면접 질문)
+```python
+class InterviewerNote(BaseModel):
+    """면접관 노트 (비기술 면접관용 가이드)"""
+    business_interpretation: str    # 이 질문이 비즈니스적으로 무엇을 확인하는지
+    daily_analogy: str              # 일상 비유로 설명
+    level_expectations: dict[str, str] | None = None  # 직급별 기대 수준
+
+class EvaluationScenarioLevel(BaseModel):
+    """평가 시나리오 레벨"""
+    description: str                # 이 수준의 답변 시나리오 설명
+    indicators: list[str]           # 이 수준을 나타내는 구체적 지표
+    score: int                      # 점수 (expert: 15-25, mid: 8-12, low: -10~5)
+
 class EvaluationScenario(BaseModel):
-    """평가 시나리오"""
-    excellent: str  # 우수한 답변 시나리오
-    good: str       # 양호한 답변 시나리오
-    poor: str       # 미흡한 답변 시나리오
+    """평가 시나리오 (3단계 채점)"""
+    expert: EvaluationScenarioLevel  # 🟢 우수한 답변
+    mid: EvaluationScenarioLevel     # 🟡 보통 답변
+    low: EvaluationScenarioLevel     # 🔴 미흡한 답변
 
 class CodeReference(BaseModel):
-    """코드 참조"""
-    file_path: str
-    line_start: int
-    line_end: int
-    code_snippet: str
-    explanation: str | None
+    """코드 참조 정보 (확장)"""
+    repo_name: str                  # "username/project-name"
+    file_path: str                  # "src/services/auth.py"
+    line_range: str                 # "L45-L67"
+    permalink: str                  # GitHub permalink URL
+    snippet: str                    # 코드 스니펫
+    explanation: str                # 이 코드가 왜 중요한지
+    plain_language_summary: str     # 비개발자용 설명
 
 class InterviewQuestion(BaseModel):
-    """면접 질문 (최종 출력 단위)"""
-    id: str  # q1, q2, ...
-    sequence: int  # 순서
-    topic: str  # 질문 주제
+    """면접 질문 (확장된 최종 모델)"""
+    id: str                                 # q1, q2, ...
+    sequence: int                           # 순서
+    category: QuestionCategory              # role_fit | technical_depth | ...
+    topic: str                              # 질문 주제
+    difficulty: Difficulty                   # Easy | Medium | Hard
 
-    # 주 언어 질문 (생성 시 output_language만 생성)
+    # 질문 본체
     question_text: str
-    alternative_phrasings: list[str]  # 대체 표현
+    context_bridge: str                     # 상황 설정 (면접관이 읽어줄 맥락)
+    alternative_phrasings: list[str]        # 대체 표현
 
-    # 코드 참조
+    # 면접관 가이드
+    why_matters: str                        # 이 질문이 중요한 이유
+    listen_for: str                         # 답변에서 들어야 할 것
+
+    # 코드 참조 (확장)
     code_reference: CodeReference | None
 
-    # 평가 기준
+    # 채점 루브릭 (3단계)
     evaluation_scenarios: EvaluationScenario
 
-    # 꼬리질문
-    follow_ups: list[str]
+    # 꼬리질문 (답변 수준별 분기)
+    follow_ups: list[FollowUpQuestion]
 
-    # 예상 답변
+    # 예상 답변 (키워드 포함)
     expected_answer: ExpectedAnswer
-
-    # 다국어: 요청 시 on-demand 번역 (저장 X, API 호출로 동적 생성)
-    language: str  # 생성된 언어 코드 ("ko", "en" 등)
 
     # 용어집
     terminology: list[TerminologyEntry]
 
     # 메타데이터
-    difficulty: Literal["basic", "intermediate", "advanced"]
+    language: str                           # 생성된 언어 코드 ("ko", "en" 등)
     estimated_time_minutes: int
     skills_assessed: list[str]
+
+    # 면접관 노트 (비기술 면접관용)
+    interviewer_note: InterviewerNote | None
+
+    # 질문 생성 근거
+    generation_rationale: str               # 왜 이 질문이 선택되었는지
+
+    # JD 역량 연결
+    jd_competency_link: str                 # 채용공고의 어떤 역량 요구사항과 연결되는지
 ```
 
 ---
@@ -530,6 +670,9 @@ class InterviewScript(BaseModel):
     # 면접관 가이드
     interviewer_guide: InterviewerGuide
 
+    # 의사결정 가이드 (Decision Tab 데이터)
+    decision_guide: dict[str, Any]  # 채용 추천, JD 매칭, 위험 신호 요약 등
+
     # 용어 총집합 (전체 질문의 용어 취합)
     full_glossary: list[TerminologyEntry]
 
@@ -560,6 +703,7 @@ class WorkflowState(BaseModel):
     """전체 워크플로우 상태"""
     # 식별자
     job: JobIdentifier
+    temporal_workflow_id: str       # "interview-{job_id}"
     input_data: InputData
 
     # Phase 0: Input Enrichment
@@ -684,20 +828,74 @@ class LLMCacheStats(BaseModel):
 ### 8.1 PostgreSQL Tables
 
 ```sql
+-- ============================================
+-- 인증 테이블
+-- ============================================
+
+-- 사용자 테이블 (OAuth 로그인 시 자동 생성)
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255),
+    image VARCHAR(2048),                -- OAuth 프로필 이미지 URL
+    plan VARCHAR(50) NOT NULL DEFAULT 'free',  -- free, pro, enterprise
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- OAuth 연결 계정 (NextAuth.js accounts 테이블)
+CREATE TABLE oauth_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider VARCHAR(50) NOT NULL,             -- "google" | "github"
+    provider_account_id VARCHAR(255) NOT NULL,  -- OAuth provider 고유 ID
+    access_token TEXT,
+    refresh_token TEXT,
+    expires_at BIGINT,                          -- Unix timestamp
+    token_type VARCHAR(50),
+    scope TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(provider, provider_account_id)
+);
+
+CREATE INDEX idx_oauth_provider ON oauth_accounts(provider, provider_account_id);
+CREATE INDEX idx_oauth_user ON oauth_accounts(user_id);
+
+-- API Key 테이블 (프로그래밍 접근용)
+CREATE TABLE api_keys (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    key_hash VARCHAR(255) UNIQUE NOT NULL,  -- SHA-256 해시 (원본 저장 금지)
+    key_prefix VARCHAR(10) NOT NULL,        -- "vnt_xxxx" (식별용 접두사)
+    name VARCHAR(255),                       -- 사용자가 지정한 키 이름
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    last_used_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_api_keys_user ON api_keys(user_id);
+CREATE INDEX idx_api_keys_hash ON api_keys(key_hash);
+
+-- ============================================
 -- 작업 테이블
+-- ============================================
+
+-- 작업 테이블 (간소화: Temporal이 SOT, PostgreSQL은 최종 결과만)
 CREATE TABLE jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL,
-    session_id VARCHAR(255) NOT NULL,
-    tenant_id VARCHAR(255),
+    user_id UUID NOT NULL REFERENCES users(id),
+    temporal_workflow_id VARCHAR(255) UNIQUE,  -- "interview-{job_id}" (Temporal 조회용)
     status VARCHAR(50) NOT NULL DEFAULT 'pending',
 
     -- 입력 데이터 (JSONB)
     input_data JSONB NOT NULL,
 
-    -- 결과 (JSONB)
-    analysis_result JSONB,
+    -- 최종 결과만 저장 (중간 분석 결과는 Temporal이 관리)
     final_output JSONB,
+
+    -- 웹훅 (완료 시 호출)
+    callback_url VARCHAR(2048),
 
     -- 타임스탬프
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -705,94 +903,39 @@ CREATE TABLE jobs (
     completed_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX idx_jobs_user ON jobs (user_id);
-CREATE INDEX idx_jobs_session ON jobs (session_id);
-CREATE INDEX idx_jobs_tenant ON jobs (tenant_id);
-CREATE INDEX idx_jobs_status ON jobs (status);
-
--- 코드 분석 결과 (벡터 검색용)
-CREATE TABLE code_embeddings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    job_id UUID REFERENCES jobs(id) ON DELETE CASCADE,
-
-    -- 원본 데이터
-    file_path VARCHAR(500) NOT NULL,
-    code_snippet TEXT NOT NULL,
-    snippet_type VARCHAR(50),  -- function, class, pattern
-
-    -- 벡터
-    embedding vector(%EMBEDDING_DIM%),  -- settings.EMBEDDING_DIMENSION (default 1536, ada-002)
-
-    -- 메타데이터
-    metadata JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-);
-
-CREATE INDEX idx_code_job ON code_embeddings (job_id);
-
--- 벡터 검색 인덱스
-CREATE INDEX idx_code_embedding_vector
-ON code_embeddings
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
-
--- 학습 데이터 수집용
--- ⚠️ Phase 2: Langfuse Datasets로 마이그레이션 예정
---   Langfuse가 프롬프트 관리 + 데이터셋 관리 + 품질 평가를 통합 제공
---   이 테이블은 MVP에서 raw 로그 백업용으로 유지
-CREATE TABLE training_examples (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    job_id UUID REFERENCES jobs(id),
-
-    -- LLM 입출력
-    agent_type VARCHAR(100) NOT NULL,
-    system_prompt TEXT NOT NULL,
-    user_message TEXT NOT NULL,
-    assistant_response TEXT NOT NULL,
-
-    -- 품질 레이블
-    quality VARCHAR(50) DEFAULT 'unlabeled',
-    quality_score FLOAT,
-    human_feedback TEXT,
-
-    -- 메타데이터
-    model_used VARCHAR(100),
-    prompt_tokens INT,
-    completion_tokens INT,
-    latency_ms INT,
-
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+CREATE INDEX idx_jobs_user ON jobs(user_id);
+CREATE INDEX idx_jobs_status ON jobs(status);
+CREATE INDEX idx_jobs_temporal ON jobs(temporal_workflow_id);
 ```
+
+> **제거된 테이블:**
+> - `code_embeddings`: 파이프라인에서 사용되지 않음. 코드 분석 결과는 Temporal Activity 내에서 in-memory 처리 후 LLM 컨텍스트로 전달되며, 별도 벡터 DB 저장이 필요할 경우 Phase 2에서 재설계.
+> - `training_examples`: Langfuse Datasets가 프롬프트 관리 + 데이터셋 + 품질 평가를 통합 제공하므로 별도 테이블 불필요.
+>
+> **제거된 컬럼:**
+> - `session_id`, `tenant_id`: MVP에서 불필요한 멀티테넌시. 필요 시 users 테이블에 organization 추가로 대체.
+> - `analysis_result`: 중간 분석 결과는 Temporal이 관리. PostgreSQL에는 최종 결과(`final_output`)만 저장.
 
 ### 8.2 Redis Keys
 
+> **설계 원칙**: Temporal이 워크플로우 상태의 SOT (Single Source of Truth).
+> Redis는 LLM 캐싱과 Rate Limiting 전용. 상태/진행률 조회는 Temporal Query API 사용.
+
 ```
-# Job 상태 캐시
-job:{job_id}:status -> JSON (JobStatus)
-job:{job_id}:progress -> JSON (진행률 정보)
-job:{job_id}:input -> JSON (원본 입력, 재시작용, TTL 7d)
-
-# 분석 결과 캐시 (처리 중)
-job:{job_id}:document_analysis -> JSON
-job:{job_id}:code_analysis -> JSON
-job:{job_id}:jd_analysis -> JSON
-
-# 체크포인트 (단계별 스냅샷)
-checkpoint:{job_id}:{step_name} -> JSON (TTL 7d)
-checkpoint:{job_id}:_meta -> Hash { step: "completed" } (TTL 7d)
-
-# LLM 결과 캐시
+# LLM 결과 캐시 (LiteLLM Redis 캐싱)
 llm_cache:{model}:{prompt_hash} -> JSON (TTL 24h)
 
-# 세션별 최근 작업
-session:{session_id}:recent_jobs -> List[job_id] (최근 10개)
-
 # Rate Limiting
-ratelimit:github:{token_hash} -> Counter (분당 API 호출)
-ratelimit:llm:{api_key_hash} -> Counter (분당 토큰)
+ratelimit:api:{user_id} -> Counter (분당 API 호출, TTL 60s)
+ratelimit:github:{token_hash} -> Counter (분당 API 호출, TTL 60s)
+ratelimit:llm:{api_key_hash} -> Counter (분당 토큰, TTL 60s)
 ```
+
+> **제거된 키:**
+> - `job:{job_id}:status`, `job:{job_id}:progress`: Temporal Query API (`get_progress`)로 대체. 삼중 저장소 문제 해소.
+> - `job:{job_id}:input`, `job:{job_id}:*_analysis`: Temporal이 Activity 결과를 Event History에 보관.
+> - `checkpoint:{job_id}:*`: Temporal 내장 복구(Event History replay)로 대체. 수동 재시작은 Temporal Signal로 구현.
+> - `session:{session_id}:recent_jobs`: session_id 개념 제거됨.
 
 ---
 
@@ -816,19 +959,11 @@ s3://vantict-data/
 │       └── {repo_name}/
 │           └── (클론된 코드, 분석 후 삭제)
 │
-├── outputs/
-│   └── {job_id}/
-│       ├── interview_script.json
-│       ├── interview_script_ko.pdf
-│       └── interview_script_en.pdf
-│
-└── training/
-    ├── raw/
-    │   └── {job_id}/
-    │       └── {example_id}.json
-    └── exports/
-        └── {format}/
-            └── {timestamp}.jsonl
+└── outputs/
+    └── {job_id}/
+        ├── interview_script.json
+        ├── interview_script_ko.pdf
+        └── interview_script_en.pdf
 ```
 
 ---
@@ -850,10 +985,10 @@ SupportedLanguage: TypeAlias = Literal[
 ]
 
 # 경험 레벨
-ExperienceLevel: TypeAlias = Literal["신입", "주니어", "미들", "시니어"]
+ExperienceLevel: TypeAlias = Literal["신입", "주니어", "미들", "시니어", "CTO/VP"]
 
 # 질문 난이도
-Difficulty: TypeAlias = Literal["basic", "intermediate", "advanced"]
+Difficulty: TypeAlias = Literal["Easy", "Medium", "Hard"]
 
 # 요구사항 구분
 RequirementCategory: TypeAlias = Literal["필수", "우대"]
