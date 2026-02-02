@@ -9,6 +9,7 @@ from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
     from app.models.enums import JobStatus
+    from app.workflows.activities.input_enrichment import enrich_input
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,12 @@ class InterviewGenerationWorkflow:
         try:
             # Phase 0: Input Enrichment
             self._update_status(JobStatus.ENRICHING, "Phase 0: Input Enrichment", 5)
-            # TODO: Step 8 — enrich_input activity
+            enriched = await workflow.execute_activity(
+                enrich_input,
+                input_data,
+                start_to_close_timeout=timedelta(minutes=5),
+                heartbeat_timeout=timedelta(seconds=60),
+            )
 
             # Phase 1: Planning
             self._update_status(JobStatus.PLANNING, "Phase 1: Planning", 15)

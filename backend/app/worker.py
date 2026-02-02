@@ -14,8 +14,10 @@ from app.workflows.interview_workflow import InterviewGenerationWorkflow
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
 
-# Activity 함수 등록 (Step 8~12에서 추가)
-ACTIVITIES = []
+# Activity 함수 등록
+from app.workflows.activities.input_enrichment import enrich_input
+
+ACTIVITIES = [enrich_input]
 
 
 async def main():

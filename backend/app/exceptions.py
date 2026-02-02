@@ -46,3 +46,14 @@ class RateLimitError(VantictBaseError):
 class TemporalError(VantictBaseError):
     def __init__(self, message: str = "Workflow execution failed"):
         super().__init__(status_code=500, code="TEMPORAL_ERROR", message=message)
+
+
+class DocumentParseError(VantictBaseError):
+    def __init__(self, message: str, source: str = "unknown"):
+        self.source = source
+        super().__init__(status_code=422, code="DOCUMENT_PARSE_ERROR", message=message)
+
+
+class LinkedInFetchError(VantictBaseError):
+    def __init__(self, message: str = "LinkedIn profile fetch failed"):
+        super().__init__(status_code=502, code="LINKEDIN_FETCH_ERROR", message=message)
