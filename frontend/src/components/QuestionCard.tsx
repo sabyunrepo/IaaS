@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface Question {
   question_text: string
@@ -21,6 +22,7 @@ interface QuestionCardProps {
 }
 
 export function QuestionCard({ question, index, onScoreChange }: QuestionCardProps) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [score, setScore] = useState<number | null>(null)
 
@@ -48,7 +50,7 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
         </div>
         <div className="flex items-center gap-2">
           {question.time_allocation_minutes && (
-            <span className="text-xs text-gray-400">{question.time_allocation_minutes}분</span>
+            <span className="text-xs text-gray-400">{question.time_allocation_minutes}{t('minutes')}</span>
           )}
           <span className="text-gray-400">{expanded ? '▲' : '▼'}</span>
         </div>
@@ -56,10 +58,9 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
 
       {expanded && (
         <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
-          {/* Expected Answer */}
           {question.expected_answer && (
             <div className="mt-3">
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">예상 답변</h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">{t('expected_answer')}</h4>
               {Object.entries(question.expected_answer).map(([level, answer]) => (
                 <div key={level} className={`text-sm p-2 rounded mb-1 ${
                   level === 'expert' ? 'bg-green-50 text-green-800' :
@@ -72,10 +73,9 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
             </div>
           )}
 
-          {/* Follow-up questions */}
           {question.follow_up_questions && question.follow_up_questions.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">꼬리질문</h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">{t('follow_up')}</h4>
               {question.follow_up_questions.map((fq, i) => (
                 <p key={i} className="text-sm text-gray-600 ml-2">
                   → {typeof fq === 'string' ? fq : String((fq as Record<string, unknown>).question || JSON.stringify(fq))}
@@ -84,10 +84,9 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
             </div>
           )}
 
-          {/* Terminology */}
           {question.terminology && question.terminology.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">용어 설명</h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">{t('terminology')}</h4>
               {question.terminology.map((term, i) => (
                 <div key={i} className="text-sm text-gray-600 ml-2">
                   <strong>{term.term}</strong>: {term.plain_language_explanation || term.definition}
@@ -96,19 +95,17 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
             </div>
           )}
 
-          {/* Interviewer note */}
           {question.interviewer_note && (
             <div className="bg-blue-50 p-2 rounded text-sm text-blue-800">
-              <strong>면접관 노트:</strong>{' '}
+              <strong>{t('interviewer_note')}:</strong>{' '}
               {typeof question.interviewer_note === 'string'
                 ? question.interviewer_note
                 : JSON.stringify(question.interviewer_note)}
             </div>
           )}
 
-          {/* Scoring */}
-          <div className="flex items-center gap-2 pt-2">
-            <span className="text-sm text-gray-600">평가:</span>
+          <div className="flex items-center gap-2 pt-2 no-print">
+            <span className="text-sm text-gray-600">{t('scoring')}:</span>
             {[1, 2, 3, 4, 5].map((s) => (
               <button
                 key={s}

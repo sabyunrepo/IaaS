@@ -19,6 +19,12 @@ export function JobListPage() {
   const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE))
   const paginated = jobs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
+  const handleDelete = (jobId: string) => {
+    if (window.confirm(t('delete_confirm'))) {
+      deleteJob(jobId)
+    }
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -48,16 +54,15 @@ export function JobListPage() {
                   </span>
                 </div>
                 <button
-                  onClick={() => deleteJob(job.job_id)}
+                  onClick={() => handleDelete(job.job_id)}
                   className="text-sm text-red-500 hover:text-red-700"
                 >
-                  삭제
+                  {t('delete')}
                 </button>
               </div>
             ))}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-6">
               <button
@@ -65,7 +70,7 @@ export function JobListPage() {
                 disabled={page === 1}
                 className="px-3 py-1 text-sm rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-100"
               >
-                이전
+                {t('prev')}
               </button>
               <span className="text-sm text-gray-600">
                 {page} / {totalPages}
@@ -75,7 +80,7 @@ export function JobListPage() {
                 disabled={page === totalPages}
                 className="px-3 py-1 text-sm rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-100"
               >
-                다음
+                {t('next')}
               </button>
             </div>
           )}

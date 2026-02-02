@@ -4,15 +4,15 @@ import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
 import { useWebSocket } from '../hooks/useWebSocket'
 
-const PHASE_LABELS: Record<string, string> = {
-  pending: '대기 중',
-  enriching: 'Phase 0: 입력 분석',
-  planning: 'Phase 1: 실행 계획',
-  analyzing: 'Phase 2: 분석',
-  generating: 'Phase 3: 질문 생성',
-  reviewing: 'Phase 4: 품질 검토',
-  completed: '완료',
-  failed: '실패',
+const PHASE_KEYS: Record<string, string> = {
+  pending: 'phase_pending',
+  enriching: 'phase_enriching',
+  planning: 'phase_planning',
+  analyzing: 'phase_analyzing',
+  generating: 'phase_generating',
+  reviewing: 'phase_reviewing',
+  completed: 'phase_completed',
+  failed: 'phase_failed',
 }
 
 export function JobStatusPage() {
@@ -56,7 +56,8 @@ export function JobStatusPage() {
   // Prefer WebSocket progress over polled status
   const status = wsProgress?.status || String(job.status || 'pending')
   const progressPercent = wsProgress?.progress ?? getProgressPercent(status)
-  const phaseLabel = wsProgress?.phase || PHASE_LABELS[status] || status
+  const phaseKey = PHASE_KEYS[status]
+  const phaseLabel = wsProgress?.phase || (phaseKey ? t(phaseKey) : status)
 
   const isTerminal = status === 'completed' || status === 'failed'
 
@@ -87,26 +88,26 @@ export function JobStatusPage() {
         <div className="text-right text-xs text-gray-400">{progressPercent}%</div>
 
         <div className="text-sm text-gray-500">
-          생성일: {job.created_at ? new Date(String(job.created_at)).toLocaleString() : '-'}
+          {t('created_at')}: {job.created_at ? new Date(String(job.created_at)).toLocaleString() : '-'}
         </div>
 
         {status === 'completed' && (
           <div className="mt-4 p-4 bg-green-50 rounded-lg flex items-center justify-between">
-            <p className="text-green-800 font-medium">면접 스크립트 생성 완료!</p>
+            <p className="text-green-800 font-medium">{t('script_complete')}</p>
             <Link
               to={`/jobs/${jobId}/result`}
               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
             >
-              결과 보기
+              {t('view_result')}
             </Link>
           </div>
         )}
 
         {status === 'failed' && (
           <div className="mt-4 p-4 bg-red-50 rounded-lg">
-            <p className="text-red-800 font-medium">생성에 실패했습니다</p>
+            <p className="text-red-800 font-medium">{t('generation_failed')}</p>
             <p className="text-red-600 text-sm mt-1">
-              {String((job as Record<string, unknown>).error_message || '알 수 없는 오류')}
+              {String((job as Record<string, unknown>).error_message || t('unknown_error'))}
             </p>
           </div>
         )}

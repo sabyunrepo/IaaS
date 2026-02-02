@@ -14,13 +14,13 @@ function downloadJSON(data: unknown, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-const CATEGORIES = [
-  { key: 'all', label: '전체' },
-  { key: 'role_fit', label: '직무 적합성' },
-  { key: 'technical_depth', label: '기술 심도' },
-  { key: 'execution_ownership', label: '실행/오너십' },
-  { key: 'communication', label: '커뮤니케이션' },
-  { key: 'risk_flags', label: '리스크' },
+const CATEGORY_KEYS = [
+  { key: 'all', i18n: 'cat_all' },
+  { key: 'role_fit', i18n: 'cat_role_fit' },
+  { key: 'technical_depth', i18n: 'cat_technical_depth' },
+  { key: 'execution_ownership', i18n: 'cat_execution_ownership' },
+  { key: 'communication', i18n: 'cat_communication' },
+  { key: 'risk_flags', i18n: 'cat_risk_flags' },
 ]
 
 interface InterviewScript {
@@ -48,7 +48,7 @@ export function ResultPage() {
   }, [jobId])
 
   if (loading) return <p>{t('loading')}</p>
-  if (!script) return <p className="text-red-600">결과를 불러올 수 없습니다.</p>
+  if (!script) return <p className="text-red-600">{t('result_error')}</p>
 
   const questions = script.questions || []
   const filtered = activeCategory === 'all'
@@ -66,24 +66,24 @@ export function ResultPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">면접 스크립트</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('interview_script')}</h1>
         <div className="flex items-center gap-3">
           {maxScore > 0 && (
             <div className="text-lg font-semibold text-gray-700">
-              점수: {totalScore}/{maxScore} ({Math.round((totalScore / maxScore) * 100)}%)
+              {t('score_label')}: {totalScore}/{maxScore} ({Math.round((totalScore / maxScore) * 100)}%)
             </div>
           )}
           <button
             onClick={() => downloadJSON(script, `interview-${jobId?.slice(0, 8)}.json`)}
-            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 no-print"
           >
-            JSON 내보내기
+            {t('export_json')}
           </button>
           <button
             onClick={() => window.print()}
-            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 no-print"
           >
-            PDF 인쇄
+            {t('print_pdf')}
           </button>
         </div>
       </div>
@@ -91,7 +91,7 @@ export function ResultPage() {
       {/* Candidate Summary */}
       {script.candidate_summary && (
         <div className="bg-white rounded-lg shadow p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">후보자 요약</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">{t('candidate_summary')}</h2>
           <p className="text-sm text-gray-600">
             {typeof script.candidate_summary === 'string'
               ? script.candidate_summary
@@ -101,8 +101,8 @@ export function ResultPage() {
       )}
 
       {/* Category tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {CATEGORIES.map((cat) => (
+      <div className="flex gap-2 flex-wrap no-print">
+        {CATEGORY_KEYS.map((cat) => (
           <button
             key={cat.key}
             onClick={() => setActiveCategory(cat.key)}
@@ -112,7 +112,7 @@ export function ResultPage() {
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
-            {cat.label}
+            {t(cat.i18n)}
             <span className="ml-1 text-xs">
               ({cat.key === 'all'
                 ? questions.length
@@ -137,7 +137,7 @@ export function ResultPage() {
       {/* Glossary */}
       {script.full_glossary && script.full_glossary.length > 0 && (
         <div className="bg-white rounded-lg shadow p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">용어집</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">{t('glossary')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {script.full_glossary.map((term, i) => (
               <div key={i} className="text-sm">
