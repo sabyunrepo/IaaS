@@ -14,28 +14,36 @@ async def analyze_documents(input_data: dict) -> dict:
     """
     이력서/포트폴리오 분석
 
-    1. 문서 텍스트 추출 (Docling)
+    1. 문서 텍스트 추출 (Docling primary, pymupdf4llm fallback)
     2. LLM으로 프로필 구조화 추출
-    3. 벡터 스토어에 저장
+    3. 벡터 스토어에 프로필 임베딩 저장
     """
-    from app.services.document_parser import extract_text
+    from app.services.document_parser import parse_document
     from app.services.cached_llm import CachedLLMService
 
     llm = CachedLLMService()
     documents = []
+    parse_results = []
 
     for doc_key in ("resume_path", "portfolio_path", "cover_letter_path"):
         path = input_data.get(doc_key)
         if path:
             activity.heartbeat(f"Parsing {doc_key}...")
             try:
-                text = await extract_text(path)
-                documents.append(f"## {doc_key}\n{text}")
+                result = await parse_document(path)
+                documents.append(f"## {doc_key}\n{result.text}")
+                parse_results.append({
+                    "key": doc_key,
+                    "parser": result.parser_used,
+                    "sections": len(result.sections),
+                    "chars": len(result.text),
+                })
+                logger.info(f"Parsed {doc_key} with {result.parser_used}: {len(result.text)} chars")
             except Exception as e:
                 logger.warning(f"Failed to parse {doc_key}: {e}")
 
     if not documents:
-        return {"profile": {}, "raw_texts": []}
+        return {"profile": {}, "raw_texts": [], "parse_info": []}
 
     # LLM으로 프로필 추출
     activity.heartbeat("Extracting candidate profile with LLM...")
@@ -43,7 +51,20 @@ async def analyze_documents(input_data: dict) -> dict:
     prompt = get_prompt("document_analysis.yaml", "extract_profile", documents="\n---\n".join(documents))
     profile = await llm.run(prompt)
 
+    # 벡터 스토어에 프로필 저장 (job_id가 있을 경우)
+    job_id = input_data.get("job_id")
+    if job_id and isinstance(profile, dict):
+        activity.heartbeat("Storing profile embeddings...")
+        try:
+            from app.services.vector_store import get_vector_store
+            vs = get_vector_store(job_id)
+            await vs.store_profile(profile)
+            logger.info(f"Stored profile embeddings for job {job_id}")
+        except Exception as e:
+            logger.warning(f"Vector store failed (non-fatal): {e}")
+
     return {
         "profile": profile if isinstance(profile, dict) else {},
         "raw_texts": documents,
+        "parse_info": parse_results,
     }
