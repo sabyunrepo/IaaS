@@ -22,7 +22,7 @@ export function CreateJobPage() {
         jd_text: jdText,
         experience_level: experienceLevel,
       })
-      navigate(`/jobs/${job.id}`)
+      navigate(`/jobs/${job.job_id}`)
     } catch (err) {
       console.error('Failed to create job:', err)
     } finally {

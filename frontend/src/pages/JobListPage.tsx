@@ -30,10 +30,10 @@ export function JobListPage() {
       ) : (
         <div className="space-y-3">
           {jobs.map((job) => (
-            <div key={job.id} className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
+            <div key={job.job_id} className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
               <div>
-                <Link to={`/jobs/${job.id}`} className="text-blue-600 hover:underline font-medium">
-                  {job.id.slice(0, 8)}...
+                <Link to={`/jobs/${job.job_id}`} className="text-blue-600 hover:underline font-medium">
+                  {job.job_id.slice(0, 8)}...
                 </Link>
                 <span className="ml-3 text-sm text-gray-500">{job.status}</span>
                 <span className="ml-3 text-sm text-gray-400">
@@ -41,7 +41,7 @@ export function JobListPage() {
                 </span>
               </div>
               <button
-                onClick={() => deleteJob(job.id)}
+                onClick={() => deleteJob(job.job_id)}
                 className="text-sm text-red-500 hover:text-red-700"
               >
                 삭제

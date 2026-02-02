@@ -2,9 +2,8 @@ import { useState, useCallback } from 'react'
 import { apiFetch } from '../lib/api'
 
 interface Job {
-  id: string
+  job_id: string
   status: string
-  input_data: Record<string, unknown>
   created_at: string
   completed_at?: string
 }
@@ -38,7 +37,7 @@ export function useJob() {
 
   const deleteJob = useCallback(async (jobId: string) => {
     await apiFetch(`/jobs/${jobId}`, { method: 'DELETE' })
-    setJobs((prev) => prev.filter((j) => j.id !== jobId))
+    setJobs((prev) => prev.filter((j) => j.job_id !== jobId))
   }, [])
 
   return { jobs, loading, fetchJobs, createJob, getJob, deleteJob }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { setToken, getToken, apiFetch } from '../lib/api'
+import { setToken, getToken } from '../lib/api'
 
 interface User {
   id: string
@@ -19,7 +19,11 @@ export function useAuth() {
       return
     }
     try {
-      const data = await apiFetch('/auth/me')
+      const res = await fetch('/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error('Unauthorized')
+      const data = await res.json()
       setUser(data)
     } catch {
       setToken(null)
