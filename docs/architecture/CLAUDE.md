@@ -7,5 +7,6 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #21 | 5:25 AM | 🔵 | Architecture-Implementation Gap Analysis Revealed Critical Misalignments | ~991 |
 | #15 | 5:23 AM | 🔵 | Vantict Sniper v4.0 Architecture: Local-First AI Interview Script Generator | ~618 |
 </claude-mem-context>

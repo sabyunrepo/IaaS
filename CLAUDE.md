@@ -89,8 +89,8 @@ fastapi_backend:
     context_files:
       - docs/architecture/05-api-spec.md
 
-nextjs_frontend:
-  keywords: [Next.js, React, component, 컴포넌트, UI, 프론트엔드, frontend, i18n, 다국어, 번역]
+react_frontend:
+  keywords: [React, Vite, component, 컴포넌트, UI, 프론트엔드, frontend, i18n, 다국어, 번역, Tailwind]
   file_patterns: ["**/frontend/**", "**/*.tsx", "**/*.jsx"]
   activate:
     skill: /implement --type component
@@ -243,7 +243,7 @@ memory_recall:
 ### Tech Stack
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 14, React, react-i18next |
+| Frontend | Vite + React + Tailwind CSS, react-i18next |
 | Backend | FastAPI, Python 3.11 |
 | Orchestration | Temporal.io |
 | Database | PostgreSQL 16 + pgvector |
@@ -307,7 +307,7 @@ backend/app/api/routes/            → API 엔드포인트
 backend/app/models/                → 데이터 모델
 backend/app/prompts/               → LLM 프롬프트 YAML
 frontend/src/components/           → React 컴포넌트
-frontend/src/app/                  → Next.js 페이지
+frontend/src/pages/                → React 페이지
 frontend/public/locales/           → i18n 번역 파일
 ```
 
