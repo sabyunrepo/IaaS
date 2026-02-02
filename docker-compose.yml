@@ -1,0 +1,174 @@
+services:
+  # ============================================
+  # Core Services
+  # ============================================
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=local
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/vantict
+      - REDIS_URL=redis://redis:6379
+      - TEMPORAL_HOST=temporal:7233
+      - STORAGE_BACKEND=local
+      - LOCAL_STORAGE_PATH=/app/data
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-placeholder}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - PROXYCURL_API_KEY=${PROXYCURL_API_KEY:-}
+      - LANGFUSE_HOST=http://langfuse:3000
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
+      - OAUTH_TOKEN_ENCRYPTION_KEY=${OAUTH_TOKEN_ENCRYPTION_KEY:-dev-key-generate-with-fernet}
+      - SESSION_SECRET=${SESSION_SECRET:-dev-session-secret}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - FRONTEND_URL=http://localhost:5173
+      - BACKEND_URL=http://localhost:8000
+    volumes:
+      - ./backend:/app
+      - backend_venv:/app/.venv
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      temporal:
+        condition: service_started
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    environment:
+      - ENV=local
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/vantict
+      - REDIS_URL=redis://redis:6379
+      - TEMPORAL_HOST=temporal:7233
+      - STORAGE_BACKEND=local
+      - LOCAL_STORAGE_PATH=/app/data
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-placeholder}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - PROXYCURL_API_KEY=${PROXYCURL_API_KEY:-}
+      - LANGFUSE_HOST=http://langfuse:3000
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
+    volumes:
+      - ./backend:/app
+      - backend_venv:/app/.venv
+    depends_on:
+      - backend
+      - temporal
+    command: python -m app.worker
+    profiles:
+      - worker  # Step 7 이후에 활성화
+
+  # ============================================
+  # Database
+  # ============================================
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vantict
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+  # ============================================
+  # Temporal (Workflow Engine)
+  # ============================================
+
+  temporal:
+    image: temporalio/auto-setup:1.22
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=postgres
+      - POSTGRES_SEEDS=postgres
+      - DYNAMIC_CONFIG_FILE_PATH=/etc/temporal/config/dynamicconfig/development.yaml
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./config/temporal:/etc/temporal/config/dynamicconfig
+
+  temporal-ui:
+    image: temporalio/ui:2.21.3
+    ports:
+      - "8080:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:5173
+    depends_on:
+      - temporal
+
+  # ============================================
+  # LLM Observability (Langfuse)
+  # ============================================
+
+  langfuse:
+    image: langfuse/langfuse:2
+    ports:
+      - "3100:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/langfuse
+      - NEXTAUTH_URL=http://localhost:3100
+      - NEXTAUTH_SECRET=langfuse-dev-secret
+      - SALT=langfuse-dev-salt
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ============================================
+  # AWS Local Emulation
+  # ============================================
+
+  localstack:
+    image: localstack/localstack:3.0
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEBUG=0
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - ./scripts/localstack-init.sh:/etc/localstack/init/ready.d/init.sh
+    profiles:
+      - storage  # STORAGE_BACKEND=s3 사용 시에만 활성화
+
+volumes:
+  postgres_data:
+  redis_data:
+  localstack_data:
+  backend_venv:
