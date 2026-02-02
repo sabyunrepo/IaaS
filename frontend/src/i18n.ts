@@ -73,6 +73,11 @@ const resources = {
       level_mid: '미들',
       level_senior: '시니어',
       level_executive: 'CTO/VP',
+      // Accessibility
+      skip_to_content: '본문으로 건너뛰기',
+      nav_label: '메인 네비게이션',
+      switch_language: '언어 전환',
+      logged_in_as: '로그인 사용자',
     },
   },
   en: {
@@ -137,6 +142,10 @@ const resources = {
       level_mid: 'Mid-level',
       level_senior: 'Senior',
       level_executive: 'CTO/VP',
+      skip_to_content: 'Skip to content',
+      nav_label: 'Main navigation',
+      switch_language: 'Switch language',
+      logged_in_as: 'Logged in as',
     },
   },
 }

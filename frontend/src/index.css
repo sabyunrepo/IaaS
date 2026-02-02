@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+/* Focus ring for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip to content link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 999;
+  padding: 0.5rem 1rem;
+  background: #1f2937;
+  color: white;
+  font-size: 0.875rem;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
 @media print {
   body {
     background: white !important;

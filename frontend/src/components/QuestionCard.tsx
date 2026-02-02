@@ -37,9 +37,12 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
 
   return (
     <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-      <div
-        className="p-4 cursor-pointer flex items-center justify-between hover:bg-gray-50"
+      <button
+        type="button"
+        className="w-full p-4 cursor-pointer flex items-center justify-between hover:bg-gray-50 text-left"
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        aria-controls={`question-${index}-details`}
       >
         <div className="flex-1">
           <span className="text-sm text-gray-500 mr-2">Q{index + 1}</span>
@@ -52,12 +55,12 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
           {question.time_allocation_minutes && (
             <span className="text-xs text-gray-400">{question.time_allocation_minutes}{t('minutes')}</span>
           )}
-          <span className="text-gray-400">{expanded ? '▲' : '▼'}</span>
+          <span className="text-gray-400" aria-hidden="true">{expanded ? '▲' : '▼'}</span>
         </div>
-      </div>
+      </button>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
+        <div id={`question-${index}-details`} className="px-4 pb-4 space-y-3 border-t border-gray-100" role="region" aria-label={`Q${index + 1} ${t('expected_answer')}`}>
           {question.expected_answer && (
             <div className="mt-3">
               <h4 className="text-sm font-semibold text-gray-700 mb-1">{t('expected_answer')}</h4>
@@ -110,6 +113,8 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
               <button
                 key={s}
                 onClick={() => handleScore(s)}
+                aria-label={`${t('scoring')} ${s}/5`}
+                aria-pressed={score === s}
                 className={`w-8 h-8 rounded-full text-sm font-medium border ${
                   score === s
                     ? 'bg-blue-600 text-white border-blue-600'
