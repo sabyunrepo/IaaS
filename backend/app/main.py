@@ -7,9 +7,12 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import settings
+from app.core.rate_limit import limiter
 from app.exceptions import VantictBaseError
 from app.api.health import router as health_router
 from app.api.routes.auth import router as auth_router
@@ -25,6 +28,10 @@ app = FastAPI(
     docs_url="/docs" if settings.is_local else None,
     redoc_url="/redoc" if settings.is_local else None,
 )
+
+# --- Rate Limiting ---
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- Middleware ---
 
