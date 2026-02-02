@@ -1,0 +1,10 @@
+prompts:
+  review:
+    description: "생성된 면접 질문 품질 검토"
+    template: |
+      Review these interview questions for quality:
+      1. Identify any duplicate or very similar questions (list indices)
+      2. Rate overall quality 1-10
+      3. Suggest any improvements
+
+      {questions}

@@ -39,11 +39,8 @@ async def analyze_documents(input_data: dict) -> dict:
 
     # LLM으로 프로필 추출
     activity.heartbeat("Extracting candidate profile with LLM...")
-    prompt = (
-        "Extract a structured candidate profile from the following documents. "
-        "Include: name, contact, education, work experience, skills, projects, certifications.\n\n"
-        + "\n---\n".join(documents)
-    )
+    from app.prompts import get_prompt
+    prompt = get_prompt("document_analysis.yaml", "extract_profile", documents="\n---\n".join(documents))
     profile = await llm.run(prompt)
 
     return {

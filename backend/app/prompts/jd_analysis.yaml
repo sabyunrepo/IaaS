@@ -1,0 +1,14 @@
+prompts:
+  analyze:
+    description: "Job Description 분석 및 구조화 추출"
+    template: |
+      Analyze the following job description and extract:
+      1. job_title
+      2. company_name
+      3. requirements (list of {{skill, category: '필수'|'우대', level}})
+      4. responsibilities (list of strings)
+      5. company_culture (list of strings)
+      6. tech_stack (list of technology names)
+
+      Job Description:
+      {jd_text}

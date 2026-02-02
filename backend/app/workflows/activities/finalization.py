@@ -46,19 +46,21 @@ async def finalize_output(
                 seen_terms.add(term_name)
 
     # 2. 후보자 요약
-    summary_prompt = (
-        "Generate a brief candidate summary based on:\n"
-        f"Document analysis: {json.dumps(analysis.get('document_analysis', {}), default=str)[:2000]}\n"
-        f"Code analysis: {json.dumps(analysis.get('code_analysis', {}), default=str)[:2000]}\n"
+    from app.prompts import get_prompt
+    summary_prompt = get_prompt(
+        "finalization.yaml", "candidate_summary",
+        document_analysis=json.dumps(analysis.get("document_analysis", {}), default=str)[:2000],
+        code_analysis=json.dumps(analysis.get("code_analysis", {}), default=str)[:2000],
     )
     candidate_summary = await llm.run(summary_prompt)
 
     # 3. 면접관 가이드
     activity.heartbeat("Generating interviewer guide...")
-    guide_prompt = (
-        f"Generate interviewer guide for {raw_input.get('experience_level', '미들')} level candidate.\n"
-        f"Total questions: {len(questions)}\n"
-        f"Categories: {list(set(q.get('category', '') for q in questions))}\n"
+    guide_prompt = get_prompt(
+        "finalization.yaml", "interviewer_guide",
+        experience_level=raw_input.get("experience_level", "미들"),
+        total_questions=len(questions),
+        categories=list(set(q.get("category", "") for q in questions)),
     )
     interviewer_guide = await llm.run(guide_prompt)
 
