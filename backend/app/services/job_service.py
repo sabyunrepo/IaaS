@@ -29,6 +29,24 @@ async def create_job(
     )
     db.add(job)
     await db.flush()
+
+    # Start Temporal workflow
+    try:
+        from app.core.temporal import get_temporal_client
+        from app.workflows.interview_workflow import InterviewGenerationWorkflow
+        client = await get_temporal_client()
+        workflow_id = f"interview-{job.id}"
+        await client.start_workflow(
+            InterviewGenerationWorkflow.run,
+            input_data,
+            id=workflow_id,
+            task_queue="interview-generation",
+        )
+        job.temporal_workflow_id = workflow_id
+    except Exception:
+        # Temporal 미연결 시에도 Job은 생성 (degraded mode)
+        pass
+
     return job
 
 
