@@ -10,6 +10,7 @@ from sqlalchemy import (
     UniqueConstraint, func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
+from pgvector.sqlalchemy import Vector
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 
@@ -111,3 +112,23 @@ class CheckpointDB(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     job = relationship("JobDB", back_populates="checkpoints")
+
+
+class EmbeddingDB(Base):
+    """pgvector embeddings for profile/code similarity search."""
+    __tablename__ = "embeddings"
+    __table_args__ = (
+        Index("idx_embeddings_job", "job_id"),
+        Index("idx_embeddings_kind", "kind"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
+    kind = Column(String(20), nullable=False)  # 'profile' or 'code'
+    content_key = Column(String(255), nullable=False)  # e.g. skill name, file path
+    content_text = Column(Text, nullable=False)
+    extra_data = Column("metadata", JSONB, server_default="{}")
+    embedding = Column(Vector(1536), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    job = relationship("JobDB")
