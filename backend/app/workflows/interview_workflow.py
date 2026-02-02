@@ -7,6 +7,7 @@ import logging
 from datetime import timedelta
 
 from temporalio import workflow
+from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
     from app.models.enums import JobStatus
@@ -27,6 +28,29 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.send_webhook import send_webhook
 
 logger = logging.getLogger(__name__)
+
+# Retry policies
+DEFAULT_RETRY = RetryPolicy(
+    initial_interval=timedelta(seconds=1),
+    backoff_coefficient=2.0,
+    maximum_interval=timedelta(seconds=30),
+    maximum_attempts=3,
+)
+
+LLM_RETRY = RetryPolicy(
+    initial_interval=timedelta(seconds=2),
+    backoff_coefficient=2.0,
+    maximum_interval=timedelta(seconds=60),
+    maximum_attempts=3,
+    non_retryable_error_types=["ValueError"],
+)
+
+EXTERNAL_API_RETRY = RetryPolicy(
+    initial_interval=timedelta(seconds=3),
+    backoff_coefficient=2.0,
+    maximum_interval=timedelta(seconds=120),
+    maximum_attempts=4,
+)
 
 
 @workflow.defn
@@ -51,6 +75,7 @@ class InterviewGenerationWorkflow:
                 input_data,
                 start_to_close_timeout=timedelta(minutes=5),
                 heartbeat_timeout=timedelta(seconds=60),
+                retry_policy=EXTERNAL_API_RETRY,
             )
 
             # Phase 1: Planning
@@ -60,6 +85,7 @@ class InterviewGenerationWorkflow:
                 enriched,
                 start_to_close_timeout=timedelta(minutes=3),
                 heartbeat_timeout=timedelta(seconds=60),
+                retry_policy=LLM_RETRY,
             )
 
             # Phase 2: Parallel Analysis
@@ -75,6 +101,7 @@ class InterviewGenerationWorkflow:
                     analyze_jd,
                     raw_input.get("jd_text", ""),
                     start_to_close_timeout=timedelta(minutes=3),
+                    retry_policy=LLM_RETRY,
                 )
             )
 
@@ -86,6 +113,7 @@ class InterviewGenerationWorkflow:
                         raw_input,
                         start_to_close_timeout=timedelta(minutes=5),
                         heartbeat_timeout=timedelta(seconds=60),
+                        retry_policy=DEFAULT_RETRY,
                     )
                 )
 
@@ -101,6 +129,7 @@ class InterviewGenerationWorkflow:
                         ],
                         start_to_close_timeout=timedelta(minutes=10),
                         heartbeat_timeout=timedelta(seconds=120),
+                        retry_policy=EXTERNAL_API_RETRY,
                     )
                 )
 
@@ -123,6 +152,7 @@ class InterviewGenerationWorkflow:
                 select_topics,
                 args=[analysis, enriched],
                 start_to_close_timeout=timedelta(minutes=3),
+                retry_policy=LLM_RETRY,
             )
 
             # 3b. 개별 질문 생성 (병렬)
@@ -133,6 +163,7 @@ class InterviewGenerationWorkflow:
                         craft_question,
                         args=[topic, analysis, enriched],
                         start_to_close_timeout=timedelta(minutes=2),
+                        retry_policy=LLM_RETRY,
                     )
                 )
             questions = await asyncio.gather(*question_tasks)
@@ -147,18 +178,21 @@ class InterviewGenerationWorkflow:
                     enhance_terminology,
                     args=[questions, enriched],
                     start_to_close_timeout=timedelta(minutes=3),
+                    retry_policy=LLM_RETRY,
                 ),
                 # 3d. Scenario Writer Agent
                 workflow.execute_activity(
                     craft_evaluation_scenarios,
                     args=[questions, enriched],
                     start_to_close_timeout=timedelta(minutes=3),
+                    retry_policy=LLM_RETRY,
                 ),
                 # 3e. Follow-up Designer Agent
                 workflow.execute_activity(
                     design_follow_ups,
                     args=[questions, enriched],
                     start_to_close_timeout=timedelta(minutes=3),
+                    retry_policy=LLM_RETRY,
                 ),
             ]
 
@@ -168,12 +202,14 @@ class InterviewGenerationWorkflow:
                     generate_interviewer_notes,
                     args=[questions, enriched],
                     start_to_close_timeout=timedelta(minutes=3),
+                    retry_policy=LLM_RETRY,
                 ),
                 # 3g. Decision Guide Agent
                 workflow.execute_activity(
                     generate_decision_guide,
                     args=[analysis, enriched],
                     start_to_close_timeout=timedelta(minutes=3),
+                    retry_policy=LLM_RETRY,
                 ),
             ]
 
@@ -207,6 +243,7 @@ class InterviewGenerationWorkflow:
                 review_questions,
                 questions,
                 start_to_close_timeout=timedelta(minutes=3),
+                retry_policy=LLM_RETRY,
             )
 
             # 4a-1. Revision loop (최대 3회)
@@ -227,11 +264,13 @@ class InterviewGenerationWorkflow:
                     revise_questions,
                     args=[questions, review, enriched],
                     start_to_close_timeout=timedelta(minutes=3),
+                    retry_policy=LLM_RETRY,
                 )
                 review = await workflow.execute_activity(
                     review_questions,
                     questions,
                     start_to_close_timeout=timedelta(minutes=3),
+                    retry_policy=LLM_RETRY,
                 )
 
             # 4b. 최종화
@@ -241,6 +280,7 @@ class InterviewGenerationWorkflow:
                 args=[questions, analysis, enriched],
                 start_to_close_timeout=timedelta(minutes=5),
                 heartbeat_timeout=timedelta(seconds=60),
+                retry_policy=LLM_RETRY,
             )
             # Attach decision guide to final output
             if isinstance(final_script, dict) and decision_guide:
@@ -254,6 +294,7 @@ class InterviewGenerationWorkflow:
                     persist_result,
                     args=[job_id, final_script],
                     start_to_close_timeout=timedelta(minutes=1),
+                    retry_policy=DEFAULT_RETRY,
                 )
 
             # Webhook callback (fire-and-forget, 실패해도 워크플로우 성공)
