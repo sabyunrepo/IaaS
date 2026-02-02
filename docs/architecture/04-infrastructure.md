@@ -51,6 +51,16 @@ services:
       - LANGFUSE_HOST=http://langfuse:3000
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      # OAuth + JWT
+      - JWT_SECRET=${JWT_SECRET}
+      - OAUTH_TOKEN_ENCRYPTION_KEY=${OAUTH_TOKEN_ENCRYPTION_KEY}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - FRONTEND_URL=http://localhost:5173
+      - BACKEND_URL=http://localhost:8000
     volumes:
       - ./backend:/app
       - /app/.venv  # venv는 마운트 제외
@@ -87,20 +97,20 @@ services:
       - backend
       - temporal
       - langfuse
-    command: python -m app.workers.main
+    command: python -m app.worker
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - "5173:5173"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:8000    # React SPA → FastAPI 직접 호출
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: npm run dev
+    command: npm run dev -- --host 0.0.0.0
 
   # ============================================
   # 데이터베이스
@@ -158,7 +168,7 @@ services:
       - "8080:8080"
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+      - TEMPORAL_CORS_ORIGINS=http://localhost:5173
     depends_on:
       - temporal
 
@@ -205,70 +215,77 @@ volumes:
 
 ```sql
 -- scripts/init-db.sql
--- PostgreSQL 초기화
-
--- pgvector 확장 활성화
-CREATE EXTENSION IF NOT EXISTS vector;
+-- PostgreSQL 초기화 (02-data-models.md Section 8 참조)
 
 -- Langfuse DB (self-host)
 CREATE DATABASE langfuse;
 
--- 작업 테이블 (02-data-models.md Section 8 참조)
+-- ============================================
+-- 인증 테이블
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255),
+    image VARCHAR(2048),
+    plan VARCHAR(50) NOT NULL DEFAULT 'free',
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS oauth_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider VARCHAR(50) NOT NULL,
+    provider_account_id VARCHAR(255) NOT NULL,
+    access_token TEXT,
+    refresh_token TEXT,
+    expires_at BIGINT,
+    token_type VARCHAR(50),
+    scope TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(provider, provider_account_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_oauth_provider ON oauth_accounts(provider, provider_account_id);
+CREATE INDEX IF NOT EXISTS idx_oauth_user ON oauth_accounts(user_id);
+
+CREATE TABLE IF NOT EXISTS api_keys (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    key_hash VARCHAR(255) UNIQUE NOT NULL,
+    key_prefix VARCHAR(10) NOT NULL,
+    name VARCHAR(255),
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    last_used_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);
+
+-- ============================================
+-- 작업 테이블 (간소화: Temporal이 SOT)
+-- ============================================
+
 CREATE TABLE IF NOT EXISTS jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL,
-    session_id VARCHAR(255) NOT NULL,
-    tenant_id VARCHAR(255),
+    user_id UUID NOT NULL REFERENCES users(id),
+    temporal_workflow_id VARCHAR(255) UNIQUE,
     status VARCHAR(50) NOT NULL DEFAULT 'pending',
     input_data JSONB NOT NULL,
-    analysis_result JSONB,
     final_output JSONB,
+    callback_url VARCHAR(2048),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     completed_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE INDEX IF NOT EXISTS idx_jobs_user ON jobs(user_id);
-CREATE INDEX IF NOT EXISTS idx_jobs_session ON jobs(session_id);
-CREATE INDEX IF NOT EXISTS idx_jobs_tenant ON jobs(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
-
--- 코드 분석 벡터 테이블
-CREATE TABLE IF NOT EXISTS code_embeddings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    job_id UUID REFERENCES jobs(id) ON DELETE CASCADE,
-    file_path VARCHAR(500) NOT NULL,
-    code_snippet TEXT NOT NULL,
-    snippet_type VARCHAR(50),
-    embedding vector(1536),  -- settings.EMBEDDING_DIMENSION
-    metadata JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_code_job ON code_embeddings(job_id);
-
--- 벡터 검색 인덱스
-CREATE INDEX IF NOT EXISTS idx_code_embedding_vector
-ON code_embeddings USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
-
--- 학습 데이터 수집용 (Phase 2: Langfuse Datasets로 마이그레이션 예정)
-CREATE TABLE IF NOT EXISTS training_examples (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    job_id UUID REFERENCES jobs(id),
-    agent_type VARCHAR(100) NOT NULL,
-    system_prompt TEXT NOT NULL,
-    user_message TEXT NOT NULL,
-    assistant_response TEXT NOT NULL,
-    quality VARCHAR(50) DEFAULT 'unlabeled',
-    quality_score FLOAT,
-    human_feedback TEXT,
-    model_used VARCHAR(100),
-    prompt_tokens INT,
-    completion_tokens INT,
-    latency_ms INT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+CREATE INDEX IF NOT EXISTS idx_jobs_temporal ON jobs(temporal_workflow_id);
 ```
 
 ```bash
@@ -346,12 +363,23 @@ class Settings(BaseSettings):
     # LinkedIn (Proxycurl)
     PROXYCURL_API_KEY: str | None = None   # LinkedIn 프로필 수집용
 
+    # OAuth (FastAPI가 직접 처리)
+    JWT_SECRET: str                       # JWT 서명 키 (HS256)
+    OAUTH_TOKEN_ENCRYPTION_KEY: str       # Fernet 키 (OAuth access_token 암호화용)
+    SESSION_SECRET: str                   # 세션 미들웨어 서명 키 (OAuth state 저장용)
+    GOOGLE_CLIENT_ID: str | None = None
+    GOOGLE_CLIENT_SECRET: str | None = None
+    GITHUB_CLIENT_ID: str | None = None
+    GITHUB_CLIENT_SECRET: str | None = None
+    FRONTEND_URL: str = "http://localhost:5173"  # OAuth 콜백 후 리다이렉트
+    BACKEND_URL: str = "http://localhost:8000"   # OAuth callback URL 생성용
+
     # Embedding
     EMBEDDING_DIMENSION: int = 1536        # 벡터 차원 (ada-002/text-embedding-3-small: 1536)
 
     # 기타
     LOG_LEVEL: str = "INFO"
-    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
     @property
     def is_local(self) -> bool:
@@ -402,6 +430,17 @@ LLM_MODEL=openai/gpt-4o
 LANGFUSE_HOST=http://localhost:3100
 LANGFUSE_PUBLIC_KEY=pk-lf-xxx
 LANGFUSE_SECRET_KEY=sk-lf-xxx
+
+# OAuth + JWT (FastAPI에서 처리)
+JWT_SECRET=dev-secret-change-in-production
+OAUTH_TOKEN_ENCRYPTION_KEY=generate-with-python-Fernet.generate_key()
+SESSION_SECRET=dev-session-secret-change-in-production
+GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=xxx
+GITHUB_CLIENT_ID=xxx
+GITHUB_CLIENT_SECRET=xxx
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:8000
 ```
 
 ```env
@@ -483,7 +522,7 @@ type: Backend Service
 
 image:
   build: backend/Dockerfile
-  command: ["python", "-m", "app.workers.main"]
+  command: ["python", "-m", "app.worker"]
 
 cpu: 1024
 memory: 4096  # ⚠️ Docling(PyTorch CPU) + PyDriller + AST + LLM 동시 실행 — 프로파일링 후 조정
@@ -594,7 +633,7 @@ RUN pip install gunicorn
 CMD ["gunicorn", "app.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]
 ```
 
-### Frontend Dockerfile
+### Frontend Dockerfile (Vite + React)
 
 ```dockerfile
 # frontend/Dockerfile
@@ -610,19 +649,20 @@ COPY . .
 
 # 개발용
 FROM base as development
-CMD ["npm", "run", "dev"]
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
 # 빌드
 FROM base as builder
 RUN npm run build
 
-# 프로덕션
-FROM node:20-alpine as production
-WORKDIR /app
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-CMD ["node", "server.js"]
+# 프로덕션 (Nginx로 정적 파일 서빙)
+FROM nginx:alpine as production
+COPY --from=builder /app/dist /usr/share/nginx/html
+# SPA 라우팅: 모든 경로를 index.html로
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 ```
 
 ---
@@ -641,7 +681,7 @@ up:
 	docker-compose up -d
 	@echo "Services starting..."
 	@echo "Backend: http://localhost:8000"
-	@echo "Frontend: http://localhost:3000"
+	@echo "Frontend: http://localhost:5173"
 	@echo "Temporal UI: http://localhost:8080"
 	@echo "Langfuse: http://localhost:3100"
 

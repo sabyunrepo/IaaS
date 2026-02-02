@@ -16,7 +16,7 @@ allowed-tools: Read, Grep, Bash, Write, Edit, Glob
 
 ## React 컴포넌트 (--type component)
 - 배치: `frontend/src/components/`
-- 프레임워크: Next.js 14, React, react-i18next
+- 프레임워크: Vite + React + Tailwind CSS, react-i18next
 - 네이밍: `PascalCase` (예: `InterviewForm`, `QuestionCard`)
 - 필수: prop 타입, i18n 지원
 - 참고: `docs/architecture/01-overview.md`

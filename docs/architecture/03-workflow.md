@@ -94,13 +94,13 @@
 │  │                                                                  │   │
 │  │  ┌───────────────────────────────────────────────────────────┐  │   │
 │  │  │ 3a. Topic Selector Agent - select_topics (Activity)       │  │   │
-│  │  │     주제 선정 (10개 토픽)                                  │  │   │
+│  │  │     주제 선정 (25개 토픽, 5카테고리 × 5)                                  │  │   │
 │  │  └───────────────────────────────────────────────────────────┘  │   │
 │  │                          │                                       │   │
 │  │                          ▼                                       │   │
 │  │  ┌───────────────────────────────────────────────────────────┐  │   │
 │  │  │ 3b. Question Crafter Agent - craft_questions (Parallel)   │  │   │
-│  │  │     질문 본체 생성 (10개 병렬)                             │  │   │
+│  │  │     질문 본체 생성 (25개 병렬)                             │  │   │
 │  │  │ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ...                   │  │   │
 │  │  │ │ Q1 │ │ Q2 │ │ Q3 │ │ Q4 │ │ Q5 │                       │  │   │
 │  │  │ └────┘ └────┘ └────┘ └────┘ └────┘                       │  │   │
@@ -267,7 +267,7 @@ class InterviewGenerationWorkflow:
 
             # 병렬 분석 태스크 구성
             raw = enriched_input.get("raw_input", enriched_input)
-            has_docs = raw.get("resume_path") or raw.get("portfolio_path")
+            has_docs = raw.get("resume_path") or raw.get("portfolio_path") or raw.get("cover_letter_path")
             has_linkedin = enriched_input.get("linkedin_profile")
 
             # 병렬 실행할 Activity 태스크만 수집
@@ -287,7 +287,7 @@ class InterviewGenerationWorkflow:
                 analysis_tasks.append(
                     workflow.execute_activity(
                         code_analysis.analyze_code,
-                        args=[job_id, enriched_input["github_urls"], enriched_input],
+                        args=[job_id, enriched_input["github_urls"], enriched_input, execution_plan],
                         start_to_close_timeout=long_timeout,
                         retry_policy=retry_policy,
                     )
@@ -347,7 +347,7 @@ class InterviewGenerationWorkflow:
 
             self._progress = 50
 
-            # 3b. Question Crafter Agent - 질문 본체 생성 (10개 병렬)
+            # 3b. Question Crafter Agent - 질문 본체 생성 (25개 병렬)
             question_tasks = [
                 workflow.execute_activity(
                     question_generation.craft_question,
@@ -461,6 +461,16 @@ class InterviewGenerationWorkflow:
             # decision_guide를 final_output에 포함
             final_output["decision_guide"] = decision_guide
 
+            # Webhook 호출 (callback_url이 있으면)
+            callback_url = input_data.get("callback_url")
+            if callback_url:
+                await workflow.execute_activity(
+                    webhook.send_webhook,
+                    args=[job_id, callback_url, "completed"],
+                    start_to_close_timeout=timedelta(seconds=30),
+                    retry_policy=RetryPolicy(maximum_attempts=3),
+                )
+
             return final_output
 
         except ActivityError as e:
@@ -555,6 +565,7 @@ from app.workflows.activities import (
     quality_review,
     finalization,
     checkpoint_activities,
+    webhook,
 )
 
 
@@ -600,6 +611,9 @@ async def main():
             # Checkpoint
             checkpoint_activities.save_checkpoint,
             checkpoint_activities.load_prior_state,
+
+            # Webhook
+            webhook.send_webhook,
         ],
     )
 
@@ -796,6 +810,19 @@ async def enrich_input(job_id: str, input_data: dict) -> dict:
                 f"Portfolio 파싱 실패: {input_data['portfolio_path']}", source="portfolio"
             ) from e
 
+    if input_data.get("cover_letter_path"):
+        activity.heartbeat("Extracting URLs from cover letter...")
+        try:
+            text = await _extract_text(converter, input_data["cover_letter_path"])
+            found = _extract_urls(text)
+            for url in found["github"]:
+                extracted_urls["github"].add(url)
+                extraction_sources.setdefault("github_urls", []).append("cover_letter")
+        except Exception as e:
+            raise DocumentParseError(
+                f"Cover letter 파싱 실패: {input_data['cover_letter_path']}", source="cover_letter"
+            ) from e
+
     # 3. 직접 입력된 URL 병합
     for url in input_data.get("github_urls", []):
         extracted_urls["github"].add(str(url))
@@ -833,7 +860,7 @@ async def enrich_input(job_id: str, input_data: dict) -> dict:
 
     # 6. 사용 가능한 분석 목록
     available = ["jd_analysis"]  # JD는 항상
-    if input_data.get("resume_path") or input_data.get("portfolio_path") or linkedin_profile:
+    if input_data.get("resume_path") or input_data.get("portfolio_path") or input_data.get("cover_letter_path") or linkedin_profile:
         available.append("document_analysis")
     if github_urls:
         available.append("code_analysis")
@@ -972,6 +999,11 @@ async def analyze_documents(job_id: str, input_data: dict) -> dict:
         result = converter.convert(input_data["portfolio_path"])
         documents.append(result.document.export_to_markdown())
 
+    if input_data.get("cover_letter_path"):
+        activity.heartbeat("Parsing cover letter with Docling...")
+        result = converter.convert(input_data["cover_letter_path"])
+        documents.append(result.document.export_to_markdown())
+
     # Pydantic AI Agent로 프로필 추출 (구조화 출력)
     activity.heartbeat("Extracting profile with LLM...")
     run_result = await agent.run(
@@ -994,7 +1026,7 @@ backend/app/workflows/activities/code_analysis.py
   - PyDriller: Git 레포 분석 전용 (커밋 순회, 복잡도, diff 추출)
 """
 @activity.defn
-async def analyze_code(job_id: str, github_urls: list[str], input_data: dict) -> dict:
+async def analyze_code(job_id: str, github_urls: list[str], input_data: dict, execution_plan: dict = None) -> dict:
     """
     GitHub 코드 분석 — 4-Phase 파이프라인
 
@@ -1027,7 +1059,8 @@ async def analyze_code(job_id: str, github_urls: list[str], input_data: dict) ->
     analyzer = CodeAnalyzer()  # PyDriller 기반
     vector_store = get_vector_store(job_id)
 
-    jd_tech_stack = input_data.get("jd_tech_stack", [])
+    # execution_plan에서 jd_tech_stack 우선, fallback으로 input_data
+    jd_tech_stack = (execution_plan or {}).get("jd_tech_stack") or input_data.get("jd_tech_stack", [])
     candidate_username = input_data.get("candidate_github_username")
 
     # ── Phase 1: PyGithub — JD 매칭 레포 선별 ──
@@ -1193,7 +1226,7 @@ from temporalio import activity
 @activity.defn
 async def select_topics(job_id: str, analysis: dict, enriched_input: dict) -> list[dict]:
     """
-    10개 질문 토픽 선정
+    25개 질문 토픽 선정 (5카테고리 × 5)
 
     선정 기준:
     1. 코드에서 발견된 주목할 만한 구현
@@ -1233,9 +1266,9 @@ async def select_topics(job_id: str, analysis: dict, enriched_input: dict) -> li
                 "score": 0.7 if req["category"] == "필수" else 0.5,
             })
 
-    # Pydantic AI Agent로 최종 10개 선정
+    # Pydantic AI Agent로 최종 25개 선정 (5카테고리 × 5)
     experience_level = raw_input.get("experience_level", "미들")
-    max_questions = raw_input.get("max_questions", 10)
+    max_questions = raw_input.get("max_questions", 25)
 
     run_result = await agent.run(
         f"Select {max_questions} best topics for {experience_level} level",
@@ -1530,6 +1563,82 @@ async def finalize_output(
     )
 
     return final_script
+```
+
+### 4.9 Webhook Activity
+
+```python
+"""
+backend/app/workflows/activities/webhook.py
+완료 웹훅 호출 Activity
+"""
+import httpx
+from temporalio import activity
+
+
+@activity.defn
+async def send_webhook(job_id: str, callback_url: str, status: str) -> dict:
+    """
+    Job 완료 시 callback_url로 웹훅 POST 전송
+
+    Args:
+        job_id: 작업 ID
+        callback_url: 호출할 웹훅 URL
+        status: 작업 상태 ("completed" | "failed")
+
+    Returns:
+        {"status_code": int, "success": bool}
+    """
+    payload = {
+        "job_id": job_id,
+        "status": status,
+        "result_url": f"/api/v1/jobs/{job_id}/result",
+    }
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.post(callback_url, json=payload)
+
+    return {
+        "status_code": response.status_code,
+        "success": 200 <= response.status_code < 300,
+    }
+```
+
+### 4.10 코드 분석 클린업
+
+> `analyze_code` Activity에서 PyDriller가 `/tmp` 디렉터리에 git clone하는데,
+> Worker 재시작이나 Activity 실패 시 orphaned 클론이 남을 수 있음.
+> 아래 패턴으로 `tempfile.mkdtemp()` 사용 및 `finally` 블록에서 정리.
+
+```python
+# code_analysis.py 내 클린업 패턴 (기존 analyze_code에 적용)
+import tempfile
+import shutil
+
+@activity.defn
+async def analyze_code(job_id: str, github_urls: list[str], input_data: dict, execution_plan: dict = None) -> dict:
+    clone_dirs: list[str] = []
+    try:
+        for repo_info in target_repos:
+            # tempfile로 격리된 디렉터리 생성
+            clone_dir = tempfile.mkdtemp(prefix=f"vantict-{job_id[:8]}-")
+            clone_dirs.append(clone_dir)
+
+            driller_result = await analyzer.analyze_with_pydriller(
+                repo_url=repo_info["url"],
+                job_id=job_id,
+                clone_dir=clone_dir,  # 명시적 클론 경로 전달
+                author=candidate_username,
+                since_years=3,
+                file_types=file_types,
+            )
+            # ... 나머지 분석 로직
+    finally:
+        # 성공/실패 무관 — 클론된 레포 항상 정리
+        for d in clone_dirs:
+            shutil.rmtree(d, ignore_errors=True)
+
+    return aggregate_code_analysis(repositories)
 ```
 
 ---

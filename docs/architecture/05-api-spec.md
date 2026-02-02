@@ -20,30 +20,310 @@ FastAPI 기반 REST API로, 면접 질문 생성 작업을 관리합니다.
 
 ## 인증
 
-### API Key 인증
+### 이중 인증 구조
 
-```http
-Authorization: Bearer <api_key>
+| 경로 | 인증 방식 | 토큰 형태 | 용도 |
+|------|----------|----------|------|
+| Frontend (React SPA) | OAuth → FastAPI JWT | `Authorization: Bearer <jwt>` | 사용자 웹 로그인 |
+| Programmatic API | API Key | `Authorization: Bearer vnt_xxx` | 외부 시스템 연동 |
+
+### OAuth 엔드포인트 (FastAPI)
+
+FastAPI가 OAuth를 직접 처리. React SPA는 리다이렉트만 수행.
+
+```python
+# backend/app/main.py — SessionMiddleware 필수 (OAuth state 저장용)
+from starlette.middleware.sessions import SessionMiddleware
+app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET)
 ```
 
 ```python
+# backend/app/api/routes/auth.py
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import RedirectResponse
+from httpx_oauth.clients.google import GoogleOAuth2
+from httpx_oauth.clients.github import GitHubOAuth2
+import httpx
+import jwt
+import secrets
+from datetime import datetime, timedelta, UTC
+from cryptography.fernet import Fernet
+
+router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+
+google_client = GoogleOAuth2(
+    client_id=settings.GOOGLE_CLIENT_ID,
+    client_secret=settings.GOOGLE_CLIENT_SECRET,
+)
+github_client = GitHubOAuth2(
+    client_id=settings.GITHUB_CLIENT_ID,
+    client_secret=settings.GITHUB_CLIENT_SECRET,
+)
+
+PROVIDERS = {"google": google_client, "github": github_client}
+FRONTEND_URL = settings.FRONTEND_URL  # http://localhost:5173
+
+# OAuth access_token 암호화 (DB 저장 시)
+_fernet = Fernet(settings.OAUTH_TOKEN_ENCRYPTION_KEY)  # 32-byte base64 key
+
+
+# ── Step 1: 로그인 시작 (React → FastAPI → OAuth Provider) ──
+
+@router.get("/login/{provider}")
+async def oauth_login(provider: str, request: Request):
+    """OAuth 로그인 시작 → Provider 동의 화면으로 리다이렉트"""
+    if provider not in PROVIDERS:
+        raise HTTPException(400, f"Unsupported provider: {provider}")
+
+    client = PROVIDERS[provider]
+    callback_url = f"{settings.BACKEND_URL}/api/v1/auth/callback/{provider}"
+
+    # CSRF 방지: state 파라미터 생성 → 세션에 저장
+    state = secrets.token_urlsafe(32)
+    request.session["oauth_state"] = state
+
+    authorization_url = await client.get_authorization_url(
+        callback_url,
+        state=state,
+        scope=["openid", "email", "profile"] if provider == "google"
+              else ["user:email", "read:user"],
+    )
+    return RedirectResponse(authorization_url)
+
+
+# ── Step 2: OAuth 콜백 (Provider → FastAPI → React) ──
+
+@router.get("/callback/{provider}")
+async def oauth_callback(
+    provider: str, code: str, state: str,
+    request: Request, db: AsyncSession = Depends(get_db),
+):
+    """OAuth 콜백 처리 → JWT 발급 → React로 리다이렉트"""
+    if provider not in PROVIDERS:
+        raise HTTPException(400, f"Unsupported provider: {provider}")
+
+    # CSRF 검증: state 파라미터 일치 확인
+    expected_state = request.session.pop("oauth_state", None)
+    if not expected_state or state != expected_state:
+        raise HTTPException(400, "Invalid OAuth state — possible CSRF attack")
+
+    client = PROVIDERS[provider]
+    callback_url = f"{settings.BACKEND_URL}/api/v1/auth/callback/{provider}"
+
+    # 1. code → access_token 교환
+    token = await client.get_access_token(code, callback_url)
+    access_token = token["access_token"]
+
+    # 2. 사용자 정보 조회
+    user_info = await _fetch_user_info(provider, access_token)
+    if not user_info.get("email"):
+        return RedirectResponse(f"{FRONTEND_URL}/auth/error?reason=no_email")
+
+    # 3. DB upsert (트랜잭션)
+    async with db.begin():
+        # users upsert
+        result = await db.execute(
+            text("""
+                INSERT INTO users (email, name, image)
+                VALUES (:email, :name, :image)
+                ON CONFLICT (email) DO UPDATE SET
+                    name = :name, image = :image, updated_at = NOW()
+                RETURNING id, plan
+            """),
+            {"email": user_info["email"], "name": user_info["name"], "image": user_info["image"]},
+        )
+        row = result.first()
+        user_id, plan = str(row.id), row.plan
+
+        # oauth_accounts upsert
+        await db.execute(
+            text("""
+                INSERT INTO oauth_accounts (user_id, provider, provider_account_id, access_token, token_type, scope)
+                VALUES (:user_id, :provider, :provider_account_id, :access_token, :token_type, :scope)
+                ON CONFLICT (provider, provider_account_id) DO UPDATE SET
+                    access_token = :access_token
+            """),
+            {
+                "user_id": user_id, "provider": provider,
+                "provider_account_id": user_info["provider_id"],
+                "access_token": _fernet.encrypt(access_token.encode()).decode(),
+                "token_type": "bearer", "scope": token.get("scope", ""),
+            },
+        )
+
+    # 4. 자체 JWT 발급
+    jwt_token = _create_jwt(user_id=user_id, email=user_info["email"], plan=plan)
+
+    # 5. React SPA로 리다이렉트 (JWT를 URL fragment로 전달 — 서버에 노출 안됨)
+    return RedirectResponse(f"{FRONTEND_URL}/auth/callback#token={jwt_token}")
+
+
+# ── Step 3: 현재 사용자 정보 ──
+
+@router.get("/me")
+async def get_me(user: dict = Depends(verify_user)):
+    """현재 로그인 사용자 정보"""
+    return user
+
+
+# ── 헬퍼 함수 ──
+
+async def _fetch_user_info(provider: str, access_token: str) -> dict:
+    """OAuth access_token으로 사용자 정보 조회"""
+    async with httpx.AsyncClient() as client:
+        if provider == "google":
+            resp = await client.get(
+                "https://www.googleapis.com/oauth2/v2/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            data = resp.json()
+            return {
+                "email": data["email"],
+                "name": data.get("name"),
+                "image": data.get("picture"),
+                "provider_id": data["id"],
+            }
+        elif provider == "github":
+            resp = await client.get(
+                "https://api.github.com/user",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            data = resp.json()
+            # GitHub 이메일 비공개 대응: /user/emails API로 primary email 조회
+            email = data.get("email")
+            if not email:
+                emails_resp = await client.get(
+                    "https://api.github.com/user/emails",
+                    headers={"Authorization": f"Bearer {access_token}"},
+                )
+                emails = emails_resp.json()
+                primary = next((e for e in emails if e["primary"] and e["verified"]), None)
+                email = primary["email"] if primary else None
+            return {
+                "email": email,
+                "name": data.get("name") or data.get("login"),
+                "image": data.get("avatar_url"),
+                "provider_id": str(data["id"]),
+            }
+
+
+def _create_jwt(user_id: str, email: str, plan: str) -> str:
+    """자체 JWT 발급 (HS256)"""
+    payload = {
+        "sub": user_id,
+        "email": email,
+        "plan": plan,
+        "exp": datetime.now(UTC) + timedelta(hours=24),
+        "iat": datetime.now(UTC),
+    }
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+```
+
+### React SPA 연동
+
+```typescript
+// frontend/src/lib/auth.ts
+
+const API_URL = import.meta.env.VITE_API_URL  // http://localhost:8000
+
+// OAuth 로그인 시작 (새 창 또는 리다이렉트)
+export function loginWith(provider: "google" | "github") {
+  window.location.href = `${API_URL}/api/v1/auth/login/${provider}`
+}
+
+// /auth/callback 페이지에서 JWT 추출 후 URL에서 즉시 제거
+export function extractTokenFromCallback(): string | null {
+  const hash = window.location.hash  // #token=eyJhbG...
+  const match = hash.match(/token=([^&]+)/)
+  if (match) {
+    // 브라우저 히스토리에서 토큰 제거 (보안)
+    window.history.replaceState(null, "", window.location.pathname)
+    return match[1]
+  }
+  return null
+}
+
+// JWT를 메모리에 저장 (XSS 대응: localStorage 사용 안 함)
+let accessToken: string | null = null
+
+export function setToken(token: string) { accessToken = token }
+export function getToken() { return accessToken }
+export function clearToken() { accessToken = null }
+
+// API 호출 헬퍼
+export async function apiFetch(path: string, options: RequestInit = {}) {
+  const token = getToken()
+  return fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  })
+}
+```
+
+### Bearer 토큰 검증 (FastAPI)
+
+JWT와 API Key를 자동 판별:
+
+```python
 # backend/app/api/deps.py
-from fastapi import Security, HTTPException
+import jwt
+import hashlib
+from fastapi import Security, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 security = HTTPBearer()
 
-async def verify_api_key(
-    credentials: HTTPAuthorizationCredentials = Security(security)
+async def verify_user(
+    credentials: HTTPAuthorizationCredentials = Security(security),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """API Key 검증 → 사용자 정보 반환"""
-    api_key = credentials.credentials
+    """Bearer 토큰 검증 (JWT 또는 API Key 자동 판별)
 
-    user = await get_user_by_api_key(api_key)
-    if not user:
+    - JWT: FastAPI OAuth에서 발급한 토큰 (프론트엔드)
+    - API Key: vnt_ 접두사 (프로그래밍 API)
+    """
+    token = credentials.credentials
+
+    # API Key 판별 (vnt_ 접두사)
+    if token.startswith("vnt_"):
+        return await _verify_api_key(token, db)
+
+    # JWT 검증
+    return _verify_jwt(token)
+
+
+def _verify_jwt(token: str) -> dict:
+    """FastAPI 발급 JWT 검증 (HS256)"""
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+        return {"user_id": payload["sub"], "email": payload["email"], "plan": payload.get("plan", "free")}
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+async def _verify_api_key(api_key: str, db: AsyncSession) -> dict:
+    """API Key 검증 → 사용자 정보 반환"""
+    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+
+    result = await db.execute(
+        select(User, APIKey)
+        .join(APIKey, User.id == APIKey.user_id)
+        .where(APIKey.key_hash == key_hash, APIKey.is_active == True, User.is_active == True)
+    )
+    row = result.first()
+    if not row:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
-    return {"user_id": user.id, "tenant_id": user.tenant_id}
+    user, api_key_record = row
+    api_key_record.last_used_at = datetime.now(UTC)
+    await db.commit()
+
+    return {"user_id": str(user.id), "email": user.email, "plan": user.plan}
 ```
 
 ---
@@ -64,20 +344,32 @@ POST /api/v1/jobs
 // Content-Type: multipart/form-data
 
 interface CreateJobRequest {
-  // 파일 업로드
-  resume?: File;           // PDF, 최대 10MB
-  portfolio?: File;        // DOCX, 최대 20MB
+  // 파일 업로드 (S3에 저장 후 path 전달)
+  resume?: File;             // PDF, 최대 10MB
+  portfolio?: File;          // PDF/DOCX, 최대 20MB
+  cover_letter?: File;       // PDF/DOCX, 최대 5MB
 
   // JSON 데이터
   data: {
-    github_urls?: string[];  // GitHub 저장소 URL 목록
-    jd_text: string;         // 채용공고 텍스트
-    language: string;        // 출력 언어 (ko, en, ja, zh, etc.)
-    question_count?: number; // 질문 개수 (기본: 10)
-    options?: {
-      include_code_questions?: boolean;  // 코드 기반 질문 포함
-      difficulty_preference?: "easy" | "balanced" | "hard";
+    // URL 입력 (직접 입력 또는 이력서/포트폴리오에서 자동 추출)
+    linkedin_url?: string;     // LinkedIn 프로필 URL (Proxycurl로 수집)
+    github_urls?: string[];    // GitHub 저장소 URL 목록
+
+    // 필수 입력
+    jd_text: string;           // 채용공고 텍스트 (최소 50자)
+    experience_level: "신입" | "주니어" | "미들" | "시니어" | "CTO/VP";
+
+    // 옵션
+    language_config?: {
+      output_language?: string;            // 출력 언어 (기본: "ko")
+      terminology_languages?: string[];    // 용어집 언어 (기본: ["ko", "en"])
     };
+    max_questions?: number;    // 생성할 질문 수 (기본: 25, 5~25)
+    include_expected_answers?: boolean;  // 예상 답변 포함 (기본: true)
+    focus_areas?: string[];    // 집중할 기술 영역
+
+    callback_url?: string;     // 완료 시 호출할 웹훅 URL
+    priority?: "low" | "normal" | "high";  // 우선순위 (기본: normal)
   };
 }
 ```
@@ -88,7 +380,6 @@ interface CreateJobRequest {
 // 201 Created
 interface CreateJobResponse {
   job_id: string;           // UUID
-  session_id: string;       // UUID (서버 자동생성)
   status: "pending";
   created_at: string;       // ISO 8601
   estimated_time_seconds: number;
@@ -107,13 +398,13 @@ curl -X POST "http://localhost:8000/api/v1/jobs" \
   -H "Authorization: Bearer $API_KEY" \
   -F "resume=@resume.pdf" \
   -F "portfolio=@portfolio.docx" \
-  -F 'data={"github_urls":["https://github.com/user/repo"],"jd_text":"백엔드 개발자 모집...","language":"ko"}'
+  -F "cover_letter=@cover_letter.pdf" \
+  -F 'data={"linkedin_url":"https://linkedin.com/in/user","github_urls":["https://github.com/user/repo"],"jd_text":"백엔드 개발자 모집...","experience_level":"시니어","max_questions":25}'
 ```
 
 ```json
 {
   "job_id": "550e8400-e29b-41d4-a716-446655440000",
-  "session_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "status": "pending",
   "created_at": "2024-01-15T10:30:00Z",
   "estimated_time_seconds": 120,
@@ -141,7 +432,7 @@ GET /api/v1/jobs/{job_id}/status
 // 200 OK
 interface JobStatusResponse {
   job_id: string;
-  status: "pending" | "planning" | "analyzing" | "generating" | "validating" | "completed" | "failed";
+  status: "pending" | "enriching" | "planning" | "analyzing" | "generating" | "reviewing" | "finalizing" | "completed" | "failed" | "cancelled";
   progress_percent: number;  // 0-100
   current_phase: string | null;
   phases: {
@@ -243,7 +534,7 @@ interface JobResultResponse {
     areas_to_probe: string[];
   };
 
-  // 질문 목록
+  // 질문 목록 (25문항, 5카테고리 × 5개)
   questions: InterviewQuestion[];
 
   // 면접관 가이드 (InterviewerGuide)
@@ -253,6 +544,9 @@ interface JobResultResponse {
     tips: string[];
     warning_signs: string[];
   };
+
+  // 의사결정 가이드 (Decision Tab 데이터)
+  decision_guide: { [key: string]: any };
 
   // 용어 총집합
   full_glossary: TerminologyEntry[];
@@ -265,70 +559,120 @@ interface JobResultResponse {
 interface InterviewQuestion {
   id: string;                        // q1, q2, ...
   sequence: number;                  // 순서
+  category: QuestionCategory;        // 질문 카테고리
   topic: string;                     // 질문 주제
+  difficulty: "Easy" | "Medium" | "Hard";
 
-  // 질문 텍스트
+  // 질문 본체
   question_text: string;
+  context_bridge: string;            // 상황 설정 (면접관이 읽어줄 맥락)
   alternative_phrasings: string[];   // 대체 표현
 
-  // 코드 참조
+  // 면접관 가이드
+  why_matters: string;               // 이 질문이 중요한 이유
+  listen_for: string;                // 답변에서 들어야 할 것
+
+  // 코드 참조 (확장)
   code_reference: CodeReference | null;
 
-  // 평가 기준
+  // 채점 루브릭 (3단계: expert/mid/low)
   evaluation_scenarios: EvaluationScenario;
 
-  // 꼬리질문
-  follow_ups: string[];
+  // 꼬리질문 (답변 수준별 분기)
+  follow_ups: FollowUpQuestion[];
 
-  // 예상 답변
+  // 예상 답변 (키워드 포함)
   expected_answer: ExpectedAnswer;
-
-  // 언어
-  language: string;                  // "ko", "en" 등
 
   // 용어집
   terminology: TerminologyEntry[];
 
   // 메타데이터
-  difficulty: "basic" | "intermediate" | "advanced";
+  language: string;                  // "ko", "en" 등
   estimated_time_minutes: number;
   skills_assessed: string[];
+
+  // 면접관 노트 (비기술 면접관용)
+  interviewer_note?: {
+    business_interpretation: string;  // 비즈니스적으로 무엇을 확인하는지
+    daily_analogy: string;            // 일상 비유로 설명
+    level_expectations?: Record<string, string>;  // 직급별 기대 수준
+  };
+
+  // 질문 생성 근거
+  generation_rationale: string;      // 왜 이 질문이 선택되었는지
+  jd_competency_link: string;        // JD 역량 요구사항과의 연결
 }
 
+type QuestionCategory = "role_fit" | "technical_depth" | "execution_ownership" | "communication" | "risk_flags";
+
 interface CodeReference {
-  file_path: string;
-  line_start: number;
-  line_end: number;
-  code_snippet: string;
-  explanation: string | null;
+  repo_name: string;                 // "username/project-name"
+  file_path: string;                 // "src/services/auth.py"
+  line_range: string;                // "L45-L67"
+  permalink: string;                 // GitHub permalink URL
+  snippet: string;                   // 코드 스니펫
+  explanation: string;               // 이 코드가 왜 중요한지
+  plain_language_summary: string;    // 비개발자용 설명
+}
+
+interface EvaluationScenarioLevel {
+  description: string;               // 이 수준의 답변 시나리오
+  indicators: string[];              // 이 수준을 나타내는 구체적 지표
+  score: number;                     // 점수 (expert: 15-25, mid: 8-12, low: -10~5)
 }
 
 interface EvaluationScenario {
-  excellent: string;                 // 우수한 답변 시나리오
-  good: string;                      // 양호한 답변 시나리오
-  poor: string;                      // 미흡한 답변 시나리오
+  expert: EvaluationScenarioLevel;   // 🟢 우수
+  mid: EvaluationScenarioLevel;      // 🟡 보통
+  low: EvaluationScenarioLevel;      // 🔴 미흡
+}
+
+interface FollowUpScoring {
+  good: string;                      // 좋은 답변 시나리오
+  good_score: number;                // +5 ~ +10
+  poor: string;                      // 부족한 답변 시나리오
+  poor_score: number;                // 0 ~ -5
+}
+
+interface FollowUpQuestion {
+  id: string;                        // "q1-f1"
+  trigger_level: "expert" | "mid" | "low" | "any";
+  question_text: string;
+  why_matters: string;
+  listen_for: string;
+  scoring: FollowUpScoring;
+  terminology: TerminologyEntry[];
+}
+
+interface AnswerKeyword {
+  keyword: string;                   // "Strangler Fig Pattern"
+  importance: "must" | "good_to_have";
+  explanation: string;               // 왜 이 키워드가 중요한지
 }
 
 interface ExpectedAnswer {
   core_answer: string;               // 불릿 포인트 형식
   example_script: string;            // 자연스러운 답변 예시
+  answer_keywords: AnswerKeyword[];  // 핵심 키워드
+  depth_expectations: { [level: string]: string };
   code_evidence: CodeEvidence[];
   key_points: string[];
-  depth_expectations: { [level: string]: string };  // {"신입": "...", "시니어": "..."}
 }
 
 interface CodeEvidence {
   file_path: string;
-  snippet: string;
-  relevance: string;
+  line_start: number;
+  line_end: number;
+  code_snippet: string;
+  explanation: string;
 }
 
 interface TerminologyEntry {
-  term: string;
-  definition: string;
-  category: string;
-  difficulty: string;
-  related_terms: string[];
+  term: string;                      // "Strangler Fig Pattern"
+  definition: string;                // 전문 정의
+  plain_language_explanation: string; // 비개발자용 쉬운 설명
+  context: string;                   // 이 질문에서 왜 등장하는지
 }
 ```
 
@@ -353,79 +697,137 @@ interface TerminologyEntry {
     {
       "id": "q1",
       "sequence": 1,
+      "category": "technical_depth",
       "topic": "Redis 캐싱 설계",
+      "difficulty": "Medium",
       "question_text": "GitHub 프로젝트에서 Redis 캐싱을 구현하셨는데, 캐시 무효화 전략은 어떻게 설계하셨나요?",
+      "context_bridge": "이력서에서 Redis 기반 캐싱 시스템을 설계하신 경험을 보았습니다. 해당 프로젝트의 코드도 확인했는데요,",
       "alternative_phrasings": [
         "캐시 데이터의 일관성은 어떻게 보장하셨나요?",
         "Redis 캐시 갱신 정책을 설명해 주세요."
       ],
+      "why_matters": "캐시 무효화는 분산 시스템에서 가장 어려운 문제 중 하나입니다. 이 질문으로 후보자가 단순히 캐시를 사용한 것인지, 아니면 일관성 문제까지 고민한 것인지 확인합니다.",
+      "listen_for": "TTL 전략, 이벤트 기반 무효화, 캐시 스탬피드 방지 중 하나라도 언급하는지 확인",
       "code_reference": {
-        "file_path": "user-service/cache.py",
-        "line_start": 45,
-        "line_end": 78,
-        "code_snippet": "class CacheManager:\n    async def invalidate(self, key: str)...",
-        "explanation": "Redis 캐시 관리 클래스에서 무효화 로직 구현"
+        "repo_name": "user/user-service",
+        "file_path": "src/cache.py",
+        "line_range": "L45-L78",
+        "permalink": "https://github.com/user/user-service/blob/abc123/src/cache.py#L45-L78",
+        "snippet": "class CacheManager:\n    async def invalidate(self, key: str)...",
+        "explanation": "Redis 캐시 관리 클래스에서 무효화 로직 구현",
+        "plain_language_summary": "이 코드는 저장된 임시 데이터를 지우는 기능입니다. 데이터가 바뀌었을 때 옛날 데이터가 보이지 않도록 관리합니다."
       },
       "evaluation_scenarios": {
-        "excellent": "TTL + 이벤트 기반 무효화 + 캐시 스탬피드 방지까지 설명",
-        "good": "TTL과 명시적 삭제를 모두 설명",
-        "poor": "캐시 무효화 개념 자체를 이해하지 못함"
+        "expert": {
+          "description": "TTL + 이벤트 기반 무효화 + 캐시 스탬피드 방지까지 설명",
+          "indicators": ["TTL 전략 설명", "이벤트 기반 무효화 패턴", "분산 락 활용", "Cache-Aside 패턴 이해"],
+          "score": 20
+        },
+        "mid": {
+          "description": "TTL과 명시적 삭제를 모두 설명",
+          "indicators": ["TTL 설정 경험", "명시적 캐시 삭제 구현"],
+          "score": 10
+        },
+        "low": {
+          "description": "캐시 무효화 개념 자체를 이해하지 못함",
+          "indicators": ["캐시 무효화 개념 부재", "일관성 문제 인식 없음"],
+          "score": 0
+        }
       },
       "follow_ups": [
-        "캐시 스탬피드가 발생하면 어떻게 대응하시겠습니까?",
-        "분산 환경에서 캐시 일관성은 어떻게 유지하나요?"
+        {
+          "id": "q1-f1",
+          "trigger_level": "expert",
+          "question_text": "캐시 스탬피드가 발생하면 어떻게 대응하시겠습니까?",
+          "why_matters": "실제 대규모 트래픽에서의 경험을 확인",
+          "listen_for": "분산 락, 확률적 조기 갱신 등 구체적 패턴",
+          "scoring": {
+            "good": "구체적 패턴과 실제 경험 사례 제시",
+            "good_score": 8,
+            "poor": "개념만 알고 실무 적용 경험 없음",
+            "poor_score": 0
+          },
+          "terminology": []
+        },
+        {
+          "id": "q1-f2",
+          "trigger_level": "mid",
+          "question_text": "분산 환경에서 캐시 일관성은 어떻게 유지하나요?",
+          "why_matters": "기본적인 분산 시스템 이해도 확인",
+          "listen_for": "Pub/Sub, 이벤트 버스, 또는 최소한 TTL 기반 접근",
+          "scoring": {
+            "good": "분산 환경 캐시 전략 설명",
+            "good_score": 5,
+            "poor": "분산 환경 고려 없음",
+            "poor_score": -2
+          },
+          "terminology": []
+        }
       ],
       "expected_answer": {
         "core_answer": "- TTL 기반 자동 만료\n- 데이터 변경 시 명시적 캐시 삭제\n- 캐시 스탬피드 방지 (분산 락)",
         "example_script": "TTL을 설정하여 자동 만료시키고, 사용자 정보 업데이트 시 해당 키를 삭제합니다. 캐시 스탬피드 방지를 위해 분산 락을 사용합니다.",
+        "answer_keywords": [
+          {"keyword": "TTL", "importance": "must", "explanation": "캐시 기본 전략으로 반드시 언급해야 함"},
+          {"keyword": "Cache Stampede", "importance": "good_to_have", "explanation": "고급 캐시 문제 인식을 보여줌"}
+        ],
+        "depth_expectations": {
+          "주니어": "TTL 개념과 기본 캐시 삭제 이해",
+          "시니어": "분산 환경에서의 일관성 전략과 스탬피드 방지까지 설명"
+        },
         "code_evidence": [
           {
-            "file_path": "user-service/cache.py",
-            "snippet": "await redis.delete(f'user:{user_id}')",
-            "relevance": "명시적 캐시 무효화 구현"
+            "file_path": "src/cache.py",
+            "line_start": 52,
+            "line_end": 58,
+            "code_snippet": "await redis.delete(f'user:{user_id}')",
+            "explanation": "명시적 캐시 무효화 구현"
           }
         ],
-        "key_points": ["TTL", "명시적 삭제", "캐시 스탬피드 방지"],
-        "depth_expectations": {
-          "신입": "TTL 개념과 기본 캐시 삭제 이해",
-          "시니어": "분산 환경에서의 일관성 전략과 스탬피드 방지까지 설명"
-        }
+        "key_points": ["TTL", "명시적 삭제", "캐시 스탬피드 방지"]
       },
       "language": "ko",
       "terminology": [
         {
-          "term": "TTL",
-          "definition": "Time To Live. 캐시 데이터의 유효 기간을 설정하는 값",
-          "category": "concept",
-          "difficulty": "basic",
-          "related_terms": ["Cache", "Expiration", "Redis"]
+          "term": "TTL (Time To Live)",
+          "definition": "캐시 데이터의 유효 기간을 설정하는 값으로, 설정된 시간이 지나면 자동으로 삭제됩니다.",
+          "plain_language_explanation": "음식에 유통기한을 붙이는 것처럼, 저장된 데이터에도 '이 날짜까지만 사용' 기한을 정해두는 것입니다. 기한이 지나면 자동으로 버려집니다.",
+          "context": "Redis 캐싱 전략에서 가장 기본이 되는 메커니즘이므로 이 질문에서 핵심 개념입니다."
         }
       ],
-      "difficulty": "intermediate",
       "estimated_time_minutes": 5,
-      "skills_assessed": ["Redis", "캐싱 전략", "분산 시스템"]
+      "skills_assessed": ["Redis", "캐싱 전략", "분산 시스템"],
+      "generation_rationale": "후보자의 GitHub에서 Redis CacheManager 구현을 확인. JD에서 요구하는 '대규모 트래픽 처리 경험'과 직접 연결되는 실무 역량 검증.",
+      "jd_competency_link": "JD 요구사항: '대규모 트래픽 환경에서의 캐싱 전략 설계 경험' → 실제 구현 코드 기반으로 깊이 검증"
     }
   ],
   "interviewer_guide": {
-    "total_duration_minutes": 60,
-    "question_order_rationale": "기술적 난이도 순서로 배치하여 후보자가 점진적으로 몰입할 수 있도록 구성",
+    "total_duration_minutes": 125,
+    "question_order_rationale": "카테고리별 그룹화: 역할 적합성으로 시작하여 기술 역량, 실행력, 소통, 위험 신호 순으로 배치",
     "tips": ["코드 기반 질문에서는 실제 구현 의도를 물어볼 것", "꼬리질문으로 깊이를 확인할 것"],
     "warning_signs": ["구체적 사례 없이 일반론만 답변", "본인 코드에 대한 설명이 불명확"]
   },
+  "decision_guide": {
+    "recommendation": "HIRE",
+    "confidence": 0.82,
+    "category_scores": {
+      "role_fit": {"score": 32, "max": 40, "weight": 0.15},
+      "technical_depth": {"score": 37, "max": 50, "weight": 0.35}
+    }
+  },
   "full_glossary": [
     {
-      "term": "TTL",
-      "definition": "Time To Live. 캐시 데이터의 유효 기간을 설정하는 값으로, 설정된 시간이 지나면 자동으로 삭제됩니다.",
-      "category": "concept",
-      "difficulty": "basic",
-      "related_terms": ["Cache", "Expiration", "Redis"]
+      "term": "TTL (Time To Live)",
+      "definition": "캐시 데이터의 유효 기간을 설정하는 값으로, 설정된 시간이 지나면 자동으로 삭제됩니다.",
+      "plain_language_explanation": "음식에 유통기한을 붙이는 것처럼, 저장된 데이터에도 '이 날짜까지만 사용' 기한을 정해두는 것입니다.",
+      "context": "캐싱 전략의 기본 메커니즘"
     }
   ],
   "metadata": {
     "quality_score": 0.87,
-    "sources_used": ["resume.pdf", "portfolio.docx", "https://github.com/user/repo"],
-    "total_questions": 10,
-    "token_usage": {"prompt": 15000, "completion": 8000}
+    "sources_used": ["resume.pdf", "portfolio.docx", "cover_letter.pdf", "https://github.com/user/repo"],
+    "total_questions": 25,
+    "token_usage": {"prompt": 45000, "completion": 28000}
   }
 }
 ```
@@ -445,7 +847,6 @@ GET /api/v1/jobs
 | 파라미터 | 타입 | 기본값 | 설명 |
 |----------|------|--------|------|
 | `status` | string | - | 상태 필터 |
-| `session_id` | string | - | 특정 세션의 작업만 조회 |
 | `limit` | number | 20 | 페이지 크기 (최대 100) |
 | `offset` | number | 0 | 오프셋 |
 | `sort` | string | `-created_at` | 정렬 기준 |
@@ -463,7 +864,6 @@ interface JobListResponse {
 
 interface JobSummary {
   job_id: string;
-  session_id: string;
   status: string;
   position: string | null;
   candidate_name: string | null;
@@ -514,7 +914,7 @@ interface RetryRequest {
 ```
 
 **사용 가능한 step 값:**
-`input_enrichment`, `plan`, `document_analysis`, `code_analysis`, `jd_analysis`, `select_topics`, `craft_questions`, `review_quality`, `finalize`
+`enrich_input`, `plan`, `document_analysis`, `code_analysis`, `jd_analysis`, `aggregate_analysis`, `select_topics`, `craft_questions`, `review_quality`, `finalize`
 
 #### Response
 
@@ -585,19 +985,20 @@ interface CheckpointStatusResponse {
 {
   "job_id": "550e8400-e29b-41d4-a716-446655440000",
   "steps": [
-    {"name": "input_enrichment", "status": "completed"},
+    {"name": "enrich_input", "status": "completed"},
     {"name": "plan", "status": "completed"},
     {"name": "document_analysis", "status": "completed"},
     {"name": "code_analysis", "status": "completed"},
     {"name": "jd_analysis", "status": "completed"},
+    {"name": "aggregate_analysis", "status": "completed"},
     {"name": "select_topics", "status": "completed"},
     {"name": "craft_questions", "status": "pending"},
     {"name": "review_quality", "status": "pending"},
     {"name": "finalize", "status": "pending"}
   ],
   "resume_point": "craft_questions",
-  "total_steps": 9,
-  "completed_count": 6
+  "total_steps": 10,
+  "completed_count": 7
 }
 ```
 
@@ -755,8 +1156,10 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 ALLOWED_RESUME_TYPES = {".pdf"}
 ALLOWED_PORTFOLIO_TYPES = {".pdf", ".docx"}
-MAX_RESUME_SIZE = 10 * 1024 * 1024   # 10MB
-MAX_PORTFOLIO_SIZE = 20 * 1024 * 1024  # 20MB
+ALLOWED_COVER_LETTER_TYPES = {".pdf", ".docx"}
+MAX_RESUME_SIZE = 10 * 1024 * 1024       # 10MB
+MAX_PORTFOLIO_SIZE = 20 * 1024 * 1024    # 20MB
+MAX_COVER_LETTER_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 def _validate_upload(file: UploadFile, allowed_exts: set, max_size: int) -> None:
@@ -773,6 +1176,7 @@ def _validate_upload(file: UploadFile, allowed_exts: set, max_size: int) -> None
 async def create_job(
     resume: UploadFile | None = File(None),
     portfolio: UploadFile | None = File(None),
+    cover_letter: UploadFile | None = File(None),
     data: str = Form(...),
     auth: dict = Depends(verify_api_key),
     temporal: Client = Depends(get_temporal_client),
@@ -793,10 +1197,11 @@ async def create_job(
         _validate_upload(resume, ALLOWED_RESUME_TYPES, MAX_RESUME_SIZE)
     if portfolio:
         _validate_upload(portfolio, ALLOWED_PORTFOLIO_TYPES, MAX_PORTFOLIO_SIZE)
+    if cover_letter:
+        _validate_upload(cover_letter, ALLOWED_COVER_LETTER_TYPES, MAX_COVER_LETTER_SIZE)
 
-    # 작업 ID + 세션 ID 자동 생성
+    # 작업 ID 생성
     job_id = str(uuid.uuid4())
-    session_id = str(uuid.uuid4())
     user_id = auth["user_id"]
 
     # 파일 업로드 (Storage 추상화 — local/R2/S3)
@@ -805,18 +1210,25 @@ async def create_job(
         file_urls["resume"] = await upload_file(job_id, resume)
     if portfolio:
         file_urls["portfolio"] = await upload_file(job_id, portfolio)
+    if cover_letter:
+        file_urls["cover_letter"] = await upload_file(job_id, cover_letter)
 
-    # raw_input 구성 (Phase 0 enrich_input이 이 dict를 받아 enriched_input 생성)
+    # raw_input 구성 (InputData 모델과 일치, Phase 0 enrich_input이 이 dict를 받아 enriched_input 생성)
     raw_input = {
-        "resume_url": file_urls.get("resume"),
-        "portfolio_url": file_urls.get("portfolio"),
+        "resume_path": file_urls.get("resume"),       # S3 key (파일 업로드 경로)
+        "portfolio_path": file_urls.get("portfolio"),  # S3 key
+        "cover_letter_path": file_urls.get("cover_letter"),  # S3 key
+        "linkedin_url": input_data.get("linkedin_url"),
         "github_urls": input_data.get("github_urls", []),
         "jd_text": input_data["jd_text"],
+        "experience_level": input_data["experience_level"],
         "language_config": {
-            "output_language": input_data.get("language", "ko"),
+            "output_language": input_data.get("language_config", {}).get("output_language", "ko"),
+            "terminology_languages": input_data.get("language_config", {}).get("terminology_languages", ["ko", "en"]),
         },
-        "question_count": input_data.get("question_count", 10),
-        "options": input_data.get("options", {}),
+        "max_questions": input_data.get("max_questions", 25),
+        "include_expected_answers": input_data.get("include_expected_answers", True),
+        "focus_areas": input_data.get("focus_areas"),
     }
 
     # Temporal 워크플로우 시작
@@ -827,20 +1239,19 @@ async def create_job(
         task_queue="interview-generation",
     )
 
-    # DB에 작업 저장 (user_id, session_id 포함)
+    # DB에 작업 저장 (Temporal workflow ID 연결)
     await save_job(
         job_id=job_id,
-        session_id=session_id,
         user_id=user_id,
-        tenant_id=auth.get("tenant_id"),
+        temporal_workflow_id=f"interview-{job_id}",
         input_data=raw_input,
+        callback_url=input_data.get("callback_url"),
     )
 
     return {
         "job_id": job_id,
-        "session_id": session_id,
         "status": "pending",
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "estimated_time_seconds": estimate_time(input_data),
         "links": {
             "self": f"/api/v1/jobs/{job_id}",
@@ -854,25 +1265,35 @@ async def create_job(
 async def get_job_status(
     job_id: str,
     auth: dict = Depends(verify_api_key),
-    redis: Redis = Depends(get_redis),
     db: AsyncSession = Depends(get_db),
+    temporal: Client = Depends(get_temporal_client),
 ):
-    """작업 상태 조회 (소유자 검증)"""
+    """작업 상태 조회 (Temporal Query — SOT)"""
     # 소유자 검증
     job = await db.get(Job, job_id)
-    if not job or job.user_id != auth["user_id"]:
+    if not job or str(job.user_id) != auth["user_id"]:
         raise HTTPException(404, "Job not found")
 
-    state = await redis.hgetall(f"job:{job_id}:state")
-
-    return {
-        "job_id": job_id,
-        "status": state.get("status", job.status),
-        "progress_percent": int(state.get("progress_percent", 0)),
-        "current_phase": state.get("current_phase") or None,
-        "phases": json.loads(state.get("phases", "{}")),
-        "updated_at": state.get("updated_at"),
-    }
+    # Temporal Query로 실시간 진행 상황 조회
+    try:
+        handle = temporal.get_workflow_handle(f"interview-{job_id}")
+        progress = await handle.query(
+            InterviewGenerationWorkflow.get_progress
+        )
+        return {
+            "job_id": job_id,
+            "status": progress["phase"],
+            "progress_percent": progress["progress"],
+            "current_phase": progress["phase"],
+        }
+    except Exception:
+        # 워크플로우 종료/미존재 시 DB fallback
+        return {
+            "job_id": job_id,
+            "status": job.status,
+            "progress_percent": 100 if job.status == "completed" else 0,
+            "current_phase": None,
+        }
 
 
 @router.get("/{job_id}/result")

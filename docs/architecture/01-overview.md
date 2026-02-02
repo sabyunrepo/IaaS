@@ -29,13 +29,14 @@
 | 이력서 | PDF | 선택 | 경력, 학력, 기술 스택 (LinkedIn URL, GitHub URL 자동 추출) |
 | LinkedIn URL | URL | 선택 | Proxycurl API로 프로필 수집 (이력서 대체 가능) |
 | 포트폴리오 | DOCX/PDF | 선택 | 프로젝트 상세 설명 (GitHub URL 자동 추출) |
+| 커버레터 | PDF/DOCX | 선택 | 자기소개서/커버레터 (GitHub URL 자동 추출) |
 | GitHub URL | URL 목록 | 선택 | 실제 코드 분석 대상 (Public만, 다른 입력에서 자동 추출 가능) |
 | 채용공고 (JD) | 텍스트 | 필수 | 직무 요구사항 |
-| 경험 레벨 | 선택 | 필수 | 신입/주니어/미들/시니어 |
+| 경험 레벨 | 선택 | 필수 | 신입/주니어/미들/시니어/CTO/VP |
 | 출력 언어 | 선택 | 필수 | 12개 언어 지원 |
 
 > **Smart Input Extraction**: 유저가 모든 필드를 직접 입력할 필요 없음.
-> 시스템이 제공된 입력(이력서, 포트폴리오, LinkedIn)에서 GitHub URL, LinkedIn URL 등을
+> 시스템이 제공된 입력(이력서, 포트폴리오, 커버레터, LinkedIn)에서 GitHub URL, LinkedIn URL 등을
 > 자동으로 교차 추출하여 빈 필드를 채운 뒤 Planning을 시작합니다.
 
 ### 2.2 출력 (Output)
@@ -46,7 +47,7 @@ Interview Script
 │   ├── 경력 요약
 │   └── JD 매칭 점수
 │
-├── 질문 10개 (각 질문별)
+├── 질문 25개 (각 질문별)
 │   ├── 메인 질문 (주 언어, 다국어는 on-demand)
 │   ├── 대체 표현 2-3개
 │   ├── 관련 코드 스니펫
@@ -91,12 +92,13 @@ SUPPORTED_LANGUAGES = {
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌─────────────┐                                               │
-│  │   CLIENT    │  React + i18n                                 │
+│  │   CLIENT    │  Vite + React + Tailwind CSS                  │
+│  │             │  OAuth Login (Google, GitHub)                  │
 │  └──────┬──────┘                                               │
-│         │                                                       │
+│         │  Authorization: Bearer <JWT>                          │
 │         ▼                                                       │
 │  ┌─────────────┐                                               │
-│  │     API     │  FastAPI                                      │
+│  │     API     │  FastAPI (OAuth + JWT + API Key 이중 인증)    │
 │  └──────┬──────┘                                               │
 │         │                                                       │
 │         ▼                                                       │
@@ -124,7 +126,7 @@ SUPPORTED_LANGUAGES = {
 │  │                      ▼                                   │   │
 │  │             ┌──────────────────┐                        │   │
 │  │             │    Question      │ 질문 생성              │   │
-│  │             │    Generator     │ (10개 병렬)            │   │
+│  │             │    Generator     │ (25개 병렬)            │   │
 │  │             └────────┬─────────┘                        │   │
 │  │                      │                                   │   │
 │  │                      ▼                                   │   │
@@ -157,13 +159,15 @@ SUPPORTED_LANGUAGES = {
 
 | 레이어 | 기술 | 용도 |
 |-------|------|------|
-| **Frontend** | Next.js 14 | React 기반 웹 앱 |
+| **Frontend** | Vite + React | SPA 웹 앱 |
+| **Styling** | Tailwind CSS | 유틸리티 퍼스트 CSS |
+| **Auth** | FastAPI OAuth (httpx-oauth) | OAuth 로그인 (Google, GitHub) → JWT 발급 |
 | **i18n** | react-i18next | 다국어 지원 |
 | **Backend** | FastAPI | REST API 서버 |
 | **Orchestration** | Temporal.io | 워크플로우 엔진 |
 | **Database** | PostgreSQL 16 | 메인 데이터베이스 |
 | **Vector DB** | pgvector | 벡터 검색 (PostgreSQL 확장) |
-| **Cache** | Redis 7 | 캐싱, 세션 |
+| **Cache** | Redis 7 | LLM 캐싱, Rate Limiting |
 | **Storage** | LocalStack S3 | 파일 저장 |
 | **LLM** | OpenAI GPT-4o | 텍스트 생성 |
 | **LinkedIn** | Proxycurl API | LinkedIn 프로필 수집 |
@@ -282,7 +286,7 @@ SUPPORTED_LANGUAGES = {
 │ Phase 3: QUESTION GENERATION                                │
 │ ┌─────────────────────────────────────────────────────────┐ │
 │ │ Topic Selection                                         │ │
-│ │ • 분석 결과에서 10개 토픽 선정                          │ │
+│ │ • 분석 결과에서 25개 토픽 선정 (5카테고리 × 5)                          │ │
 │ │ • 경험 레벨에 맞는 난이도 조정                          │ │
 │ └─────────────────────────────────────────────────────────┘ │
 │                        │                                    │
@@ -345,7 +349,7 @@ SUPPORTED_LANGUAGES = {
 
 ### 7.3 품질 기준
 - 질문당 생성 시간: 30초 이내
-- 전체 처리 시간: 5분 이내 (10개 질문)
+- 전체 처리 시간: 8분 이내 (25개 질문)
 - Hallucination 허용률: 0% (검증 실패 시 재생성)
 
 ---
