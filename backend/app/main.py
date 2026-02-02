@@ -57,6 +57,10 @@ async def vantict_error_handler(request: Request, exc: VantictBaseError):
         content={"code": exc.code, "message": exc.message},
     )
 
+# --- Observability ---
+from app.core.observability import setup_langfuse
+setup_langfuse()
+
 # --- Routers ---
 
 app.include_router(health_router)
