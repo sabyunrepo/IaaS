@@ -26,7 +26,7 @@ from .checkpoint import (
     CheckpointMeta, CheckpointStatus, RetryRequest, RetryResponse,
 )
 from .workflow import WorkflowState, AnalysisPhaseResult
-from .database import Base, UserDB, OAuthAccountDB, APIKeyDB, JobDB
+from .database import Base, UserDB, OAuthAccountDB, APIKeyDB, JobDB, CheckpointDB, EmbeddingDB
 
 __all__ = [
     # Enums
@@ -47,5 +47,5 @@ __all__ = [
     # Workflow
     "WorkflowState",
     # Database ORM
-    "Base", "UserDB", "OAuthAccountDB", "APIKeyDB", "JobDB",
+    "Base", "UserDB", "OAuthAccountDB", "APIKeyDB", "JobDB", "CheckpointDB", "EmbeddingDB",
 ]
