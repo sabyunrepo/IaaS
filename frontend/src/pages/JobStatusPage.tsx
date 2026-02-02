@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
 
@@ -67,8 +67,14 @@ export function JobStatusPage() {
         </div>
 
         {status === 'completed' && (
-          <div className="mt-4 p-4 bg-green-50 rounded-lg">
+          <div className="mt-4 p-4 bg-green-50 rounded-lg flex items-center justify-between">
             <p className="text-green-800 font-medium">면접 스크립트 생성 완료!</p>
+            <Link
+              to={`/jobs/${jobId}/result`}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+            >
+              결과 보기
+            </Link>
           </div>
         )}
       </div>

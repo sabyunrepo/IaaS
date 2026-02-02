@@ -73,6 +73,20 @@ async def get_job(
     return result
 
 
+@router.get("/{job_id}/result")
+async def get_job_result(
+    job_id: str,
+    user: UserDB = Depends(get_current_user_or_api_key),
+    db: AsyncSession = Depends(get_db),
+):
+    """완성된 면접 스크립트 조회"""
+    job = await job_service.get_job(job_id, user.id, db)
+    if job.status != "completed" or not job.final_output:
+        from app.exceptions import ValidationError
+        raise ValidationError("Job is not completed yet")
+    return job.final_output
+
+
 @router.delete("/{job_id}", status_code=204)
 async def delete_job(
     job_id: str,
