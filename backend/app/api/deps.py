@@ -62,3 +62,27 @@ async def get_current_user_or_api_key(
 
     # JWT fallback
     return await get_current_user(authorization=authorization, db=db)
+
+
+async def validate_api_key(token: str, db: AsyncSession) -> UserDB | None:
+    """WebSocket용 토큰 검증 (API Key 또는 JWT)"""
+    # Try API Key
+    if token.startswith("vnt_"):
+        key_hash = hash_api_key(token)
+        result = await db.execute(
+            select(APIKeyDB).where(APIKeyDB.key_hash == key_hash, APIKeyDB.is_active == True)
+        )
+        api_key = result.scalar_one_or_none()
+        if api_key is None:
+            return None
+        user_result = await db.execute(select(UserDB).where(UserDB.id == api_key.user_id))
+        return user_result.scalar_one_or_none()
+
+    # Try JWT
+    payload = verify_jwt(token)
+    if payload and "sub" in payload:
+        result = await db.execute(select(UserDB).where(UserDB.id == payload["sub"]))
+        user = result.scalar_one_or_none()
+        if user and user.is_active:
+            return user
+    return None
