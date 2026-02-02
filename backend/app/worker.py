@@ -23,6 +23,7 @@ from app.workflows.activities.jd_analysis import analyze_jd
 from app.workflows.activities.question_generation import select_topics, craft_question
 from app.workflows.activities.quality_review import review_questions
 from app.workflows.activities.finalization import finalize_output
+from app.workflows.activities.persist_result import persist_result
 
 ACTIVITIES = [
     enrich_input,
@@ -34,6 +35,7 @@ ACTIVITIES = [
     craft_question,
     review_questions,
     finalize_output,
+    persist_result,
 ]
 
 
