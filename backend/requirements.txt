@@ -8,6 +8,7 @@ PyYAML>=6.0
 sqlalchemy[asyncio]>=2.0.30
 asyncpg>=0.29.0
 pgvector>=0.3.0
+alembic>=1.13.0
 
 # Cache
 redis>=5.0.0
