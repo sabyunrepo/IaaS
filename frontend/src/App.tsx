@@ -6,6 +6,7 @@ import { JobListPage } from './pages/JobListPage'
 import { CreateJobPage } from './pages/CreateJobPage'
 import { JobStatusPage } from './pages/JobStatusPage'
 import { ResultPage } from './pages/ResultPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 import { useAuth } from './hooks/useAuth'
 import './i18n'
 
@@ -43,6 +44,7 @@ function App() {
             element={isAuthenticated ? <ResultPage /> : <Navigate to="/login" />}
           />
           <Route path="/" element={<Navigate to={isAuthenticated ? '/jobs' : '/login'} />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
