@@ -1,0 +1,50 @@
+# Core
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+
+# Database
+sqlalchemy[asyncio]>=2.0.30
+asyncpg>=0.29.0
+pgvector>=0.3.0
+
+# Cache
+redis>=5.0.0
+
+# Settings
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+
+# Auth
+httpx-oauth>=0.13.0
+python-jose[cryptography]>=3.3.0
+cryptography>=42.0.0
+
+# Temporal
+temporalio>=1.6.0
+
+# LLM
+pydantic-ai>=0.0.36
+litellm>=1.40.0
+instructor>=1.3.0
+
+# Document Parsing
+docling>=2.0.0
+pymupdf4llm>=0.0.10
+
+# Code Analysis
+PyGithub>=2.3.0
+pydriller>=2.6
+tree-sitter>=0.22.0
+
+# Storage
+boto3>=1.34.0
+
+# Observability
+langfuse>=2.36.0
+
+# Templates
+jinja2>=3.1.0
+
+# HTTP
+httpx>=0.27.0
