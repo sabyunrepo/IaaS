@@ -2,7 +2,9 @@
 backend/app/services/linkedin_service.py
 Proxycurl API를 통한 LinkedIn 프로필 수집
 """
+import asyncio
 import logging
+import re
 
 import httpx
 
@@ -10,6 +12,12 @@ from app.core.config import settings
 from app.exceptions import LinkedInFetchError
 
 logger = logging.getLogger(__name__)
+
+LINKEDIN_URL_PATTERN = re.compile(
+    r"^https?://(?:www\.)?linkedin\.com/in/[\w\-]+/?$"
+)
+MAX_RETRIES = 2
+RETRY_BACKOFF = 1.0  # seconds
 
 
 class ProxycurlService:
@@ -24,7 +32,7 @@ class ProxycurlService:
         """LinkedIn 프로필 조회
 
         Returns:
-            프로필 dict or None (API 키 미설정 시)
+            프로필 dict or None (API 키 미설정 시 또는 404)
 
         Raises:
             LinkedInFetchError: API 호출 실패 시
@@ -33,34 +41,54 @@ class ProxycurlService:
             logger.warning("PROXYCURL_API_KEY not set, skipping LinkedIn fetch")
             return None
 
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                resp = await client.get(
-                    self.BASE_URL,
-                    params={"linkedin_profile_url": linkedin_url, "use_cache": "if-present"},
-                    headers={"Authorization": f"Bearer {self.api_key}"},
-                )
+        if not self.validate_url(linkedin_url):
+            raise LinkedInFetchError(f"Invalid LinkedIn URL: {linkedin_url}")
 
-            if resp.status_code == 200:
-                data = resp.json()
-                return self._normalize_profile(data, linkedin_url)
-            elif resp.status_code == 404:
-                logger.warning(f"LinkedIn profile not found: {linkedin_url}")
-                return None
-            else:
-                raise LinkedInFetchError(
-                    f"Proxycurl API error {resp.status_code}: {resp.text}"
-                )
+        last_error: Exception | None = None
+        for attempt in range(MAX_RETRIES + 1):
+            try:
+                return await self._fetch_profile(linkedin_url)
+            except LinkedInFetchError:
+                raise
+            except httpx.HTTPError as e:
+                last_error = e
+                if attempt < MAX_RETRIES:
+                    wait = RETRY_BACKOFF * (2 ** attempt)
+                    logger.info(f"Retry {attempt + 1}/{MAX_RETRIES} for {linkedin_url} in {wait}s")
+                    await asyncio.sleep(wait)
 
-        except httpx.HTTPError as e:
-            raise LinkedInFetchError(f"Proxycurl request failed: {e}") from e
+        raise LinkedInFetchError(f"Proxycurl request failed after retries: {last_error}") from last_error
+
+    async def _fetch_profile(self, linkedin_url: str) -> dict | None:
+        """단일 API 호출"""
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.get(
+                self.BASE_URL,
+                params={"linkedin_profile_url": linkedin_url, "use_cache": "if-present"},
+                headers={"Authorization": f"Bearer {self.api_key}"},
+            )
+
+        if resp.status_code == 200:
+            data = resp.json()
+            return self._normalize_profile(data, linkedin_url)
+        elif resp.status_code == 404:
+            logger.warning(f"LinkedIn profile not found: {linkedin_url}")
+            return None
+        elif resp.status_code == 429:
+            raise httpx.HTTPError("Rate limited by Proxycurl")
+        else:
+            raise LinkedInFetchError(
+                f"Proxycurl API error {resp.status_code}: {resp.text}"
+            )
+
+    @staticmethod
+    def validate_url(url: str) -> bool:
+        """LinkedIn 프로필 URL 유효성 검증"""
+        return bool(LINKEDIN_URL_PATTERN.match(url))
 
     def _normalize_profile(self, data: dict, url: str) -> dict:
         """Proxycurl 응답을 내부 형식으로 정규화"""
         github_url = None
-        for site in data.get("personal_emails", []):
-            pass  # emails not useful for github
-        # Check websites for GitHub
         for site in data.get("personal_urls", []) or []:
             if "github.com" in (site.get("url") or ""):
                 github_url = site["url"]
@@ -80,6 +108,7 @@ class ProxycurlService:
                     "description": exp.get("description"),
                     "starts_at": exp.get("starts_at"),
                     "ends_at": exp.get("ends_at"),
+                    "location": exp.get("location"),
                 }
                 for exp in (data.get("experiences") or [])[:10]
             ],
@@ -88,6 +117,8 @@ class ProxycurlService:
                     "school": edu.get("school"),
                     "degree": edu.get("degree_name"),
                     "field": edu.get("field_of_study"),
+                    "starts_at": edu.get("starts_at"),
+                    "ends_at": edu.get("ends_at"),
                 }
                 for edu in (data.get("education") or [])[:5]
             ],
@@ -95,5 +126,14 @@ class ProxycurlService:
             "languages": [
                 lang.get("name") for lang in (data.get("languages") or [])
             ],
+            "certifications": [
+                {
+                    "name": cert.get("name"),
+                    "authority": cert.get("authority"),
+                }
+                for cert in (data.get("certifications") or [])[:10]
+            ],
+            "recommendations_count": len(data.get("recommendations", []) or []),
+            "connections": data.get("connections"),
             "github_url": github_url,
         }
