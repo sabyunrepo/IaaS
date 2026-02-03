@@ -5,6 +5,10 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 import uuid
 
+# Test UUIDs for consistent testing
+TEST_JOB_ID = "00000000-0000-0000-0000-000000000001"
+TEST_JOB_ID_2 = "00000000-0000-0000-0000-000000000002"
+
 
 # ============================================================
 # Graph Store Tests
@@ -13,13 +17,13 @@ import uuid
 class TestGraphStoreInit:
     def test_get_graph_store(self):
         from app.services.graph_store import get_graph_store
-        store = get_graph_store("test-job-id")
-        assert str(store.job_id) == "test-job-id"
+        store = get_graph_store(TEST_JOB_ID)
+        assert str(store.job_id) == TEST_JOB_ID
 
     def test_graph_store_class(self):
         from app.services.graph_store import GraphStore
-        store = GraphStore("abc-123")
-        assert str(store.job_id) == "abc-123"
+        store = GraphStore(TEST_JOB_ID_2)
+        assert str(store.job_id) == TEST_JOB_ID_2
 
 
 class TestKGDatabaseModels:
@@ -251,15 +255,15 @@ class TestJDEntityExtractor:
 class TestKnowledgeGraphService:
     def test_service_init(self):
         from app.services.knowledge_graph import KnowledgeGraphService
-        kg = KnowledgeGraphService("test-job-id")
-        assert kg.job_id == "test-job-id"
+        kg = KnowledgeGraphService(TEST_JOB_ID)
+        assert kg.job_id == TEST_JOB_ID
         assert kg.store is not None
         assert kg._node_cache == {}
 
     def test_get_knowledge_graph_factory(self):
         from app.services.knowledge_graph import get_knowledge_graph
-        kg = get_knowledge_graph("abc-123")
-        assert kg.job_id == "abc-123"
+        kg = get_knowledge_graph(TEST_JOB_ID_2)
+        assert kg.job_id == TEST_JOB_ID_2
 
 
 # ============================================================
@@ -269,17 +273,17 @@ class TestKnowledgeGraphService:
 class TestConflictDetector:
     def test_detector_init(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test-job-id")
-        assert detector.job_id == "test-job-id"
+        detector = ConflictDetector(TEST_JOB_ID)
+        assert detector.job_id == TEST_JOB_ID
 
     def test_get_conflict_detector_factory(self):
         from app.services.conflict_detector import get_conflict_detector
-        detector = get_conflict_detector("abc-123")
-        assert detector.job_id == "abc-123"
+        detector = get_conflict_detector(TEST_JOB_ID_2)
+        assert detector.job_id == TEST_JOB_ID_2
 
     def test_determine_skill_severity(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         assert detector._determine_skill_severity("Python") == "high"
         assert detector._determine_skill_severity("React") == "medium"
@@ -287,7 +291,7 @@ class TestConflictDetector:
 
     def test_expected_complexity_for_role(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         assert detector._expected_complexity_for_role("senior engineer") == 15.0
         assert detector._expected_complexity_for_role("software engineer") == 10.0
@@ -296,7 +300,7 @@ class TestConflictDetector:
 
     def test_find_related_tech(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         code_skills = {"django", "fastapi", "numpy"}
 
@@ -305,7 +309,7 @@ class TestConflictDetector:
 
     def test_generate_skill_probe(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         python_probe = detector._generate_skill_probe("Python")
         assert "Python" in python_probe or "structure" in python_probe
@@ -324,13 +328,13 @@ class TestConflictDetector:
 class TestInterviewGraphQueries:
     def test_queries_init(self):
         from app.services.graph_queries import InterviewGraphQueries
-        queries = InterviewGraphQueries("test-job-id")
-        assert queries.job_id == "test-job-id"
+        queries = InterviewGraphQueries(TEST_JOB_ID)
+        assert queries.job_id == TEST_JOB_ID
 
     def test_get_interview_graph_queries_factory(self):
         from app.services.graph_queries import get_interview_graph_queries
-        queries = get_interview_graph_queries("abc-123")
-        assert queries.job_id == "abc-123"
+        queries = get_interview_graph_queries(TEST_JOB_ID_2)
+        assert queries.job_id == TEST_JOB_ID_2
 
 
 class TestQuestionCandidateModel:

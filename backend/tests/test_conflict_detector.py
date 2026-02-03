@@ -4,6 +4,9 @@ Unit tests for Conflict Detector service.
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
+# Test UUIDs for consistent testing
+TEST_JOB_ID = "00000000-0000-0000-0000-000000000001"
+
 
 # ============================================================
 # Conflict Analysis Model Tests
@@ -70,14 +73,14 @@ class TestConflictReportModel:
         )
 
         report = ConflictReport(
-            job_id="test-job-id",
+            job_id=TEST_JOB_ID,
             total_claims_analyzed=10,
             conflicts=[conflict],
             verified_claims=[{"skill": "Verified Skill"}],
             summary={"total_conflicts": 1},
         )
 
-        assert report.job_id == "test-job-id"
+        assert report.job_id == TEST_JOB_ID
         assert report.total_claims_analyzed == 10
         assert len(report.conflicts) == 1
         assert len(report.verified_claims) == 1
@@ -86,7 +89,7 @@ class TestConflictReportModel:
         from app.services.conflict_detector import ConflictReport
 
         report = ConflictReport(
-            job_id="test-job-id",
+            job_id=TEST_JOB_ID,
             total_claims_analyzed=0,
         )
 
@@ -102,7 +105,7 @@ class TestConflictReportModel:
 class TestConflictDetectorLogic:
     def test_determine_skill_severity_critical(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         critical_skills = ["Python", "Java", "JavaScript", "SQL", "Git"]
         for skill in critical_skills:
@@ -110,7 +113,7 @@ class TestConflictDetectorLogic:
 
     def test_determine_skill_severity_important(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         important_skills = ["React", "Node.js", "Docker", "Kubernetes", "AWS"]
         for skill in important_skills:
@@ -118,7 +121,7 @@ class TestConflictDetectorLogic:
 
     def test_determine_skill_severity_low(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         low_skills = ["ObscureFramework", "SomeLibrary", "RandomTool"]
         for skill in low_skills:
@@ -126,7 +129,7 @@ class TestConflictDetectorLogic:
 
     def test_expected_complexity_senior(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         senior_roles = ["senior developer", "lead engineer", "principal architect", "staff engineer"]
         for role in senior_roles:
@@ -134,7 +137,7 @@ class TestConflictDetectorLogic:
 
     def test_expected_complexity_mid(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         mid_roles = ["software engineer", "mid level developer", "regular developer"]
         for role in mid_roles:
@@ -143,7 +146,7 @@ class TestConflictDetectorLogic:
 
     def test_expected_complexity_junior(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         junior_roles = ["junior developer", "associate engineer", "entry level"]
         for role in junior_roles:
@@ -152,7 +155,7 @@ class TestConflictDetectorLogic:
 
     def test_find_related_tech_python(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         # Python-related techs
         python_related = {"django", "flask", "fastapi"}
@@ -164,7 +167,7 @@ class TestConflictDetectorLogic:
 
     def test_find_related_tech_javascript(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         # JS-related techs
         js_related = {"react", "vue", "node.js"}
@@ -176,7 +179,7 @@ class TestConflictDetectorLogic:
 
     def test_count_by_type(self):
         from app.services.conflict_detector import ConflictDetector, ConflictAnalysis
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         conflicts = [
             ConflictAnalysis(
@@ -208,28 +211,28 @@ class TestConflictDetectorLogic:
 class TestProbeGeneration:
     def test_generate_skill_probe_python(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         probe = detector._generate_skill_probe("Python")
         assert "Python" in probe or "structuring" in probe
 
     def test_generate_skill_probe_react(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         probe = detector._generate_skill_probe("React")
         assert "state" in probe.lower() or "react" in probe.lower()
 
     def test_generate_skill_probe_docker(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         probe = detector._generate_skill_probe("Docker")
         assert "docker" in probe.lower() or "container" in probe.lower()
 
     def test_generate_skill_probe_unknown(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         probe = detector._generate_skill_probe("SomeUnknownTech")
         assert "SomeUnknownTech" in probe
@@ -237,7 +240,7 @@ class TestProbeGeneration:
 
     def test_generate_skill_probe_all_major_techs(self):
         from app.services.conflict_detector import ConflictDetector
-        detector = ConflictDetector("test")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         major_techs = ["python", "java", "javascript", "react", "docker",
                        "kubernetes", "postgresql", "aws"]
@@ -292,7 +295,7 @@ class TestConflictDetectorIntegration:
     async def test_detect_skill_conflicts(self, mock_kg_service, mock_graph_store):
         from app.services.conflict_detector import ConflictDetector
 
-        detector = ConflictDetector("test-job-id")
+        detector = ConflictDetector(TEST_JOB_ID)
 
         # Mock _detect_experience_conflicts and _detect_technology_conflicts
         detector._detect_experience_conflicts = AsyncMock(return_value=[])
@@ -300,7 +303,7 @@ class TestConflictDetectorIntegration:
 
         report = await detector.detect_all_conflicts()
 
-        assert report.job_id == "test-job-id"
+        assert report.job_id == TEST_JOB_ID
         # Should find React as unverified
         react_conflicts = [c for c in report.conflicts if "React" in c.claim]
         # Note: This may vary based on mock setup
@@ -315,7 +318,7 @@ class TestConflictDetectorWithMockedKG:
 
         with patch.object(ConflictDetector, "__init__", lambda x, y: None):
             detector = ConflictDetector.__new__(ConflictDetector)
-            detector.job_id = "test"
+            detector.job_id = TEST_JOB_ID
             detector.kg = AsyncMock()
             detector.store = AsyncMock()
 
