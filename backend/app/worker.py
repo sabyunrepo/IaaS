@@ -33,6 +33,11 @@ from app.workflows.activities.quality_review import review_questions
 from app.workflows.activities.finalization import finalize_output
 from app.workflows.activities.persist_result import persist_result
 from app.workflows.activities.send_webhook import send_webhook
+from app.workflows.activities.observability_activities import (
+    start_job_trace,
+    end_job_trace,
+    log_phase_event,
+)
 
 ACTIVITIES = [
     enrich_input,
@@ -52,6 +57,10 @@ ACTIVITIES = [
     finalize_output,
     persist_result,
     send_webhook,
+    # Observability activities
+    start_job_trace,
+    end_job_trace,
+    log_phase_event,
 ]
 
 

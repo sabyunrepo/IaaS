@@ -26,6 +26,10 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.finalization import finalize_output
     from app.workflows.activities.persist_result import persist_result
     from app.workflows.activities.send_webhook import send_webhook
+    from app.workflows.activities.observability_activities import (
+        start_job_trace,
+        end_job_trace,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +74,19 @@ class InterviewGenerationWorkflow:
     async def run(self, input_data: dict) -> dict:
         """메인 실행"""
         logger.info(f"Starting interview generation workflow v{WORKFLOW_VERSION}")
+
+        job_id = input_data.get("job_id")
+        user_id = input_data.get("user_id")
+        trace_id = None
+
+        # Start Langfuse trace for this job
+        if job_id:
+            trace_result = await workflow.execute_activity(
+                start_job_trace,
+                args=[job_id, user_id, {"workflow_version": WORKFLOW_VERSION}],
+                start_to_close_timeout=timedelta(seconds=30),
+            )
+            trace_id = trace_result.get("trace_id")
 
         try:
             # Version gate: 향후 워크플로우 로직 변경 시 patched()로 분기
@@ -317,6 +334,15 @@ class InterviewGenerationWorkflow:
                     logger.warning(f"Webhook delivery failed (non-fatal): {we}")
 
             self._update_status(JobStatus.COMPLETED, "completed", 100)
+
+            # End Langfuse trace with success
+            if job_id and trace_id:
+                await workflow.execute_activity(
+                    end_job_trace,
+                    args=[job_id, trace_id, "success", None],
+                    start_to_close_timeout=timedelta(seconds=30),
+                )
+
             return {"status": "completed", "script": final_script}
 
         except Exception as e:
@@ -324,8 +350,18 @@ class InterviewGenerationWorkflow:
             self._current_phase = "failed"
             logger.error(f"Workflow failed: {e}")
 
+            # End Langfuse trace with failure
+            if job_id and trace_id:
+                try:
+                    await workflow.execute_activity(
+                        end_job_trace,
+                        args=[job_id, trace_id, "failed", None],
+                        start_to_close_timeout=timedelta(seconds=30),
+                    )
+                except Exception:
+                    logger.warning("Failed to end Langfuse trace")
+
             # DB에 실패 상태 저장
-            job_id = input_data.get("job_id")
             if job_id:
                 try:
                     await workflow.execute_activity(
