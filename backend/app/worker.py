@@ -39,6 +39,12 @@ from app.workflows.activities.observability_activities import (
     end_job_trace,
     log_phase_event,
 )
+from app.workflows.activities.knowledge_graph_activities import (
+    build_knowledge_graph,
+    get_kg_question_candidates,
+    get_evidence_chain,
+    clear_knowledge_graph,
+)
 
 ACTIVITIES = [
     enrich_input,
@@ -62,6 +68,11 @@ ACTIVITIES = [
     start_job_trace,
     end_job_trace,
     log_phase_event,
+    # Knowledge Graph activities
+    build_knowledge_graph,
+    get_kg_question_candidates,
+    get_evidence_chain,
+    clear_knowledge_graph,
 ]
 
 

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 @activity.defn
 @observe_activity(name="analyze_jd", phase="analysis")
-async def analyze_jd(jd_text: str) -> dict:
+async def analyze_jd(jd_text: str, job_id: str | None = None) -> dict:
     """
     채용공고(JD) 분석
 
@@ -30,8 +30,11 @@ async def analyze_jd(jd_text: str) -> dict:
 
     result = await llm.run(prompt)
 
+    jd_result = {}
+    kg_entity_count = 0
+
     if isinstance(result, dict):
-        return {
+        jd_result = {
             "job_title": result.get("job_title"),
             "company_name": result.get("company_name"),
             "requirements": result.get("requirements", []),
@@ -43,16 +46,33 @@ async def analyze_jd(jd_text: str) -> dict:
             "gaps": [],
             "strengths": [],
         }
+    else:
+        jd_result = {
+            "job_title": None,
+            "company_name": None,
+            "requirements": [],
+            "responsibilities": [],
+            "company_culture": [],
+            "tech_stack": [],
+            "skill_matches": [],
+            "overall_match_score": 0,
+            "gaps": [],
+            "strengths": [],
+        }
+
+    # Extract and store KG entities (non-blocking)
+    if job_id and jd_result.get("job_title"):
+        activity.heartbeat("Extracting KG entities from JD analysis...")
+        try:
+            from app.services.knowledge_graph import get_knowledge_graph
+            kg = get_knowledge_graph(job_id)
+            extraction_result = await kg.extract_and_store_jd_entities(jd_result)
+            kg_entity_count = len(extraction_result.entities)
+            logger.info(f"Extracted {kg_entity_count} KG entities from JD for job {job_id}")
+        except Exception as e:
+            logger.warning(f"KG extraction failed (non-fatal): {e}")
 
     return {
-        "job_title": None,
-        "company_name": None,
-        "requirements": [],
-        "responsibilities": [],
-        "company_culture": [],
-        "tech_stack": [],
-        "skill_matches": [],
-        "overall_match_score": 0,
-        "gaps": [],
-        "strengths": [],
+        **jd_result,
+        "kg_entity_count": kg_entity_count,
     }
