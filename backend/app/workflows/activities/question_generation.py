@@ -13,14 +13,15 @@ logger = logging.getLogger(__name__)
 
 @activity.defn
 @observe_activity(name="select_topics", phase="question_generation")
-async def select_topics(analysis: dict, enriched_input: dict) -> list[dict]:
+async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None = None) -> list[dict]:
     """
     25개 질문 토픽 선정 (5카테고리 × 5)
 
     선정 기준:
-    1. 코드에서 발견된 주목할 만한 구현
-    2. JD 요구사항과의 매칭
-    3. 경험 레벨에 맞는 난이도
+    1. Knowledge Graph 기반 후보 (skill_depth, gap_probe, conflict_probe, implementation_review)
+    2. 코드에서 발견된 주목할 만한 구현
+    3. JD 요구사항과의 매칭
+    4. 경험 레벨에 맞는 난이도
     """
     from app.services.cached_llm import CachedLLMService
 
@@ -32,12 +33,54 @@ async def select_topics(analysis: dict, enriched_input: dict) -> list[dict]:
     # 질문 후보 수집
     candidates = []
 
+    # Knowledge Graph 기반 후보 (highest priority)
+    if job_id:
+        activity.heartbeat("Fetching KG-based question candidates...")
+        try:
+            from app.services.graph_queries import get_interview_graph_queries
+            queries = get_interview_graph_queries(job_id)
+            kg_candidates = await queries.get_top_question_candidates(
+                limit=30,
+                balance_categories=True,
+            )
+
+            for kgc in kg_candidates:
+                # Map KG category to interview category
+                category_map = {
+                    "skill_depth": "technical_depth",
+                    "gap_probe": "role_fit",
+                    "conflict_probe": "risk_flags",
+                    "implementation_review": "execution_ownership",
+                    "partial_match_probe": "technical_depth",
+                }
+
+                candidates.append({
+                    "source": f"kg_{kgc.category}",
+                    "topic": kgc.topic,
+                    "evidence": {
+                        "evidence_chain": kgc.evidence_chain,
+                        "code_reference": kgc.code_reference,
+                        "recommended_probe": kgc.recommended_probe,
+                    },
+                    "score": kgc.priority / 100,  # Normalize to 0-1
+                    "kg_category": kgc.category,
+                    "interview_category": category_map.get(kgc.category, "technical_depth"),
+                })
+
+            logger.info(f"[{job_id}] Added {len(kg_candidates)} KG-based candidates")
+        except Exception as e:
+            logger.warning(f"[{job_id}] KG query failed (using fallback): {e}")
+
     # 코드 기반 후보
     code_analysis = analysis.get("code_analysis", {})
     for impl in code_analysis.get("top_question_candidates", []):
+        # Skip if already added from KG
+        topic = impl.get("title", "unknown")
+        if any(c["topic"] == topic for c in candidates):
+            continue
         candidates.append({
             "source": "code",
-            "topic": impl.get("title", "unknown"),
+            "topic": topic,
             "evidence": impl,
             "score": impl.get("question_potential", 0.5),
         })
@@ -47,6 +90,9 @@ async def select_topics(analysis: dict, enriched_input: dict) -> list[dict]:
     for req in jd_analysis.get("requirements", []):
         skill = req.get("skill", "") if isinstance(req, dict) else str(req)
         category = req.get("category", "우대") if isinstance(req, dict) else "우대"
+        # Skip if already added from KG
+        if any(c["topic"] == skill for c in candidates):
+            continue
         candidates.append({
             "source": "jd_match",
             "topic": skill,
@@ -97,6 +143,7 @@ async def craft_question(
     topic: dict,
     analysis: dict,
     enriched_input: dict,
+    job_id: str | None = None,
 ) -> dict:
     """
     단일 질문 상세 생성
@@ -107,6 +154,7 @@ async def craft_question(
     - 평가 시나리오
     - 꼬리질문
     - 용어 설명
+    - Knowledge Graph evidence chain (if available)
     """
     from app.services.cached_llm import CachedLLMService
 
@@ -116,6 +164,42 @@ async def craft_question(
     output_language = language_config.get("output_language", "ko")
     experience_level = raw_input.get("experience_level", "미들")
 
+    # Extract KG evidence if available
+    evidence_context = ""
+    code_reference = None
+    recommended_probe = None
+
+    if topic.get("source", "").startswith("kg_"):
+        evidence = topic.get("evidence", {})
+        evidence_chain = evidence.get("evidence_chain", [])
+        code_reference = evidence.get("code_reference")
+        recommended_probe = evidence.get("recommended_probe")
+
+        if evidence_chain:
+            evidence_context = "\n\nEvidence chain:\n"
+            for item in evidence_chain[:5]:  # Limit to 5 items
+                evidence_context += f"- {item.get('type', 'Unknown')}: {item.get('name', 'N/A')}\n"
+
+        if code_reference:
+            evidence_context += f"\nCode reference: {code_reference.get('file_path', 'N/A')}\n"
+            if code_reference.get('code_snippet'):
+                snippet = code_reference['code_snippet'][:300]  # Truncate
+                evidence_context += f"```\n{snippet}\n```\n"
+
+    # Get additional evidence from KG if job_id is available
+    if job_id and not evidence_context:
+        try:
+            from app.services.graph_queries import get_interview_graph_queries
+            queries = get_interview_graph_queries(job_id)
+            kg_evidence = await queries.get_evidence_chain_for_topic(topic.get("topic", ""))
+            if kg_evidence:
+                evidence_context = "\n\nKG Evidence:\n"
+                for item in kg_evidence[:5]:
+                    if item.get("entity_type"):
+                        evidence_context += f"- {item['entity_type']}: {item.get('name', 'N/A')}\n"
+        except Exception as e:
+            logger.debug(f"KG evidence fetch failed for {topic.get('topic')}: {e}")
+
     from app.prompts import get_prompt
     prompt = get_prompt(
         "question_generation.yaml", "craft_question",
@@ -124,6 +208,8 @@ async def craft_question(
         topic=topic.get("topic"),
         category=topic.get("category"),
         difficulty=topic.get("difficulty"),
+        evidence_context=evidence_context if evidence_context else "",
+        recommended_probe=recommended_probe if recommended_probe else "",
     )
 
     result = await llm.run(prompt)
@@ -134,6 +220,25 @@ async def craft_question(
     question.setdefault("difficulty", topic.get("difficulty", "Medium"))
     question.setdefault("language", output_language)
     question.setdefault("topic", topic.get("topic"))
+
+    # Add KG provenance metadata
+    if topic.get("source", "").startswith("kg_"):
+        question["kg_source"] = topic.get("source")
+        question["kg_category"] = topic.get("kg_category")
+
+    # Add code reference if available
+    if code_reference:
+        question["code_reference"] = {
+            "file_path": code_reference.get("file_path"),
+            "line_start": code_reference.get("line_start"),
+            "line_end": code_reference.get("line_end"),
+            "repository": code_reference.get("repository"),
+        }
+
+    # Use recommended probe if available and question_text is generic
+    if recommended_probe and question.get("question_text", "").startswith("["):
+        question["alternative_phrasing"] = question.get("alternative_phrasing", [])
+        question["alternative_phrasing"].append(recommended_probe)
 
     return question
 

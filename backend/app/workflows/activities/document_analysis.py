@@ -56,6 +56,8 @@ async def analyze_documents(input_data: dict) -> dict:
 
     # 벡터 스토어에 프로필 저장 (job_id가 있을 경우)
     job_id = input_data.get("job_id")
+    kg_entity_count = 0
+
     if job_id and isinstance(profile, dict):
         activity.heartbeat("Storing profile embeddings...")
         try:
@@ -66,8 +68,20 @@ async def analyze_documents(input_data: dict) -> dict:
         except Exception as e:
             logger.warning(f"Vector store failed (non-fatal): {e}")
 
+        # Extract and store KG entities (non-blocking)
+        activity.heartbeat("Extracting KG entities from profile...")
+        try:
+            from app.services.knowledge_graph import get_knowledge_graph
+            kg = get_knowledge_graph(job_id)
+            extraction_result = await kg.extract_and_store_candidate_entities(profile)
+            kg_entity_count = len(extraction_result.entities)
+            logger.info(f"Extracted {kg_entity_count} KG entities for job {job_id}")
+        except Exception as e:
+            logger.warning(f"KG extraction failed (non-fatal): {e}")
+
     return {
         "profile": profile if isinstance(profile, dict) else {},
         "raw_texts": documents,
         "parse_info": parse_results,
+        "kg_entity_count": kg_entity_count,
     }

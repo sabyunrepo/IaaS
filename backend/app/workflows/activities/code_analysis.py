@@ -99,9 +99,33 @@ async def analyze_code(
     for repo in repositories:
         all_notables.extend(repo.get("notable_implementations", []))
 
-    return {
+    # Build code analysis result
+    code_analysis_result = {
         "repositories": repositories,
+        "combined_tech_stack": list(set(tech for repo in repositories for tech in repo.get("analysis", {}).get("tech_stack", []))),
+        "total_patterns": sum(len(repo.get("analysis", {}).get("patterns", [])) for repo in repositories),
+        "total_notable_implementations": len(all_notables),
         "top_question_candidates": all_notables[:20],
+    }
+
+    # Extract and store KG entities (non-blocking)
+    job_id = input_data.get("job_id")
+    kg_entity_count = 0
+
+    if job_id:
+        activity.heartbeat("Extracting KG entities from code analysis...")
+        try:
+            from app.services.knowledge_graph import get_knowledge_graph
+            kg = get_knowledge_graph(job_id)
+            extraction_result = await kg.extract_and_store_code_entities(code_analysis_result)
+            kg_entity_count = len(extraction_result.entities)
+            logger.info(f"Extracted {kg_entity_count} KG entities from code analysis for job {job_id}")
+        except Exception as e:
+            logger.warning(f"KG extraction failed (non-fatal): {e}")
+
+    return {
+        **code_analysis_result,
+        "kg_entity_count": kg_entity_count,
     }
 
 
