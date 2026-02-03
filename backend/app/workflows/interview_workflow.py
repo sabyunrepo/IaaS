@@ -258,7 +258,7 @@ class InterviewGenerationWorkflow:
             max_revisions = 3
             while (
                 isinstance(review, dict)
-                and review.get("needs_revision")
+                and review.get("verdict") == "NEEDS_REVISION"
                 and revision_count < max_revisions
             ):
                 revision_count += 1

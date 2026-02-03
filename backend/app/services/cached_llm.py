@@ -44,10 +44,20 @@ class CachedLLMService:
         except Exception as e:
             logger.warning(f"Redis cache read failed: {e}")
 
-        # LLM 호출
+        # LLM 호출 (폴백 체인: primary → fallback)
         from app.services.llm_config import get_llm_agent
-        agent = get_llm_agent(result_type=result_type)
-        run_result = await agent.run(prompt)
+        try:
+            agent = get_llm_agent(result_type=result_type, model=model)
+            run_result = await agent.run(prompt)
+        except Exception as primary_err:
+            fallback_model = settings.LLM_FALLBACK_MODEL
+            if fallback_model and fallback_model != model:
+                logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
+                agent = get_llm_agent(result_type=result_type, model=fallback_model)
+                run_result = await agent.run(prompt)
+            else:
+                raise
+
         data = run_result.data
         if hasattr(data, "model_dump"):
             data = data.model_dump()
@@ -103,10 +113,20 @@ class CachedLLMService:
         except Exception as e:
             logger.warning(f"Redis cache read failed: {e}")
 
-        # LLM 호출
+        # LLM 호출 (폴백 체인: primary → fallback)
         from app.services.llm_config import get_llm_agent
-        agent = get_llm_agent(result_type=result_type)
-        run_result = await agent.run(prompt)
+        try:
+            agent = get_llm_agent(result_type=result_type, model=model)
+            run_result = await agent.run(prompt)
+        except Exception as primary_err:
+            fallback_model = settings.LLM_FALLBACK_MODEL
+            if fallback_model and fallback_model != model:
+                logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
+                agent = get_llm_agent(result_type=result_type, model=fallback_model)
+                run_result = await agent.run(prompt)
+            else:
+                raise
+
         data = run_result.data
         if hasattr(data, "model_dump"):
             data = data.model_dump()

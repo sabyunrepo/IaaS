@@ -10,19 +10,24 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
-def get_llm_agent(result_type: Any = None, system_prompt: str = ""):
+def get_llm_agent(
+    result_type: Any = None,
+    system_prompt: str = "",
+    model: str | None = None,
+):
     """Pydantic AI Agent 생성
 
     Args:
         result_type: Pydantic 모델 (구조화 출력용)
         system_prompt: 시스템 프롬프트
+        model: LLM 모델명 (기본값: settings.LLM_MODEL)
 
     Returns:
         pydantic_ai.Agent 인스턴스
     """
     from pydantic_ai import Agent
 
-    model = settings.LLM_MODEL  # e.g. "openai/gpt-4o"
+    model = model or settings.LLM_MODEL  # e.g. "openai/gpt-4o"
 
     kwargs = {"model": model}
     if result_type:
