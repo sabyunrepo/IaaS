@@ -1,26 +1,55 @@
 """
 backend/app/services/code_analyzer.py
 PyDriller + AST + LLM 기반 코드 분석 파이프라인
+
+4-Channel GitHub Analysis의 Channel A (본인 레포 분석) 담당
+- diff 기반 코드 추출 (토큰 효율적)
+- 분석 기간: GITHUB_ANALYSIS_YEARS 환경변수 (기본 1년)
 """
 import logging
 from typing import Any
+
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 
 class CodeAnalyzer:
-    """코드 분석 4-Phase 파이프라인"""
+    """코드 분석 4-Phase 파이프라인 (Channel A)"""
 
     async def analyze_with_pydriller(
         self,
         repo_url: str,
         job_id: str,
         author: str | None = None,
-        since_years: int = 3,
+        since_years: int | None = None,
         file_types: list[str] | None = None,
+        extract_diff: bool = True,  # diff 기반 추출 (기본값)
     ) -> dict:
-        """PyDriller로 레포 분석 (clone → 커밋 순회 → 메트릭 추출)"""
-        logger.info(f"PyDriller analysis: {repo_url} (author={author})")
+        """
+        PyDriller로 레포 분석 (clone → 커밋 순회 → 메트릭 추출)
+
+        Args:
+            repo_url: GitHub 레포 URL
+            job_id: Job ID (로깅용)
+            author: 후보자 username (커밋 필터)
+            since_years: 분석 기간 (None이면 GITHUB_ANALYSIS_YEARS 환경변수 사용)
+            file_types: 분석 대상 파일 확장자
+            extract_diff: True면 diff만, False면 source_code 추출 (기존 호환)
+
+        Returns:
+            {
+                "commits": [{hash, msg, date, files_changed}],
+                "files": [{filename, diff, complexity, nloc, methods, added, deleted}],
+                "commit_diffs": [{commit_hash, file_path, diff, additions, deletions}],
+                "stats": {total_commits, total_additions, total_deletions, avg_complexity}
+            }
+        """
+        # 환경변수에서 분석 기간 가져오기 (기본 1년)
+        if since_years is None:
+            since_years = settings.GITHUB_ANALYSIS_YEARS
+
+        logger.info(f"PyDriller analysis: {repo_url} (author={author}, years={since_years}, diff={extract_diff})")
 
         # PyDriller import (heavy dependency, lazy load)
         from pydriller import Repository
@@ -29,6 +58,7 @@ class CodeAnalyzer:
         since = datetime.now(timezone.utc) - timedelta(days=since_years * 365)
         commits = []
         files = {}
+        commit_diffs = []  # diff 기반 데이터
         total_additions = 0
         total_deletions = 0
 
@@ -47,6 +77,21 @@ class CodeAnalyzer:
                 })
 
                 for mod in commit.modified_files:
+                    # diff 기반 추출 (토큰 효율적)
+                    if extract_diff:
+                        diff_content = mod.diff[:2000] if mod.diff else ""
+                        commit_diffs.append({
+                            "commit_hash": commit.hash[:8],
+                            "message": commit.msg[:100],
+                            "date": commit.committer_date.isoformat(),
+                            "file_path": mod.filename,
+                            "diff": diff_content,
+                            "additions": mod.added_lines,
+                            "deletions": mod.deleted_lines,
+                            "complexity": mod.complexity or 0,
+                        })
+
+                    # 파일별 집계 (AST 분석용)
                     if mod.filename not in files:
                         files[mod.filename] = {
                             "filename": mod.filename,
@@ -55,18 +100,36 @@ class CodeAnalyzer:
                             "methods": len(mod.methods) if mod.methods else 0,
                             "added": 0,
                             "deleted": 0,
-                            "source": mod.source_code[:5000] if mod.source_code else "",
                         }
+                        # diff 모드가 아닐 때만 source_code 추출 (기존 호환)
+                        if not extract_diff:
+                            files[mod.filename]["source"] = (
+                                mod.source_code[:5000] if mod.source_code else ""
+                            )
+                        else:
+                            # diff 모드: 가장 최근 diff만 저장 (AST 분석용)
+                            files[mod.filename]["diff"] = (
+                                mod.diff[:3000] if mod.diff else ""
+                            )
+
                     files[mod.filename]["added"] += mod.added_lines
                     files[mod.filename]["deleted"] += mod.deleted_lines
                     total_additions += mod.added_lines
                     total_deletions += mod.deleted_lines
+
         except Exception as e:
             logger.warning(f"PyDriller failed for {repo_url}: {e}")
-            return {"commits": [], "files": [], "stats": {
-                "total_commits": 0, "total_additions": 0,
-                "total_deletions": 0, "avg_complexity": 0,
-            }}
+            return {
+                "commits": [],
+                "files": [],
+                "commit_diffs": [],
+                "stats": {
+                    "total_commits": 0,
+                    "total_additions": 0,
+                    "total_deletions": 0,
+                    "avg_complexity": 0,
+                },
+            }
 
         file_list = list(files.values())
         avg_complexity = (
@@ -74,14 +137,22 @@ class CodeAnalyzer:
             if file_list else 0
         )
 
+        # diff 기반 정렬: 복잡도 × 변경량 기준
+        commit_diffs.sort(
+            key=lambda x: x["complexity"] * (x["additions"] + x["deletions"]),
+            reverse=True
+        )
+
         return {
             "commits": commits[:100],
             "files": file_list,
+            "commit_diffs": commit_diffs[:200],  # 상위 200개 diff
             "stats": {
                 "total_commits": len(commits),
                 "total_additions": total_additions,
                 "total_deletions": total_deletions,
                 "avg_complexity": round(avg_complexity, 2),
+                "analysis_period_years": since_years,
             },
         }
 
@@ -104,7 +175,10 @@ class CodeAnalyzer:
         files: list[dict],
         primary_language: str | None = None,
     ) -> dict:
-        """AST 구조 분석 (Python: ast, JS/TS: tree-sitter, fallback)"""
+        """AST 구조 분석 (Python: ast, JS/TS: tree-sitter, fallback)
+
+        Note: diff 모드에서는 source 대신 diff 필드 사용 시도
+        """
         functions = []
         classes = []
         imports = []
@@ -115,7 +189,8 @@ class CodeAnalyzer:
             parser_used = "ast"
             import ast as ast_mod
             for f in files:
-                source = f.get("source", "")
+                # diff 모드 호환: source 없으면 diff에서 추출 시도
+                source = f.get("source", "") or f.get("diff", "")
                 if not source:
                     continue
                 try:
@@ -166,7 +241,8 @@ class CodeAnalyzer:
                 parser_used = "tree_sitter"
 
                 for f in files:
-                    source = f.get("source", "")
+                    # diff 모드 호환: source 없으면 diff에서 추출 시도
+                    source = f.get("source", "") or f.get("diff", "")
                     if not source:
                         continue
                     try:
@@ -280,20 +356,50 @@ class CodeAnalyzer:
         self,
         ranked_files: list[dict],
         ast_context: dict | None = None,
+        commit_diffs: list[dict] | None = None,
     ) -> dict:
-        """LLM으로 코드 의미 분석"""
-        if not ranked_files:
+        """LLM으로 코드 의미 분석
+
+        Args:
+            ranked_files: 분석 대상 파일 (토큰 예산 내)
+            ast_context: AST 분석 결과
+            commit_diffs: diff 기반 커밋 데이터 (선택)
+        """
+        if not ranked_files and not commit_diffs:
             return {"notable_implementations": [], "patterns": [], "quality_assessment": "N/A"}
 
         from app.services.cached_llm import CachedLLMService
         llm = CachedLLMService()
 
         context_parts = []
+
+        # diff 기반 컨텍스트 (우선)
+        if commit_diffs:
+            context_parts.append("## Recent Code Changes (Diffs)\n")
+            for d in commit_diffs[:15]:  # 상위 15개 diff
+                context_parts.append(
+                    f"### {d['file_path']} ({d['commit_hash']})\n"
+                    f"Message: {d.get('message', '')}\n"
+                    f"```diff\n{d.get('diff', '')[:1500]}\n```"
+                )
+
+        # 파일 기반 컨텍스트 (fallback 또는 추가)
         for f in ranked_files[:10]:
-            context_parts.append(f"## {f['filename']}\n```\n{f.get('source', '')[:3000]}\n```")
+            code_content = f.get("source", "") or f.get("diff", "")
+            if code_content:
+                context_parts.append(f"## {f['filename']}\n```\n{code_content[:3000]}\n```")
+
+        # AST 컨텍스트 추가
+        if ast_context:
+            context_parts.append(
+                f"\n## Code Structure Summary\n"
+                f"Functions: {len(ast_context.get('functions', []))}\n"
+                f"Classes: {len(ast_context.get('classes', []))}\n"
+                f"Parser: {ast_context.get('parser_used', 'N/A')}"
+            )
 
         prompt = (
-            "Analyze the following code files and identify:\n"
+            "Analyze the following code changes and files to identify:\n"
             "1. Notable implementations (design patterns, algorithms)\n"
             "2. Code quality assessment\n"
             "3. Top question candidates for technical interview\n\n"
