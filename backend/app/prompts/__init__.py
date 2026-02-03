@@ -1,30 +1,212 @@
 """
 backend/app/prompts/__init__.py
-YAML 프롬프트 템플릿 로더
+YAML 프롬프트 템플릿 로더 + Langfuse 프롬프트 관리 통합
 """
+import logging
 import os
 from functools import lru_cache
+from typing import Any
 
 import yaml
 
+logger = logging.getLogger(__name__)
 PROMPTS_DIR = os.path.dirname(__file__)
+
+# Cache for Langfuse prompts (name -> prompt object)
+_langfuse_prompt_cache: dict[str, Any] = {}
 
 
 @lru_cache(maxsize=32)
 def _load_yaml(filename: str) -> dict:
+    """Load YAML file from local prompts directory."""
     path = os.path.join(PROMPTS_DIR, filename)
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
+def _get_langfuse_prompt_name(filename: str, key: str) -> str:
+    """Generate Langfuse prompt name from filename and key.
+
+    Convention: filename without .yaml + underscore + key
+    Example: jd_analysis.yaml + analyze → jd_analysis_analyze
+    """
+    base = filename.replace(".yaml", "")
+    return f"{base}_{key}"
+
+
+def _fetch_langfuse_prompt(prompt_name: str, **kwargs) -> str | None:
+    """Try to fetch and compile a prompt from Langfuse.
+
+    Args:
+        prompt_name: Langfuse prompt name (e.g., "jd_analysis_analyze")
+        **kwargs: Variables to compile into the prompt
+
+    Returns:
+        Compiled prompt string if successful, None otherwise
+    """
+    from app.core.observability import is_langfuse_enabled, get_langfuse_client
+
+    if not is_langfuse_enabled():
+        return None
+
+    try:
+        client = get_langfuse_client()
+        if not client:
+            return None
+
+        # Check cache first
+        if prompt_name not in _langfuse_prompt_cache:
+            # Fetch prompt from Langfuse
+            prompt = client.get_prompt(prompt_name)
+            _langfuse_prompt_cache[prompt_name] = prompt
+            logger.debug(f"Fetched Langfuse prompt: {prompt_name} v{prompt.version}")
+
+        prompt = _langfuse_prompt_cache[prompt_name]
+
+        # Compile prompt with variables
+        compiled = prompt.compile(**kwargs)
+
+        # Log prompt usage for observability
+        _log_prompt_usage(prompt_name, prompt.version, "langfuse", kwargs.keys())
+
+        return compiled
+
+    except Exception as e:
+        logger.debug(f"Langfuse prompt fetch failed for {prompt_name}: {e}")
+        return None
+
+
+def _log_prompt_usage(
+    prompt_name: str,
+    version: str | int | None,
+    source: str,
+    variable_names: list[str] | None = None,
+):
+    """Log prompt usage to Langfuse for tracking."""
+    from app.core.observability import is_langfuse_enabled, log_event
+
+    if not is_langfuse_enabled():
+        return
+
+    log_event(
+        name="prompt_usage",
+        metadata={
+            "prompt_name": prompt_name,
+            "prompt_version": str(version) if version else "local",
+            "source": source,  # "langfuse" or "yaml"
+            "variables": list(variable_names) if variable_names else [],
+        },
+    )
+
+
 def get_prompt(filename: str, key: str, **kwargs) -> str:
-    """YAML에서 프롬프트 템플릿을 로드하고 변수를 치환합니다.
+    """프롬프트 템플릿을 로드하고 변수를 치환합니다.
+
+    Langfuse에서 먼저 프롬프트를 가져오고, 실패하면 로컬 YAML에서 로드합니다.
 
     Args:
         filename: YAML 파일명 (예: "jd_analysis.yaml")
         key: 프롬프트 키 (예: "analyze")
         **kwargs: 템플릿 변수
+
+    Returns:
+        Compiled prompt string
     """
+    # Try Langfuse first
+    langfuse_name = _get_langfuse_prompt_name(filename, key)
+    prompt = _fetch_langfuse_prompt(langfuse_name, **kwargs)
+
+    if prompt is not None:
+        return prompt
+
+    # Fallback to local YAML
     data = _load_yaml(filename)
     template = data["prompts"][key]["template"]
-    return template.format(**kwargs)
+    result = template.format(**kwargs)
+
+    # Log YAML fallback usage
+    _log_prompt_usage(langfuse_name, None, "yaml", kwargs.keys())
+
+    return result
+
+
+def get_prompt_with_metadata(filename: str, key: str, **kwargs) -> dict:
+    """프롬프트와 메타데이터를 함께 반환합니다.
+
+    Args:
+        filename: YAML 파일명
+        key: 프롬프트 키
+        **kwargs: 템플릿 변수
+
+    Returns:
+        {
+            "prompt": str,
+            "source": "langfuse" | "yaml",
+            "version": str | None,
+            "name": str
+        }
+    """
+    from app.core.observability import is_langfuse_enabled, get_langfuse_client
+
+    langfuse_name = _get_langfuse_prompt_name(filename, key)
+
+    # Try Langfuse
+    if is_langfuse_enabled():
+        try:
+            client = get_langfuse_client()
+            if client:
+                if langfuse_name not in _langfuse_prompt_cache:
+                    prompt_obj = client.get_prompt(langfuse_name)
+                    _langfuse_prompt_cache[langfuse_name] = prompt_obj
+
+                prompt_obj = _langfuse_prompt_cache[langfuse_name]
+                compiled = prompt_obj.compile(**kwargs)
+
+                _log_prompt_usage(langfuse_name, prompt_obj.version, "langfuse", kwargs.keys())
+
+                return {
+                    "prompt": compiled,
+                    "source": "langfuse",
+                    "version": str(prompt_obj.version),
+                    "name": langfuse_name,
+                }
+        except Exception as e:
+            logger.debug(f"Langfuse prompt not available: {e}")
+
+    # Fallback to YAML
+    data = _load_yaml(filename)
+    template = data["prompts"][key]["template"]
+    result = template.format(**kwargs)
+
+    _log_prompt_usage(langfuse_name, None, "yaml", kwargs.keys())
+
+    return {
+        "prompt": result,
+        "source": "yaml",
+        "version": None,
+        "name": langfuse_name,
+    }
+
+
+def clear_prompt_cache():
+    """Clear the Langfuse prompt cache (useful for testing or hot-reload)."""
+    _langfuse_prompt_cache.clear()
+    _load_yaml.cache_clear()
+    logger.info("Prompt cache cleared")
+
+
+def list_local_prompts() -> dict[str, list[str]]:
+    """List all available prompts from local YAML files.
+
+    Returns:
+        {filename: [prompt_keys]}
+    """
+    result = {}
+    for filename in os.listdir(PROMPTS_DIR):
+        if filename.endswith(".yaml"):
+            try:
+                data = _load_yaml(filename)
+                result[filename] = list(data.get("prompts", {}).keys())
+            except Exception:
+                pass
+    return result
