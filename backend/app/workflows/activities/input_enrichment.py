@@ -8,7 +8,7 @@ import logging
 from temporalio import activity
 
 from app.core.observability import observe_activity
-from app.exceptions import DocumentParseError, LinkedInFetchError
+from app.exceptions import LinkedInFetchError
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,8 @@ async def enrich_input(input_data: dict) -> dict:
     extracted_urls: dict[str, set] = {"github": set(), "linkedin": set()}
     extraction_sources: dict[str, list] = {}
 
+    document_errors: list[dict] = []
+
     # 1. Resume에서 URL 추출
     if input_data.get("resume_path"):
         activity.heartbeat("Extracting URLs from resume...")
@@ -46,9 +48,8 @@ async def enrich_input(input_data: dict) -> dict:
                 extracted_urls["linkedin"].add(url)
                 extraction_sources.setdefault("linkedin_url", []).append("resume")
         except Exception as e:
-            raise DocumentParseError(
-                f"Resume 파싱 실패: {input_data['resume_path']}", source="resume"
-            ) from e
+            logger.warning(f"Resume 파싱 실패 (계속 진행): {e}")
+            document_errors.append({"source": "resume", "error": str(e)})
 
     # 2. Portfolio에서 URL 추출
     if input_data.get("portfolio_path"):
@@ -60,9 +61,8 @@ async def enrich_input(input_data: dict) -> dict:
                 extracted_urls["github"].add(url)
                 extraction_sources.setdefault("github_urls", []).append("portfolio")
         except Exception as e:
-            raise DocumentParseError(
-                f"Portfolio 파싱 실패: {input_data['portfolio_path']}", source="portfolio"
-            ) from e
+            logger.warning(f"Portfolio 파싱 실패 (계속 진행): {e}")
+            document_errors.append({"source": "portfolio", "error": str(e)})
 
     # 3. Cover Letter에서 URL 추출
     if input_data.get("cover_letter_path"):
@@ -74,9 +74,8 @@ async def enrich_input(input_data: dict) -> dict:
                 extracted_urls["github"].add(url)
                 extraction_sources.setdefault("github_urls", []).append("cover_letter")
         except Exception as e:
-            raise DocumentParseError(
-                f"Cover letter 파싱 실패: {input_data['cover_letter_path']}", source="cover_letter"
-            ) from e
+            logger.warning(f"Cover letter 파싱 실패 (계속 진행): {e}")
+            document_errors.append({"source": "cover_letter", "error": str(e)})
 
     # 4. 직접 입력된 URL 병합
     for url in input_data.get("github_urls", []):
@@ -106,26 +105,58 @@ async def enrich_input(input_data: dict) -> dict:
             extracted_urls["github"].add(linkedin_profile["github_url"])
             extraction_sources.setdefault("github_urls", []).append("linkedin")
 
-    # 6. GitHub username 자동 추론
+    # 6. GitHub username 확인 (개인 계정만, Organization은 무시)
     github_urls = list(extracted_urls["github"])
     candidate_username = input_data.get("candidate_github_username")
-    if not candidate_username and github_urls:
-        candidate_username = _extract_github_username(github_urls[0])
+    username_inference = None
+    personal_github_urls = []  # code_analysis에 실제 사용할 URL
+
+    if github_urls:
+        activity.heartbeat("Validating GitHub URLs (User vs Organization)...")
+        try:
+            from app.services.github_service import GitHubService
+            github_svc = GitHubService()
+
+            username_inference = await github_svc.infer_candidate_username(
+                github_urls=github_urls,
+                candidate_name=linkedin_profile.get("full_name") if linkedin_profile else None,
+            )
+
+            # 개인 레포 URL만 사용
+            personal_github_urls = username_inference.get("personal_repos", [])
+
+            # username이 명시적으로 입력되지 않았으면 추론 결과 사용
+            if not candidate_username:
+                candidate_username = username_inference.get("username")
+
+            # 건너뛴 조직 레포 로깅
+            skipped = username_inference.get("skipped_org_repos", [])
+            if skipped:
+                logger.info(f"Skipped {len(skipped)} organization repos (no inference)")
+
+        except Exception as e:
+            logger.warning(f"GitHub URL validation failed: {e}")
+            # 실패 시 URL 그대로 유지하되 username은 없음
+            personal_github_urls = github_urls
 
     # 7. 사용 가능한 분석 목록
     available = ["jd_analysis"]  # JD는 항상
     if any(input_data.get(k) for k in ("resume_path", "portfolio_path", "cover_letter_path")) or linkedin_profile:
         available.append("document_analysis")
-    if github_urls:
+    # code_analysis는 개인 레포가 있을 때만 (조직 레포만 있으면 제외)
+    if personal_github_urls:
         available.append("code_analysis")
 
     return {
         "raw_input": input_data,
-        "github_urls": github_urls,
+        "github_urls": personal_github_urls,  # 개인 레포만 (조직 레포 제외)
+        "all_extracted_github_urls": github_urls,  # 원본 전체 (로깅/디버깅용)
         "candidate_github_username": candidate_username,
+        "github_validation": username_inference,  # 검증 상세 정보
         "linkedin_profile": linkedin_profile,
         "extraction_sources": extraction_sources,
         "available_analyses": available,
+        "document_errors": document_errors,
     }
 
 
