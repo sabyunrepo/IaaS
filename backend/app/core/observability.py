@@ -293,6 +293,176 @@ def score_trace(
         logger.debug(f"Failed to add score to trace: {e}")
 
 
+# =============================================================================
+# Phase 4: Agent Graph Visualization (Custom Observation Types)
+# =============================================================================
+
+def create_agent_observation(
+    trace_id: str,
+    name: str,
+    input_data: dict | None = None,
+    output_data: dict | None = None,
+    metadata: dict | None = None,
+    parent_observation_id: str | None = None,
+):
+    """Agent 타입 Observation 생성 (Agent Graph 시각화용).
+
+    Args:
+        trace_id: 연결할 Trace ID
+        name: Agent 이름
+        input_data: 입력 데이터
+        output_data: 출력 데이터
+        metadata: 추가 메타데이터
+        parent_observation_id: 부모 Observation ID (계층 구조)
+
+    Returns:
+        생성된 Observation 또는 None
+    """
+    if not is_langfuse_enabled():
+        return None
+
+    try:
+        client = get_langfuse_client()
+        if not client:
+            return None
+
+        observation = client.span(
+            trace_id=trace_id,
+            name=name,
+            input=input_data,
+            output=output_data,
+            metadata={
+                "observation_type": "agent",
+                **(metadata or {}),
+            },
+            parent_observation_id=parent_observation_id,
+        )
+        logger.debug(f"Created agent observation: {name}")
+        return observation
+    except Exception as e:
+        logger.warning(f"Failed to create agent observation: {e}")
+        return None
+
+
+def create_tool_observation(
+    trace_id: str,
+    name: str,
+    input_data: dict | None = None,
+    output_data: dict | None = None,
+    metadata: dict | None = None,
+    parent_observation_id: str | None = None,
+):
+    """Tool 타입 Observation 생성 (Agent Graph 시각화용).
+
+    Args:
+        trace_id: 연결할 Trace ID
+        name: Tool 이름
+        input_data: 입력 데이터
+        output_data: 출력 데이터
+        metadata: 추가 메타데이터
+        parent_observation_id: 부모 Observation ID
+
+    Returns:
+        생성된 Observation 또는 None
+    """
+    if not is_langfuse_enabled():
+        return None
+
+    try:
+        client = get_langfuse_client()
+        if not client:
+            return None
+
+        observation = client.span(
+            trace_id=trace_id,
+            name=name,
+            input=input_data,
+            output=output_data,
+            metadata={
+                "observation_type": "tool",
+                **(metadata or {}),
+            },
+            parent_observation_id=parent_observation_id,
+        )
+        logger.debug(f"Created tool observation: {name}")
+        return observation
+    except Exception as e:
+        logger.warning(f"Failed to create tool observation: {e}")
+        return None
+
+
+def create_retrieval_observation(
+    trace_id: str,
+    name: str,
+    query: str | None = None,
+    documents: list[dict] | None = None,
+    metadata: dict | None = None,
+    parent_observation_id: str | None = None,
+):
+    """Retrieval 타입 Observation 생성 (RAG Agent Graph 시각화용).
+
+    Args:
+        trace_id: 연결할 Trace ID
+        name: Retrieval 이름
+        query: 검색 쿼리
+        documents: 검색된 문서 목록
+        metadata: 추가 메타데이터
+        parent_observation_id: 부모 Observation ID
+
+    Returns:
+        생성된 Observation 또는 None
+    """
+    if not is_langfuse_enabled():
+        return None
+
+    try:
+        client = get_langfuse_client()
+        if not client:
+            return None
+
+        observation = client.span(
+            trace_id=trace_id,
+            name=name,
+            input={"query": query} if query else None,
+            output={"documents": documents} if documents else None,
+            metadata={
+                "observation_type": "retrieval",
+                "document_count": len(documents) if documents else 0,
+                **(metadata or {}),
+            },
+            parent_observation_id=parent_observation_id,
+        )
+        logger.debug(f"Created retrieval observation: {name}")
+        return observation
+    except Exception as e:
+        logger.warning(f"Failed to create retrieval observation: {e}")
+        return None
+
+
+def end_observation(observation, output_data: dict | None = None, status: str = "success"):
+    """Observation 종료 (Agent Graph 노드 완료 마킹).
+
+    Args:
+        observation: 종료할 Observation 객체
+        output_data: 출력 데이터
+        status: 완료 상태 (success/error)
+    """
+    if observation is None:
+        return
+
+    try:
+        observation.end(
+            output=output_data,
+            metadata={"status": status},
+        )
+    except Exception as e:
+        logger.debug(f"Failed to end observation: {e}")
+
+
+# =============================================================================
+# Phase 1: @observe 데코레이터 래퍼
+# =============================================================================
+
 def observe_activity(name: str, phase: str = "unknown"):
     """Activity용 Langfuse @observe 래퍼 데코레이터
 
