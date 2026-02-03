@@ -7,6 +7,7 @@ import { CreateJobPage } from './pages/CreateJobPage'
 import { JobStatusPage } from './pages/JobStatusPage'
 import { ResultPage } from './pages/ResultPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { AuthCallbackPage } from './pages/AuthCallbackPage'
 import { useAuth } from './hooks/useAuth'
 import './i18n'
 
@@ -27,6 +28,7 @@ function App() {
       <Routes>
         <Route element={<Layout user={user} onLogout={logout} />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route
             path="/jobs"
             element={isAuthenticated ? <JobListPage /> : <Navigate to="/login" />}
