@@ -344,8 +344,109 @@ class CandidateContribution(BaseModel):
     total_deletions: int          # 삭제한 라인 수
     avg_complexity: float         # 후보자 코드 평균 cyclomatic complexity
     files_modified: int           # 수정한 파일 수
-    analysis_period_years: int    # 분석 기간 (기본 3년)
+    analysis_period_years: int    # 분석 기간 (GITHUB_ANALYSIS_YEARS 환경변수, 기본 1년)
     primary_file_types: list[str] # 주로 수정한 파일 타입 [".py", ".sql"]
+
+
+# ── GitHub 종합 분석 모델 (4-Channel) ──
+
+class CommitDiff(BaseModel):
+    """커밋 diff 정보 (토큰 효율적)"""
+    commit_hash: str              # 커밋 해시 (8자)
+    message: str                  # 커밋 메시지
+    date: datetime
+    file_path: str
+    diff: str                     # diff만 추출 (source_code 대신)
+    additions: int
+    deletions: int
+    complexity: int | None        # cyclomatic complexity
+
+
+class OSSContribution(BaseModel):
+    """오픈소스 PR 기여 (Channel B)"""
+    repo_full_name: str           # "owner/repo" (외부 레포)
+    pr_number: int
+    pr_title: str
+    pr_description: str | None
+    pr_url: str                   # GitHub permalink
+    files_changed: int
+    additions: int
+    deletions: int
+    merged_at: datetime
+    review_comments_count: int    # 받은 리뷰 코멘트 수
+    labels: list[str]             # PR 라벨 (bugfix, feature 등)
+
+
+class IssueParticipation(BaseModel):
+    """이슈 참여 정보 (Channel C)"""
+    repo_full_name: str
+    issue_number: int
+    issue_title: str
+    issue_url: str
+    role: Literal["author", "commenter"]  # 작성자 vs 코멘터
+    state: Literal["open", "closed"]
+    labels: list[str]
+    body_summary: str | None      # 이슈 본문 요약 (300자)
+    comment_count: int            # 참여한 코멘트 수
+    created_at: datetime
+
+
+class CodeReviewActivity(BaseModel):
+    """코드 리뷰 활동 (Channel D)"""
+    repo_full_name: str
+    pr_number: int
+    pr_title: str
+    pr_url: str
+    review_state: Literal["APPROVED", "CHANGES_REQUESTED", "COMMENTED"]
+    review_body: str | None       # 리뷰 본문 (500자)
+    submitted_at: datetime
+    comments_count: int           # 인라인 코멘트 수
+
+
+class ComprehensiveGitHubProfile(BaseModel):
+    """GitHub 종합 분석 프로필 (4-Channel 통합)"""
+    username: str
+    analysis_period_years: int    # GITHUB_ANALYSIS_YEARS 환경변수
+
+    # Channel A: 본인 레포 (diff 기반)
+    own_repos: list["RepositoryAnalysis"]
+
+    # Channel B: 오픈소스 PR 기여
+    oss_contributions: list[OSSContribution]
+
+    # Channel C: 이슈 참여
+    issue_participations: list[IssueParticipation]
+
+    # Channel D: 코드 리뷰 활동
+    code_reviews: list[CodeReviewActivity]
+
+    # 통계 요약
+    stats: "GitHubStats"
+
+
+class GitHubStats(BaseModel):
+    """GitHub 활동 통계 요약"""
+    # Channel A
+    own_repos_count: int
+    own_commits_count: int
+    own_additions: int
+    own_deletions: int
+
+    # Channel B
+    oss_prs_merged: int
+    oss_repos_contributed: int
+
+    # Channel C
+    issues_authored: int
+    issues_commented: int
+
+    # Channel D
+    reviews_given: int
+    reviews_approved: int
+    reviews_changes_requested: int
+
+    # 토큰 사용량 추정
+    estimated_tokens: int
 
 class ASTFunction(BaseModel):
     """AST 추출 함수 정보"""
@@ -390,8 +491,11 @@ class RepositoryAnalysis(BaseModel):
     total_files: int
     analyzed_files: int
 
-    # 후보자 기여도 (PyDriller)
+    # 후보자 기여도 (PyDriller - diff 기반)
     candidate_contribution: CandidateContribution
+
+    # diff 기반 코드 추출 (토큰 효율적)
+    commit_diffs: list[CommitDiff]  # source_code 대신 diff만 저장
 
     # AST 구조 분석 (Phase 3)
     ast_analysis: ASTAnalysis | None  # 미지원 언어 시 None
@@ -983,6 +1087,10 @@ SupportedLanguage: TypeAlias = Literal[
     "ko", "en", "ja", "zh-CN", "zh-TW",
     "es", "de", "fr", "pt", "vi", "th", "id"
 ]
+
+# GitHub 분석 관련 환경변수 (config.py에서 정의)
+# GITHUB_ANALYSIS_YEARS: int = 1  # 분석 기간 (기본 1년, 최대 3년 권장)
+# GITHUB_TOKEN: str              # GitHub API 토큰 (5000 req/hour)
 
 # 경험 레벨
 ExperienceLevel: TypeAlias = Literal["신입", "주니어", "미들", "시니어", "CTO/VP"]

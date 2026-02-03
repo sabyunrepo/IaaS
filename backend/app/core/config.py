@@ -45,6 +45,7 @@ class Settings(BaseSettings):
 
     # GitHub
     GITHUB_TOKEN: str | None = None
+    GITHUB_ANALYSIS_YEARS: int = 1  # 분석 기간 (기본 1년, 최대 3년 권장)
 
     # LLM
     OPENAI_API_KEY: str | None = None

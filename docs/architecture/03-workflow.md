@@ -1019,52 +1019,127 @@ async def analyze_documents(job_id: str, input_data: dict) -> dict:
 
 """
 backend/app/workflows/activities/code_analysis.py
-코드 분석 Activity (PyGithub + PyDriller 파이프라인)
+코드 분석 Activity (PyGithub + PyDriller + GitHub API 파이프라인)
 
 의존성:
-  - PyGithub: GitHub API 래퍼 (레포 메타데이터, 언어 정보)
+  - PyGithub: GitHub API 래퍼 (레포 메타데이터, 언어 정보, Search API)
   - PyDriller: Git 레포 분석 전용 (커밋 순회, 복잡도, diff 추출)
+
+환경변수:
+  - GITHUB_ANALYSIS_YEARS: 분석 기간 (기본 1년, 최대 3년 권장)
+  - GITHUB_TOKEN: GitHub API 토큰 (5000 req/hour)
 """
 @activity.defn
 async def analyze_code(job_id: str, github_urls: list[str], input_data: dict, execution_plan: dict = None) -> dict:
     """
-    GitHub 코드 분석 — 4-Phase 파이프라인
+    GitHub 종합 코드 분석 — 4-Channel 파이프라인
 
-    Phase 1 (PyGithub): JD 매칭 레포 선별
-        - 후보자 레포별 언어 비율 조회
-        - JD 기술스택과 매칭되는 레포만 필터
-    Phase 2 (PyDriller): 후보자 코드 추출 + 정적 메트릭
-        - 선별 레포 auto-clone
-        - only_authors: 후보자 커밋만 필터
-        - since/to: 최근 3년 범위
-        - only_modifications_with_file_types: JD 매칭 확장자
-        - 파일별 complexity, nloc, diff, source_code 추출
-    Phase 3 (AST): 구조적 코드 분석
-        - Phase 2 상위 N개 파일 대상 (complexity × JD match 기준)
-        - Python: ast 모듈 (빌트인)
-        - JS/TS: tree-sitter 파서
-        - 추출: 함수 시그니처, 클래스 계층, 디자인 패턴, import 구조
-        - 미지원 언어 fallback: Phase 2 메트릭만 사용
-    Phase 4 (LLM): 의미 분석 + 질문 후보 추출
-        - 토큰 예산(30K/레포) 내 파일 랭킹
-        - Phase 2 메트릭 + Phase 3 AST 구조를 컨텍스트로 전달
-        - 패턴 탐지, notable implementations 추출
-        - 벡터 스토어 저장
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │                    4-Channel GitHub Analysis                        │
+    ├─────────────────────────────────────────────────────────────────────┤
+    │                                                                     │
+    │  Channel A: 본인 레포 분석 (PyDriller - diff 기반)                   │
+    │  ┌─────────────────────────────────────────────────────────────┐   │
+    │  │ • JD 매칭 레포 선별 (PyGithub)                               │   │
+    │  │ • diff 기반 코드 추출 (source_code 대신 diff만)              │   │
+    │  │ • 분석 기간: GITHUB_ANALYSIS_YEARS (기본 1년)                │   │
+    │  │ • AST 구조 분석 (Python ast, JS/TS tree-sitter)             │   │
+    │  │ • 토큰 예산: ~3,000-5,000 tokens/repo                       │   │
+    │  └─────────────────────────────────────────────────────────────┘   │
+    │                                                                     │
+    │  Channel B: 오픈소스 PR 기여 (GitHub Search API)                    │
+    │  ┌─────────────────────────────────────────────────────────────┐   │
+    │  │ • 검색: author:{username} type:pr is:merged -user:{username}│   │
+    │  │ • 외부 레포에 머지된 PR 분석                                  │   │
+    │  │ • PR 제목, 설명, 변경 파일 수, 리뷰 코멘트                     │   │
+    │  │ • 토큰 예산: ~500-1,000 tokens/PR                           │   │
+    │  └─────────────────────────────────────────────────────────────┘   │
+    │                                                                     │
+    │  Channel C: 이슈 참여 (GitHub Search API)                           │
+    │  ┌─────────────────────────────────────────────────────────────┐   │
+    │  │ • 작성한 이슈: author:{username} type:issue                  │   │
+    │  │ • 코멘트한 이슈: commenter:{username} type:issue             │   │
+    │  │ • 이슈 제목, 본문 요약, 라벨, 상태                            │   │
+    │  │ • 토큰 예산: ~200-500 tokens/issue                          │   │
+    │  └─────────────────────────────────────────────────────────────┘   │
+    │                                                                     │
+    │  Channel D: 코드 리뷰 활동 (GitHub Events API)                      │
+    │  ┌─────────────────────────────────────────────────────────────┐   │
+    │  │ • PullRequestReviewEvent 필터링                              │   │
+    │  │ • 리뷰 상태: APPROVED, CHANGES_REQUESTED, COMMENTED          │   │
+    │  │ • 리뷰 본문, 인라인 코멘트                                    │   │
+    │  │ • 토큰 예산: ~300-800 tokens/review                         │   │
+    │  └─────────────────────────────────────────────────────────────┘   │
+    │                                                                     │
+    └─────────────────────────────────────────────────────────────────────┘
+
+    Channel A 상세 (본인 레포):
+        Phase 1 (PyGithub): JD 매칭 레포 선별
+            - 후보자 레포별 언어 비율 조회
+            - JD 기술스택과 매칭되는 레포만 필터
+        Phase 2 (PyDriller): 후보자 코드 추출 + 정적 메트릭
+            - 선별 레포 auto-clone
+            - only_authors: 후보자 커밋만 필터
+            - since/to: GITHUB_ANALYSIS_YEARS (기본 1년) 범위
+            - only_modifications_with_file_types: JD 매칭 확장자
+            - 파일별 complexity, nloc, **diff** 추출 (source_code 대신)
+        Phase 3 (AST): 구조적 코드 분석
+            - Phase 2 상위 N개 파일 대상 (complexity × JD match 기준)
+            - Python: ast 모듈 (빌트인)
+            - JS/TS: tree-sitter 파서
+            - 추출: 함수 시그니처, 클래스 계층, 디자인 패턴, import 구조
+            - 미지원 언어 fallback: Phase 2 메트릭만 사용
+        Phase 4 (LLM): 의미 분석 + 질문 후보 추출
+            - 토큰 예산(30K/레포) 내 파일 랭킹
+            - Phase 2 메트릭 + Phase 3 AST 구조를 컨텍스트로 전달
+            - 패턴 탐지, notable implementations 추출
+            - 벡터 스토어 저장
+
+    총 토큰 예산 (활발한 개발자 기준):
+        - Channel A (3 repos): ~12,000 tokens
+        - Channel B (10 PRs):  ~8,000 tokens
+        - Channel C (15 issues): ~5,250 tokens
+        - Channel D (20 reviews): ~8,000 tokens
+        - Total: ~33,250 tokens
     """
     from app.services.github_service import GitHubService
+    from app.services.github_analyzer import GitHubComprehensiveAnalyzer
     from app.services.code_analyzer import CodeAnalyzer
     from app.services.vector_store import get_vector_store
+    from app.core.config import settings
+    import os
 
     github = GitHubService()  # PyGithub 기반
     analyzer = CodeAnalyzer()  # PyDriller 기반
     vector_store = get_vector_store(job_id)
 
+    # 환경변수에서 분석 기간 설정 (기본 1년)
+    analysis_years = int(os.getenv("GITHUB_ANALYSIS_YEARS", "1"))
+
     # execution_plan에서 jd_tech_stack 우선, fallback으로 input_data
     jd_tech_stack = (execution_plan or {}).get("jd_tech_stack") or input_data.get("jd_tech_stack", [])
     candidate_username = input_data.get("candidate_github_username")
 
-    # ── Phase 1: PyGithub — JD 매칭 레포 선별 ──
-    activity.heartbeat("Phase 1: Filtering repos by JD tech stack...")
+    # ══════════════════════════════════════════════════════════════════
+    # 4-Channel GitHub Analysis (병렬 실행)
+    # ══════════════════════════════════════════════════════════════════
+
+    comprehensive_analyzer = GitHubComprehensiveAnalyzer(
+        username=candidate_username,
+        github_token=settings.GITHUB_TOKEN,
+        analysis_years=analysis_years,
+    )
+
+    # Channel B, C, D 병렬 수집 (본인 레포 외 활동)
+    activity.heartbeat("Collecting OSS contributions, issues, and code reviews...")
+    oss_contributions, issue_participations, code_reviews = await asyncio.gather(
+        comprehensive_analyzer.analyze_oss_prs(),       # Channel B
+        comprehensive_analyzer.analyze_issues(),         # Channel C
+        comprehensive_analyzer.analyze_code_reviews(),   # Channel D
+    )
+
+    # ── Channel A: 본인 레포 분석 (기존 로직 개선) ──
+    activity.heartbeat("Channel A: Filtering repos by JD tech stack...")
 
     target_repos = await github.filter_repos_by_language(
         github_urls=github_urls,
@@ -1086,21 +1161,22 @@ async def analyze_code(job_id: str, github_urls: list[str], input_data: dict, ex
             continue
 
         activity.heartbeat(
-            f"Phase 2: Analyzing {repo_info['name']} ({i+1}/{len(target_repos)})"
+            f"Channel A Phase 2: Analyzing {repo_info['name']} ({i+1}/{len(target_repos)})"
         )
 
-        # PyDriller: clone + 후보자 커밋 순회 + 복잡도/diff 추출
+        # PyDriller: clone + 후보자 커밋 순회 + **diff 기반** 추출
         driller_result = await analyzer.analyze_with_pydriller(
             repo_url=repo_info["url"],
             job_id=job_id,
             author=candidate_username,
-            since_years=3,
+            since_years=analysis_years,  # 환경변수 기반 (기본 1년)
             file_types=file_types,
+            extract_diff=True,  # diff만 추출 (source_code 대신)
         )
-        # driller_result 구조:
+        # driller_result 구조 (diff 기반):
         # {
         #   "commits": [{hash, msg, date, files_changed}],
-        #   "files": [{filename, diff, source, complexity, nloc, methods, added, deleted}],
+        #   "files": [{filename, diff, complexity, nloc, methods, added, deleted}],
         #   "stats": {total_commits, total_additions, total_deletions, avg_complexity}
         # }
 
@@ -1162,7 +1238,15 @@ async def analyze_code(job_id: str, github_urls: list[str], input_data: dict, ex
         completed_repos[repo_info["url"]] = repositories[-1]
         activity.heartbeat(completed_repos)
 
-    return aggregate_code_analysis(repositories)
+    # 4-Channel 통합 결과 반환
+    return aggregate_comprehensive_analysis(
+        own_repos=repositories,
+        oss_contributions=oss_contributions,
+        issue_participations=issue_participations,
+        code_reviews=code_reviews,
+        analysis_years=analysis_years,
+        candidate_username=candidate_username,
+    )
 
 
 def _jd_to_file_types(jd_tech_stack: list[str]) -> list[str]:
