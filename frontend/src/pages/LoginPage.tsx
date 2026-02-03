@@ -11,13 +11,13 @@ export function LoginPage() {
       <p className="text-gray-600">AI Technical Interview Script Generator</p>
       <div className="flex flex-col gap-3 w-64">
         <a
-          href={`${BACKEND}/auth/login/google`}
+          href={`${BACKEND}/auth/google/login`}
           className="block text-center bg-white border border-gray-300 rounded-lg px-4 py-3 hover:bg-gray-50 text-gray-800 font-medium"
         >
           {t('login_with_google')}
         </a>
         <a
-          href={`${BACKEND}/auth/login/github`}
+          href={`${BACKEND}/auth/github/login`}
           className="block text-center bg-gray-900 text-white rounded-lg px-4 py-3 hover:bg-gray-800 font-medium"
         >
           {t('login_with_github')}
