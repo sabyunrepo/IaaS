@@ -143,7 +143,7 @@ class InputData(BaseModel):
     # LinkedIn
     linkedin_url: str | None = Field(
         None,
-        description="LinkedIn 프로필 URL (이력서 대체 가능, Proxycurl로 수집)"
+        description="LinkedIn 프로필 URL (이력서 대체 가능, Bright Data로 수집)"
     )
 
     # GitHub
@@ -197,7 +197,7 @@ class LinkedInCertification(BaseModel):
     issue_date: str | None
 
 class LinkedInProfile(BaseModel):
-    """Proxycurl API 응답에서 추출한 LinkedIn 프로필"""
+    """Bright Data API 응답에서 추출한 LinkedIn 프로필"""
     full_name: str                              # ⚠️ PII
     headline: str | None
     summary: str | None
@@ -220,7 +220,7 @@ class EnrichedInput(BaseModel):
     # 교차 추출으로 보강된 필드
     github_urls: list[HttpUrl]               # 모든 소스에서 수집된 GitHub URLs (중복 제거)
     candidate_github_username: str | None     # GitHub URL에서 자동 추론
-    linkedin_profile: LinkedInProfile | None  # Proxycurl 수집 결과
+    linkedin_profile: LinkedInProfile | None  # Bright Data 수집 결과
 
     # 추출 소스 추적
     extraction_sources: dict[str, list[str]]

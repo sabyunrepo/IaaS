@@ -52,7 +52,7 @@
 │  │ ┌───────────────────────────────────────────────────────────┐   │   │
 │  │ │  enrich_input (Activity)                                  │   │   │
 │  │ │  • PDF/DOCX 텍스트 추출 → URL 교차 발견                  │   │   │
-│  │ │  • LinkedIn URL → Proxycurl API → 프로필 수집             │   │   │
+│  │ │  • LinkedIn URL → Bright Data API → 프로필 수집             │   │   │
 │  │ │  • GitHub username 자동 추론                              │   │   │
 │  │ │  • 중복 제거 → EnrichedInput 생성                        │   │   │
 │  │ └───────────────────────────────────────────────────────────┘   │   │
@@ -701,7 +701,7 @@ class DocumentParseError(VantictBaseError):
 
 
 class LinkedInFetchError(VantictBaseError):
-    """LinkedIn 프로필 수집 실패 (Proxycurl API 오류, rate limit 등)"""
+    """LinkedIn 프로필 수집 실패 (Bright Data API 오류, rate limit 등)"""
     def __init__(self, message: str, *, status_code: int | None = None):
         super().__init__(message, details={"status_code": status_code})
 
@@ -768,12 +768,12 @@ async def enrich_input(job_id: str, input_data: dict) -> dict:
 
     Steps:
         1. PDF/DOCX 텍스트에서 URL 추출 (GitHub, LinkedIn)
-        2. LinkedIn URL → Proxycurl API → 프로필 수집
+        2. LinkedIn URL → Bright Data API → 프로필 수집
         3. GitHub username 자동 추론 (URL 패턴)
         4. 중복 제거 + EnrichedInput 생성
     """
     from docling.document_converter import DocumentConverter  # IBM Docling
-    from app.services.linkedin_service import ProxycurlService
+    from app.services.linkedin_service import Bright DataService
 
     converter = DocumentConverter()  # PDF/DOCX 구조화 파싱
     extracted_urls = {"github": set(), "linkedin": set()}
@@ -833,18 +833,18 @@ async def enrich_input(job_id: str, input_data: dict) -> dict:
         or (list(extracted_urls["linkedin"])[0] if extracted_urls["linkedin"] else None)
     )
 
-    # 4. LinkedIn → Proxycurl API (실패 시 graceful fallback)
+    # 4. LinkedIn → Bright Data API (실패 시 graceful fallback)
     linkedin_profile = None
     if linkedin_url:
-        activity.heartbeat("Fetching LinkedIn profile via Proxycurl...")
+        activity.heartbeat("Fetching LinkedIn profile via Bright Data...")
         try:
-            proxycurl = ProxycurlService()
-            linkedin_profile = await proxycurl.get_profile(linkedin_url)
+            linkedin_svc = Bright DataService()
+            linkedin_profile = await linkedin_svc.get_profile(linkedin_url)
         except LinkedInFetchError:
             raise  # 이미 우리 예외 → 그대로 전파
         except Exception as e:
-            # Proxycurl 실패 시 LinkedIn 없이 진행 (non-fatal)
-            activity.logger.warning(f"Proxycurl failed for {linkedin_url}: {e}")
+            # Bright Data 실패 시 LinkedIn 없이 진행 (non-fatal)
+            activity.logger.warning(f"Bright Data failed for {linkedin_url}: {e}")
             linkedin_profile = None
 
         # LinkedIn에서 GitHub URL 발견 시 추가

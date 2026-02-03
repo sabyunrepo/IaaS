@@ -352,7 +352,7 @@ interface CreateJobRequest {
   // JSON 데이터
   data: {
     // URL 입력 (직접 입력 또는 이력서/포트폴리오에서 자동 추출)
-    linkedin_url?: string;     // LinkedIn 프로필 URL (Proxycurl로 수집)
+    linkedin_url?: string;     // LinkedIn 프로필 URL (Bright Data로 수집)
     github_urls?: string[];    // GitHub 저장소 URL 목록
 
     // 필수 입력
