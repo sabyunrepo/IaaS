@@ -9,6 +9,7 @@ from temporalio.worker import Worker
 
 from app.core.config import settings
 from app.core.temporal import get_temporal_client
+from app.core.observability import setup_langfuse, flush_langfuse
 from app.workflows.interview_workflow import InterviewGenerationWorkflow, WORKFLOW_VERSION
 
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
@@ -65,6 +66,10 @@ ACTIVITIES = [
 
 
 async def main():
+    # Initialize Langfuse for LLM observability
+    if setup_langfuse():
+        logger.info("Langfuse observability enabled")
+
     logger.info(f"Connecting to Temporal at {settings.TEMPORAL_HOST}")
     client = await get_temporal_client()
 
@@ -83,4 +88,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    finally:
+        # Flush Langfuse on shutdown
+        flush_langfuse()
