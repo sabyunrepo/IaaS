@@ -21,12 +21,12 @@ async def enrich_input(input_data: dict) -> dict:
 
     Steps:
         1. PDF/DOCX 텍스트에서 URL 추출 (GitHub, LinkedIn)
-        2. LinkedIn URL → Proxycurl API → 프로필 수집
+        2. LinkedIn URL → Bright Data API → 프로필 수집
         3. GitHub username 자동 추론 (URL 패턴)
         4. 중복 제거 + EnrichedInput 생성
     """
     from app.services.document_parser import extract_text
-    from app.services.linkedin_service import ProxycurlService
+    from app.services.linkedin_service import LinkedInService
 
     extracted_urls: dict[str, set] = {"github": set(), "linkedin": set()}
     extraction_sources: dict[str, list] = {}
@@ -86,17 +86,17 @@ async def enrich_input(input_data: dict) -> dict:
         or (list(extracted_urls["linkedin"])[0] if extracted_urls["linkedin"] else None)
     )
 
-    # 5. LinkedIn → Proxycurl API (실패 시 graceful fallback)
+    # 5. LinkedIn → Bright Data API (실패 시 graceful fallback)
     linkedin_profile = None
     if linkedin_url:
-        activity.heartbeat("Fetching LinkedIn profile via Proxycurl...")
+        activity.heartbeat("Fetching LinkedIn profile via Bright Data...")
         try:
-            proxycurl = ProxycurlService()
-            linkedin_profile = await proxycurl.get_profile(linkedin_url)
+            linkedin_svc = LinkedInService()
+            linkedin_profile = await linkedin_svc.get_profile(linkedin_url)
         except LinkedInFetchError:
             raise
         except Exception as e:
-            logger.warning(f"Proxycurl failed for {linkedin_url}: {e}")
+            logger.warning(f"Bright Data failed for {linkedin_url}: {e}")
             linkedin_profile = None
 
         # LinkedIn에서 GitHub URL 발견 시 추가

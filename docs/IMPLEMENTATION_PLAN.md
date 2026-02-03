@@ -323,7 +323,7 @@ echo "Workflow started for job: $JOB_ID"
 ### 구현 내용
 - [ ] `backend/app/workflows/activities/input_enrichment.py` — enrich_input()
 - [ ] `backend/app/services/document_parser.py` — PDF/DOCX 텍스트 추출 (Docling + pymupdf4llm fallback)
-- [ ] `backend/app/services/linkedin_service.py` — Proxycurl API 연동
+- [ ] `backend/app/services/linkedin_service.py` — Bright Data API 연동
 - [ ] URL 교차 추출 로직 (GitHub URL, LinkedIn URL 자동 발견)
 - [ ] Worker에 Activity 등록
 

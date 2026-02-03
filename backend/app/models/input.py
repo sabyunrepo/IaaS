@@ -69,7 +69,7 @@ class LinkedInCertification(BaseModel):
 
 
 class LinkedInProfile(BaseModel):
-    """Proxycurl API 응답에서 추출한 LinkedIn 프로필"""
+    """Bright Data Web Scraper API 응답에서 추출한 LinkedIn 프로필"""
     full_name: str
     headline: str | None = None
     summary: str | None = None

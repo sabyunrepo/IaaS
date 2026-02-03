@@ -27,7 +27,7 @@
 | 입력 타입 | 형식 | 필수 여부 | 설명 |
 |----------|------|----------|------|
 | 이력서 | PDF | 선택 | 경력, 학력, 기술 스택 (LinkedIn URL, GitHub URL 자동 추출) |
-| LinkedIn URL | URL | 선택 | Proxycurl API로 프로필 수집 (이력서 대체 가능) |
+| LinkedIn URL | URL | 선택 | Bright Data API로 프로필 수집 (이력서 대체 가능) |
 | 포트폴리오 | DOCX/PDF | 선택 | 프로젝트 상세 설명 (GitHub URL 자동 추출) |
 | 커버레터 | PDF/DOCX | 선택 | 자기소개서/커버레터 (GitHub URL 자동 추출) |
 | GitHub URL | URL 목록 | 선택 | 실제 코드 분석 대상 (Public만, 다른 입력에서 자동 추출 가능) |
@@ -107,7 +107,7 @@ SUPPORTED_LANGUAGES = {
 │  │                                                          │   │
 │  │  ┌──────────┐                                           │   │
 │  │  │ Input    │ Smart Input Extraction                    │   │
-│  │  │ Enricher │ (교차 추출 + Proxycurl)                   │   │
+│  │  │ Enricher │ (교차 추출 + Bright Data)                   │   │
 │  │  └────┬─────┘                                           │   │
 │  │       ▼                                                  │   │
 │  │  ┌──────────┐                                           │   │
@@ -143,7 +143,7 @@ SUPPORTED_LANGUAGES = {
 
 | 컴포넌트 | 역할 | 상세 |
 |---------|------|------|
-| **Input Enricher** | 입력 보강 | 모든 입력에서 URL/프로필 교차 추출, Proxycurl LinkedIn 수집, 필드 자동 채움 |
+| **Input Enricher** | 입력 보강 | 모든 입력에서 URL/프로필 교차 추출, Bright Data LinkedIn 수집, 필드 자동 채움 |
 | **Planner** | 실행 계획 | enriched input 기반 워크로드 추정, 실행 순서 결정 |
 | **Document Manager** | 문서 분석 | PDF/DOCX 파싱, 프로필 구축 |
 | **Code Manager** | 코드 분석 | PyGithub(레포선별) → PyDriller(커밋추출) → AST(구조분석) → LLM(의미분석) 4-Phase |
@@ -170,7 +170,7 @@ SUPPORTED_LANGUAGES = {
 | **Cache** | Redis 7 | LLM 캐싱, Rate Limiting |
 | **Storage** | LocalStack S3 | 파일 저장 |
 | **LLM** | OpenAI GPT-4o | 텍스트 생성 |
-| **LinkedIn** | Proxycurl API | LinkedIn 프로필 수집 |
+| **LinkedIn** | Bright Data API | LinkedIn 프로필 수집 |
 | **Git Analysis** | PyGithub + PyDriller + ast/tree-sitter | 코드 4-Phase 분석 |
 | **Container** | Docker Compose | 로컬 오케스트레이션 |
 
@@ -244,7 +244,7 @@ SUPPORTED_LANGUAGES = {
 │ │ • URL 교차 추출:                                        │ │
 │ │   - Resume → LinkedIn URL, GitHub URLs 발견             │ │
 │ │   - Portfolio → GitHub URLs 발견                        │ │
-│ │   - LinkedIn URL → Proxycurl API → 경력/스킬/GitHub    │ │
+│ │   - LinkedIn URL → Bright Data API → 경력/스킬/GitHub    │ │
 │ │ • GitHub username 자동 추론 (URL에서)                   │ │
 │ │ • 중복 제거 + 통합 enriched_input 생성                  │ │
 │ └─────────────────────────────────────────────────────────┘ │
@@ -338,7 +338,7 @@ SUPPORTED_LANGUAGES = {
 ### 7.1 MVP 범위 제약
 - **언어**: JD 기반 다국어 분석 (MVP: Python `ast` + JS/TS `tree-sitter`)
 - **코드 분석**: Public GitHub 레포지토리만 (Private 미지원)
-- **LinkedIn**: Proxycurl API 사용 (유료, $0.01/profile)
+- **LinkedIn**: Bright Data API 사용 (유료, $0.01/profile)
 - **문서**: PDF, DOCX 형식만 지원
 - **동시 작업**: 단일 서버 기준 5개 Job 동시 처리
 

@@ -57,8 +57,8 @@ class Settings(BaseSettings):
     LANGFUSE_PUBLIC_KEY: str | None = None
     LANGFUSE_SECRET_KEY: str | None = None
 
-    # LinkedIn
-    PROXYCURL_API_KEY: str | None = None
+    # LinkedIn (Bright Data Web Scraper API)
+    BRIGHTDATA_API_TOKEN: str | None = None
 
     # OAuth + JWT
     JWT_SECRET: str = "dev-secret-change-in-production"
