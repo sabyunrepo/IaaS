@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-interface Question {
+export interface Question {
   question_text: string
   category: string
   difficulty: string

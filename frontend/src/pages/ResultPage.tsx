@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { apiFetch } from '../lib/api'
-import { QuestionCard } from '../components/QuestionCard'
+import { QuestionCard, type Question } from '../components/QuestionCard'
 
 function downloadJSON(data: unknown, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -25,7 +25,7 @@ const CATEGORY_KEYS = [
 
 interface InterviewScript {
   candidate_summary: string | Record<string, unknown> | null
-  questions: Array<Record<string, unknown>>
+  questions: Question[]
   interviewer_guide: string | Record<string, unknown> | null
   full_glossary: Array<Record<string, string>>
   metadata: Record<string, unknown>
@@ -38,16 +38,20 @@ export function ResultPage() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [scores, setScores] = useState<Record<number, number>>({})
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!jobId) return
     apiFetch(`/jobs/${jobId}/result`)
       .then(setScript)
-      .catch(console.error)
+      .catch((err) => {
+        setError(String(err))
+      })
       .finally(() => setLoading(false))
   }, [jobId])
 
   if (loading) return <p>{t('loading')}</p>
+  if (error) return <p className="text-red-600">{t('result_error')}: {error}</p>
   if (!script) return <p className="text-red-600">{t('result_error')}</p>
 
   const questions = script.questions || []
@@ -127,7 +131,7 @@ export function ResultPage() {
         {filtered.map((q, i) => (
           <QuestionCard
             key={i}
-            question={q as any}
+            question={q}
             index={i}
             onScoreChange={handleScoreChange}
           />
