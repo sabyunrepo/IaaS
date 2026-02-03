@@ -6,10 +6,13 @@ import logging
 
 from temporalio import activity
 
+from app.core.observability import observe_activity
+
 logger = logging.getLogger(__name__)
 
 
 @activity.defn
+@observe_activity(name="send_webhook", phase="finalization")
 async def send_webhook(job_id: str, callback_url: str, status: str, final_output: dict | None) -> dict:
     """callback_url로 job 결과를 POST 전송.
 

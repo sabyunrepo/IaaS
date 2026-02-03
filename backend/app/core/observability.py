@@ -144,6 +144,155 @@ def flush_langfuse():
             logger.warning(f"Langfuse flush failed: {e}")
 
 
+# =============================================================================
+# Phase 2: 세션/추적 계층 구조
+# =============================================================================
+
+def create_trace_for_job(
+    job_id: str,
+    user_id: str | None = None,
+    metadata: dict | None = None,
+) -> str | None:
+    """Job용 Langfuse Trace 생성 (세션 레벨)
+
+    Returns:
+        trace_id if successful, None otherwise
+    """
+    if not is_langfuse_enabled():
+        return None
+
+    try:
+        client = get_langfuse_client()
+        if not client:
+            return None
+
+        trace = client.trace(
+            name=f"interview-generation-{job_id}",
+            session_id=job_id,
+            user_id=user_id,
+            metadata={
+                "job_id": job_id,
+                "workflow": "InterviewGenerationWorkflow",
+                **(metadata or {}),
+            },
+            tags=["workflow", "interview-generation"],
+        )
+        logger.debug(f"Created Langfuse trace for job {job_id}: {trace.id}")
+        return trace.id
+    except Exception as e:
+        logger.warning(f"Failed to create Langfuse trace for job {job_id}: {e}")
+        return None
+
+
+def create_span_for_phase(
+    job_id: str,
+    phase: str,
+    trace_id: str | None = None,
+    metadata: dict | None = None,
+):
+    """Phase용 Langfuse Span 생성
+
+    Returns:
+        span object if successful, None otherwise
+    """
+    if not is_langfuse_enabled():
+        return None
+
+    try:
+        client = get_langfuse_client()
+        if not client:
+            return None
+
+        span = client.span(
+            name=f"phase-{phase}",
+            trace_id=trace_id,
+            metadata={
+                "job_id": job_id,
+                "phase": phase,
+                **(metadata or {}),
+            },
+        )
+        logger.debug(f"Created Langfuse span for phase {phase}")
+        return span
+    except Exception as e:
+        logger.warning(f"Failed to create Langfuse span for phase {phase}: {e}")
+        return None
+
+
+def end_span(span, status: str = "success", metadata: dict | None = None):
+    """Span 종료"""
+    if span is None:
+        return
+
+    try:
+        span.end(
+            metadata={
+                "status": status,
+                **(metadata or {}),
+            }
+        )
+    except Exception as e:
+        logger.debug(f"Failed to end span: {e}")
+
+
+def log_event(
+    name: str,
+    metadata: dict | None = None,
+    level: str = "DEFAULT",
+):
+    """Langfuse 이벤트 로깅
+
+    Args:
+        name: 이벤트 이름
+        metadata: 추가 메타데이터
+        level: 로그 레벨 (DEFAULT, DEBUG, WARNING, ERROR)
+    """
+    if not is_langfuse_enabled():
+        return
+
+    try:
+        from langfuse.decorators import langfuse_context
+        langfuse_context.update_current_observation(
+            metadata={
+                "event": name,
+                "level": level,
+                **(metadata or {}),
+            }
+        )
+    except Exception:
+        pass  # 이벤트 로깅 실패는 무시
+
+
+def score_trace(
+    trace_id: str | None,
+    name: str,
+    value: float,
+    comment: str | None = None,
+):
+    """Trace에 점수 추가 (품질 평가용)
+
+    Args:
+        trace_id: Langfuse trace ID
+        name: 점수 이름 (e.g., "quality", "relevance")
+        value: 점수 값 (0.0 ~ 1.0)
+        comment: 코멘트
+    """
+    if not is_langfuse_enabled() or not trace_id:
+        return
+
+    try:
+        client = get_langfuse_client()
+        if client:
+            client.score(
+                trace_id=trace_id,
+                name=name,
+                value=value,
+                comment=comment,
+            )
+    except Exception as e:
+        logger.debug(f"Failed to add score to trace: {e}")
+
+
 def observe_activity(name: str, phase: str = "unknown"):
     """Activity용 Langfuse @observe 래퍼 데코레이터
 
