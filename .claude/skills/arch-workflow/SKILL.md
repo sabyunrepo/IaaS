@@ -29,7 +29,7 @@ Phase 0: Smart Input Extraction (교차 추출)
 - Activity: `enrich_input()`
 - 입력: `InputData` → 출력: `EnrichedInput`
 - 모든 입력(PDF, DOCX, LinkedIn)에서 URL 교차 추출
-- Proxycurl API로 LinkedIn 프로필 수집
+- Bright Data API로 LinkedIn 프로필 수집
 
 ### Phase 1: Planning
 - Activity: `create_plan()`
