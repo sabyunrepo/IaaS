@@ -2,9 +2,30 @@ prompts:
   candidate_summary:
     description: "후보자 요약 생성"
     template: |
-      Generate a brief candidate summary based on:
-      Document analysis: {document_analysis}
-      Code analysis: {code_analysis}
+      Generate a comprehensive candidate summary based on the following sources:
+
+      ## Document Analysis (Resume/Portfolio)
+      {document_analysis}
+
+      ## Code Analysis (GitHub)
+      {code_analysis}
+
+      ## LinkedIn Profile
+      {linkedin_profile}
+
+      Instructions:
+      1. Combine insights from all available sources
+      2. Highlight notable projects and achievements (especially awards/honors)
+      3. Identify key technical skills and expertise areas
+      4. Note any interesting patterns in their activity or contributions
+      5. Generate a balanced assessment suitable for interview preparation
+
+      Output format:
+      - Name and current position
+      - Key strengths (3-5 bullets)
+      - Notable achievements (projects, awards)
+      - Technical expertise areas
+      - Potential discussion topics for interview
 
   interviewer_guide:
     description: "면접관 가이드 생성"

@@ -158,65 +158,150 @@ class LinkedInService:
     def _normalize_profile(self, data: dict, url: str) -> dict:
         """Bright Data 응답을 내부 형식으로 정규화
 
-        Bright Data LinkedIn 프로필 데이터셋 필드명:
-        - name, headline, about, country_code, city
-        - experience[] (title, company, company_name, start_date, end_date, description)
-        - education[] (school, degree, field_of_study, start_date, end_date)
-        - skills[], languages[], certifications[]
-        - websites[], personal_urls[]
+        Bright Data LinkedIn People Profile 데이터셋 필드:
+        - 기본: name, headline, about, country_code, city, avatar
+        - 경력: experience[] (title, company, company_name, start_date, end_date, description)
+        - 학력: education[] (school, degree, field_of_study, start_date, end_date)
+        - 기술: skills[], languages[], certifications[]
+        - 프로젝트: projects[] (title, start_date, description)
+        - 수상: honors_and_awards[] (title, publication, date, description)
+        - 활동: activity[] (interaction, title, link)
+        - 연결: followers, connections
+        - 회사: current_company, current_company_name
+        - 링크: websites[], personal_urls[], bio_links[]
         """
-        # GitHub URL 추출
+        # GitHub URL 추출 (websites, bio_links 등에서)
         github_url = None
-        websites = data.get("websites") or data.get("personal_urls") or []
-        for site in websites:
-            site_url = site if isinstance(site, str) else (site.get("url") or "")
-            if "github.com" in site_url:
-                github_url = site_url
-                break
+        all_websites = []
+        for source in [data.get("websites"), data.get("personal_urls"), data.get("bio_links")]:
+            if source:
+                for site in source:
+                    site_url = site if isinstance(site, str) else (site.get("url") or "")
+                    if site_url:
+                        all_websites.append(site_url)
+                        if "github.com" in site_url and not github_url:
+                            github_url = site_url
 
-        return {
-            "url": url,
-            "full_name": data.get("name") or data.get("full_name"),
-            "headline": data.get("headline"),
-            "summary": data.get("about") or data.get("summary"),
-            "country": data.get("country") or data.get("country_code") or data.get("country_full_name"),
-            "city": data.get("city"),
-            "experiences": [
-                {
+        # 현재 회사 추출
+        current_company = None
+        if data.get("current_company"):
+            cc = data["current_company"]
+            current_company = cc.get("name") if isinstance(cc, dict) else cc
+        elif data.get("current_company_name"):
+            current_company = data["current_company_name"]
+
+        # 경력 정규화 (experience가 null일 수 있음)
+        experiences = []
+        raw_exp = data.get("experience") or data.get("experiences") or []
+        if raw_exp:
+            for exp in raw_exp[:10]:
+                experiences.append({
                     "title": exp.get("title"),
                     "company": exp.get("company") or exp.get("company_name"),
                     "description": exp.get("description"),
                     "starts_at": exp.get("start_date") or exp.get("starts_at"),
                     "ends_at": exp.get("end_date") or exp.get("ends_at"),
                     "location": exp.get("location"),
-                }
-                for exp in (data.get("experience") or data.get("experiences") or [])[:10]
-            ],
-            "education": [
-                {
+                })
+
+        # 학력 정규화 (education이 null일 수 있음)
+        education = []
+        raw_edu = data.get("education") or []
+        if raw_edu:
+            for edu in raw_edu[:5]:
+                education.append({
                     "school": edu.get("school") or edu.get("school_name"),
                     "degree": edu.get("degree") or edu.get("degree_name"),
                     "field": edu.get("field_of_study") or edu.get("field"),
                     "starts_at": edu.get("start_date") or edu.get("starts_at"),
                     "ends_at": edu.get("end_date") or edu.get("ends_at"),
-                }
-                for edu in (data.get("education") or [])[:5]
-            ],
+                })
+
+        # 프로젝트 정규화 (새로 추가)
+        projects = []
+        raw_projects = data.get("projects") or []
+        for proj in raw_projects[:10]:
+            projects.append({
+                "title": proj.get("title"),
+                "start_date": proj.get("start_date"),
+                "end_date": proj.get("end_date"),
+                "description": proj.get("description"),
+                "url": proj.get("url"),
+            })
+
+        # 수상/인증 정규화 (새로 추가)
+        honors = []
+        raw_honors = data.get("honors_and_awards") or []
+        for honor in raw_honors[:10]:
+            honors.append({
+                "title": honor.get("title"),
+                "issuer": honor.get("publication") or honor.get("issuer"),
+                "date": honor.get("date"),
+                "description": honor.get("description"),
+            })
+
+        # 활동 정규화 (새로 추가)
+        activity = []
+        raw_activity = data.get("activity") or []
+        for act in raw_activity[:10]:
+            activity.append({
+                "interaction": act.get("interaction"),
+                "title": act.get("title"),
+                "link": act.get("link"),
+            })
+
+        # 자격증 정규화
+        certifications = []
+        raw_certs = data.get("certifications") or []
+        for cert in raw_certs[:10]:
+            certifications.append({
+                "name": cert.get("name"),
+                "authority": cert.get("authority") or cert.get("issuing_organization"),
+            })
+
+        # 언어 정규화
+        languages = []
+        raw_langs = data.get("languages") or []
+        for lang in raw_langs:
+            if isinstance(lang, str):
+                languages.append(lang)
+            elif isinstance(lang, dict):
+                languages.append(lang.get("name") or "")
+
+        return {
+            # 기본 정보
+            "profile_url": url,
+            "full_name": data.get("name") or data.get("full_name"),
+            "headline": data.get("headline"),
+            "summary": data.get("about") or data.get("summary"),
+            "country": data.get("country") or data.get("country_code") or data.get("country_full_name"),
+            "city": data.get("city") or data.get("location"),
+            "avatar_url": data.get("avatar"),
+
+            # 현재 회사
+            "current_company": current_company,
+
+            # 경력/학력/기술
+            "experiences": experiences,
+            "education": education,
             "skills": (data.get("skills") or [])[:30],
-            "languages": [
-                lang if isinstance(lang, str) else (lang.get("name") or "")
-                for lang in (data.get("languages") or [])
-            ],
-            "certifications": [
-                {
-                    "name": cert.get("name"),
-                    "authority": cert.get("authority") or cert.get("issuing_organization"),
-                }
-                for cert in (data.get("certifications") or [])[:10]
-            ],
-            "recommendations_count": data.get("recommendations_count") or len(data.get("recommendations") or []),
+            "languages": languages,
+            "certifications": certifications,
+
+            # 프로젝트/수상 (새로 추가)
+            "projects": projects,
+            "honors_and_awards": honors,
+
+            # 활동 (새로 추가)
+            "activity": activity,
+
+            # 연결
+            "followers": data.get("followers"),
             "connections": data.get("connections"),
+
+            # 링크
             "github_url": github_url,
+            "websites": all_websites,
         }
 
 

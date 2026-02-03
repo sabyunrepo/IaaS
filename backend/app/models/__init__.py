@@ -9,8 +9,10 @@ from .types import (
 )
 from .auth import User, OAuthAccount, APIKey
 from .input import (
-    LanguageConfig, InputData, LinkedInProfile, EnrichedInput,
-    JobIdentifier, CreateJobRequest, CreateJobResponse,
+    LanguageConfig, InputData,
+    LinkedInExperience, LinkedInEducation, LinkedInCertification,
+    LinkedInProject, LinkedInHonor, LinkedInActivity, LinkedInProfile,
+    EnrichedInput, JobIdentifier, CreateJobRequest, CreateJobResponse,
 )
 from .analysis import (
     CandidateProfile, CodeAnalysis, JDAnalysis,
