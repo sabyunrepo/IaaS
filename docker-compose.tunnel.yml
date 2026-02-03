@@ -1,0 +1,49 @@
+# Cloudflare Tunnel을 통한 호스팅 설정
+# 사용법: docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d
+
+services:
+  # ============================================
+  # Cloudflare Tunnel
+  # ============================================
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - default
+
+  # ============================================
+  # Frontend (Production Build)
+  # ============================================
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - VITE_BACKEND_URL=https://test.mystery-place.com
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  # ============================================
+  # Override Backend URLs for Production
+  # ============================================
+
+  backend:
+    environment:
+      - FRONTEND_URL=https://test.mystery-place.com
+      - BACKEND_URL=https://test.mystery-place.com
+      - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN}
+
+  worker:
+    environment:
+      - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN}
