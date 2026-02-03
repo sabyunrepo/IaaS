@@ -2,27 +2,110 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
+import { getToken } from '../lib/api'
+
+const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+
+// 지원 언어 목록
+const SUPPORTED_LANGUAGES = [
+  { code: 'ko', name: '한국어' },
+  { code: 'en', name: 'English' },
+  { code: 'ja', name: '日本語' },
+  { code: 'zh-CN', name: '简体中文' },
+  { code: 'zh-TW', name: '繁體中文' },
+  { code: 'es', name: 'Español' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'fr', name: 'Français' },
+  { code: 'pt', name: 'Português' },
+  { code: 'vi', name: 'Tiếng Việt' },
+  { code: 'th', name: 'ไทย' },
+  { code: 'id', name: 'Bahasa Indonesia' },
+]
+
+interface FileUpload {
+  file: File | null
+  path: string | null
+  uploading: boolean
+  error: string | null
+}
 
 export function CreateJobPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { createJob } = useJob()
 
-  // Required fields
+  // 필수 필드
   const [jdText, setJdText] = useState('')
   const [experienceLevel, setExperienceLevel] = useState('미들')
+  const [outputLanguage, setOutputLanguage] = useState('ko')
 
-  // Optional fields
+  // 파일 업로드
+  const [resume, setResume] = useState<FileUpload>({ file: null, path: null, uploading: false, error: null })
+  const [portfolio, setPortfolio] = useState<FileUpload>({ file: null, path: null, uploading: false, error: null })
+  const [coverLetter, setCoverLetter] = useState<FileUpload>({ file: null, path: null, uploading: false, error: null })
+
+  // 선택 필드
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [githubUrls, setGithubUrls] = useState<string[]>([''])
-  const [githubUsername, setGithubUsername] = useState('')
   const [maxQuestions, setMaxQuestions] = useState(25)
   const [focusAreas, setFocusAreas] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // GitHub URL handlers
+  // 파일 업로드 핸들러
+  const uploadFile = async (
+    file: File,
+    fileType: 'resume' | 'portfolio' | 'cover_letter',
+    setFileState: React.Dispatch<React.SetStateAction<FileUpload>>
+  ) => {
+    setFileState(prev => ({ ...prev, uploading: true, error: null }))
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const token = getToken()
+      const response = await fetch(`${BACKEND}/api/v1/upload/${fileType}`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errData = await response.json()
+        throw new Error(errData.detail || 'Upload failed')
+      }
+
+      const data = await response.json()
+      setFileState({ file, path: data.file_path, uploading: false, error: null })
+    } catch (err) {
+      setFileState(prev => ({
+        ...prev,
+        uploading: false,
+        error: err instanceof Error ? err.message : 'Upload failed',
+      }))
+    }
+  }
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fileType: 'resume' | 'portfolio' | 'cover_letter',
+    setFileState: React.Dispatch<React.SetStateAction<FileUpload>>
+  ) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      uploadFile(file, fileType, setFileState)
+    }
+  }
+
+  const removeFile = (setFileState: React.Dispatch<React.SetStateAction<FileUpload>>) => {
+    setFileState({ file: null, path: null, uploading: false, error: null })
+  }
+
+  // GitHub URL 핸들러
   const addGithubUrl = () => {
     if (githubUrls.length < 5) {
       setGithubUrls([...githubUrls, ''])
@@ -52,9 +135,24 @@ export function CreateJobPage() {
         jd_text: jdText,
         experience_level: experienceLevel,
         max_questions: maxQuestions,
+        language_config: {
+          output_language: outputLanguage,
+          terminology_languages: ['ko', 'en'],
+        },
       }
 
-      // Add optional fields if provided
+      // 파일 경로 추가
+      if (resume.path) {
+        inputData.resume_path = resume.path
+      }
+      if (portfolio.path) {
+        inputData.portfolio_path = portfolio.path
+      }
+      if (coverLetter.path) {
+        inputData.cover_letter_path = coverLetter.path
+      }
+
+      // 선택 필드 추가
       if (linkedinUrl.trim()) {
         inputData.linkedin_url = linkedinUrl.trim()
       }
@@ -62,10 +160,6 @@ export function CreateJobPage() {
       const validGithubUrls = githubUrls.filter(url => url.trim())
       if (validGithubUrls.length > 0) {
         inputData.github_urls = validGithubUrls
-      }
-
-      if (githubUsername.trim()) {
-        inputData.candidate_github_username = githubUsername.trim()
       }
 
       if (focusAreas.trim()) {
@@ -81,6 +175,8 @@ export function CreateJobPage() {
     }
   }
 
+  const isUploading = resume.uploading || portfolio.uploading || coverLetter.uploading
+
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('create_job')}</h1>
@@ -89,7 +185,7 @@ export function CreateJobPage() {
         {/* JD Text - Required */}
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            {t('jd_section_title', '채용공고')} <span className="text-red-500">*</span>
+            {t('jd_section_title')} <span className="text-red-500">*</span>
           </h2>
           <textarea
             value={jdText}
@@ -101,14 +197,111 @@ export function CreateJobPage() {
             minLength={50}
           />
           <p className="text-sm text-gray-500 mt-1">
-            {jdText.length}/50 {t('min_chars', '최소 글자')}
+            {jdText.length}/50 {t('min_chars')}
           </p>
         </div>
 
-        {/* Experience Level */}
+        {/* 파일 업로드 섹션 */}
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            {t('candidate_info', '후보자 정보')}
+            {t('document_upload')}
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">{t('document_upload_hint')}</p>
+
+          <div className="space-y-4">
+            {/* 이력서 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('resume')} (PDF)
+              </label>
+              {resume.path ? (
+                <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                  <span className="text-green-700 text-sm flex-1 truncate">{resume.file?.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(setResume)}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    {t('remove')}
+                  </button>
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => handleFileChange(e, 'resume', setResume)}
+                  disabled={resume.uploading}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              )}
+              {resume.uploading && <p className="text-sm text-blue-600 mt-1">{t('uploading')}</p>}
+              {resume.error && <p className="text-sm text-red-600 mt-1">{resume.error}</p>}
+            </div>
+
+            {/* 포트폴리오 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('portfolio')} (PDF, DOCX)
+              </label>
+              {portfolio.path ? (
+                <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                  <span className="text-green-700 text-sm flex-1 truncate">{portfolio.file?.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(setPortfolio)}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    {t('remove')}
+                  </button>
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  accept=".pdf,.docx"
+                  onChange={(e) => handleFileChange(e, 'portfolio', setPortfolio)}
+                  disabled={portfolio.uploading}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              )}
+              {portfolio.uploading && <p className="text-sm text-blue-600 mt-1">{t('uploading')}</p>}
+              {portfolio.error && <p className="text-sm text-red-600 mt-1">{portfolio.error}</p>}
+            </div>
+
+            {/* 커버레터 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('cover_letter')} (PDF, DOCX)
+              </label>
+              {coverLetter.path ? (
+                <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                  <span className="text-green-700 text-sm flex-1 truncate">{coverLetter.file?.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(setCoverLetter)}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    {t('remove')}
+                  </button>
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  accept=".pdf,.docx"
+                  onChange={(e) => handleFileChange(e, 'cover_letter', setCoverLetter)}
+                  disabled={coverLetter.uploading}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              )}
+              {coverLetter.uploading && <p className="text-sm text-blue-600 mt-1">{t('uploading')}</p>}
+              {coverLetter.error && <p className="text-sm text-red-600 mt-1">{coverLetter.error}</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* 후보자 정보 섹션 */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">
+            {t('candidate_info')}
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
@@ -131,22 +324,26 @@ export function CreateJobPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('github_username', 'GitHub 사용자명')}
+                {t('output_language')} <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={githubUsername}
-                onChange={(e) => setGithubUsername(e.target.value)}
-                placeholder="e.g. octocat"
+              <select
+                value={outputLanguage}
+                onChange={(e) => setOutputLanguage(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
-              />
+              >
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           {/* LinkedIn URL */}
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('linkedin_url', 'LinkedIn 프로필 URL')}
+              {t('linkedin_url')}
             </label>
             <input
               type="url"
@@ -155,6 +352,7 @@ export function CreateJobPage() {
               placeholder="https://linkedin.com/in/username"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-sm text-gray-500 mt-1">{t('linkedin_hint')}</p>
           </div>
         </div>
 
@@ -162,7 +360,7 @@ export function CreateJobPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg font-semibold text-gray-900">
-              {t('github_repos', 'GitHub 레포지토리')}
+              {t('github_repos')}
             </h2>
             {githubUrls.length < 5 && (
               <button
@@ -170,7 +368,7 @@ export function CreateJobPage() {
                 onClick={addGithubUrl}
                 className="text-sm text-blue-600 hover:text-blue-800"
               >
-                + {t('add_repo', '레포 추가')}
+                + {t('add_repo')}
               </button>
             )}
           </div>
@@ -190,7 +388,7 @@ export function CreateJobPage() {
                     type="button"
                     onClick={() => removeGithubUrl(index)}
                     className="px-3 py-2 text-red-600 hover:text-red-800"
-                    aria-label={t('remove', '삭제')}
+                    aria-label={t('remove')}
                   >
                     ✕
                   </button>
@@ -199,21 +397,21 @@ export function CreateJobPage() {
             ))}
           </div>
           <p className="text-sm text-gray-500 mt-2">
-            {t('github_repos_hint', '분석할 GitHub 레포지토리 URL을 입력하세요 (최대 5개)')}
+            {t('github_repos_hint')}
           </p>
         </div>
 
         {/* Options */}
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            {t('options', '옵션')}
+            {t('options')}
           </h2>
 
           <div className="space-y-4">
             {/* Max Questions */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('max_questions', '생성할 질문 수')}: <span className="font-semibold">{maxQuestions}</span>
+                {t('max_questions')}: <span className="font-semibold">{maxQuestions}</span>
               </label>
               <input
                 type="range"
@@ -233,7 +431,7 @@ export function CreateJobPage() {
             {/* Focus Areas */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('focus_areas', '집중 기술 영역')}
+                {t('focus_areas')}
               </label>
               <input
                 type="text"
@@ -243,7 +441,7 @@ export function CreateJobPage() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-sm text-gray-500 mt-1">
-                {t('focus_areas_hint', '쉼표로 구분하여 입력 (선택사항)')}
+                {t('focus_areas_hint')}
               </p>
             </div>
           </div>
@@ -263,14 +461,14 @@ export function CreateJobPage() {
             onClick={() => navigate('/jobs')}
             className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            {t('cancel', '취소')}
+            {t('cancel')}
           </button>
           <button
             type="submit"
-            disabled={submitting || jdText.length < 50}
+            disabled={submitting || jdText.length < 50 || isUploading}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? t('loading') : t('create_interview_script', '면접 스크립트 생성')}
+            {submitting ? t('loading') : t('create_interview_script')}
           </button>
         </div>
       </form>
