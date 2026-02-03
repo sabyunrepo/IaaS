@@ -1,14 +1,164 @@
 prompts:
   analyze:
-    description: "Job Description 분석 및 구조화 추출"
+    description: "Job Description 분석 및 구조화 추출 (Few-shot Enhanced)"
     template: |
-      Analyze the following job description and extract:
-      1. job_title
-      2. company_name
-      3. requirements (list of {{skill, category: '필수'|'우대', level}})
-      4. responsibilities (list of strings)
-      5. company_culture (list of strings)
-      6. tech_stack (list of technology names)
+      # ROLE & GOAL
+      You are an expert HR analyst specializing in job description parsing.
+      Your task is to extract structured information from job descriptions for interview preparation.
 
-      Job Description:
+      # WHAT YOU WILL SEE
+      You will receive a job description (JD) that may contain:
+      - Job title and company information
+      - Required and preferred qualifications
+      - Job responsibilities and duties
+      - Company culture and benefits
+      - Technical requirements and tools
+
+      # DETAILED GOAL
+      Extract ALL explicitly stated requirements and responsibilities.
+      Categorize requirements as "필수" (required) or "우대" (preferred) based on JD language.
+
+      Key indicators for categorization:
+      - "필수", "required", "must have", "minimum" → 필수
+      - "우대", "preferred", "nice to have", "plus", "bonus" → 우대
+      - If unclear, default to "우대"
+
+      # JOB DESCRIPTION
       {jd_text}
+
+      # OUTPUT FORMAT (JSON)
+      ```json
+      {{
+        "job_title": "직책명 or null",
+        "company_name": "회사명 or null",
+        "department": "부서명 or null",
+        "experience_level": "Junior|Mid|Senior|Lead|Principal or null",
+        "requirements": [
+          {{
+            "skill": "기술/역량명",
+            "category": "필수|우대",
+            "level": "years of experience or proficiency level if stated",
+            "source_quote": "JD에서 발췌한 원문"
+          }}
+        ],
+        "responsibilities": [
+          {{
+            "description": "업무 설명",
+            "source_quote": "JD에서 발췌한 원문"
+          }}
+        ],
+        "company_culture": [
+          "문화/가치 키워드"
+        ],
+        "tech_stack": [
+          {{
+            "technology": "기술명",
+            "category": "language|framework|database|cloud|tool|other",
+            "required": true|false
+          }}
+        ],
+        "benefits": [
+          "복리후생 항목"
+        ],
+        "extraction_confidence": {{
+          "overall_score": 0.0-1.0,
+          "ambiguous_requirements": ["unclear requirement descriptions"],
+          "inferred_items": ["items where category was inferred, not explicit"]
+        }}
+      }}
+      ```
+
+      # SUCCESSFUL EXAMPLE
+      Input: "AI 엔지니어 채용 - TechCorp
+
+      [필수 자격요건]
+      - Python 3년 이상 경력
+      - LLM/RAG 시스템 개발 경험
+      - 컴퓨터공학 또는 관련 학과 학사 이상
+
+      [우대사항]
+      - TypeScript 경험자
+      - AWS 클라우드 경험
+
+      [담당 업무]
+      - AI 서비스 백엔드 개발
+      - 프롬프트 엔지니어링 및 최적화
+
+      [기술 스택]
+      Python, FastAPI, PostgreSQL, Redis, AWS"
+
+      Output:
+      ```json
+      {{
+        "job_title": "AI 엔지니어",
+        "company_name": "TechCorp",
+        "department": null,
+        "experience_level": "Mid",
+        "requirements": [
+          {{"skill": "Python", "category": "필수", "level": "3년 이상", "source_quote": "Python 3년 이상 경력"}},
+          {{"skill": "LLM/RAG 시스템 개발", "category": "필수", "level": null, "source_quote": "LLM/RAG 시스템 개발 경험"}},
+          {{"skill": "컴퓨터공학 학사", "category": "필수", "level": "학사 이상", "source_quote": "컴퓨터공학 또는 관련 학과 학사 이상"}},
+          {{"skill": "TypeScript", "category": "우대", "level": null, "source_quote": "TypeScript 경험자"}},
+          {{"skill": "AWS", "category": "우대", "level": null, "source_quote": "AWS 클라우드 경험"}}
+        ],
+        "responsibilities": [
+          {{"description": "AI 서비스 백엔드 개발", "source_quote": "AI 서비스 백엔드 개발"}},
+          {{"description": "프롬프트 엔지니어링 및 최적화", "source_quote": "프롬프트 엔지니어링 및 최적화"}}
+        ],
+        "company_culture": [],
+        "tech_stack": [
+          {{"technology": "Python", "category": "language", "required": true}},
+          {{"technology": "FastAPI", "category": "framework", "required": true}},
+          {{"technology": "PostgreSQL", "category": "database", "required": true}},
+          {{"technology": "Redis", "category": "database", "required": true}},
+          {{"technology": "AWS", "category": "cloud", "required": false}}
+        ],
+        "benefits": [],
+        "extraction_confidence": {{"overall_score": 0.95, "ambiguous_requirements": [], "inferred_items": ["experience_level inferred from '3년 이상'"]}}
+      }}
+      ```
+
+      # UNSUCCESSFUL EXAMPLE (HALLUCINATION - DO NOT DO THIS)
+      Input: "백엔드 개발자 - Python 경험자 우대"
+
+      BAD Output:
+      ```json
+      {{
+        "requirements": [
+          {{"skill": "Python", "category": "필수", "level": "5년 이상"}},
+          {{"skill": "Java", "category": "필수", "level": "3년 이상"}},
+          {{"skill": "Spring Boot", "category": "필수", "level": null}}
+        ]
+      }}
+      ```
+      WHY BAD:
+      1. Python was "우대" not "필수" in the JD
+      2. "5년 이상" was never mentioned
+      3. Java and Spring Boot were NEVER mentioned
+
+      CORRECT Output:
+      ```json
+      {{
+        "job_title": "백엔드 개발자",
+        "company_name": null,
+        "requirements": [
+          {{"skill": "Python", "category": "우대", "level": null, "source_quote": "Python 경험자 우대"}}
+        ],
+        "extraction_confidence": {{"overall_score": 0.4, "ambiguous_requirements": [], "inferred_items": []}}
+      }}
+      ```
+
+      # LIMITATIONS
+      - NEVER change "우대" to "필수" or vice versa
+      - NEVER add technologies not mentioned in the JD
+      - NEVER invent experience levels not stated
+      - NEVER assume company culture without explicit statements
+      - If JD is vague, reflect that in low confidence score
+
+      # DO NOT LIMIT YOURSELF
+      - DO extract partial information even from poorly written JDs
+      - DO identify implicit experience levels from context clues (e.g., "주니어" in title)
+      - DO categorize technologies even if JD doesn't specify type
+      - DO note all ambiguities transparently
+
+      Return ONLY the JSON object, no additional text.

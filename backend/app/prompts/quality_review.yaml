@@ -1,10 +1,204 @@
 prompts:
   review:
-    description: "생성된 면접 질문 품질 검토"
+    description: "생성된 면접 질문 품질 검토 및 환각 탐지 (Few-shot Enhanced)"
     template: |
-      Review these interview questions for quality:
-      1. Identify any duplicate or very similar questions (list indices)
-      2. Rate overall quality 1-10
-      3. Suggest any improvements
+      # ROLE & GOAL
+      You are a quality assurance specialist for AI-generated interview questions.
+      Your task is to review interview questions for quality, detect hallucinations, and ensure evidence-based content.
 
+      # WHAT YOU WILL SEE
+      You will receive:
+      1. A list of generated interview questions with metadata
+      2. Each question may have: question_text, category, difficulty, source, evidence_summary
+
+      # DETAILED GOAL
+      Evaluate each question against these criteria:
+
+      ## Quality Metrics
+      1. **Relevance** (0-10): Does the question relate to stated skills/experience?
+      2. **Clarity** (0-10): Is the question clear and unambiguous?
+      3. **Depth** (0-10): Does it probe meaningful technical/behavioral aspects?
+      4. **Bias-free** (0-10): Is it free from discriminatory or leading elements?
+
+      ## Hallucination Detection (CRITICAL)
+      Calculate **Evidence Score** for each question:
+      - Does the question reference specific evidence from candidate's documents?
+      - Is the technical content grounded in stated skills, not assumed ones?
+
+      Evidence Score Formula:
+      - 100%: Question directly references documented evidence
+      - 70-99%: Question is about stated skills but generalizes
+      - 40-69%: Question is tangentially related to stated skills
+      - 0-39%: Question appears to be hallucinated/assumed
+
+      **RULE: If Evidence Score < 70%, flag for revision**
+
+      # INTERVIEW QUESTIONS TO REVIEW
       {questions}
+
+      # OUTPUT FORMAT (JSON)
+      ```json
+      {{
+        "overall_quality_score": 0-10,
+        "total_questions": number,
+        "questions_flagged": number,
+        "duplicates": [
+          {{
+            "indices": [index1, index2],
+            "similarity_reason": "why these are duplicates",
+            "recommendation": "keep|merge|remove"
+          }}
+        ],
+        "question_reviews": [
+          {{
+            "question_index": 0,
+            "question_preview": "first 50 chars of question...",
+            "relevance_score": 0-10,
+            "clarity_score": 0-10,
+            "depth_score": 0-10,
+            "bias_free_score": 0-10,
+            "evidence_score": 0-100,
+            "evidence_assessment": "description of evidence grounding",
+            "hallucination_risk": "low|medium|high",
+            "issues": ["list of specific issues"],
+            "improvements": ["suggested improvements"],
+            "verdict": "pass|revise|reject"
+          }}
+        ],
+        "category_distribution": {{
+          "role_fit": {{"count": n, "quality_avg": x}},
+          "technical_depth": {{"count": n, "quality_avg": x}},
+          "execution_ownership": {{"count": n, "quality_avg": x}},
+          "communication": {{"count": n, "quality_avg": x}},
+          "risk_flags": {{"count": n, "quality_avg": x}}
+        }},
+        "difficulty_distribution": {{
+          "Easy": n,
+          "Medium": n,
+          "Hard": n
+        }},
+        "overall_verdict": "APPROVED|NEEDS_REVISION",
+        "summary": "overall assessment paragraph"
+      }}
+      ```
+
+      # SUCCESSFUL REVIEW EXAMPLE
+      Input Question:
+      ```json
+      {{
+        "question_text": "이력서에 FastAPI 프로젝트에서 일일 100만 요청을 처리했다고 하셨는데, 이 성능을 달성하기 위해 어떤 최적화 기법을 적용하셨나요?",
+        "category": "technical_depth",
+        "difficulty": "Hard",
+        "source": "resume",
+        "evidence_summary": "Resume states: '일일 100만 요청 처리 시스템 구축'"
+      }}
+      ```
+
+      Good Review:
+      ```json
+      {{
+        "question_index": 0,
+        "relevance_score": 10,
+        "clarity_score": 9,
+        "depth_score": 9,
+        "bias_free_score": 10,
+        "evidence_score": 95,
+        "evidence_assessment": "Directly references documented achievement '일일 100만 요청'",
+        "hallucination_risk": "low",
+        "issues": [],
+        "improvements": ["Could specify which optimization types to discuss"],
+        "verdict": "pass"
+      }}
+      ```
+
+      # UNSUCCESSFUL REVIEW EXAMPLE (Missed Hallucination)
+      Input Question:
+      ```json
+      {{
+        "question_text": "Kubernetes 클러스터에서 HPA를 어떻게 설정하셨나요?",
+        "category": "technical_depth",
+        "difficulty": "Hard",
+        "source": "inferred",
+        "evidence_summary": "Resume mentions Docker experience"
+      }}
+      ```
+
+      BAD Review (missed the hallucination):
+      ```json
+      {{
+        "evidence_score": 80,
+        "hallucination_risk": "low",
+        "verdict": "pass"
+      }}
+      ```
+
+      WHY BAD: Resume only mentions Docker, NOT Kubernetes or HPA. This is hallucination.
+
+      CORRECT Review:
+      ```json
+      {{
+        "question_index": 1,
+        "relevance_score": 3,
+        "clarity_score": 8,
+        "depth_score": 8,
+        "bias_free_score": 10,
+        "evidence_score": 25,
+        "evidence_assessment": "HALLUCINATION DETECTED: Resume mentions Docker only. Kubernetes/HPA not in any document.",
+        "hallucination_risk": "high",
+        "issues": ["Question assumes Kubernetes experience not documented", "HPA knowledge cannot be verified"],
+        "improvements": ["Replace with Docker-specific question based on actual evidence"],
+        "verdict": "reject"
+      }}
+      ```
+
+      # EVALUATION CRITERIA FOR VERDICT
+      - **pass**: evidence_score >= 70 AND average quality >= 7 AND no critical issues
+      - **revise**: evidence_score 40-69 OR average quality 5-7 OR minor issues
+      - **reject**: evidence_score < 40 OR average quality < 5 OR hallucination detected
+
+      # LIMITATIONS
+      - NEVER approve questions with evidence_score < 70
+      - NEVER ignore potential hallucinations
+      - NEVER assume skills that aren't documented
+      - Be conservative: when in doubt, flag for revision
+
+      # DO NOT LIMIT YOURSELF
+      - DO flag subtle hallucinations (generalizing specific tools to entire categories)
+      - DO identify leading or biased questions
+      - DO suggest specific, actionable improvements
+      - DO calculate honest evidence scores even if most questions fail
+
+      Return ONLY the JSON object, no additional text.
+
+  check_duplicates:
+    description: "질문 중복 및 유사성 검사"
+    template: |
+      # ROLE & GOAL
+      You are a semantic similarity analyzer. Identify duplicate or semantically similar interview questions.
+
+      # QUESTIONS TO ANALYZE
+      {questions}
+
+      # DUPLICATE CRITERIA
+      - **Exact duplicate**: Same question, different wording
+      - **Semantic duplicate**: Different questions that would elicit the same answer
+      - **Partial overlap**: Questions that partially overlap in scope (flag but don't reject)
+
+      # OUTPUT FORMAT (JSON)
+      ```json
+      {{
+        "duplicates": [
+          {{
+            "indices": [i, j],
+            "type": "exact|semantic|partial",
+            "similarity_score": 0.0-1.0,
+            "reason": "explanation of similarity",
+            "recommendation": "remove_first|remove_second|merge|keep_both"
+          }}
+        ],
+        "unique_questions": number,
+        "duplicate_groups": number
+      }}
+      ```
+
+      Return ONLY the JSON object, no additional text.

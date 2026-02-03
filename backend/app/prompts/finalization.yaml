@@ -1,35 +1,346 @@
 prompts:
   candidate_summary:
-    description: "후보자 요약 생성"
+    description: "후보자 요약 생성 - 다중 분석기 종합 (Synthesizer)"
     template: |
-      Generate a comprehensive candidate summary based on the following sources:
+      # ROLE & GOAL
+      You are the SYNTHESIZER in a multi-analyzer pipeline. Your task is to create a comprehensive
+      candidate summary by combining insights from multiple specialized analyzers.
 
-      ## Document Analysis (Resume/Portfolio)
+      # WHAT YOU WILL SEE
+      You will receive pre-analyzed data from THREE sources:
+      1. **Document Analyzer Output**: Resume/Portfolio analysis
+      2. **GitHub Analyzer Output**: Code and contribution analysis
+      3. **LinkedIn Analyzer Output**: Professional profile and network analysis
+
+      Each analyzer has already extracted structured information. Your job is to SYNTHESIZE,
+      not re-analyze.
+
+      # ANALYZER INPUTS
+
+      ## Analyzer 1: Document Analysis (Resume/Portfolio)
       {document_analysis}
 
-      ## Code Analysis (GitHub)
+      ## Analyzer 2: Code Analysis (GitHub)
       {code_analysis}
 
-      ## LinkedIn Profile
+      ## Analyzer 3: LinkedIn Profile
       {linkedin_profile}
 
-      Instructions:
-      1. Combine insights from all available sources
-      2. Highlight notable projects and achievements (especially awards/honors)
-      3. Identify key technical skills and expertise areas
-      4. Note any interesting patterns in their activity or contributions
-      5. Generate a balanced assessment suitable for interview preparation
+      # SYNTHESIS RULES (CRITICAL)
 
-      Output format:
-      - Name and current position
-      - Key strengths (3-5 bullets)
-      - Notable achievements (projects, awards)
-      - Technical expertise areas
-      - Potential discussion topics for interview
+      ## Rule 1: Source Prioritization
+      When information conflicts between sources:
+      - **GitHub code > Resume claims**: Actual code proves skills better than stated claims
+      - **Resume details > LinkedIn summary**: Resume is usually more detailed/accurate
+      - **LinkedIn recency > older Resume**: Use LinkedIn for current position if Resume is old
+
+      ## Rule 2: Corroboration Scoring
+      Calculate confidence for each skill/claim:
+      - **3-source corroboration**: HIGH confidence (0.9+) → Include prominently
+      - **2-source corroboration**: MEDIUM confidence (0.7-0.9) → Include with note
+      - **1-source only**: LOW confidence (0.5-0.7) → Include with "unverified" tag
+      - **Conflicting sources**: FLAG → Document the conflict
+
+      ## Rule 3: Evidence Aggregation
+      For each insight, cite ALL supporting sources:
+      - "FastAPI expertise (GitHub: 50 commits, Resume: 3 years experience, LinkedIn: endorsed)"
+
+      ## Rule 4: Gap Identification
+      Identify what's MISSING across all sources:
+      - Skills mentioned but not demonstrated
+      - Experience claimed without evidence
+      - Time gaps in career history
+
+      # OUTPUT FORMAT (JSON)
+      ```json
+      {{
+        "candidate_overview": {{
+          "name": "후보자 이름",
+          "current_position": "현재 직책 (source)",
+          "experience_years": "경력 년수 (calculated)",
+          "primary_domain": "주요 분야",
+          "confidence_level": "high|medium|low"
+        }},
+        "key_strengths": [
+          {{
+            "strength": "강점 설명",
+            "evidence": {{
+              "github": "GitHub 증거 또는 null",
+              "resume": "이력서 증거 또는 null",
+              "linkedin": "LinkedIn 증거 또는 null"
+            }},
+            "confidence": 0.0-1.0,
+            "corroboration": "3-source|2-source|1-source"
+          }}
+        ],
+        "notable_achievements": [
+          {{
+            "achievement": "성과 설명",
+            "source": "출처",
+            "verification_status": "verified|unverified|conflicting",
+            "details": "추가 세부사항"
+          }}
+        ],
+        "technical_expertise": {{
+          "languages": [
+            {{
+              "skill": "Python",
+              "proficiency": "expert|advanced|intermediate|beginner",
+              "evidence": {{"github": "commits/repos", "resume": "stated", "linkedin": "endorsed"}},
+              "confidence": 0.0-1.0
+            }}
+          ],
+          "frameworks": [...],
+          "tools": [...],
+          "domains": [...]
+        }},
+        "interview_discussion_topics": [
+          {{
+            "topic": "토픽",
+            "angle": "접근 방향",
+            "evidence_base": "근거",
+            "priority": "high|medium|low"
+          }}
+        ],
+        "risk_flags": [
+          {{
+            "concern": "우려 사항",
+            "evidence": "근거",
+            "severity": "high|medium|low",
+            "mitigation_question": "확인 질문"
+          }}
+        ],
+        "source_conflicts": [
+          {{
+            "topic": "충돌 주제",
+            "source_a": {{"source": "github", "claim": "claim A"}},
+            "source_b": {{"source": "resume", "claim": "claim B"}},
+            "resolution": "recommended interpretation"
+          }}
+        ],
+        "data_quality_assessment": {{
+          "document_quality": 0.0-1.0,
+          "github_quality": 0.0-1.0,
+          "linkedin_quality": 0.0-1.0,
+          "overall_confidence": 0.0-1.0,
+          "missing_data": ["list of missing information"],
+          "recommendations": ["suggestions for improving data"]
+        }}
+      }}
+      ```
+
+      # SUCCESSFUL SYNTHESIS EXAMPLE
+
+      Inputs:
+      - Document: "홍길동, 서울대 컴공 졸업, ABC Corp 백엔드 개발자 3년, Python/FastAPI"
+      - GitHub: "50 Python repos, FastAPI 주력, 2000+ commits, 컨트리뷰터 5명"
+      - LinkedIn: "Backend Engineer at ABC Corp, Python endorsed by 15 people"
+
+      Good Synthesis:
+      ```json
+      {{
+        "candidate_overview": {{
+          "name": "홍길동",
+          "current_position": "Backend Engineer at ABC Corp (LinkedIn confirmed)",
+          "experience_years": "3 years (Resume)",
+          "primary_domain": "Backend Development (3-source corroboration)",
+          "confidence_level": "high"
+        }},
+        "key_strengths": [
+          {{
+            "strength": "Python/FastAPI 전문성",
+            "evidence": {{
+              "github": "50 Python repos, FastAPI 주력, 2000+ commits",
+              "resume": "Python/FastAPI 3년 경력 명시",
+              "linkedin": "Python endorsed by 15 people"
+            }},
+            "confidence": 0.95,
+            "corroboration": "3-source"
+          }}
+        ],
+        "data_quality_assessment": {{
+          "overall_confidence": 0.9,
+          "missing_data": ["specific project impact metrics", "team size details"]
+        }}
+      }}
+      ```
+
+      # UNSUCCESSFUL SYNTHESIS EXAMPLE (DO NOT DO THIS)
+
+      BAD Synthesis (hallucinated):
+      ```json
+      {{
+        "key_strengths": [
+          {{
+            "strength": "Kubernetes 및 클라우드 인프라 전문성",
+            "evidence": {{"github": "assumed from DevOps interest", "resume": null, "linkedin": null}},
+            "confidence": 0.8
+          }}
+        ]
+      }}
+      ```
+      WHY BAD: Kubernetes was NEVER mentioned in any source. High confidence is unjustified.
+
+      CORRECT Synthesis:
+      ```json
+      {{
+        "risk_flags": [
+          {{
+            "concern": "인프라/DevOps 경험 미확인",
+            "evidence": "No infrastructure or Kubernetes evidence in any source",
+            "severity": "medium",
+            "mitigation_question": "배포 및 인프라 경험이 있으시다면 설명해주세요"
+          }}
+        ]
+      }}
+      ```
+
+      # LIMITATIONS
+      - NEVER invent skills not in ANY source
+      - NEVER give high confidence to single-source claims
+      - NEVER ignore conflicts between sources
+      - NEVER add general knowledge not specific to this candidate
+
+      # DO NOT LIMIT YOURSELF
+      - DO identify subtle patterns across sources
+      - DO calculate honest confidence scores
+      - DO flag ALL concerns, even minor ones
+      - DO suggest interview angles based on evidence gaps
+
+      Return ONLY the JSON object, no additional text.
 
   interviewer_guide:
-    description: "면접관 가이드 생성"
+    description: "면접관 가이드 생성 - 종합 브리핑"
     template: |
-      Generate interviewer guide for {experience_level} level candidate.
-      Total questions: {total_questions}
+      # ROLE & GOAL
+      Generate a comprehensive interviewer guide for conducting the interview.
+
+      # CONTEXT
+      Experience Level: {experience_level}
+      Total Questions: {total_questions}
       Categories: {categories}
+
+      # OUTPUT FORMAT (JSON)
+      ```json
+      {{
+        "interview_overview": {{
+          "total_duration_minutes": number,
+          "question_count": number,
+          "experience_level": "level",
+          "interview_style": "conversational|structured|mixed"
+        }},
+        "category_breakdown": [
+          {{
+            "category": "category_name",
+            "question_count": number,
+            "time_allocation_minutes": number,
+            "focus_areas": ["area1", "area2"],
+            "evaluation_priority": "high|medium|low"
+          }}
+        ],
+        "interview_flow": {{
+          "opening": {{
+            "script": "Opening remarks script",
+            "duration_minutes": 3,
+            "tips": ["tip1", "tip2"]
+          }},
+          "main_body": {{
+            "recommended_order": ["category1", "category2"],
+            "transition_phrases": ["phrase1", "phrase2"]
+          }},
+          "closing": {{
+            "script": "Closing remarks script",
+            "duration_minutes": 3,
+            "candidate_questions_time": 5
+          }}
+        }},
+        "evaluation_matrix": {{
+          "scoring_scale": "1-5 or 1-10",
+          "category_weights": {{"category": weight}},
+          "passing_threshold": number,
+          "strong_hire_threshold": number
+        }},
+        "red_flags_summary": [
+          "Global red flag to watch for"
+        ],
+        "green_flags_summary": [
+          "Global positive indicator"
+        ],
+        "interviewer_tips": [
+          {{
+            "tip": "Advice text",
+            "context": "When this applies"
+          }}
+        ],
+        "post_interview_checklist": [
+          "Item to complete after interview"
+        ]
+      }}
+      ```
+
+      Return ONLY the JSON object, no additional text.
+
+  final_synthesis:
+    description: "최종 면접 스크립트 종합 - F1 Score 검증 포함"
+    template: |
+      # ROLE & GOAL
+      Final synthesis of all interview components with quality validation.
+
+      # WHAT YOU WILL SEE
+      Complete interview package including:
+      - Candidate summary
+      - All generated questions
+      - Evaluation scenarios
+      - Interviewer guide
+
+      # F1 SCORE CONCEPT (Evidence Grounding Check)
+      Before finalizing, validate that the output is grounded in provided context:
+
+      **Evidence Grounding Score Formula**:
+      - Count total claims/questions in output (Total_Output)
+      - Count claims/questions with clear source evidence (Grounded_Items)
+      - Score = Grounded_Items / Total_Output * 100
+
+      **Threshold**: If score < 70%, flag package for review
+
+      # INPUT DATA
+      Candidate Summary: {candidate_summary}
+      Questions: {questions_json}
+      Evaluation Scenarios: {scenarios_json}
+      Interviewer Guide: {guide_json}
+
+      # OUTPUT FORMAT (JSON)
+      ```json
+      {{
+        "final_validation": {{
+          "total_questions": number,
+          "grounded_questions": number,
+          "evidence_grounding_score": 0-100,
+          "passed_threshold": true|false,
+          "flagged_items": [
+            {{
+              "item_type": "question|claim|scenario",
+              "item_index": number,
+              "issue": "description of grounding issue",
+              "recommendation": "how to fix"
+            }}
+          ]
+        }},
+        "package_quality": {{
+          "overall_score": 0-100,
+          "category_coverage": {{"category": "complete|partial|missing"}},
+          "difficulty_balance": "balanced|skewed_easy|skewed_hard",
+          "evidence_quality": "strong|moderate|weak"
+        }},
+        "ready_for_delivery": true|false,
+        "delivery_blockers": ["list of issues preventing delivery"],
+        "improvement_suggestions": ["optional improvements"]
+      }}
+      ```
+
+      # VALIDATION RULES
+      - If evidence_grounding_score < 70: ready_for_delivery = false
+      - If any category has 0 questions: ready_for_delivery = false
+      - If >20% of questions flagged: ready_for_delivery = false
+
+      Return ONLY the JSON object, no additional text.
