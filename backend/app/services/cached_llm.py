@@ -1,6 +1,6 @@
 """
 backend/app/services/cached_llm.py
-CachedLLMService — Redis 기반 LLM 응답 캐시
+CachedLLMService — Redis 기반 LLM 응답 캐시 + Langfuse 추적
 """
 import hashlib
 import json
@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 from app.core.config import settings
+from app.core.observability import get_current_trace_metadata, is_langfuse_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +31,10 @@ class CachedLLMService:
         return f"llm_cache:{hashlib.sha256(content.encode()).hexdigest()}"
 
     async def run(self, prompt: str, model: str | None = None, result_type: Any = None) -> Any:
-        """LLM 호출 (캐시 우선)"""
+        """LLM 호출 (캐시 우선) + Langfuse 추적"""
         model = model or settings.LLM_MODEL
         key = self._cache_key(prompt, model)
+        trace_meta = get_current_trace_metadata()
 
         # 캐시 조회
         try:
@@ -40,9 +42,12 @@ class CachedLLMService:
             cached = await redis.get(key)
             if cached:
                 logger.debug(f"LLM cache hit: {key[:20]}...")
+                self._log_cache_event("hit", trace_meta)
                 return json.loads(cached)
         except Exception as e:
             logger.warning(f"Redis cache read failed: {e}")
+
+        self._log_cache_event("miss", trace_meta)
 
         # LLM 호출 (폴백 체인: primary → fallback)
         from app.services.llm_config import get_llm_agent
@@ -53,6 +58,7 @@ class CachedLLMService:
             fallback_model = settings.LLM_FALLBACK_MODEL
             if fallback_model and fallback_model != model:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
+                self._log_fallback_event(model, fallback_model, trace_meta)
                 agent = get_llm_agent(result_type=result_type, model=fallback_model)
                 run_result = await agent.run(prompt)
             else:
@@ -70,6 +76,38 @@ class CachedLLMService:
             logger.warning(f"Redis cache write failed: {e}")
 
         return data
+
+    def _log_cache_event(self, event_type: str, metadata: dict):
+        """Langfuse에 캐시 이벤트 기록"""
+        if not is_langfuse_enabled():
+            return
+        try:
+            from langfuse.decorators import langfuse_context
+            langfuse_context.update_current_observation(
+                metadata={
+                    **metadata,
+                    "cache_event": event_type,
+                }
+            )
+        except Exception:
+            pass  # 캐시 이벤트 로깅 실패는 무시
+
+    def _log_fallback_event(self, primary_model: str, fallback_model: str, metadata: dict):
+        """Langfuse에 폴백 이벤트 기록"""
+        if not is_langfuse_enabled():
+            return
+        try:
+            from langfuse.decorators import langfuse_context
+            langfuse_context.update_current_observation(
+                metadata={
+                    **metadata,
+                    "fallback_event": True,
+                    "primary_model": primary_model,
+                    "fallback_model": fallback_model,
+                }
+            )
+        except Exception:
+            pass  # 폴백 이벤트 로깅 실패는 무시
 
     async def invalidate_for_job(self, job_id: str) -> int:
         """특정 Job 관련 캐시 무효화 (Job 재시도 시 사용)
@@ -99,9 +137,10 @@ class CachedLLMService:
     async def run_for_job(
         self, job_id: str, prompt: str, model: str | None = None, result_type: Any = None
     ) -> Any:
-        """Job 단위 캐시를 사용하는 LLM 호출"""
+        """Job 단위 캐시를 사용하는 LLM 호출 + Langfuse 추적"""
         model = model or settings.LLM_MODEL
         key = self._job_cache_key(job_id, prompt, model)
+        trace_meta = {**get_current_trace_metadata(), "job_id": job_id}
 
         # 캐시 조회
         try:
@@ -109,9 +148,12 @@ class CachedLLMService:
             cached = await redis.get(key)
             if cached:
                 logger.debug(f"LLM job cache hit: {key[:30]}...")
+                self._log_cache_event("hit", trace_meta)
                 return json.loads(cached)
         except Exception as e:
             logger.warning(f"Redis cache read failed: {e}")
+
+        self._log_cache_event("miss", trace_meta)
 
         # LLM 호출 (폴백 체인: primary → fallback)
         from app.services.llm_config import get_llm_agent
@@ -122,6 +164,7 @@ class CachedLLMService:
             fallback_model = settings.LLM_FALLBACK_MODEL
             if fallback_model and fallback_model != model:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
+                self._log_fallback_event(model, fallback_model, trace_meta)
                 agent = get_llm_agent(result_type=result_type, model=fallback_model)
                 run_result = await agent.run(prompt)
             else:

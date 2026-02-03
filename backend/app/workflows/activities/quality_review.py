@@ -6,10 +6,13 @@ import logging
 
 from temporalio import activity
 
+from app.core.observability import observe_activity
+
 logger = logging.getLogger(__name__)
 
 
 @activity.defn
+@observe_activity(name="review_questions", phase="quality_review")
 async def review_questions(questions: list[dict]) -> dict:
     """
     질문 품질 검토
