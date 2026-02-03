@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { setToken, getToken } from '../lib/api'
 
-const BACKEND = import.meta.env.VITE_BACKEND_URL || ''
+const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 interface User {
   id: string
@@ -48,6 +48,7 @@ export function useAuth() {
   const logout = useCallback(() => {
     setToken(null)
     setUser(null)
+    window.location.href = '/login'
   }, [])
 
   return { user, loading, logout, isAuthenticated: !!user }
