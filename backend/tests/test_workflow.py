@@ -26,11 +26,15 @@ class TestActivityRegistration:
             "finalize_output",
             "persist_result",
             "send_webhook",
+            # Observability activities (Phase 2 Langfuse)
+            "start_job_trace",
+            "end_job_trace",
+            "log_phase_event",
         ]
         assert names == expected
 
     def test_activity_count(self):
-        assert len(ACTIVITIES) == 17
+        assert len(ACTIVITIES) == 20
 
 
 class TestWorkflow:

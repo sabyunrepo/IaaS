@@ -39,7 +39,7 @@ class TestPromptLoader:
     def test_load_candidate_summary(self):
         prompt = get_prompt(
             "finalization.yaml", "candidate_summary",
-            document_analysis="{}", code_analysis="{}",
+            document_analysis="{}", code_analysis="{}", linkedin_profile="{}",
         )
         assert "candidate summary" in prompt
 
