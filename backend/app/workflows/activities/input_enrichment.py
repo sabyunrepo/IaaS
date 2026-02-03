@@ -7,12 +7,14 @@ import logging
 
 from temporalio import activity
 
+from app.core.observability import observe_activity
 from app.exceptions import DocumentParseError, LinkedInFetchError
 
 logger = logging.getLogger(__name__)
 
 
 @activity.defn
+@observe_activity(name="enrich_input", phase="input_enrichment")
 async def enrich_input(input_data: dict) -> dict:
     """
     Phase 0: Smart Input Extraction

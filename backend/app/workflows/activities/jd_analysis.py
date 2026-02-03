@@ -6,10 +6,13 @@ import logging
 
 from temporalio import activity
 
+from app.core.observability import observe_activity
+
 logger = logging.getLogger(__name__)
 
 
 @activity.defn
+@observe_activity(name="analyze_jd", phase="analysis")
 async def analyze_jd(jd_text: str) -> dict:
     """
     채용공고(JD) 분석

@@ -6,10 +6,13 @@ import logging
 
 from temporalio import activity
 
+from app.core.observability import observe_activity
+
 logger = logging.getLogger(__name__)
 
 
 @activity.defn
+@observe_activity(name="analyze_code", phase="analysis")
 async def analyze_code(
     github_urls: list[str],
     input_data: dict,

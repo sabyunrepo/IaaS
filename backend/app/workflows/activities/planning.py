@@ -6,10 +6,13 @@ import logging
 
 from temporalio import activity
 
+from app.core.observability import observe_activity
+
 logger = logging.getLogger(__name__)
 
 
 @activity.defn
+@observe_activity(name="create_execution_plan", phase="planning")
 async def create_execution_plan(enriched_input: dict) -> dict:
     """
     실행 계획 수립 (enriched_input 기반)

@@ -6,10 +6,13 @@ import logging
 
 from temporalio import activity
 
+from app.core.observability import observe_activity
+
 logger = logging.getLogger(__name__)
 
 
 @activity.defn
+@observe_activity(name="select_topics", phase="question_generation")
 async def select_topics(analysis: dict, enriched_input: dict) -> list[dict]:
     """
     25개 질문 토픽 선정 (5카테고리 × 5)
@@ -89,6 +92,7 @@ async def select_topics(analysis: dict, enriched_input: dict) -> list[dict]:
 
 
 @activity.defn
+@observe_activity(name="craft_question", phase="question_generation")
 async def craft_question(
     topic: dict,
     analysis: dict,
@@ -135,6 +139,7 @@ async def craft_question(
 
 
 @activity.defn
+@observe_activity(name="enhance_terminology", phase="question_generation")
 async def enhance_terminology(questions: list[dict], enriched_input: dict) -> dict:
     """3c. Terminology Agent — 전문용어에 비개발자용 설명 추가"""
     from app.services.cached_llm import CachedLLMService
@@ -155,6 +160,7 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
 
 
 @activity.defn
+@observe_activity(name="craft_evaluation_scenarios", phase="question_generation")
 async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict) -> dict:
     """3d. Scenario Writer Agent — 3단계 평가 시나리오 생성"""
     from app.services.cached_llm import CachedLLMService
@@ -177,6 +183,7 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
 
 
 @activity.defn
+@observe_activity(name="design_follow_ups", phase="question_generation")
 async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict:
     """3e. Follow-up Designer Agent — 후속질문 분기 설계"""
     from app.services.cached_llm import CachedLLMService
@@ -199,6 +206,7 @@ async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict
 
 
 @activity.defn
+@observe_activity(name="generate_interviewer_notes", phase="question_generation")
 async def generate_interviewer_notes(questions: list[dict], enriched_input: dict) -> dict:
     """3f. Interviewer Note Agent — 면접관 참고 노트"""
     from app.services.cached_llm import CachedLLMService
@@ -219,6 +227,7 @@ async def generate_interviewer_notes(questions: list[dict], enriched_input: dict
 
 
 @activity.defn
+@observe_activity(name="generate_decision_guide", phase="question_generation")
 async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
     """3g. Decision Guide Agent — 채용 의사결정 가이드"""
     from app.services.cached_llm import CachedLLMService
@@ -251,6 +260,7 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
 
 
 @activity.defn
+@observe_activity(name="revise_questions", phase="question_generation")
 async def revise_questions(questions: list[dict], review_feedback: dict, enriched_input: dict) -> list[dict]:
     """3h. Quality Review revision — 피드백 기반 질문 수정"""
     from app.services.cached_llm import CachedLLMService

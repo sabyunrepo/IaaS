@@ -8,10 +8,13 @@ from datetime import datetime, timezone
 
 from temporalio import activity
 
+from app.core.observability import observe_activity
+
 logger = logging.getLogger(__name__)
 
 
 @activity.defn
+@observe_activity(name="finalize_output", phase="finalization")
 async def finalize_output(
     questions: list[dict],
     analysis: dict,
