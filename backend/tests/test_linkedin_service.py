@@ -61,7 +61,7 @@ class TestNormalizeProfile:
         result = svc._normalize_profile(data, "https://linkedin.com/in/john")
         assert result["full_name"] == "John Doe"
         assert result["country"] == "Korea"
-        assert result["url"] == "https://linkedin.com/in/john"
+        assert result["profile_url"] == "https://linkedin.com/in/john"
 
     def test_github_extraction_from_personal_urls(self):
         from app.services.linkedin_service import LinkedInService
@@ -118,9 +118,15 @@ class TestGetProfileNoKey:
     @pytest.mark.asyncio
     async def test_returns_none_without_token(self):
         from app.services.linkedin_service import LinkedInService
-        svc = LinkedInService(api_token="")
-        result = await svc.get_profile("https://linkedin.com/in/john")
-        assert result is None
+        from unittest.mock import patch
+
+        # settings.BRIGHTDATA_API_TOKEN도 None으로 설정해야 함
+        with patch("app.services.linkedin_service.settings") as mock_settings:
+            mock_settings.BRIGHTDATA_API_TOKEN = None
+
+            svc = LinkedInService(api_token=None)
+            result = await svc.get_profile("https://linkedin.com/in/john")
+            assert result is None
 
     @pytest.mark.asyncio
     async def test_invalid_url_raises(self):
