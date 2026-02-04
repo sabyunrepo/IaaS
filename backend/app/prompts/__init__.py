@@ -6,9 +6,14 @@ Langfuse Prompt Management Features:
 - 프롬프트 텍스트: Langfuse UI에서 버전 관리
 - 모델 설정: prompt.config에서 model, temperature 등 관리
 - Fallback: Langfuse 실패 시 로컬 YAML + llm_config.py 사용
+
+Template Syntax (Mustache-style):
+- {{variable}} = 변수 플레이스홀더
+- { } = 리터럴 중괄호 (JSON 등)
 """
 import logging
 import os
+import re
 from functools import lru_cache
 from typing import Any
 from dataclasses import dataclass
@@ -17,6 +22,19 @@ import yaml
 
 logger = logging.getLogger(__name__)
 PROMPTS_DIR = os.path.dirname(__file__)
+
+
+def mustache_format(template: str, **kwargs) -> str:
+    """Mustache 스타일 변수 치환 ({{variable}} → value).
+
+    Langfuse와 동일한 문법을 사용하여 YAML fallback에서도 일관성 유지.
+    """
+    result = template
+    for key, value in kwargs.items():
+        # {{key}} 패턴을 value로 치환
+        pattern = r'\{\{' + re.escape(key) + r'\}\}'
+        result = re.sub(pattern, str(value), result)
+    return result
 
 # Cache for Langfuse prompts (name -> prompt object)
 _langfuse_prompt_cache: dict[str, Any] = {}
@@ -140,7 +158,7 @@ def get_prompt(filename: str, key: str, **kwargs) -> str:
     # Fallback to local YAML
     data = _load_yaml(filename)
     template = data["prompts"][key]["template"]
-    result = template.format(**kwargs)
+    result = mustache_format(template, **kwargs)
 
     # Log YAML fallback usage
     _log_prompt_usage(langfuse_name, None, "yaml", kwargs.keys())
@@ -194,7 +212,7 @@ def get_prompt_with_metadata(filename: str, key: str, **kwargs) -> dict:
     # Fallback to YAML
     data = _load_yaml(filename)
     template = data["prompts"][key]["template"]
-    result = template.format(**kwargs)
+    result = mustache_format(template, **kwargs)
 
     _log_prompt_usage(langfuse_name, None, "yaml", kwargs.keys())
 
@@ -259,7 +277,7 @@ def get_prompt_with_config(filename: str, key: str, **kwargs) -> PromptWithConfi
     # Fallback to YAML + llm_config.py
     data = _load_yaml(filename)
     template = data["prompts"][key]["template"]
-    result = template.format(**kwargs)
+    result = mustache_format(template, **kwargs)
 
     # Get model from llm_config.py based on activity name
     from app.services.llm_config import get_model_for_activity
