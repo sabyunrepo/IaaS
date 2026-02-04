@@ -7,6 +7,7 @@ import logging
 from temporalio import activity
 
 from app.core.observability import observe_activity
+from app.services.activity_logger import ActivityLogger
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,18 @@ async def analyze_documents(input_data: dict) -> dict:
     """
     from app.services.document_parser import parse_document
     from app.services.cached_llm import CachedLLMService
+
+    # Initialize activity logger
+    job_id = input_data.get("job_id")
+    alog = ActivityLogger(job_id, "document_analysis", "analyzing") if job_id else None
+
+    doc_keys = ["resume_path", "portfolio_path", "cover_letter_path"]
+    available_docs = [k for k in doc_keys if input_data.get(k)]
+
+    if alog:
+        await alog.start("Starting document analysis", {
+            "available_documents": available_docs,
+        })
 
     llm = CachedLLMService()
     documents = []
@@ -46,10 +59,21 @@ async def analyze_documents(input_data: dict) -> dict:
                 logger.warning(f"Failed to parse {doc_key}: {e}")
 
     if not documents:
+        if alog:
+            await alog.result("No documents to analyze", {
+                "profile_keys": [],
+                "parse_results": [],
+            })
         return {"profile": {}, "raw_texts": [], "parse_info": []}
 
     # LLM으로 프로필 추출 (Activity별 최적 모델 사용)
     activity.heartbeat("Extracting candidate profile with LLM...")
+    if alog:
+        await alog.progress("Extracting candidate profile with LLM", {
+            "documents_count": len(documents),
+            "total_chars": sum(len(d) for d in documents),
+        })
+
     from app.prompts import get_prompt
     prompt = get_prompt("document_analysis.yaml", "extract_profile", documents="\n---\n".join(documents))
     profile = await llm.run(prompt, activity_name="analyze_documents")
@@ -78,6 +102,15 @@ async def analyze_documents(input_data: dict) -> dict:
             logger.info(f"Extracted {kg_entity_count} KG entities for job {job_id}")
         except Exception as e:
             logger.warning(f"KG extraction failed (non-fatal): {e}")
+
+    # Log final result
+    if alog:
+        profile_keys = list(profile.keys()) if isinstance(profile, dict) else []
+        await alog.result("Document analysis completed", {
+            "profile_keys": profile_keys,
+            "parse_results": parse_results,
+            "kg_entity_count": kg_entity_count,
+        })
 
     return {
         "profile": profile if isinstance(profile, dict) else {},

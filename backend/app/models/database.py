@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    Boolean, Column, DateTime, ForeignKey, Index, String, Text, BigInteger,
+    Boolean, Column, DateTime, ForeignKey, Index, Integer, String, Text, BigInteger,
     UniqueConstraint, func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -96,6 +96,7 @@ class JobDB(Base):
 
     user = relationship("UserDB", back_populates="jobs")
     checkpoints = relationship("CheckpointDB", back_populates="job", cascade="all, delete-orphan")
+    analysis_logs = relationship("AnalysisLogDB", back_populates="job", cascade="all, delete-orphan")
 
 
 class CheckpointDB(Base):
@@ -112,6 +113,29 @@ class CheckpointDB(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     job = relationship("JobDB", back_populates="checkpoints")
+
+
+class AnalysisLogDB(Base):
+    """Activity 실행 로그 - 분석 중간 결과 및 진행 상황 추적."""
+    __tablename__ = "analysis_logs"
+    __table_args__ = (
+        Index("idx_analysis_logs_job", "job_id"),
+        Index("idx_analysis_logs_activity", "activity_name"),
+        Index("idx_analysis_logs_phase", "phase"),
+        Index("idx_analysis_logs_created", "created_at"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
+    activity_name = Column(String(100), nullable=False)  # 'document_analysis', 'code_analysis', etc.
+    phase = Column(String(50), nullable=False)  # 'enriching', 'analyzing', 'generating'
+    log_type = Column(String(20), nullable=False)  # 'start', 'progress', 'result', 'error'
+    message = Column(Text)
+    data = Column(JSONB, server_default="{}")  # Structured analysis data
+    duration_ms = Column(Integer)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    job = relationship("JobDB", back_populates="analysis_logs")
 
 
 class EmbeddingDB(Base):
