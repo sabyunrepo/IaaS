@@ -73,18 +73,19 @@ def _log_llm_generation(
 
         # Langfuse SDK v3: start_generation으로 LLM 호출 기록
         # 현재 trace 컨텍스트 내에서 자동으로 연결됨
+        # NOTE: output은 end()에서 설정하여 정확한 기록 보장
         generation = client.start_generation(
             name=activity_name or "llm_call",
             model=model_name,
             input=prompt[:5000] if isinstance(prompt, str) else str(prompt)[:5000],
-            output=str(output)[:5000] if output else None,
             usage_details=usage_details,
             metadata={
                 **trace_meta,
                 "configured_model": model,
             },
         )
-        generation.end()
+        # output을 end()에서 명시적으로 설정 (버그 수정)
+        generation.end(output=str(output)[:5000] if output else None)
 
         logger.info(
             f"Logged Langfuse generation: {activity_name}, "

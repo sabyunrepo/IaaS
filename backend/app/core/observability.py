@@ -496,10 +496,65 @@ def end_observation(observation, output_data: dict | None = None, status: str = 
 # Phase 1: @observe 데코레이터 래퍼
 # =============================================================================
 
+def _extract_job_id(args: tuple, kwargs: dict) -> str | None:
+    """Activity 인자에서 job_id 추출"""
+    # Check positional args
+    for arg in args:
+        if isinstance(arg, dict):
+            if "job_id" in arg:
+                return arg.get("job_id")
+            # enriched_input 또는 input_data 내부 검사
+            if "raw_input" in arg and isinstance(arg["raw_input"], dict):
+                return arg["raw_input"].get("job_id")
+    # Check kwargs
+    for v in kwargs.values():
+        if isinstance(v, dict):
+            if "job_id" in v:
+                return v.get("job_id")
+    # Check direct job_id kwarg
+    return kwargs.get("job_id")
+
+
+def _safe_serialize(obj: Any, max_length: int = 5000) -> dict | str | list | None:
+    """결과를 Langfuse-safe 포맷으로 직렬화
+
+    Args:
+        obj: 직렬화할 객체
+        max_length: 최대 문자열 길이
+
+    Returns:
+        직렬화된 결과 (dict, str, list, or None)
+    """
+    try:
+        if obj is None:
+            return None
+        if isinstance(obj, dict):
+            # 딕셔너리: 최대 20개 키, 각 값 500자 제한
+            return {
+                str(k)[:100]: (
+                    _safe_serialize(v, max_length=500) if isinstance(v, (dict, list))
+                    else str(v)[:500] if v is not None else None
+                )
+                for k, v in list(obj.items())[:20]
+            }
+        if isinstance(obj, list):
+            # 리스트: 최대 10개 항목
+            return [
+                _safe_serialize(item, max_length=500) if isinstance(item, (dict, list))
+                else str(item)[:500] if item is not None else None
+                for item in obj[:10]
+            ]
+        # 기타 타입: 문자열로 변환
+        return str(obj)[:max_length]
+    except Exception as e:
+        return {"type": str(type(obj)), "preview": "serialization_failed", "error": str(e)[:100]}
+
+
 def observe_activity(name: str, phase: str = "unknown"):
-    """Activity용 Langfuse @observe 래퍼 데코레이터
+    """Activity용 Langfuse span 래퍼 데코레이터
 
     Temporal Activity에 Langfuse 추적을 추가합니다.
+    동적 @observe 대신 직접 span을 생성하여 output을 명시적으로 기록합니다.
     @activity.defn 데코레이터 아래에 위치해야 합니다.
 
     Usage:
@@ -513,36 +568,50 @@ def observe_activity(name: str, phase: str = "unknown"):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            # job_id 추출 시도 (dict 인자에서)
-            job_id = None
-            for arg in args:
-                if isinstance(arg, dict):
-                    if "job_id" in arg:
-                        job_id = arg.get("job_id")
-                        break
-                    # enriched_input 또는 input_data 내부 검사
-                    if "raw_input" in arg and isinstance(arg["raw_input"], dict):
-                        job_id = arg["raw_input"].get("job_id")
-                        break
-            for v in kwargs.values():
-                if isinstance(v, dict):
-                    if "job_id" in v:
-                        job_id = v.get("job_id")
-                        break
+            job_id = _extract_job_id(args, kwargs)
 
             if is_langfuse_enabled():
+                span = None
                 try:
-                    # Langfuse v3.x: import from langfuse directly
-                    try:
-                        from langfuse import observe
-                    except ImportError:
-                        from langfuse.decorators import observe
-                    observed_func = observe(name=name)(func)
+                    client = get_langfuse_client()
+                    if client:
+                        # 1. Span 시작 (동적 @observe 대신 직접 생성)
+                        span = client.start_span(
+                            name=name,
+                            input={
+                                "args_count": len(args),
+                                "kwargs_keys": list(kwargs.keys()),
+                                "job_id": job_id,
+                            },
+                        )
+                        # Trace 메타데이터 업데이트
+                        span.update_trace(
+                            session_id=job_id,
+                            tags=[f"phase:{phase}", f"activity:{name}"],
+                        )
+
+                    # 2. Activity 실행
                     with langfuse_trace_context(job_id=job_id, phase=phase, activity=name):
-                        return await observed_func(*args, **kwargs)
+                        result = await func(*args, **kwargs)
+
+                    # 3. Output 명시적 기록 (update 후 end)
+                    if span:
+                        span.update(
+                            output=_safe_serialize(result),
+                            metadata={"status": "success", "activity": name, "phase": phase},
+                        )
+                        span.end()
+
+                    return result
                 except Exception as e:
-                    logger.debug(f"@observe wrapper failed, running without: {e}")
-                    return await func(*args, **kwargs)
+                    # 에러 시에도 span 종료
+                    if span:
+                        span.update(
+                            output={"error": str(e)[:500]},
+                            metadata={"status": "error", "activity": name, "phase": phase},
+                        )
+                        span.end()
+                    raise
             else:
                 return await func(*args, **kwargs)
         return wrapper
