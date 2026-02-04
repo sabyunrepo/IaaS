@@ -2,26 +2,143 @@ import { useTranslation } from 'react-i18next'
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
+// Google Icon SVG
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M533.5 278.4c0-17.4-1.6-34.1-4.6-50.2H272v95h146.9c-6.3 33.9-25 62.5-53.2 81.8v68.1h85.8c50.2-46.3 82-114.6 82-194.7z"
+        fill="#4285F4"
+      />
+      <path
+        d="M272 544.3c71.6 0 131.7-23.7 175.7-64.2l-85.8-68.1c-23.8 16-54.1 25.4-89.9 25.4-69.1 0-127.6-46.6-148.4-109.3h-89.6v68.9C77.7 480.5 168.5 544.3 272 544.3z"
+        fill="#34A853"
+      />
+      <path
+        d="M123.6 328.1c-10.8-32.1-10.8-66.9 0-99l-89.6-68.9c-39.1 77.6-39.1 168.3 0 245.9l89.6-68z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M272 107.7c37.4-.6 73.5 13.2 101.1 38.7l75.4-75.4C403.4 24.5 341.4 0 272 0 168.5 0 77.7 63.8 34 159.2l89.6 68.9C144.4 154.3 202.9 107.7 272 107.7z"
+        fill="#EA4335"
+      />
+    </svg>
+  )
+}
+
+// GitHub Icon SVG
+function GitHubIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.48c-2.22.48-2.69-1.07-2.69-1.07-.36-.91-.88-1.15-.88-1.15-.72-.5.05-.49.05-.49.8.06 1.22.82 1.22.82.71 1.22 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.74.54 1.49v2.21c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+    </svg>
+  )
+}
+
 export function LoginPage() {
   const { t } = useTranslation()
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-      <h1 className="text-3xl font-bold text-gray-900">Vantict Sniper</h1>
-      <p className="text-gray-600">AI Technical Interview Script Generator</p>
-      <div className="flex flex-col gap-3 w-64">
-        <a
-          href={`${BACKEND}/auth/google/login`}
-          className="block text-center bg-white border border-gray-300 rounded-lg px-4 py-3 hover:bg-gray-50 text-gray-800 font-medium"
-        >
-          {t('login_with_google')}
-        </a>
-        <a
-          href={`${BACKEND}/auth/github/login`}
-          className="block text-center bg-gray-900 text-white rounded-lg px-4 py-3 hover:bg-gray-800 font-medium"
-        >
-          {t('login_with_github')}
-        </a>
+    <div className="flex min-h-[80vh] items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        {/* Card */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600">
+              <svg
+                className="h-8 w-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Vantict Sniper</h1>
+            <p className="mt-2 text-sm text-gray-600">{t('login_subtitle')}</p>
+          </div>
+
+          {/* OAuth Buttons */}
+          <div className="space-y-3">
+            <a
+              href={`${BACKEND}/auth/google/login`}
+              className="group flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <GoogleIcon className="h-5 w-5" />
+              <span>{t('login_with_google')}</span>
+            </a>
+
+            <a
+              href={`${BACKEND}/auth/github/login`}
+              className="group flex w-full items-center justify-center gap-3 rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-gray-800 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+            >
+              <GitHubIcon className="h-5 w-5" />
+              <span>{t('login_with_github')}</span>
+            </a>
+          </div>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-4 text-gray-500">{t('login_secure_note')}</span>
+            </div>
+          </div>
+
+          {/* Features */}
+          <div className="space-y-3 text-sm text-gray-600">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-green-100">
+                <svg className="h-3 w-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span>{t('login_feature_1')}</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-green-100">
+                <svg className="h-3 w-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span>{t('login_feature_2')}</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-green-100">
+                <svg className="h-3 w-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span>{t('login_feature_3')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <p className="mt-6 text-center text-xs text-gray-500">
+          {t('login_terms')}
+        </p>
       </div>
     </div>
   )

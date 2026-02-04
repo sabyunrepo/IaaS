@@ -5,6 +5,85 @@ import { useJob } from '../hooks/useJob'
 
 const PAGE_SIZE = 10
 
+// Status badge component
+function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation()
+
+  const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
+    pending: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('phase_pending') },
+    enriching: { bg: 'bg-blue-100', text: 'text-blue-700', label: t('phase_enriching') },
+    planning: { bg: 'bg-purple-100', text: 'text-purple-700', label: t('phase_planning') },
+    analyzing: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: t('phase_analyzing') },
+    generating: { bg: 'bg-amber-100', text: 'text-amber-700', label: t('phase_generating') },
+    reviewing: { bg: 'bg-cyan-100', text: 'text-cyan-700', label: t('phase_reviewing') },
+    completed: { bg: 'bg-green-100', text: 'text-green-700', label: t('phase_completed') },
+    failed: { bg: 'bg-red-100', text: 'text-red-700', label: t('phase_failed') },
+  }
+
+  const config = statusConfig[status] || { bg: 'bg-gray-100', text: 'text-gray-700', label: status }
+
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.bg} ${config.text}`}>
+      {config.label}
+    </span>
+  )
+}
+
+// Empty state component
+function EmptyState() {
+  const { t } = useTranslation()
+
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 px-6 py-16">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600">
+        <svg
+          className="h-8 w-8 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      </div>
+      <h3 className="mt-4 text-lg font-semibold text-gray-900">{t('script_list_empty_title')}</h3>
+      <p className="mt-1 text-sm text-gray-500">{t('script_list_empty_desc')}</p>
+      <Link
+        to="/jobs/new"
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
+      >
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+        {t('new_script')}
+      </Link>
+    </div>
+  )
+}
+
+// Loading skeleton
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="animate-pulse rounded-xl border border-gray-200 bg-white p-5">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-4 w-32 rounded bg-gray-200"></div>
+              <div className="h-3 w-48 rounded bg-gray-100"></div>
+            </div>
+            <div className="h-6 w-16 rounded-full bg-gray-200"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function JobListPage() {
   const { t } = useTranslation()
   const { jobs, loading, error, fetchJobs, deleteJob } = useJob()
@@ -14,8 +93,33 @@ export function JobListPage() {
     fetchJobs()
   }, [fetchJobs])
 
-  if (loading) return <p>{t('loading')}</p>
-  if (error) return <p className="text-red-600">{t('fetch_error')}</p>
+  if (loading) {
+    return (
+      <div>
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">{t('script_list_title')}</h1>
+        </div>
+        <LoadingSkeleton />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 px-6 py-12">
+        <svg className="h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <p className="mt-3 text-sm font-medium text-red-800">{t('fetch_error')}</p>
+        <button
+          onClick={() => fetchJobs()}
+          className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+        >
+          {t('retry')}
+        </button>
+      </div>
+    )
+  }
 
   const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE))
   const paginated = jobs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -28,60 +132,115 @@ export function JobListPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{t('jobs')}</h1>
-        <Link
-          to="/jobs/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          {t('create_job')}
-        </Link>
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{t('script_list_title')}</h1>
+          {jobs.length > 0 && (
+            <p className="mt-1 text-sm text-gray-500">
+              {jobs.length}개의 스크립트
+            </p>
+          )}
+        </div>
+        {jobs.length > 0 && (
+          <Link
+            to="/jobs/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            {t('new_script')}
+          </Link>
+        )}
       </div>
 
       {jobs.length === 0 ? (
-        <p className="text-gray-500">{t('no_jobs')}</p>
+        <EmptyState />
       ) : (
         <>
+          {/* Script List */}
           <div className="space-y-3">
             {paginated.map((job) => (
-              <div key={job.job_id} className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
-                <div>
-                  <Link to={`/jobs/${job.job_id}`} className="text-blue-600 hover:underline font-medium">
-                    {job.job_id.slice(0, 8)}...
-                  </Link>
-                  <span className="ml-3 text-sm text-gray-500">{job.status}</span>
-                  <span className="ml-3 text-sm text-gray-400">
-                    {new Date(job.created_at).toLocaleString()}
-                  </span>
+              <div
+                key={job.job_id}
+                className="group rounded-xl border border-gray-200 bg-white p-5 transition-all hover:border-gray-300 hover:shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <Link
+                        to={`/jobs/${job.job_id}`}
+                        className="text-base font-medium text-gray-900 hover:text-indigo-600"
+                      >
+                        #{job.job_id.slice(0, 8)}
+                      </Link>
+                      <StatusBadge status={job.status} />
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-4 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {new Date(job.created_at).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {new Date(job.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {job.status === 'completed' && (
+                      <Link
+                        to={`/jobs/${job.job_id}/result`}
+                        className="rounded-lg bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700 hover:bg-green-100"
+                      >
+                        {t('view_result')}
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => handleDelete(job.job_id)}
+                      className="rounded-lg p-2 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+                      aria-label={t('delete')}
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(job.job_id)}
-                  className="text-sm text-red-500 hover:text-red-700"
-                >
-                  {t('delete')}
-                </button>
               </div>
             ))}
           </div>
 
+          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-6">
+            <div className="mt-8 flex items-center justify-center gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1 text-sm rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-100"
+                className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
                 {t('prev')}
               </button>
-              <span className="text-sm text-gray-600">
+              <span className="px-4 text-sm text-gray-600">
                 {page} / {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1 text-sm rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-100"
+                className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {t('next')}
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             </div>
           )}

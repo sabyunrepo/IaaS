@@ -7,16 +7,25 @@ const resources = {
       app_title: 'Vantict Sniper',
       login: '로그인',
       logout: '로그아웃',
-      jobs: 'Job 목록',
-      create_job: 'Job 생성',
+      // Navigation - "Job" → "면접 스크립트" 변경
+      jobs: '내 면접 스크립트',
+      create_job: '새 스크립트 생성',
       status: '상태',
       loading: '로딩 중...',
-      login_with_google: 'Google로 로그인',
-      login_with_github: 'GitHub으로 로그인',
+      // Login page
+      login_with_google: 'Google 계정으로 로그인',
+      login_with_github: 'GitHub 계정으로 로그인',
+      login_subtitle: 'AI 기반 기술면접 스크립트 생성 서비스',
+      login_secure_note: '안전하게 로그인됩니다',
+      login_feature_1: 'GitHub 코드 분석으로 맞춤형 질문 생성',
+      login_feature_2: 'LinkedIn 프로필 기반 경력 분석',
+      login_feature_3: '25개 구조화된 면접 질문과 평가 가이드',
+      login_terms: '로그인 시 서비스 이용약관에 동의하게 됩니다.',
+      // Job description
       jd_placeholder: '채용공고(JD)를 입력하세요...',
       submit: '제출',
-      no_jobs: 'Job이 없습니다.',
-      // Job list
+      // Job list - "Job" → "면접 스크립트" 변경
+      no_jobs: '생성된 면접 스크립트가 없습니다.',
       delete: '삭제',
       delete_confirm: '정말 삭제하시겠습니까?',
       prev: '이전',
@@ -65,7 +74,7 @@ const resources = {
       go_home: '홈으로 돌아가기',
       // Error states
       fetch_error: '데이터를 불러오는 데 실패했습니다.',
-      // Create job
+      // Create job - "Job" → "면접 스크립트" 변경
       jd_label: '채용공고 (JD)',
       experience_level: '경험 레벨',
       level_entry: '신입',
@@ -79,14 +88,11 @@ const resources = {
       candidate_info: '후보자 정보',
       linkedin_url: 'LinkedIn 프로필 URL',
       linkedin_hint: 'LinkedIn 프로필에서 경력, 스킬, GitHub URL을 자동 추출합니다',
-      github_repos: 'GitHub 레포지토리',
-      add_repo: '레포 추가',
+      git_url: 'Git URL',
+      git_url_hint: '후보자의 GitHub 프로필 또는 레포지토리 URL을 입력하세요 (레포는 자동 추출됩니다)',
       remove: '삭제',
-      github_repos_hint: '분석할 GitHub 레포지토리 URL을 입력하세요 (최대 5개)',
       options: '옵션',
       max_questions: '생성할 질문 수',
-      focus_areas: '집중 기술 영역',
-      focus_areas_hint: '쉼표로 구분하여 입력 (선택사항)',
       cancel: '취소',
       create_interview_script: '면접 스크립트 생성',
       // File upload
@@ -102,6 +108,11 @@ const resources = {
       nav_label: '메인 네비게이션',
       switch_language: '언어 전환',
       logged_in_as: '로그인 사용자',
+      // Job list page - 추가 번역
+      script_list_title: '내 면접 스크립트',
+      script_list_empty_title: '아직 생성된 스크립트가 없습니다',
+      script_list_empty_desc: '새 면접 스크립트를 생성하여 시작하세요',
+      new_script: '새 스크립트 생성',
     },
   },
   en: {
@@ -109,19 +120,30 @@ const resources = {
       app_title: 'Vantict Sniper',
       login: 'Login',
       logout: 'Logout',
-      jobs: 'Jobs',
-      create_job: 'Create Job',
+      // Navigation - "Jobs" → "Interview Scripts" change
+      jobs: 'My Scripts',
+      create_job: 'New Script',
       status: 'Status',
       loading: 'Loading...',
-      login_with_google: 'Login with Google',
-      login_with_github: 'Login with GitHub',
+      // Login page
+      login_with_google: 'Continue with Google',
+      login_with_github: 'Continue with GitHub',
+      login_subtitle: 'AI-Powered Technical Interview Script Generator',
+      login_secure_note: 'Secure authentication',
+      login_feature_1: 'Custom questions from GitHub code analysis',
+      login_feature_2: 'LinkedIn profile-based career analysis',
+      login_feature_3: '25 structured interview questions with evaluation guide',
+      login_terms: 'By signing in, you agree to our Terms of Service.',
+      // Job description
       jd_placeholder: 'Enter job description...',
       submit: 'Submit',
-      no_jobs: 'No jobs found.',
+      // Job list - "Jobs" → "Scripts" change
+      no_jobs: 'No interview scripts found.',
       delete: 'Delete',
       delete_confirm: 'Are you sure you want to delete?',
       prev: 'Prev',
       next: 'Next',
+      // Job status phases
       phase_pending: 'Pending',
       phase_enriching: 'Phase 0: Input Analysis',
       phase_planning: 'Phase 1: Planning',
@@ -135,6 +157,7 @@ const resources = {
       view_result: 'View Result',
       generation_failed: 'Generation failed',
       unknown_error: 'Unknown error',
+      // Result page
       interview_script: 'Interview Script',
       score_label: 'Score',
       candidate_summary: 'Candidate Summary',
@@ -142,23 +165,29 @@ const resources = {
       print_pdf: 'Print PDF',
       glossary: 'Glossary',
       result_error: 'Failed to load result.',
+      // Categories
       cat_all: 'All',
       cat_role_fit: 'Role Fit',
       cat_technical_depth: 'Technical Depth',
       cat_execution_ownership: 'Execution/Ownership',
       cat_communication: 'Communication',
       cat_risk_flags: 'Risk Flags',
+      // Question card
       expected_answer: 'Expected Answer',
       follow_up: 'Follow-up Questions',
       terminology: 'Terminology',
       interviewer_note: 'Interviewer Note',
       scoring: 'Score',
       minutes: 'min',
+      // Error boundary
       error_occurred: 'An error occurred',
       retry: 'Retry',
+      // 404
       page_not_found: 'Page not found.',
       go_home: 'Go Home',
+      // Error states
       fetch_error: 'Failed to load data.',
+      // Create job
       jd_label: 'Job Description (JD)',
       experience_level: 'Experience Level',
       level_entry: 'Entry',
@@ -172,14 +201,11 @@ const resources = {
       candidate_info: 'Candidate Info',
       linkedin_url: 'LinkedIn Profile URL',
       linkedin_hint: 'Auto-extracts career, skills, and GitHub URL from LinkedIn profile',
-      github_repos: 'GitHub Repositories',
-      add_repo: 'Add Repo',
+      git_url: 'Git URL',
+      git_url_hint: 'Enter the candidate\'s GitHub profile or repository URL (repos will be auto-extracted)',
       remove: 'Remove',
-      github_repos_hint: 'Enter GitHub repository URLs to analyze (max 5)',
       options: 'Options',
       max_questions: 'Number of Questions',
-      focus_areas: 'Focus Areas',
-      focus_areas_hint: 'Comma-separated (optional)',
       cancel: 'Cancel',
       create_interview_script: 'Generate Interview Script',
       // File upload
@@ -190,10 +216,16 @@ const resources = {
       cover_letter: 'Cover Letter',
       uploading: 'Uploading...',
       output_language: 'Output Language',
+      // Accessibility
       skip_to_content: 'Skip to content',
       nav_label: 'Main navigation',
       switch_language: 'Switch language',
       logged_in_as: 'Logged in as',
+      // Job list page - additional translations
+      script_list_title: 'My Interview Scripts',
+      script_list_empty_title: 'No scripts yet',
+      script_list_empty_desc: 'Create your first interview script to get started',
+      new_script: 'Create New Script',
     },
   },
 }
