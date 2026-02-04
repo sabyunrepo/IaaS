@@ -36,7 +36,7 @@ class TestJdRequirementsExtraction:
             "tech_stack": ["Python", "TypeScript", "FastAPI"],
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_result
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -67,7 +67,7 @@ class TestJdSkillExtraction:
             "responsibilities": [],
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_result
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -90,7 +90,7 @@ class TestJdAnalysisErrorHandling:
         from app.workflows.activities.jd_analysis import analyze_jd
         from unittest.mock import patch
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return "Not a dict response"
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -129,7 +129,7 @@ class TestJdAnalysisIntegration:
             "tech_stack": [],
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_result
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):

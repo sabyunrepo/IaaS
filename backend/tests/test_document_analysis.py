@@ -70,7 +70,7 @@ class TestLlmProfileExtraction:
         async def mock_parse_document(path):
             return MockParseResult()
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_profile
 
         with patch("app.workflows.activities.document_analysis.activity") as mock_activity, \
@@ -134,7 +134,7 @@ class TestDocumentAnalysisErrorHandling:
                 raise ValueError("Parse failed")
             return MockParseResult()
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return {"name": "Test"}
 
         with patch("app.workflows.activities.document_analysis.activity") as mock_activity, \

@@ -34,7 +34,7 @@ class TestSelectTopics:
             {"category": "technical_depth", "topic": "Python", "difficulty": "Hard", "source": "code"},
         ]
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_topics
 
         with patch("app.workflows.activities.question_generation.activity") as mock_activity, \
@@ -53,7 +53,7 @@ class TestSelectTopics:
         from app.workflows.activities.question_generation import select_topics
         from unittest.mock import patch
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return "Not a list"  # LLM 실패 시뮬레이션
 
         with patch("app.workflows.activities.question_generation.activity") as mock_activity, \
@@ -94,7 +94,7 @@ class TestCraftQuestion:
             "expected_answer": {"level_1": "기본 개념", "level_2": "구현 경험", "level_3": "최적화"},
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_question
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -115,7 +115,7 @@ class TestCraftQuestion:
             "difficulty": "Easy",
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return "Not a dict"
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -151,7 +151,7 @@ class TestEnhanceTerminology:
             }
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_result
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -187,7 +187,7 @@ class TestCraftEvaluationScenarios:
             }
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_result
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -222,7 +222,7 @@ class TestDesignFollowUps:
             }
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_result
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -254,7 +254,7 @@ class TestGenerateInterviewerNotes:
             }
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_result
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -282,7 +282,7 @@ class TestGenerateDecisionGuide:
             "red_flags": ["팀워크 부족", "코드 품질 낮음"],
         }
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_result
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -316,7 +316,7 @@ class TestReviseQuestions:
             {"question_text": "Python으로 해결한 가장 복잡한 문제는 무엇인가요?", "category": "technical_depth"},
         ]
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return mock_revised
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
@@ -335,7 +335,7 @@ class TestReviseQuestions:
             {"question_text": "Original question", "category": "technical_depth"},
         ]
 
-        async def mock_llm_run(prompt):
+        async def mock_llm_run(prompt, **kwargs):
             return "Not a list"
 
         with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):

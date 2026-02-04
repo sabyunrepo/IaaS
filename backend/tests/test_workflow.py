@@ -13,6 +13,8 @@ class TestActivityRegistration:
             "create_execution_plan",
             "analyze_documents",
             "analyze_code",
+            "analyze_single_repo",      # HYBRID 3-Stage 단일 레포 분석
+            "validate_code_analysis",   # 코드 분석 품질 검증
             "analyze_jd",
             "select_topics",
             "craft_question",
@@ -30,11 +32,16 @@ class TestActivityRegistration:
             "start_job_trace",
             "end_job_trace",
             "log_phase_event",
+            # Knowledge Graph activities
+            "build_knowledge_graph",
+            "get_kg_question_candidates",
+            "get_evidence_chain",
+            "clear_knowledge_graph",
         ]
         assert names == expected
 
     def test_activity_count(self):
-        assert len(ACTIVITIES) == 20
+        assert len(ACTIVITIES) == 26
 
 
 class TestWorkflow:

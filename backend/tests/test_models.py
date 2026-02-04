@@ -28,10 +28,10 @@ class TestInputData:
         data = InputData(
             jd_text=JD_TEXT,
             experience_level="시니어",
-            github_urls=["https://github.com/user/repo"],
+            git_url="https://github.com/user/repo",
             linkedin_url="https://linkedin.com/in/user",
         )
-        assert len(data.github_urls) == 1
+        assert data.git_url == "https://github.com/user/repo"
 
     def test_jd_text_too_short(self):
         with pytest.raises(Exception):
