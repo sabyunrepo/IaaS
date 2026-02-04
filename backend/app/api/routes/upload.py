@@ -23,7 +23,7 @@ ALLOWED_EXTENSIONS = {
     "cover_letter": [".pdf", ".docx"],
 }
 
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 
 class UploadResponse(BaseModel):
