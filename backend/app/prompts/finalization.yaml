@@ -18,13 +18,13 @@ prompts:
       # ANALYZER INPUTS
 
       ## Analyzer 1: Document Analysis (Resume/Portfolio)
-      {document_analysis}
+      {{document_analysis}}
 
       ## Analyzer 2: Code Analysis (GitHub)
-      {code_analysis}
+      {{code_analysis}}
 
       ## Analyzer 3: LinkedIn Profile
-      {linkedin_profile}
+      {{linkedin_profile}}
 
       # SYNTHESIS RULES (CRITICAL)
 
@@ -53,80 +53,80 @@ prompts:
 
       # OUTPUT FORMAT (JSON)
       ```json
-      {{
-        "candidate_overview": {{
+      {
+        "candidate_overview": {
           "name": "후보자 이름",
           "current_position": "현재 직책 (source)",
           "experience_years": "경력 년수 (calculated)",
           "primary_domain": "주요 분야",
           "confidence_level": "high|medium|low"
-        }},
+        },
         "key_strengths": [
-          {{
+          {
             "strength": "강점 설명",
-            "evidence": {{
+            "evidence": {
               "github": "GitHub 증거 또는 null",
               "resume": "이력서 증거 또는 null",
               "linkedin": "LinkedIn 증거 또는 null"
-            }},
+            },
             "confidence": 0.0-1.0,
             "corroboration": "3-source|2-source|1-source"
-          }}
+          }
         ],
         "notable_achievements": [
-          {{
+          {
             "achievement": "성과 설명",
             "source": "출처",
             "verification_status": "verified|unverified|conflicting",
             "details": "추가 세부사항"
-          }}
+          }
         ],
-        "technical_expertise": {{
+        "technical_expertise": {
           "languages": [
-            {{
+            {
               "skill": "Python",
               "proficiency": "expert|advanced|intermediate|beginner",
-              "evidence": {{"github": "commits/repos", "resume": "stated", "linkedin": "endorsed"}},
+              "evidence": {"github": "commits/repos", "resume": "stated", "linkedin": "endorsed"},
               "confidence": 0.0-1.0
-            }}
+            }
           ],
           "frameworks": [...],
           "tools": [...],
           "domains": [...]
-        }},
+        },
         "interview_discussion_topics": [
-          {{
+          {
             "topic": "토픽",
             "angle": "접근 방향",
             "evidence_base": "근거",
             "priority": "high|medium|low"
-          }}
+          }
         ],
         "risk_flags": [
-          {{
+          {
             "concern": "우려 사항",
             "evidence": "근거",
             "severity": "high|medium|low",
             "mitigation_question": "확인 질문"
-          }}
+          }
         ],
         "source_conflicts": [
-          {{
+          {
             "topic": "충돌 주제",
-            "source_a": {{"source": "github", "claim": "claim A"}},
-            "source_b": {{"source": "resume", "claim": "claim B"}},
+            "source_a": {"source": "github", "claim": "claim A"},
+            "source_b": {"source": "resume", "claim": "claim B"},
             "resolution": "recommended interpretation"
-          }}
+          }
         ],
-        "data_quality_assessment": {{
+        "data_quality_assessment": {
           "document_quality": 0.0-1.0,
           "github_quality": 0.0-1.0,
           "linkedin_quality": 0.0-1.0,
           "overall_confidence": 0.0-1.0,
           "missing_data": ["list of missing information"],
           "recommendations": ["suggestions for improving data"]
-        }}
-      }}
+        }
+      }
       ```
 
       # SUCCESSFUL SYNTHESIS EXAMPLE
@@ -138,61 +138,61 @@ prompts:
 
       Good Synthesis:
       ```json
-      {{
-        "candidate_overview": {{
+      {
+        "candidate_overview": {
           "name": "홍길동",
           "current_position": "Backend Engineer at ABC Corp (LinkedIn confirmed)",
           "experience_years": "3 years (Resume)",
           "primary_domain": "Backend Development (3-source corroboration)",
           "confidence_level": "high"
-        }},
+        },
         "key_strengths": [
-          {{
+          {
             "strength": "Python/FastAPI 전문성",
-            "evidence": {{
+            "evidence": {
               "github": "50 Python repos, FastAPI 주력, 2000+ commits",
               "resume": "Python/FastAPI 3년 경력 명시",
               "linkedin": "Python endorsed by 15 people"
-            }},
+            },
             "confidence": 0.95,
             "corroboration": "3-source"
-          }}
+          }
         ],
-        "data_quality_assessment": {{
+        "data_quality_assessment": {
           "overall_confidence": 0.9,
           "missing_data": ["specific project impact metrics", "team size details"]
-        }}
-      }}
+        }
+      }
       ```
 
       # UNSUCCESSFUL SYNTHESIS EXAMPLE (DO NOT DO THIS)
 
       BAD Synthesis (hallucinated):
       ```json
-      {{
+      {
         "key_strengths": [
-          {{
+          {
             "strength": "Kubernetes 및 클라우드 인프라 전문성",
-            "evidence": {{"github": "assumed from DevOps interest", "resume": null, "linkedin": null}},
+            "evidence": {"github": "assumed from DevOps interest", "resume": null, "linkedin": null},
             "confidence": 0.8
-          }}
+          }
         ]
-      }}
+      }
       ```
       WHY BAD: Kubernetes was NEVER mentioned in any source. High confidence is unjustified.
 
       CORRECT Synthesis:
       ```json
-      {{
+      {
         "risk_flags": [
-          {{
+          {
             "concern": "인프라/DevOps 경험 미확인",
             "evidence": "No infrastructure or Kubernetes evidence in any source",
             "severity": "medium",
             "mitigation_question": "배포 및 인프라 경험이 있으시다면 설명해주세요"
-          }}
+          }
         ]
-      }}
+      }
       ```
 
       # LIMITATIONS
@@ -216,50 +216,50 @@ prompts:
       Generate a comprehensive interviewer guide for conducting the interview.
 
       # CONTEXT
-      Experience Level: {experience_level}
-      Total Questions: {total_questions}
-      Categories: {categories}
+      Experience Level: {{experience_level}}
+      Total Questions: {{total_questions}}
+      Categories: {{categories}}
 
       # OUTPUT FORMAT (JSON)
       ```json
-      {{
-        "interview_overview": {{
+      {
+        "interview_overview": {
           "total_duration_minutes": number,
           "question_count": number,
           "experience_level": "level",
           "interview_style": "conversational|structured|mixed"
-        }},
+        },
         "category_breakdown": [
-          {{
+          {
             "category": "category_name",
             "question_count": number,
             "time_allocation_minutes": number,
             "focus_areas": ["area1", "area2"],
             "evaluation_priority": "high|medium|low"
-          }}
+          }
         ],
-        "interview_flow": {{
-          "opening": {{
+        "interview_flow": {
+          "opening": {
             "script": "Opening remarks script",
             "duration_minutes": 3,
             "tips": ["tip1", "tip2"]
-          }},
-          "main_body": {{
+          },
+          "main_body": {
             "recommended_order": ["category1", "category2"],
             "transition_phrases": ["phrase1", "phrase2"]
-          }},
-          "closing": {{
+          },
+          "closing": {
             "script": "Closing remarks script",
             "duration_minutes": 3,
             "candidate_questions_time": 5
-          }}
-        }},
-        "evaluation_matrix": {{
+          }
+        },
+        "evaluation_matrix": {
           "scoring_scale": "1-5 or 1-10",
-          "category_weights": {{"category": weight}},
+          "category_weights": {"category": weight},
           "passing_threshold": number,
           "strong_hire_threshold": number
-        }},
+        },
         "red_flags_summary": [
           "Global red flag to watch for"
         ],
@@ -267,15 +267,15 @@ prompts:
           "Global positive indicator"
         ],
         "interviewer_tips": [
-          {{
+          {
             "tip": "Advice text",
             "context": "When this applies"
-          }}
+          }
         ],
         "post_interview_checklist": [
           "Item to complete after interview"
         ]
-      }}
+      }
       ```
 
       Return ONLY the JSON object, no additional text.
@@ -304,38 +304,38 @@ prompts:
       **Threshold**: If score < 70%, flag package for review
 
       # INPUT DATA
-      Candidate Summary: {candidate_summary}
-      Questions: {questions_json}
-      Evaluation Scenarios: {scenarios_json}
-      Interviewer Guide: {guide_json}
+      Candidate Summary: {{candidate_summary}}
+      Questions: {{questions_json}}
+      Evaluation Scenarios: {{scenarios_json}}
+      Interviewer Guide: {{guide_json}}
 
       # OUTPUT FORMAT (JSON)
       ```json
-      {{
-        "final_validation": {{
+      {
+        "final_validation": {
           "total_questions": number,
           "grounded_questions": number,
           "evidence_grounding_score": 0-100,
           "passed_threshold": true|false,
           "flagged_items": [
-            {{
+            {
               "item_type": "question|claim|scenario",
               "item_index": number,
               "issue": "description of grounding issue",
               "recommendation": "how to fix"
-            }}
+            }
           ]
-        }},
-        "package_quality": {{
+        },
+        "package_quality": {
           "overall_score": 0-100,
-          "category_coverage": {{"category": "complete|partial|missing"}},
+          "category_coverage": {"category": "complete|partial|missing"},
           "difficulty_balance": "balanced|skewed_easy|skewed_hard",
           "evidence_quality": "strong|moderate|weak"
-        }},
+        },
         "ready_for_delivery": true|false,
         "delivery_blockers": ["list of issues preventing delivery"],
         "improvement_suggestions": ["optional improvements"]
-      }}
+      }
       ```
 
       # VALIDATION RULES

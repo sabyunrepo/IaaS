@@ -60,9 +60,11 @@ class TestPromptLoader:
         with pytest.raises(FileNotFoundError):
             get_prompt("nonexistent.yaml", "key")
 
-    def test_missing_variable_raises(self):
-        with pytest.raises(KeyError):
-            get_prompt("jd_analysis.yaml", "analyze")  # missing jd_text
+    def test_missing_variable_keeps_placeholder(self):
+        """Mustache 스타일: 누락된 변수는 플레이스홀더 유지 (에러 아님)."""
+        result = get_prompt("jd_analysis.yaml", "analyze")  # missing jd_text
+        # 누락된 변수 {{jd_text}}가 그대로 남아있어야 함
+        assert "{{jd_text}}" in result
 
 
 class TestYamlStructure:

@@ -18,6 +18,7 @@ scripts/upload_prompts_to_langfuse.py
 """
 import argparse
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -25,6 +26,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import yaml
+
+
+# Note: YAML 템플릿이 이제 Mustache 문법 ({{variable}})을 직접 사용하므로
+# 별도의 변환이 필요 없습니다. Langfuse와 YAML fallback 모두 동일한 문법 사용.
 
 
 # Activity별 최적 모델 설정 (llm_config.py와 동기화)
@@ -105,6 +110,7 @@ def load_yaml_prompts(prompts_dir: Path, filename: str | None = None) -> dict:
                 "temperature": 0.5,
             })
 
+            # YAML 템플릿이 이미 Mustache 문법 사용 - 변환 불필요
             prompts[langfuse_name] = {
                 "name": langfuse_name,
                 "template": prompt_data["template"],
@@ -135,6 +141,11 @@ def upload_to_langfuse(
             print(f"  Model: {data['config'].get('model')}")
             print(f"  Temperature: {data['config'].get('temperature')}")
             print(f"  Template length: {len(data['template'])} chars")
+
+            # Show detected Langfuse variables
+            variables = re.findall(r'\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}', data['template'])
+            if variables:
+                print(f"  Variables: {', '.join(sorted(set(variables)))}")
             print()
         return
 

@@ -24,77 +24,77 @@ prompts:
       - Note contradictions between documents with "[CONFLICT]"
 
       # CONTEXT DOCUMENTS
-      {documents}
+      {{documents}}
 
       # OUTPUT FORMAT (JSON)
       ```json
-      {{
+      {
         "name": "string or null",
-        "contact": {{
+        "contact": {
           "email": "string or null",
           "phone": "string or null",
           "linkedin": "string or null",
           "github": "string or null"
-        }},
+        },
         "education": [
-          {{
+          {
             "institution": "학교명",
             "degree": "학위",
             "field": "전공",
             "graduation_year": "년도 or null",
             "gpa": "number or null",
             "source_quote": "원문에서 발췌"
-          }}
+          }
         ],
         "work_experience": [
-          {{
+          {
             "company": "회사명",
             "position": "직책",
             "period": "기간",
             "responsibilities": ["책임1", "책임2"],
             "achievements": ["성과1", "성과2"],
             "source_quote": "원문에서 발췌"
-          }}
+          }
         ],
-        "skills": {{
+        "skills": {
           "languages": ["명시된 프로그래밍 언어"],
           "frameworks": ["명시된 프레임워크"],
           "tools": ["명시된 도구"],
           "soft_skills": ["명시된 소프트 스킬"]
-        }},
+        },
         "projects": [
-          {{
+          {
             "name": "프로젝트명",
             "description": "설명",
             "technologies": ["사용 기술"],
             "role": "역할",
             "impact": "성과/영향",
             "source_quote": "원문에서 발췌"
-          }}
+          }
         ],
         "certifications": [
-          {{
+          {
             "name": "자격증명",
             "issuer": "발급기관",
             "date": "취득일 or null",
             "source_quote": "원문에서 발췌"
-          }}
+          }
         ],
         "awards": [
-          {{
+          {
             "name": "수상명",
             "issuer": "수여기관",
             "date": "수상일 or null",
             "description": "설명"
-          }}
+          }
         ],
-        "extraction_confidence": {{
+        "extraction_confidence": {
           "overall_score": 0.0-1.0,
           "missing_sections": ["section names with no data"],
           "unclear_sections": ["section names with unclear data"],
           "conflicts_found": ["description of any conflicts"]
-        }}
-      }}
+        }
+      }
       ```
 
       # SUCCESSFUL EXAMPLE
@@ -107,17 +107,17 @@ prompts:
 
       Output:
       ```json
-      {{
+      {
         "name": "홍길동",
-        "contact": {{"email": "hong@email.com", "github": "github.com/hong", "linkedin": null, "phone": null}},
-        "education": [{{"institution": "서울대학교", "degree": "학사", "field": "컴퓨터공학과", "graduation_year": "2020", "gpa": 4.2, "source_quote": "서울대학교 컴퓨터공학과 졸업 (2020, GPA 4.2/4.5)"}}],
-        "work_experience": [{{"company": "ABC Corp", "position": "백엔드 개발자", "period": "2020.03 - 현재", "responsibilities": ["FastAPI 기반 마이크로서비스 아키텍처 설계 및 구현"], "achievements": ["일일 100만 요청 처리 시스템 구축으로 응답시간 40% 개선"], "source_quote": "ABC Corp 백엔드 개발자..."}}],
-        "skills": {{"languages": ["Python"], "frameworks": ["FastAPI"], "tools": ["PostgreSQL", "Docker", "Kubernetes"], "soft_skills": []}},
+        "contact": {"email": "hong@email.com", "github": "github.com/hong", "linkedin": null, "phone": null},
+        "education": [{"institution": "서울대학교", "degree": "학사", "field": "컴퓨터공학과", "graduation_year": "2020", "gpa": 4.2, "source_quote": "서울대학교 컴퓨터공학과 졸업 (2020, GPA 4.2/4.5)"}],
+        "work_experience": [{"company": "ABC Corp", "position": "백엔드 개발자", "period": "2020.03 - 현재", "responsibilities": ["FastAPI 기반 마이크로서비스 아키텍처 설계 및 구현"], "achievements": ["일일 100만 요청 처리 시스템 구축으로 응답시간 40% 개선"], "source_quote": "ABC Corp 백엔드 개발자..."}],
+        "skills": {"languages": ["Python"], "frameworks": ["FastAPI"], "tools": ["PostgreSQL", "Docker", "Kubernetes"], "soft_skills": []},
         "projects": [],
         "certifications": [],
         "awards": [],
-        "extraction_confidence": {{"overall_score": 0.85, "missing_sections": ["projects", "certifications"], "unclear_sections": [], "conflicts_found": []}}
-      }}
+        "extraction_confidence": {"overall_score": 0.85, "missing_sections": ["projects", "certifications"], "unclear_sections": [], "conflicts_found": []}
+      }
       ```
 
       # UNSUCCESSFUL EXAMPLE (HALLUCINATION - DO NOT DO THIS)
@@ -125,19 +125,19 @@ prompts:
 
       BAD Output (hallucinated):
       ```json
-      {{
-        "skills": {{"languages": ["Python", "Java", "JavaScript"], "frameworks": ["Django", "FastAPI", "Spring"]}}
-      }}
+      {
+        "skills": {"languages": ["Python", "Java", "JavaScript"], "frameworks": ["Django", "FastAPI", "Spring"]}
+      }
       ```
       WHY BAD: Only "Python 백엔드 개발자" was mentioned. Java, JavaScript, Django, FastAPI, Spring were NOT in the document.
 
       CORRECT Output:
       ```json
-      {{
+      {
         "name": "김개발자",
-        "skills": {{"languages": ["Python"], "frameworks": [], "tools": [], "soft_skills": []}},
-        "extraction_confidence": {{"overall_score": 0.3, "missing_sections": ["education", "work_experience", "contact"], "unclear_sections": [], "conflicts_found": []}}
-      }}
+        "skills": {"languages": ["Python"], "frameworks": [], "tools": [], "soft_skills": []},
+        "extraction_confidence": {"overall_score": 0.3, "missing_sections": ["education", "work_experience", "contact"], "unclear_sections": [], "conflicts_found": []}
+      }
       ```
 
       # LIMITATIONS

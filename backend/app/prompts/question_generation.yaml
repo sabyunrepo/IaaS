@@ -3,8 +3,8 @@ prompts:
     description: "면접 질문 토픽 25개 선정 - 다중 소스 기반 (Few-shot Enhanced)"
     template: |
       # ROLE & GOAL
-      You are an expert interview strategist. Your task is to select {max_questions} interview topics
-      for a {experience_level} level candidate based on multiple analyzed sources.
+      You are an expert interview strategist. Your task is to select {{max_questions}} interview topics
+      for a {{experience_level}} level candidate based on multiple analyzed sources.
 
       # WHAT YOU WILL SEE
       You will receive pre-analyzed data from multiple sources:
@@ -37,7 +37,7 @@ prompts:
       Every topic MUST have clear source attribution with evidence_summary
 
       # AVAILABLE TOPIC CANDIDATES
-      {candidates}
+      {{candidates}}
 
       # CATEGORY REQUIREMENTS
       Distribute exactly 5 topics per category:
@@ -55,20 +55,20 @@ prompts:
       # OUTPUT FORMAT (JSON)
       ```json
       [
-        {{
+        {
           "category": "role_fit|technical_depth|execution_ownership|communication|risk_flags",
           "topic": "Specific topic title",
           "difficulty": "Easy|Medium|Hard",
           "source": "github|resume|linkedin|multi-source",
-          "source_details": {{
+          "source_details": {
             "github": "specific evidence from GitHub analysis or null",
             "resume": "specific evidence from resume or null",
             "linkedin": "specific evidence from LinkedIn or null"
-          }},
+          },
           "evidence_summary": "Concise evidence supporting this topic",
           "confidence_score": 0.0-1.0,
           "question_angle": "Suggested approach for the question"
-        }}
+        }
       ]
       ```
 
@@ -80,20 +80,20 @@ prompts:
 
       Good Topic Selection:
       ```json
-      {{
+      {
         "category": "technical_depth",
         "topic": "FastAPI 비동기 처리 및 성능 최적화",
         "difficulty": "Hard",
         "source": "multi-source",
-        "source_details": {{
+        "source_details": {
           "github": "FastAPI project with async patterns in 50+ commits",
           "resume": "일일 100만 요청 처리 시스템 구축",
           "linkedin": null
-        }},
+        },
         "evidence_summary": "Both GitHub commits AND resume confirm FastAPI expertise with performance optimization experience",
         "confidence_score": 0.95,
         "question_angle": "Ask about specific async patterns used to achieve 100M request handling"
-      }}
+      }
       ```
 
       # UNSUCCESSFUL EXAMPLE (Hallucinated Topic - DO NOT DO THIS)
@@ -104,32 +104,32 @@ prompts:
 
       BAD Topic Selection:
       ```json
-      {{
+      {
         "category": "technical_depth",
         "topic": "Kubernetes 클러스터 오케스트레이션 경험",
         "difficulty": "Hard",
         "source": "inferred",
         "evidence_summary": "Likely uses Kubernetes for deployment"
-      }}
+      }
       ```
       WHY BAD: Kubernetes was NEVER mentioned in any source. This is hallucination.
 
       CORRECT Topic Selection:
       ```json
-      {{
+      {
         "category": "technical_depth",
         "topic": "Python 데이터 분석 프로젝트 경험",
         "difficulty": "Medium",
         "source": "multi-source",
-        "source_details": {{
+        "source_details": {
           "github": "Python scripts for data analysis",
           "resume": "Python 개발자",
           "linkedin": "Data Analyst"
-        }},
+        },
         "evidence_summary": "All sources confirm Python data analysis focus",
         "confidence_score": 0.85,
         "question_angle": "Explore specific data analysis workflows and tools used"
-      }}
+      }
       ```
 
       # LIMITATIONS
@@ -151,17 +151,17 @@ prompts:
     template: |
       # ROLE & GOAL
       You are an expert interview question crafter. Generate a detailed interview question
-      in {output_language} that is GROUNDED in documented evidence.
+      in {{output_language}} that is GROUNDED in documented evidence.
 
       # WHAT YOU WILL SEE
       - Topic with source attribution
       - Category and difficulty level
-      - Candidate experience level: {experience_level}
+      - Candidate experience level: {{experience_level}}
 
       # TOPIC DETAILS
-      Topic: {topic}
-      Category: {category}
-      Difficulty: {difficulty}
+      Topic: {{topic}}
+      Category: {{category}}
+      Difficulty: {{difficulty}}
 
       # DETAILED GOAL
       Create a question that:
@@ -172,51 +172,51 @@ prompts:
 
       # OUTPUT FORMAT (JSON)
       ```json
-      {{
-        "question_text": "Main question in {output_language}",
+      {
+        "question_text": "Main question in {{output_language}}",
         "question_rationale": "Why this question based on evidence",
         "evidence_reference": "Specific evidence this question is based on",
         "alternative_phrasings": [
           "Alternative way to ask 1",
           "Alternative way to ask 2"
         ],
-        "expected_answer": {{
-          "expert": {{
+        "expected_answer": {
+          "expert": {
             "description": "What an expert-level answer looks like",
             "key_indicators": ["specific technical terms", "depth of understanding"],
             "example_response": "Brief example of expert answer"
-          }},
-          "mid_level": {{
+          },
+          "mid_level": {
             "description": "What an adequate answer looks like",
             "key_indicators": ["basic understanding", "practical experience"],
             "example_response": "Brief example of mid-level answer"
-          }},
-          "low_level": {{
+          },
+          "low_level": {
             "description": "What an insufficient answer looks like",
             "key_indicators": ["vague responses", "lack of specifics"],
             "example_response": "Brief example of weak answer"
-          }}
-        }},
+          }
+        },
         "follow_up_questions": [
-          {{
+          {
             "trigger": "expert|mid|low",
             "question": "Follow-up question text",
             "purpose": "What this follow-up aims to uncover"
-          }}
+          }
         ],
-        "evaluation_criteria": {{
+        "evaluation_criteria": {
           "technical_accuracy": "How to assess technical correctness",
           "depth_of_experience": "How to assess real-world experience",
           "communication_clarity": "How to assess explanation ability"
-        }},
-        "interviewer_note": {{
+        },
+        "interviewer_note": {
           "what_to_listen_for": "Key phrases or concepts",
           "red_flags": ["Warning signs in answer"],
           "green_flags": ["Positive indicators in answer"],
           "time_allocation_minutes": 5
-        }},
+        },
         "confidence_score": 0.0-1.0
-      }}
+      }
       ```
 
       # SUCCESSFUL EXAMPLE
@@ -226,7 +226,7 @@ prompts:
 
       Good Question:
       ```json
-      {{
+      {
         "question_text": "이력서에 FastAPI 기반 API 개발 경험이 있으시다고 하셨는데, 비동기 처리가 필요한 상황에서 어떻게 구현하셨나요?",
         "question_rationale": "Resume explicitly mentions FastAPI; probing async understanding is appropriate for Mid level",
         "evidence_reference": "Resume: 'FastAPI 기반 API 개발'",
@@ -234,42 +234,42 @@ prompts:
           "FastAPI에서 async/await를 사용한 구체적인 사례를 설명해주세요",
           "FastAPI 프로젝트에서 동시성 처리를 어떻게 다루셨나요?"
         ],
-        "expected_answer": {{
-          "expert": {{
+        "expected_answer": {
+          "expert": {
             "description": "async/await 패턴, 이벤트 루프, 동시성 제어 설명",
             "key_indicators": ["asyncio", "await", "concurrent.futures", "background tasks"],
             "example_response": "저는 외부 API 호출이 많은 서비스에서 httpx의 AsyncClient를 사용해..."
-          }},
-          "mid_level": {{
+          },
+          "mid_level": {
             "description": "기본적인 async 함수 사용 경험",
             "key_indicators": ["async def", "await", "비동기 함수"],
             "example_response": "async def로 함수를 정의하고 await로 호출했습니다"
-          }},
-          "low_level": {{
+          },
+          "low_level": {
             "description": "비동기 개념 이해 부족",
             "key_indicators": ["잘 모르겠다", "동기적으로 처리"],
             "example_response": "그냥 함수로 작성했는데 특별히 비동기는..."
-          }}
-        }},
+          }
+        },
         "follow_up_questions": [
-          {{
+          {
             "trigger": "expert",
             "question": "동시에 여러 외부 API를 호출할 때 에러 처리는 어떻게 하셨나요?",
             "purpose": "Advanced error handling in async contexts"
-          }},
-          {{
+          },
+          {
             "trigger": "mid",
             "question": "비동기 처리의 장점이 무엇이라고 생각하시나요?",
             "purpose": "Verify conceptual understanding"
-          }},
-          {{
+          },
+          {
             "trigger": "low",
             "question": "동기와 비동기의 차이점을 설명해주실 수 있나요?",
             "purpose": "Assess baseline knowledge"
-          }}
+          }
         ],
         "confidence_score": 0.9
-      }}
+      }
       ```
 
       # UNSUCCESSFUL EXAMPLE (Hallucinated Question - DO NOT DO THIS)
@@ -279,21 +279,21 @@ prompts:
 
       BAD Question:
       ```json
-      {{
+      {
         "question_text": "Django ORM에서 N+1 쿼리 문제를 어떻게 해결하셨나요?",
         "evidence_reference": "Inferred from Python experience"
-      }}
+      }
       ```
       WHY BAD: Resume says "Python 개발자" but NEVER mentions Django. This assumes Django knowledge.
 
       CORRECT Question:
       ```json
-      {{
+      {
         "question_text": "Python 개발자로서 가장 복잡한 문제를 해결한 경험을 설명해주세요",
         "question_rationale": "Resume only mentions 'Python 개발자' without specifics; open-ended question appropriate",
         "evidence_reference": "Resume: 'Python 개발자'",
         "confidence_score": 0.6
-      }}
+      }
       ```
 
       # LIMITATIONS
@@ -320,32 +320,32 @@ prompts:
       Interview questions containing technical terminology that HR managers or hiring managers may not understand.
 
       # QUESTIONS TO ENHANCE
-      Language: {output_language}
-      {questions_json}
+      Language: {{output_language}}
+      {{questions_json}}
 
       # OUTPUT FORMAT (JSON)
       ```json
-      {{
+      {
         "question_id": [
-          {{
+          {
             "term": "Technical term",
             "plain_language_explanation": "Everyday analogy or simple description",
             "business_relevance": "Why this matters for business outcomes",
             "pronunciation_guide": "How to say it (if non-obvious)"
-          }}
+          }
         ]
-      }}
+      }
       ```
 
       # EXAMPLE
       Term: "마이크로서비스 아키텍처"
       ```json
-      {{
+      {
         "term": "마이크로서비스 아키텍처",
         "plain_language_explanation": "레고 블록처럼 작은 서비스들을 조립해서 큰 시스템을 만드는 방식. 하나가 고장나도 전체가 멈추지 않음",
         "business_relevance": "시스템 일부만 업데이트할 수 있어 배포 속도가 빠르고, 장애 영향 범위가 작아 서비스 안정성이 높음",
         "pronunciation_guide": "마이크로-서비스 아키텍처"
-      }}
+      }
       ```
 
       Return ONLY the JSON object, no additional text.
@@ -357,35 +357,35 @@ prompts:
       You create detailed evaluation scenarios for interviewers to assess candidate responses.
 
       # QUESTIONS TO CREATE SCENARIOS FOR
-      Language: {output_language}
-      Experience Level: {experience_level}
-      {questions_json}
+      Language: {{output_language}}
+      Experience Level: {{experience_level}}
+      {{questions_json}}
 
       # OUTPUT FORMAT (JSON)
       For each question, create scenarios at three levels:
       ```json
-      {{
-        "question_id": {{
-          "expert": {{
+      {
+        "question_id": {
+          "expert": {
             "description": "What expert-level response looks like",
             "trigger_keywords": ["specific terms that indicate expertise"],
             "behavioral_indicators": ["what candidate does/says"],
             "follow_up_direction": "Where to probe deeper"
-          }},
-          "mid_level": {{
+          },
+          "mid_level": {
             "description": "What adequate response looks like",
             "trigger_keywords": ["basic understanding indicators"],
             "behavioral_indicators": ["typical mid-level responses"],
             "coaching_tip": "How to help them elaborate"
-          }},
-          "low_level": {{
+          },
+          "low_level": {
             "description": "What insufficient response looks like",
             "trigger_keywords": ["red flag phrases"],
             "behavioral_indicators": ["concerning responses"],
             "recovery_question": "Question to give them another chance"
-          }}
-        }}
-      }}
+          }
+        }
+      }
       ```
 
       Return ONLY the JSON object, no additional text.
@@ -397,22 +397,22 @@ prompts:
       Design follow-up question branches based on candidate response quality.
 
       # QUESTIONS TO DESIGN FOLLOW-UPS FOR
-      Language: {output_language}
-      Experience Level: {experience_level}
-      {questions_json}
+      Language: {{output_language}}
+      Experience Level: {{experience_level}}
+      {{questions_json}}
 
       # OUTPUT FORMAT (JSON)
       ```json
-      {{
+      {
         "question_id": [
-          {{
+          {
             "trigger": "expert|mid|low",
             "question_text": "Follow-up question",
             "purpose": "What this reveals about candidate",
             "expected_insight": "What good answer would show"
-          }}
+          }
         ]
-      }}
+      }
       ```
 
       Return ONLY the JSON object, no additional text.
@@ -424,13 +424,13 @@ prompts:
       Generate guidance notes for non-technical interviewers conducting technical interviews.
 
       # QUESTIONS TO GENERATE NOTES FOR
-      Language: {output_language}
-      {questions_json}
+      Language: {{output_language}}
+      {{questions_json}}
 
       # OUTPUT FORMAT (JSON)
       ```json
-      {{
-        "question_id": {{
+      {
+        "question_id": {
           "business_interpretation": "What this question reveals in business terms",
           "daily_analogy": "Everyday situation that parallels this technical concept",
           "what_to_listen_for": "Key phrases or concepts that indicate competence",
@@ -438,8 +438,8 @@ prompts:
           "green_flags": ["Positive indicators in candidate's answer"],
           "time_guidance": "How long to spend, when to move on",
           "note_to_self": "Quick reminder for interviewer"
-        }}
-      }}
+        }
+      }
       ```
 
       Return ONLY the JSON object, no additional text.
@@ -451,40 +451,40 @@ prompts:
       Generate a decision guide for the hiring committee based on interview results.
 
       # CONTEXT
-      Language: {output_language}
-      Experience Level: {experience_level}
-      Analysis Summary: {analysis_summary}
-      Category Summary: {category_summary}
+      Language: {{output_language}}
+      Experience Level: {{experience_level}}
+      Analysis Summary: {{analysis_summary}}
+      Category Summary: {{category_summary}}
 
       # OUTPUT FORMAT (JSON)
       ```json
-      {{
-        "scoring_weights": {{
+      {
+        "scoring_weights": {
           "role_fit": 0.20,
           "technical_depth": 0.30,
           "execution_ownership": 0.25,
           "communication": 0.15,
           "risk_flags": 0.10
-        }},
-        "decision_thresholds": {{
-          "strong_hire": {{"score": 85, "description": "Exceeds expectations in most areas"}},
-          "hire": {{"score": 65, "description": "Meets expectations with growth potential"}},
-          "maybe": {{"score": 50, "description": "Mixed signals, needs additional evaluation"}},
-          "no_hire": {{"score": 35, "description": "Below expectations in critical areas"}}
-        }},
-        "category_insights": {{
+        },
+        "decision_thresholds": {
+          "strong_hire": {"score": 85, "description": "Exceeds expectations in most areas"},
+          "hire": {"score": 65, "description": "Meets expectations with growth potential"},
+          "maybe": {"score": 50, "description": "Mixed signals, needs additional evaluation"},
+          "no_hire": {"score": 35, "description": "Below expectations in critical areas"}
+        },
+        "category_insights": {
           "role_fit": "Key evaluation focus for this category",
           "technical_depth": "Key evaluation focus for this category",
           "execution_ownership": "Key evaluation focus for this category",
           "communication": "Key evaluation focus for this category",
           "risk_flags": "Key evaluation focus for this category"
-        }},
-        "risk_assessment": {{
+        },
+        "risk_assessment": {
           "identified_risks": ["Risk 1", "Risk 2"],
           "mitigation_questions": ["Question to address Risk 1", "Question to address Risk 2"]
-        }},
-        "experience_level_calibration": "Guidance on adjusting expectations for {experience_level}"
-      }}
+        },
+        "experience_level_calibration": "Guidance on adjusting expectations for {{experience_level}}"
+      }
       ```
 
       Return ONLY the JSON object, no additional text.
@@ -501,11 +501,11 @@ prompts:
       - Evidence scores and hallucination risks
 
       # QUESTIONS TO REVISE
-      Language: {output_language}
-      {questions_json}
+      Language: {{output_language}}
+      {{questions_json}}
 
       # REVIEW FEEDBACK
-      {review_feedback}
+      {{review_feedback}}
 
       # REVISION RULES
       1. **Hallucination detected**: Replace with question based on documented evidence only
@@ -518,7 +518,7 @@ prompts:
       Return revised questions as array:
       ```json
       [
-        {{
+        {
           "original_index": 0,
           "revision_type": "hallucination_fix|evidence_improvement|clarity_fix|bias_removal|duplicate_merge",
           "original_question": "Original question text",
@@ -526,20 +526,20 @@ prompts:
           "revision_rationale": "Why this change was made",
           "new_evidence_reference": "Updated evidence this is based on",
           "new_confidence_score": 0.0-1.0
-        }}
+        }
       ]
       ```
 
       # EXAMPLE REVISION
       Original (hallucinated):
       ```json
-      {{"question_text": "Kubernetes에서 HPA 설정 경험을 말씀해주세요"}}
+      {"question_text": "Kubernetes에서 HPA 설정 경험을 말씀해주세요"}
       ```
       Review feedback: "HALLUCINATION: No Kubernetes evidence. Only Docker mentioned."
 
       Revised:
       ```json
-      {{
+      {
         "original_index": 3,
         "revision_type": "hallucination_fix",
         "original_question": "Kubernetes에서 HPA 설정 경험을 말씀해주세요",
@@ -547,7 +547,7 @@ prompts:
         "revision_rationale": "Changed from assumed Kubernetes to documented Docker experience",
         "new_evidence_reference": "Resume: 'Docker 기반 배포 경험'",
         "new_confidence_score": 0.85
-      }}
+      }
       ```
 
       Return ONLY the JSON array, no additional text.
