@@ -48,7 +48,7 @@ services:
       - LLM_FALLBACK_MODEL=${LLM_FALLBACK_MODEL:-anthropic:claude-3-5-sonnet-20241022}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN:-}
-      - LANGFUSE_HOST=${LANGFUSE_HOST:-http://langfuse:3000}
+      - LANGFUSE_HOST=${LANGFUSE_HOST:-}
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
@@ -101,7 +101,7 @@ services:
       - LLM_FALLBACK_MODEL=${LLM_FALLBACK_MODEL:-anthropic:claude-3-5-sonnet-20241022}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN:-}
-      - LANGFUSE_HOST=${LANGFUSE_HOST:-http://langfuse:3000}
+      - LANGFUSE_HOST=${LANGFUSE_HOST:-}
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
@@ -194,25 +194,10 @@ services:
       - "8080:8080"
 
   # ============================================
-  # LLM Observability (Langfuse, 내부망만)
+  # LLM Observability
   # ============================================
-
-  langfuse:
-    image: langfuse/langfuse:2
-    container_name: iaas-langfuse
-    restart: unless-stopped
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/langfuse
-      - NEXTAUTH_URL=http://localhost:3100
-      - NEXTAUTH_SECRET=langfuse-dev-secret
-      - SALT=langfuse-dev-salt
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - iaas_internal
-    ports:
-      - "3100:3000"
+  # Langfuse는 외부 서버 사용: https://langfuse.mystery-place.com
+  # 로컬 서비스 제거됨 (2026-02-05)
 
   # ============================================
   # AWS Local Emulation (내부망만)
