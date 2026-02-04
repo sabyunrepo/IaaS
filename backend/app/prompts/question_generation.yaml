@@ -2,6 +2,12 @@ prompts:
   select_topics:
     description: "면접 질문 토픽 25개 선정 - 다중 소스 기반 (Few-shot Enhanced)"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with [ and end with ]
+      - No explanatory text before or after the JSON array
+
       # ROLE & GOAL
       You are an expert interview strategist. Your task is to select {{max_questions}} interview topics
       for a {{experience_level}} level candidate based on multiple analyzed sources.
@@ -144,11 +150,17 @@ prompts:
       - DO suggest alternative angles for weak evidence topics
       - DO balance between challenging and fair questions
 
-      Return ONLY the JSON array, no additional text.
+      REMINDER: Return raw JSON array only. Do NOT use markdown code blocks. Start with [ and end with ].
 
   craft_question:
     description: "개별 면접 질문 생성 - 증거 기반 (Few-shot Enhanced)"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       You are an expert interview question crafter. Generate a detailed interview question
       in {{output_language}} that is GROUNDED in documented evidence.
@@ -308,11 +320,17 @@ prompts:
       - DO provide honest confidence scores
       - DO make questions conversational and respectful
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   enhance_terminology:
     description: "질문 내 전문용어에 비개발자용 설명 추가"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       You are a technical translator who makes complex terms accessible to non-technical interviewers.
 
@@ -348,11 +366,17 @@ prompts:
       }
       ```
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   craft_evaluation_scenarios:
     description: "3단계 평가 시나리오 텍스트 생성"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       You create detailed evaluation scenarios for interviewers to assess candidate responses.
 
@@ -388,11 +412,17 @@ prompts:
       }
       ```
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   design_follow_ups:
     description: "후속질문 분기 설계 (Expert/Mid/Low 트리거별)"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       Design follow-up question branches based on candidate response quality.
 
@@ -415,11 +445,17 @@ prompts:
       }
       ```
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   generate_interviewer_notes:
     description: "면접관 참고 노트 생성 (비즈니스 해석, 일상 비유)"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       Generate guidance notes for non-technical interviewers conducting technical interviews.
 
@@ -442,11 +478,17 @@ prompts:
       }
       ```
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   generate_decision_guide:
     description: "채용 의사결정 가이드 생성"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       Generate a decision guide for the hiring committee based on interview results.
 
@@ -487,11 +529,17 @@ prompts:
       }
       ```
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   revise_questions:
     description: "품질 검토 후 질문 수정 - 환각 제거"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with [ and end with ]
+      - No explanatory text before or after the JSON array
+
       # ROLE & GOAL
       Revise interview questions based on quality review feedback, especially to remove hallucinations.
 
@@ -550,4 +598,4 @@ prompts:
       }
       ```
 
-      Return ONLY the JSON array, no additional text.
+      REMINDER: Return raw JSON array only. Do NOT use markdown code blocks. Start with [ and end with ].

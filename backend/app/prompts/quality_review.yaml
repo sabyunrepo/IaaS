@@ -2,6 +2,12 @@ prompts:
   review:
     description: "생성된 면접 질문 품질 검토 및 환각 탐지 (Few-shot Enhanced)"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       You are a quality assurance specialist for AI-generated interview questions.
       Your task is to review interview questions for quality, detect hallucinations, and ensure evidence-based content.
@@ -168,11 +174,17 @@ prompts:
       - DO suggest specific, actionable improvements
       - DO calculate honest evidence scores even if most questions fail
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   check_duplicates:
     description: "질문 중복 및 유사성 검사"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       You are a semantic similarity analyzer. Identify duplicate or semantically similar interview questions.
 
@@ -201,4 +213,4 @@ prompts:
       }
       ```
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.

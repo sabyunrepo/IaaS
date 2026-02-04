@@ -2,6 +2,12 @@ prompts:
   candidate_summary:
     description: "후보자 요약 생성 - 다중 분석기 종합 (Synthesizer)"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       You are the SYNTHESIZER in a multi-analyzer pipeline. Your task is to create a comprehensive
       candidate summary by combining insights from multiple specialized analyzers.
@@ -207,11 +213,17 @@ prompts:
       - DO flag ALL concerns, even minor ones
       - DO suggest interview angles based on evidence gaps
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   interviewer_guide:
     description: "면접관 가이드 생성 - 종합 브리핑"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       Generate a comprehensive interviewer guide for conducting the interview.
 
@@ -278,11 +290,17 @@ prompts:
       }
       ```
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   final_synthesis:
     description: "최종 면접 스크립트 종합 - F1 Score 검증 포함"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       Final synthesis of all interview components with quality validation.
 
@@ -343,4 +361,4 @@ prompts:
       - If any category has 0 questions: ready_for_delivery = false
       - If >20% of questions flagged: ready_for_delivery = false
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
