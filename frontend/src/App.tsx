@@ -27,7 +27,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout user={user} onLogout={logout} />}>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={isAuthenticated ? <Navigate to="/jobs" /> : <LoginPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route
             path="/jobs"

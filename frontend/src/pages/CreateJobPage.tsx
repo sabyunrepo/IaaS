@@ -29,6 +29,98 @@ interface FileUpload {
   error: string | null
 }
 
+// Section Card Component
+function SectionCard({
+  title,
+  description,
+  required,
+  children,
+}: {
+  title: string
+  description?: string
+  required?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">
+          {title}
+          {required && <span className="ml-1 text-red-500">*</span>}
+        </h2>
+        {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+// File Upload Field Component
+function FileUploadField({
+  label,
+  accept,
+  fileState,
+  onFileChange,
+  onRemove,
+  t,
+}: {
+  label: string
+  accept: string
+  fileState: FileUpload
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onRemove: () => void
+  t: (key: string) => string
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-gray-700">{label}</label>
+      {fileState.path ? (
+        <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+            <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <span className="flex-1 truncate text-sm font-medium text-green-700">{fileState.file?.name}</span>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      ) : (
+        <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50/50">
+          <svg className="mb-2 h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <span className="text-sm text-gray-600">{accept} 파일을 선택하세요</span>
+          <input
+            type="file"
+            accept={accept}
+            onChange={onFileChange}
+            disabled={fileState.uploading}
+            className="hidden"
+          />
+        </label>
+      )}
+      {fileState.uploading && (
+        <div className="mt-2 flex items-center gap-2 text-sm text-indigo-600">
+          <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {t('uploading')}
+        </div>
+      )}
+      {fileState.error && <p className="mt-2 text-sm text-red-600">{fileState.error}</p>}
+    </div>
+  )
+}
+
 export function CreateJobPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -46,9 +138,8 @@ export function CreateJobPage() {
 
   // 선택 필드
   const [linkedinUrl, setLinkedinUrl] = useState('')
-  const [githubUrls, setGithubUrls] = useState<string[]>([''])
+  const [gitUrl, setGitUrl] = useState('')
   const [maxQuestions, setMaxQuestions] = useState(25)
-  const [focusAreas, setFocusAreas] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -105,23 +196,6 @@ export function CreateJobPage() {
     setFileState({ file: null, path: null, uploading: false, error: null })
   }
 
-  // GitHub URL 핸들러
-  const addGithubUrl = () => {
-    if (githubUrls.length < 5) {
-      setGithubUrls([...githubUrls, ''])
-    }
-  }
-
-  const removeGithubUrl = (index: number) => {
-    setGithubUrls(githubUrls.filter((_, i) => i !== index))
-  }
-
-  const updateGithubUrl = (index: number, value: string) => {
-    const updated = [...githubUrls]
-    updated[index] = value
-    setGithubUrls(updated)
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!jdText.trim()) return
@@ -157,13 +231,8 @@ export function CreateJobPage() {
         inputData.linkedin_url = linkedinUrl.trim()
       }
 
-      const validGithubUrls = githubUrls.filter(url => url.trim())
-      if (validGithubUrls.length > 0) {
-        inputData.github_urls = validGithubUrls
-      }
-
-      if (focusAreas.trim()) {
-        inputData.focus_areas = focusAreas.split(',').map(s => s.trim()).filter(Boolean)
+      if (gitUrl.trim()) {
+        inputData.git_url = gitUrl.trim()
       }
 
       const job = await createJob(inputData)
@@ -176,143 +245,101 @@ export function CreateJobPage() {
   }
 
   const isUploading = resume.uploading || portfolio.uploading || coverLetter.uploading
+  const canSubmit = jdText.length >= 50 && !submitting && !isUploading
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('create_job')}</h1>
+    <div className="mx-auto max-w-3xl">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
+            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{t('create_interview_script')}</h1>
+            <p className="mt-0.5 text-sm text-gray-500">채용공고와 후보자 정보를 입력하여 맞춤형 면접 스크립트를 생성하세요</p>
+          </div>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* JD Text - Required */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            {t('jd_section_title')} <span className="text-red-500">*</span>
-          </h2>
+        {/* JD Text */}
+        <SectionCard
+          title={t('jd_section_title')}
+          description="채용 포지션에 대한 상세한 직무 설명을 입력해주세요"
+          required
+        >
           <textarea
             value={jdText}
             onChange={(e) => setJdText(e.target.value)}
             placeholder={t('jd_placeholder')}
             rows={8}
-            className="w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-lg border border-gray-300 p-4 text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             required
             minLength={50}
           />
-          <p className="text-sm text-gray-500 mt-1">
-            {jdText.length}/50 {t('min_chars')}
-          </p>
-        </div>
+          <div className="mt-2 flex items-center justify-between text-sm">
+            <span className={`${jdText.length >= 50 ? 'text-green-600' : 'text-gray-500'}`}>
+              {jdText.length >= 50 ? (
+                <span className="flex items-center gap-1">
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  충분한 길이입니다
+                </span>
+              ) : (
+                `${jdText.length}/50 ${t('min_chars')}`
+              )}
+            </span>
+          </div>
+        </SectionCard>
 
         {/* 파일 업로드 섹션 */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            {t('document_upload')}
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">{t('document_upload_hint')}</p>
-
-          <div className="space-y-4">
-            {/* 이력서 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('resume')} (PDF)
-              </label>
-              {resume.path ? (
-                <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                  <span className="text-green-700 text-sm flex-1 truncate">{resume.file?.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(setResume)}
-                    className="text-red-600 hover:text-red-800 text-sm"
-                  >
-                    {t('remove')}
-                  </button>
-                </div>
-              ) : (
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => handleFileChange(e, 'resume', setResume)}
-                  disabled={resume.uploading}
-                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-              )}
-              {resume.uploading && <p className="text-sm text-blue-600 mt-1">{t('uploading')}</p>}
-              {resume.error && <p className="text-sm text-red-600 mt-1">{resume.error}</p>}
-            </div>
-
-            {/* 포트폴리오 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('portfolio')} (PDF, DOCX)
-              </label>
-              {portfolio.path ? (
-                <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                  <span className="text-green-700 text-sm flex-1 truncate">{portfolio.file?.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(setPortfolio)}
-                    className="text-red-600 hover:text-red-800 text-sm"
-                  >
-                    {t('remove')}
-                  </button>
-                </div>
-              ) : (
-                <input
-                  type="file"
-                  accept=".pdf,.docx"
-                  onChange={(e) => handleFileChange(e, 'portfolio', setPortfolio)}
-                  disabled={portfolio.uploading}
-                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-              )}
-              {portfolio.uploading && <p className="text-sm text-blue-600 mt-1">{t('uploading')}</p>}
-              {portfolio.error && <p className="text-sm text-red-600 mt-1">{portfolio.error}</p>}
-            </div>
-
-            {/* 커버레터 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('cover_letter')} (PDF, DOCX)
-              </label>
-              {coverLetter.path ? (
-                <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                  <span className="text-green-700 text-sm flex-1 truncate">{coverLetter.file?.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(setCoverLetter)}
-                    className="text-red-600 hover:text-red-800 text-sm"
-                  >
-                    {t('remove')}
-                  </button>
-                </div>
-              ) : (
-                <input
-                  type="file"
-                  accept=".pdf,.docx"
-                  onChange={(e) => handleFileChange(e, 'cover_letter', setCoverLetter)}
-                  disabled={coverLetter.uploading}
-                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-              )}
-              {coverLetter.uploading && <p className="text-sm text-blue-600 mt-1">{t('uploading')}</p>}
-              {coverLetter.error && <p className="text-sm text-red-600 mt-1">{coverLetter.error}</p>}
-            </div>
+        <SectionCard
+          title={t('document_upload')}
+          description={t('document_upload_hint')}
+        >
+          <div className="grid gap-4 sm:grid-cols-3">
+            <FileUploadField
+              label={`${t('resume')} (PDF)`}
+              accept=".pdf"
+              fileState={resume}
+              onFileChange={(e) => handleFileChange(e, 'resume', setResume)}
+              onRemove={() => removeFile(setResume)}
+              t={t}
+            />
+            <FileUploadField
+              label={`${t('portfolio')} (PDF, DOCX)`}
+              accept=".pdf,.docx"
+              fileState={portfolio}
+              onFileChange={(e) => handleFileChange(e, 'portfolio', setPortfolio)}
+              onRemove={() => removeFile(setPortfolio)}
+              t={t}
+            />
+            <FileUploadField
+              label={`${t('cover_letter')} (PDF, DOCX)`}
+              accept=".pdf,.docx"
+              fileState={coverLetter}
+              onFileChange={(e) => handleFileChange(e, 'cover_letter', setCoverLetter)}
+              onRemove={() => removeFile(setCoverLetter)}
+              t={t}
+            />
           </div>
-        </div>
+        </SectionCard>
 
         {/* 후보자 정보 섹션 */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            {t('candidate_info')}
-          </h2>
-
-          <div className="grid grid-cols-2 gap-4">
+        <SectionCard title={t('candidate_info')}>
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 {t('experience_level')} <span className="text-red-500">*</span>
               </label>
               <select
                 value={experienceLevel}
                 onChange={(e) => setExperienceLevel(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 <option value="신입">{t('level_entry')}</option>
                 <option value="주니어">{t('level_junior')}</option>
@@ -323,13 +350,13 @@ export function CreateJobPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 {t('output_language')} <span className="text-red-500">*</span>
               </label>
               <select
                 value={outputLanguage}
                 onChange={(e) => setOutputLanguage(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
@@ -342,133 +369,110 @@ export function CreateJobPage() {
 
           {/* LinkedIn URL */}
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
               {t('linkedin_url')}
             </label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                </svg>
+              </div>
+              <input
+                type="url"
+                value={linkedinUrl}
+                onChange={(e) => setLinkedinUrl(e.target.value)}
+                placeholder="https://linkedin.com/in/username"
+                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <p className="mt-1.5 text-sm text-gray-500">{t('linkedin_hint')}</p>
+          </div>
+        </SectionCard>
+
+        {/* Git URL */}
+        <SectionCard title={t('git_url')} description={t('git_url_hint')}>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd"/>
+              </svg>
+            </div>
             <input
               type="url"
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="https://linkedin.com/in/username"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
+              value={gitUrl}
+              onChange={(e) => setGitUrl(e.target.value)}
+              placeholder="https://github.com/username"
+              className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
-            <p className="text-sm text-gray-500 mt-1">{t('linkedin_hint')}</p>
           </div>
-        </div>
-
-        {/* GitHub Repos */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t('github_repos')}
-            </h2>
-            {githubUrls.length < 5 && (
-              <button
-                type="button"
-                onClick={addGithubUrl}
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                + {t('add_repo')}
-              </button>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            {githubUrls.map((url, index) => (
-              <div key={index} className="flex gap-2">
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => updateGithubUrl(index, e.target.value)}
-                  placeholder="https://github.com/user/repo"
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
-                />
-                {githubUrls.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeGithubUrl(index)}
-                    className="px-3 py-2 text-red-600 hover:text-red-800"
-                    aria-label={t('remove')}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          <p className="text-sm text-gray-500 mt-2">
-            {t('github_repos_hint')}
-          </p>
-        </div>
+        </SectionCard>
 
         {/* Options */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            {t('options')}
-          </h2>
-
-          <div className="space-y-4">
-            {/* Max Questions */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('max_questions')}: <span className="font-semibold">{maxQuestions}</span>
-              </label>
-              <input
-                type="range"
-                min={5}
-                max={25}
-                value={maxQuestions}
-                onChange={(e) => setMaxQuestions(Number(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>5</span>
-                <span>15</span>
-                <span>25</span>
-              </div>
+        <SectionCard title={t('options')}>
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="text-sm font-medium text-gray-700">{t('max_questions')}</label>
+              <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-sm font-semibold text-indigo-700">
+                {maxQuestions}개
+              </span>
             </div>
-
-            {/* Focus Areas */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('focus_areas')}
-              </label>
-              <input
-                type="text"
-                value={focusAreas}
-                onChange={(e) => setFocusAreas(e.target.value)}
-                placeholder="e.g. React, TypeScript, System Design"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                {t('focus_areas_hint')}
-              </p>
+            <input
+              type="range"
+              min={5}
+              max={25}
+              value={maxQuestions}
+              onChange={(e) => setMaxQuestions(Number(e.target.value))}
+              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-indigo-600"
+            />
+            <div className="mt-1 flex justify-between text-xs text-gray-400">
+              <span>5</span>
+              <span>15</span>
+              <span>25</span>
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         {/* Error Display */}
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-            {error}
+          <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+            <svg className="h-5 w-5 flex-shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span className="text-sm font-medium text-red-700">{error}</span>
           </div>
         )}
 
-        {/* Submit Button */}
-        <div className="flex justify-end gap-3">
+        {/* Submit Buttons */}
+        <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-6">
           <button
             type="button"
             onClick={() => navigate('/jobs')}
-            className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             {t('cancel')}
           </button>
           <button
             type="submit"
-            disabled={submitting || jdText.length < 50 || isUploading}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!canSubmit}
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-400 disabled:shadow-none"
           >
-            {submitting ? t('loading') : t('create_interview_script')}
+            {submitting ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {t('loading')}
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                {t('create_interview_script')}
+              </>
+            )}
           </button>
         </div>
       </form>
