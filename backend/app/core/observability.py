@@ -104,7 +104,12 @@ def langfuse_trace_context(
         # Update langfuse context if available
         if is_langfuse_enabled():
             try:
-                from langfuse.decorators import langfuse_context
+                # Langfuse v3.x: import from langfuse directly
+                try:
+                    from langfuse import langfuse_context
+                except ImportError:
+                    # Fallback for older versions
+                    from langfuse.decorators import langfuse_context
                 langfuse_context.update_current_trace(
                     session_id=job_id,
                     metadata={
@@ -166,19 +171,34 @@ def create_trace_for_job(
         if not client:
             return None
 
-        trace = client.trace(
+        # Langfuse v3.x: Use start_span which automatically creates a trace
+        # The span.trace_id contains the generated trace ID
+        span = client.start_span(
             name=f"interview-generation-{job_id}",
-            session_id=job_id,
-            user_id=user_id,
-            metadata={
+            input={
                 "job_id": job_id,
                 "workflow": "InterviewGenerationWorkflow",
                 **(metadata or {}),
             },
-            tags=["workflow", "interview-generation"],
         )
-        logger.debug(f"Created Langfuse trace for job {job_id}: {trace.id}")
-        return trace.id
+
+        # Update trace metadata
+        span.update_trace(
+            name=f"interview-generation-{job_id}",
+            session_id=job_id,
+            user_id=user_id,
+            tags=["workflow", "interview-generation"],
+            metadata={
+                "job_id": job_id,
+                "workflow": "InterviewGenerationWorkflow",
+            },
+        )
+
+        trace_id = span.trace_id
+        span.end()  # End immediately, just to register the trace
+
+        logger.debug(f"Created Langfuse trace for job {job_id}: {trace_id}")
+        return trace_id
     except Exception as e:
         logger.warning(f"Failed to create Langfuse trace for job {job_id}: {e}")
         return None
@@ -203,15 +223,20 @@ def create_span_for_phase(
         if not client:
             return None
 
-        span = client.span(
+        # Langfuse v3.x: Use start_span (trace_id is not a parameter)
+        # If trace_id is needed, it should be managed externally
+        span = client.start_span(
             name=f"phase-{phase}",
-            trace_id=trace_id,
-            metadata={
+            input={
                 "job_id": job_id,
                 "phase": phase,
                 **(metadata or {}),
             },
         )
+
+        # Set session_id via update_trace
+        span.update_trace(session_id=job_id)
+
         logger.debug(f"Created Langfuse span for phase {phase}")
         return span
     except Exception as e:
@@ -251,7 +276,11 @@ def log_event(
         return
 
     try:
-        from langfuse.decorators import langfuse_context
+        # Langfuse v3.x: import from langfuse directly
+        try:
+            from langfuse import langfuse_context
+        except ImportError:
+            from langfuse.decorators import langfuse_context
         langfuse_context.update_current_observation(
             metadata={
                 "event": name,
@@ -283,7 +312,8 @@ def score_trace(
     try:
         client = get_langfuse_client()
         if client:
-            client.score(
+            # Langfuse v3.x: Use create_score
+            client.create_score(
                 trace_id=trace_id,
                 name=name,
                 value=value,
@@ -308,7 +338,7 @@ def create_agent_observation(
     """Agent 타입 Observation 생성 (Agent Graph 시각화용).
 
     Args:
-        trace_id: 연결할 Trace ID
+        trace_id: 연결할 Trace ID (v3에서는 무시됨)
         name: Agent 이름
         input_data: 입력 데이터
         output_data: 출력 데이터
@@ -326,17 +356,18 @@ def create_agent_observation(
         if not client:
             return None
 
-        observation = client.span(
-            trace_id=trace_id,
+        # Langfuse v3.x: Use start_span (without trace_id parameter)
+        observation = client.start_span(
             name=name,
             input=input_data,
-            output=output_data,
             metadata={
                 "observation_type": "agent",
+                "trace_id_hint": trace_id,  # Store for reference
                 **(metadata or {}),
             },
-            parent_observation_id=parent_observation_id,
         )
+        if output_data:
+            observation.update(output=output_data)
         logger.debug(f"Created agent observation: {name}")
         return observation
     except Exception as e:
@@ -355,7 +386,7 @@ def create_tool_observation(
     """Tool 타입 Observation 생성 (Agent Graph 시각화용).
 
     Args:
-        trace_id: 연결할 Trace ID
+        trace_id: 연결할 Trace ID (v3에서는 무시됨)
         name: Tool 이름
         input_data: 입력 데이터
         output_data: 출력 데이터
@@ -373,17 +404,18 @@ def create_tool_observation(
         if not client:
             return None
 
-        observation = client.span(
-            trace_id=trace_id,
+        # Langfuse v3.x: Use start_span (without trace_id parameter)
+        observation = client.start_span(
             name=name,
             input=input_data,
-            output=output_data,
             metadata={
                 "observation_type": "tool",
+                "trace_id_hint": trace_id,  # Store for reference
                 **(metadata or {}),
             },
-            parent_observation_id=parent_observation_id,
         )
+        if output_data:
+            observation.update(output=output_data)
         logger.debug(f"Created tool observation: {name}")
         return observation
     except Exception as e:
@@ -402,7 +434,7 @@ def create_retrieval_observation(
     """Retrieval 타입 Observation 생성 (RAG Agent Graph 시각화용).
 
     Args:
-        trace_id: 연결할 Trace ID
+        trace_id: 연결할 Trace ID (v3에서는 무시됨)
         name: Retrieval 이름
         query: 검색 쿼리
         documents: 검색된 문서 목록
@@ -420,18 +452,19 @@ def create_retrieval_observation(
         if not client:
             return None
 
-        observation = client.span(
-            trace_id=trace_id,
+        # Langfuse v3.x: Use start_span (without trace_id parameter)
+        observation = client.start_span(
             name=name,
             input={"query": query} if query else None,
-            output={"documents": documents} if documents else None,
             metadata={
                 "observation_type": "retrieval",
                 "document_count": len(documents) if documents else 0,
+                "trace_id_hint": trace_id,  # Store for reference
                 **(metadata or {}),
             },
-            parent_observation_id=parent_observation_id,
         )
+        if documents:
+            observation.update(output={"documents": documents})
         logger.debug(f"Created retrieval observation: {name}")
         return observation
     except Exception as e:
@@ -499,7 +532,11 @@ def observe_activity(name: str, phase: str = "unknown"):
 
             if is_langfuse_enabled():
                 try:
-                    from langfuse.decorators import observe
+                    # Langfuse v3.x: import from langfuse directly
+                    try:
+                        from langfuse import observe
+                    except ImportError:
+                        from langfuse.decorators import observe
                     observed_func = observe(name=name)(func)
                     with langfuse_trace_context(job_id=job_id, phase=phase, activity=name):
                         return await observed_func(*args, **kwargs)

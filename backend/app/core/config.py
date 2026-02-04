@@ -50,8 +50,8 @@ class Settings(BaseSettings):
     # LLM
     OPENAI_API_KEY: str | None = None
     ANTHROPIC_API_KEY: str | None = None
-    LLM_MODEL: str = "openai/gpt-4o"
-    LLM_FALLBACK_MODEL: str = "anthropic/claude-sonnet-4-20250514"
+    LLM_MODEL: str = "openai:gpt-4o"
+    LLM_FALLBACK_MODEL: str = "anthropic:claude-3-5-sonnet-20241022"
 
     # Langfuse
     LANGFUSE_HOST: str = "http://localhost:3100"

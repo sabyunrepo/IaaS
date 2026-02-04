@@ -18,6 +18,9 @@ services:
       - STORAGE_BACKEND=local
       - LOCAL_STORAGE_PATH=/app/data
       - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-placeholder}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-openai:gpt-4o}
+      - LLM_FALLBACK_MODEL=${LLM_FALLBACK_MODEL:-anthropic:claude-3-5-sonnet-20241022}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN:-}
       - LANGFUSE_HOST=${LANGFUSE_HOST:-http://langfuse:3000}
@@ -57,6 +60,9 @@ services:
       - STORAGE_BACKEND=local
       - LOCAL_STORAGE_PATH=/app/data
       - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-placeholder}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-openai:gpt-4o}
+      - LLM_FALLBACK_MODEL=${LLM_FALLBACK_MODEL:-anthropic:claude-3-5-sonnet-20241022}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN:-}
       - LANGFUSE_HOST=${LANGFUSE_HOST:-http://langfuse:3000}

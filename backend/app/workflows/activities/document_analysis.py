@@ -48,11 +48,11 @@ async def analyze_documents(input_data: dict) -> dict:
     if not documents:
         return {"profile": {}, "raw_texts": [], "parse_info": []}
 
-    # LLM으로 프로필 추출
+    # LLM으로 프로필 추출 (Activity별 최적 모델 사용)
     activity.heartbeat("Extracting candidate profile with LLM...")
     from app.prompts import get_prompt
     prompt = get_prompt("document_analysis.yaml", "extract_profile", documents="\n---\n".join(documents))
-    profile = await llm.run(prompt)
+    profile = await llm.run(prompt, activity_name="analyze_documents")
 
     # 벡터 스토어에 프로필 저장 (job_id가 있을 경우)
     job_id = input_data.get("job_id")

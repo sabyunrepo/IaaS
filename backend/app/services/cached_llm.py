@@ -30,8 +30,24 @@ class CachedLLMService:
         content = f"{model}:{prompt}"
         return f"llm_cache:{hashlib.sha256(content.encode()).hexdigest()}"
 
-    async def run(self, prompt: str, model: str | None = None, result_type: Any = None) -> Any:
-        """LLM 호출 (캐시 우선) + Langfuse 추적"""
+    async def run(
+        self,
+        prompt: str,
+        model: str | None = None,
+        result_type: Any = None,
+        activity_name: str | None = None,
+    ) -> Any:
+        """LLM 호출 (캐시 우선) + Langfuse 추적
+
+        Args:
+            prompt: LLM 프롬프트
+            model: 명시적 모델명 (지정하면 activity_name보다 우선)
+            result_type: Pydantic 모델 (구조화 출력용)
+            activity_name: Activity 이름 (자동 모델 선택용)
+        """
+        if model is None and activity_name:
+            from app.services.llm_config import get_model_for_activity
+            model = get_model_for_activity(activity_name)
         model = model or settings.LLM_MODEL
         key = self._cache_key(prompt, model)
         trace_meta = get_current_trace_metadata()
@@ -64,7 +80,10 @@ class CachedLLMService:
             else:
                 raise
 
-        data = run_result.data
+        # Pydantic AI v1.x uses .output, older versions use .data
+        data = getattr(run_result, 'output', None) or getattr(run_result, 'data', None)
+        if data is None:
+            raise ValueError(f"AgentRunResult has neither 'output' nor 'data' attribute: {type(run_result)}")
         if hasattr(data, "model_dump"):
             data = data.model_dump()
 
@@ -82,7 +101,10 @@ class CachedLLMService:
         if not is_langfuse_enabled():
             return
         try:
-            from langfuse.decorators import langfuse_context
+            try:
+                from langfuse import langfuse_context
+            except ImportError:
+                from langfuse.decorators import langfuse_context
             langfuse_context.update_current_observation(
                 metadata={
                     **metadata,
@@ -97,7 +119,10 @@ class CachedLLMService:
         if not is_langfuse_enabled():
             return
         try:
-            from langfuse.decorators import langfuse_context
+            try:
+                from langfuse import langfuse_context
+            except ImportError:
+                from langfuse.decorators import langfuse_context
             langfuse_context.update_current_observation(
                 metadata={
                     **metadata,
@@ -134,10 +159,103 @@ class CachedLLMService:
         content = f"{model}:{prompt}"
         return f"llm_cache:job:{job_id}:{hashlib.sha256(content.encode()).hexdigest()}"
 
-    async def run_for_job(
-        self, job_id: str, prompt: str, model: str | None = None, result_type: Any = None
+    async def run_with_prompt_config(
+        self,
+        prompt_config: Any,  # PromptWithConfig from app.prompts
+        result_type: Any = None,
     ) -> Any:
-        """Job 단위 캐시를 사용하는 LLM 호출 + Langfuse 추적"""
+        """Langfuse PromptWithConfig를 사용하는 LLM 호출
+
+        Langfuse에서 가져온 프롬프트의 config에 있는 model, temperature를 사용합니다.
+
+        Args:
+            prompt_config: PromptWithConfig 객체 (get_prompt_with_config 결과)
+            result_type: Pydantic 모델 (구조화 출력용)
+        """
+        prompt = prompt_config.prompt
+        # Langfuse config의 model 사용, 없으면 fallback
+        model = prompt_config.model or settings.LLM_MODEL
+        temperature = prompt_config.temperature
+
+        key = self._cache_key(prompt, model)
+        trace_meta = get_current_trace_metadata()
+
+        # Langfuse 프롬프트 소스 정보 추가
+        trace_meta["prompt_source"] = prompt_config.source
+        trace_meta["prompt_name"] = prompt_config.name
+        if prompt_config.version:
+            trace_meta["prompt_version"] = prompt_config.version
+
+        # 캐시 조회
+        try:
+            redis = await self._get_redis()
+            cached = await redis.get(key)
+            if cached:
+                logger.debug(f"LLM cache hit: {key[:20]}... (prompt: {prompt_config.name})")
+                self._log_cache_event("hit", trace_meta)
+                return json.loads(cached)
+        except Exception as e:
+            logger.warning(f"Redis cache read failed: {e}")
+
+        self._log_cache_event("miss", trace_meta)
+
+        # LLM 호출
+        from app.services.llm_config import get_llm_agent
+        try:
+            # temperature가 있으면 agent에 전달
+            agent = get_llm_agent(result_type=result_type, model=model)
+            run_result = await agent.run(prompt)
+
+            logger.info(
+                f"LLM call: {prompt_config.name} (source={prompt_config.source}, "
+                f"model={model})"
+            )
+        except Exception as primary_err:
+            fallback_model = settings.LLM_FALLBACK_MODEL
+            if fallback_model and fallback_model != model:
+                logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
+                self._log_fallback_event(model, fallback_model, trace_meta)
+                agent = get_llm_agent(result_type=result_type, model=fallback_model)
+                run_result = await agent.run(prompt)
+            else:
+                raise
+
+        # Pydantic AI v1.x uses .output, older versions use .data
+        data = getattr(run_result, 'output', None) or getattr(run_result, 'data', None)
+        if data is None:
+            raise ValueError(f"AgentRunResult has neither 'output' nor 'data' attribute: {type(run_result)}")
+        if hasattr(data, "model_dump"):
+            data = data.model_dump()
+
+        # 캐시 저장
+        try:
+            redis = await self._get_redis()
+            await redis.setex(key, self.ttl, json.dumps(data, default=str))
+        except Exception as e:
+            logger.warning(f"Redis cache write failed: {e}")
+
+        return data
+
+    async def run_for_job(
+        self,
+        job_id: str,
+        prompt: str,
+        model: str | None = None,
+        result_type: Any = None,
+        activity_name: str | None = None,
+    ) -> Any:
+        """Job 단위 캐시를 사용하는 LLM 호출 + Langfuse 추적
+
+        Args:
+            job_id: Job ID
+            prompt: LLM 프롬프트
+            model: 명시적 모델명 (지정하면 activity_name보다 우선)
+            result_type: Pydantic 모델 (구조화 출력용)
+            activity_name: Activity 이름 (자동 모델 선택용)
+        """
+        if model is None and activity_name:
+            from app.services.llm_config import get_model_for_activity
+            model = get_model_for_activity(activity_name)
         model = model or settings.LLM_MODEL
         key = self._job_cache_key(job_id, prompt, model)
         trace_meta = {**get_current_trace_metadata(), "job_id": job_id}
@@ -170,7 +288,10 @@ class CachedLLMService:
             else:
                 raise
 
-        data = run_result.data
+        # Pydantic AI v1.x uses .output, older versions use .data
+        data = getattr(run_result, 'output', None) or getattr(run_result, 'data', None)
+        if data is None:
+            raise ValueError(f"AgentRunResult has neither 'output' nor 'data' attribute: {type(run_result)}")
         if hasattr(data, "model_dump"):
             data = data.model_dump()
 
