@@ -7,6 +7,7 @@ import logging
 from temporalio import activity
 
 from app.core.observability import observe_activity
+from app.services.activity_logger import ActivityLogger
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,19 @@ async def create_execution_plan(enriched_input: dict) -> dict:
     3. 실행 계획 생성
     """
     from app.services.github_service import GitHubService
+
+    # Initialize activity logger
+    job_id = enriched_input.get("raw_input", {}).get("job_id")
+    alog = ActivityLogger(job_id, "planning", "planning") if job_id else None
+
+    github_urls = enriched_input.get("github_urls", [])
+    available = enriched_input.get("available_analyses", [])
+
+    if alog:
+        await alog.start("Creating execution plan", {
+            "github_urls_count": len(github_urls),
+            "available_analyses": available,
+        })
 
     github = GitHubService()
     raw_input = enriched_input.get("raw_input", {})
@@ -56,6 +70,14 @@ async def create_execution_plan(enriched_input: dict) -> dict:
         ) + 120,
         "raw_input": raw_input,
     }
+
+    # Log final result
+    if alog:
+        await alog.result("Execution plan created", {
+            "enabled_phases": [p["name"] for p in plan["phases"] if p["enabled"]],
+            "estimated_total_time_seconds": plan["estimated_total_time_seconds"],
+            "repos_analyzed": len(workload),
+        })
 
     return plan
 

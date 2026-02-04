@@ -6,6 +6,7 @@ import { JobListPage } from './pages/JobListPage'
 import { CreateJobPage } from './pages/CreateJobPage'
 import { JobStatusPage } from './pages/JobStatusPage'
 import { ResultPage } from './pages/ResultPage'
+import { AnalysisLogsPage } from './pages/AnalysisLogsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { AuthCallbackPage } from './pages/AuthCallbackPage'
 import { useAuth } from './hooks/useAuth'
@@ -44,6 +45,10 @@ function App() {
           <Route
             path="/jobs/:jobId/result"
             element={isAuthenticated ? <ResultPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/jobs/:jobId/logs"
+            element={isAuthenticated ? <AnalysisLogsPage /> : <Navigate to="/login" />}
           />
           <Route path="/" element={<Navigate to={isAuthenticated ? '/jobs' : '/login'} />} />
           <Route path="*" element={<NotFoundPage />} />

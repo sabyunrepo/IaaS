@@ -7,6 +7,7 @@ import logging
 from temporalio import activity
 
 from app.core.observability import observe_activity
+from app.services.activity_logger import ActivityLogger
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +26,19 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
     """
     from app.services.cached_llm import CachedLLMService
 
+    # Initialize activity logger
+    alog = ActivityLogger(job_id, "select_topics", "generating") if job_id else None
+
     llm = CachedLLMService()
     raw_input = enriched_input.get("raw_input", {})
     experience_level = raw_input.get("experience_level", "미들")
     max_questions = raw_input.get("max_questions", 25)
+
+    if alog:
+        await alog.start("Selecting question topics", {
+            "experience_level": experience_level,
+            "max_questions": max_questions,
+        })
 
     # 질문 후보 수집
     candidates = []
@@ -112,6 +122,11 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
 
     result = await llm.run(prompt, activity_name="select_topics")
     if isinstance(result, list):
+        if alog:
+            await alog.result("Topics selected", {
+                "topics_count": len(result[:max_questions]),
+                "candidates_considered": len(candidates),
+            })
         return result[:max_questions]
 
     # Fallback: generate placeholder topics from candidates
@@ -134,6 +149,11 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
                     "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"][j],
                     "source": "generated",
                 })
+    if alog:
+        await alog.result("Topics selected (fallback)", {
+            "topics_count": len(topics[:max_questions]),
+            "candidates_considered": len(candidates),
+        })
     return topics[:max_questions]
 
 
