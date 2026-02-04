@@ -77,10 +77,31 @@ async def enrich_input(input_data: dict) -> dict:
             logger.warning(f"Cover letter 파싱 실패 (계속 진행): {e}")
             document_errors.append({"source": "cover_letter", "error": str(e)})
 
-    # 4. 직접 입력된 URL 병합
-    for url in input_data.get("github_urls", []):
-        extracted_urls["github"].add(str(url))
-        extraction_sources.setdefault("github_urls", []).append("user_input")
+    # 4. 직접 입력된 URL 병합 (git_url 필드 지원)
+    git_url = input_data.get("git_url")
+    if git_url:
+        git_url = str(git_url).strip()
+        # GitHub 프로필 URL인지 레포 URL인지 확인
+        if _is_github_profile_url(git_url):
+            # 프로필 URL이면 레포 목록을 가져옴
+            activity.heartbeat(f"Fetching repos from GitHub profile: {git_url}...")
+            try:
+                from app.services.github_service import GitHubService
+                github_svc = GitHubService()
+                profile_repos = await github_svc.get_user_repos(git_url)
+                for repo_url in profile_repos:
+                    extracted_urls["github"].add(repo_url)
+                    extraction_sources.setdefault("github_urls", []).append("git_url_profile")
+            except Exception as e:
+                logger.warning(f"Failed to fetch repos from profile {git_url}: {e}")
+                # 프로필 URL에서 username만 추출해서 저장
+                username = _extract_username_from_profile_url(git_url)
+                if username:
+                    input_data["candidate_github_username"] = username
+        elif _is_github_repo_url(git_url):
+            # 레포 URL이면 직접 추가
+            extracted_urls["github"].add(git_url)
+            extraction_sources.setdefault("github_urls", []).append("git_url_repo")
 
     linkedin_url = (
         input_data.get("linkedin_url")
@@ -173,4 +194,22 @@ def _extract_urls(text: str) -> dict[str, list[str]]:
 def _extract_github_username(github_url: str) -> str | None:
     """GitHub URL에서 username 추출"""
     match = re.match(r'https?://github\.com/([\w\-]+)/[\w\-\.]+', github_url)
+    return match.group(1) if match else None
+
+
+def _is_github_profile_url(url: str) -> bool:
+    """GitHub 프로필 URL인지 확인 (https://github.com/username)"""
+    pattern = r'^https?://github\.com/[\w\-]+/?$'
+    return bool(re.match(pattern, url))
+
+
+def _is_github_repo_url(url: str) -> bool:
+    """GitHub 레포지토리 URL인지 확인 (https://github.com/owner/repo)"""
+    pattern = r'^https?://github\.com/[\w\-]+/[\w\-\.]+/?$'
+    return bool(re.match(pattern, url))
+
+
+def _extract_username_from_profile_url(url: str) -> str | None:
+    """GitHub 프로필 URL에서 username 추출"""
+    match = re.match(r'https?://github\.com/([\w\-]+)/?$', url)
     return match.group(1) if match else None

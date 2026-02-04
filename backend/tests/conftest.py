@@ -41,7 +41,7 @@ def sample_input_data(sample_jd_text):
         "resume_path": None,
         "portfolio_path": None,
         "linkedin_url": "https://www.linkedin.com/in/test-user",
-        "github_urls": [],
+        "git_url": None,
         "candidate_github_username": None,
         "jd_text": sample_jd_text,
         "experience_level": "시니어",

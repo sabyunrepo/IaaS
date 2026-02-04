@@ -353,7 +353,7 @@ class TestAvailableAnalysesDecision:
             "portfolio_path": None,
             "cover_letter_path": None,
             "linkedin_url": None,
-            "github_urls": [],
+            "git_url": None,
         }
 
         with patch("app.workflows.activities.input_enrichment.activity") as mock_activity:
@@ -377,7 +377,7 @@ class TestAvailableAnalysesDecision:
             "portfolio_path": None,
             "cover_letter_path": None,
             "linkedin_url": None,
-            "github_urls": ["https://github.com/user/repo"],  # GitHub 있음
+            "git_url": "https://github.com/user/repo",  # GitHub 있음 (단일 URL)
         }
 
         # Mock 설정
@@ -417,7 +417,7 @@ class TestAvailableAnalysesDecision:
 
         input_data = {
             "jd_text": "Test JD",
-            "github_urls": ["https://github.com/org/repo"],  # 조직 레포만
+            "git_url": "https://github.com/org/repo",  # 조직 레포만
         }
 
         async def mock_infer_username(github_urls, candidate_name=None):
@@ -513,6 +513,70 @@ class TestGracefulDocumentParsingFailure:
             assert len(result.get("document_errors", [])) == 3
             # JD 분석은 여전히 가능
             assert "jd_analysis" in result["available_analyses"]
+
+
+# ============================================================
+# P0-08: git_url 필드 처리
+# ============================================================
+
+class TestGitUrlFieldHandling:
+    """P0-08: git_url 필드 처리 테스트 (프로필 URL vs 레포 URL)"""
+
+    def test_is_github_profile_url(self):
+        """GitHub 프로필 URL 감지"""
+        from app.workflows.activities.input_enrichment import _is_github_profile_url
+
+        assert _is_github_profile_url("https://github.com/username")
+        assert _is_github_profile_url("https://github.com/username/")
+        assert not _is_github_profile_url("https://github.com/username/repo")
+        assert not _is_github_profile_url("https://github.com")
+
+    def test_is_github_repo_url(self):
+        """GitHub 레포 URL 감지"""
+        from app.workflows.activities.input_enrichment import _is_github_repo_url
+
+        assert _is_github_repo_url("https://github.com/username/repo")
+        assert _is_github_repo_url("https://github.com/username/repo/")
+        assert not _is_github_repo_url("https://github.com/username")
+        assert not _is_github_repo_url("https://github.com")
+
+    def test_extract_username_from_profile_url(self):
+        """프로필 URL에서 username 추출"""
+        from app.workflows.activities.input_enrichment import _extract_username_from_profile_url
+
+        assert _extract_username_from_profile_url("https://github.com/testuser") == "testuser"
+        assert _extract_username_from_profile_url("https://github.com/testuser/") == "testuser"
+        assert _extract_username_from_profile_url("https://github.com/test-user") == "test-user"
+        assert _extract_username_from_profile_url("https://github.com/user/repo") is None
+
+    @pytest.mark.asyncio
+    async def test_git_url_repo_adds_to_extracted(self):
+        """git_url이 레포 URL이면 extracted_urls에 추가"""
+        from app.workflows.activities.input_enrichment import enrich_input
+        from unittest.mock import patch, MagicMock
+
+        input_data = {
+            "jd_text": "Test JD",
+            "git_url": "https://github.com/user/project",
+        }
+
+        async def mock_infer_username(github_urls, candidate_name=None):
+            return {
+                "username": "user",
+                "confidence": "high",
+                "personal_repos": github_urls,
+                "skipped_org_repos": [],
+            }
+
+        with patch("app.workflows.activities.input_enrichment.activity") as mock_activity, \
+             patch("app.services.github_service.GitHubService.infer_candidate_username", side_effect=mock_infer_username):
+
+            mock_activity.heartbeat = MagicMock()
+
+            result = await enrich_input(input_data)
+
+            assert "https://github.com/user/project" in result["all_extracted_github_urls"]
+            assert "git_url_repo" in result["extraction_sources"].get("github_urls", [])
 
 
 # ============================================================

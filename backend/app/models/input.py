@@ -31,7 +31,7 @@ class InputData(BaseModel):
     linkedin_url: str | None = Field(None, description="LinkedIn 프로필 URL")
 
     # GitHub
-    github_urls: list[HttpUrl] = Field(default_factory=list, description="GitHub 레포 URL 목록")
+    git_url: str | None = Field(None, description="GitHub 프로필 또는 레포지토리 URL (레포는 자동 추출)")
     candidate_github_username: str | None = Field(None, description="후보자 GitHub 사용자명")
 
     # JD
