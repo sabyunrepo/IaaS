@@ -1,6 +1,26 @@
 services:
   # ============================================
-  # Core Services
+  # Frontend (Nginx + React)
+  # ============================================
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: iaas-frontend
+    restart: unless-stopped
+    environment:
+      - VITE_BACKEND_URL=${FRONTEND_BACKEND_URL:-http://localhost:8000}
+    depends_on:
+      - backend
+    networks:
+      - iaas_internal
+      - cloudflare_tunnel  # Cloudflare 터널에서 접근 가능
+    ports:
+      - "80:80"
+
+  # ============================================
+  # Core Services (내부망만 연결)
   # ============================================
 
   backend:
@@ -8,8 +28,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: development
-    ports:
-      - "8000:8000"
+    container_name: iaas-backend
+    restart: unless-stopped
     env_file:
       - .env
     environment:
@@ -36,8 +56,8 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
-      - FRONTEND_URL=http://localhost:5173
-      - BACKEND_URL=http://localhost:8000
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
     volumes:
       - ./backend:/app
       - backend_venv:/app/.venv
@@ -49,12 +69,18 @@ services:
       temporal:
         condition: service_started
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - iaas_internal
+    ports:
+      - "8000:8000"
 
   worker:
     build:
       context: ./backend
       dockerfile: Dockerfile
       target: development
+    container_name: iaas-worker
+    restart: unless-stopped
     env_file:
       - .env
     environment:
@@ -82,17 +108,19 @@ services:
       - backend
       - temporal
     command: python -m app.worker
+    networks:
+      - iaas_internal
     profiles:
-      - worker  # Step 7 이후에 활성화
+      - worker  # worker는 명시적으로 활성화
 
   # ============================================
-  # Database
+  # Database (내부망만)
   # ============================================
 
   postgres:
     image: pgvector/pgvector:pg16
-    ports:
-      - "5432:5432"
+    container_name: iaas-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -105,23 +133,31 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - iaas_internal
+    ports:
+      - "5432:5432"
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    container_name: iaas-redis
+    restart: unless-stopped
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    networks:
+      - iaas_internal
+    ports:
+      - "6379:6379"
 
   # ============================================
-  # Temporal (Workflow Engine)
+  # Temporal (Workflow Engine, 내부망만)
   # ============================================
 
   temporal:
     image: temporalio/auto-setup:1.22
-    ports:
-      - "7233:7233"
+    container_name: iaas-temporal
+    restart: unless-stopped
     environment:
       - DB=postgresql
       - DB_PORT=5432
@@ -134,25 +170,33 @@ services:
         condition: service_healthy
     volumes:
       - ./config/temporal:/etc/temporal/config/dynamicconfig
+    networks:
+      - iaas_internal
+    ports:
+      - "7233:7233"
 
   temporal-ui:
     image: temporalio/ui:2.21.3
-    ports:
-      - "8080:8080"
+    container_name: iaas-temporal-ui
+    restart: unless-stopped
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:5173
     depends_on:
       - temporal
+    networks:
+      - iaas_internal
+    ports:
+      - "8080:8080"
 
   # ============================================
-  # LLM Observability (Langfuse)
+  # LLM Observability (Langfuse, 내부망만)
   # ============================================
 
   langfuse:
     image: langfuse/langfuse:2
-    ports:
-      - "3100:3000"
+    container_name: iaas-langfuse
+    restart: unless-stopped
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/langfuse
       - NEXTAUTH_URL=http://localhost:3100
@@ -161,23 +205,46 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - iaas_internal
+    ports:
+      - "3100:3000"
 
   # ============================================
-  # AWS Local Emulation
+  # AWS Local Emulation (내부망만)
   # ============================================
 
   localstack:
     image: localstack/localstack:3.0
-    ports:
-      - "4566:4566"
+    container_name: iaas-localstack
     environment:
       - SERVICES=s3
       - DEBUG=0
     volumes:
       - localstack_data:/var/lib/localstack
       - ./scripts/localstack-init.sh:/etc/localstack/init/ready.d/init.sh
+    networks:
+      - iaas_internal
     profiles:
-      - storage  # STORAGE_BACKEND=s3 사용 시에만 활성화
+      - storage  # S3 사용 시에만 활성화
+
+# ============================================
+# Networks
+# ============================================
+
+networks:
+  iaas_internal:
+    name: iaas_internal
+    driver: bridge
+
+  cloudflare_tunnel:
+    name: cloudflare_tunnel
+    external: true
+    # docker-compose.tunnel.yml에서 생성된 네트워크 사용
+
+# ============================================
+# Volumes
+# ============================================
 
 volumes:
   postgres_data:

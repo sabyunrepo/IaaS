@@ -1,0 +1,15 @@
+# 로컬 개발용 오버라이드
+# 사용법: docker compose up -d (자동 적용)
+# 프로덕션: docker compose -f docker-compose.yml up -d (override 제외)
+
+services:
+  frontend:
+    networks:
+      - iaas_internal
+      # cloudflare_tunnel 제외 (로컬 개발 시 터널 불필요)
+
+networks:
+  cloudflare_tunnel:
+    external: false
+    name: cloudflare_tunnel_local
+    driver: bridge
