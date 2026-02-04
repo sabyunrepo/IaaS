@@ -17,6 +17,7 @@ from sqlalchemy import select
 from app.models.input import CreateJobRequest, CreateJobResponse
 from app.models.database import CheckpointDB
 from app.services import job_service
+from app.api.transformers import ensure_compatible_format
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
@@ -102,15 +103,29 @@ async def get_job(
 @router.get("/{job_id}/result")
 async def get_job_result(
     job_id: str,
+    version: str = Query("v2", regex="^v[12]$", description="API response format version"),
     user: UserDB = Depends(get_current_user_or_api_key),
     db: AsyncSession = Depends(get_db),
 ):
-    """완성된 면접 스크립트 조회"""
+    """완성된 면접 스크립트 조회
+
+    Args:
+        job_id: Job ID
+        version: Response format version (v1 or v2, default v2)
+            - v1: Legacy format with evaluation_scenarios object
+            - v2: New format with scenarios array, intel, analysis, decision
+
+    Returns:
+        Interview script in requested format
+    """
     job = await job_service.get_job(job_id, user.id, db)
     if job.status != "completed" or not job.final_output:
         from app.exceptions import ValidationError
         raise ValidationError("Job is not completed yet")
-    return job.final_output
+
+    # Transform to requested format
+    script = ensure_compatible_format(job.final_output, version)
+    return script
 
 
 WORKFLOW_STEPS = [

@@ -34,6 +34,8 @@ with workflow.unsafe.imports_passed_through():
         start_job_trace,
         end_job_trace,
     )
+    from app.workflows.activities.intel_generation import generate_intel_brief
+    from app.workflows.activities.analysis_generation import generate_deep_analysis
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +309,54 @@ class InterviewGenerationWorkflow:
             # Attach decision guide to final output
             if isinstance(final_script, dict) and decision_guide:
                 final_script["decision_guide"] = decision_guide
+
+            # Phase 4c: Generate v2 Intel and Analysis (병렬)
+            self._update_status(JobStatus.REVIEWING, "Phase 4: Intel/Analysis", 92)
+
+            # Prepare inputs for intel/analysis generation
+            jd_text = raw_input.get("jd_text", "")
+            document_analysis = analysis.get("document_analysis", {})
+            jd_analysis_data = analysis.get("jd_analysis", {})
+            code_analysis_data = analysis.get("code_analysis")
+            linkedin_profile = enriched.get("linkedin_profile")
+
+            intel_analysis_tasks = [
+                workflow.execute_activity(
+                    generate_intel_brief,
+                    args=[
+                        jd_analysis_data,
+                        document_analysis,
+                        code_analysis_data,
+                        linkedin_profile,
+                        jd_text,
+                        job_id,
+                    ],
+                    start_to_close_timeout=timedelta(minutes=2),
+                    heartbeat_timeout=timedelta(seconds=60),
+                    retry_policy=DEFAULT_RETRY,
+                ),
+                workflow.execute_activity(
+                    generate_deep_analysis,
+                    args=[
+                        jd_analysis_data,
+                        code_analysis_data,
+                        document_analysis,
+                        job_id,
+                    ],
+                    start_to_close_timeout=timedelta(minutes=2),
+                    heartbeat_timeout=timedelta(seconds=60),
+                    retry_policy=DEFAULT_RETRY,
+                ),
+            ]
+
+            intel_analysis_results = await asyncio.gather(*intel_analysis_tasks)
+            intel_brief = intel_analysis_results[0]
+            deep_analysis = intel_analysis_results[1]
+
+            # Attach v2 data to final script
+            if isinstance(final_script, dict):
+                final_script["intel"] = intel_brief
+                final_script["analysis"] = deep_analysis
 
             # DB에 결과 저장
             job_id = input_data.get("job_id")
