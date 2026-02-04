@@ -45,7 +45,7 @@ ACTIVITY_MODEL_CONFIG = {
     "analyze_code": {"model": "openai:gpt-4o", "temperature": 0.5},
     "analyze_jd": {"model": "openai:gpt-4o-mini", "temperature": 0.3},
 
-    # Phase 3: Question Generation
+    # Phase 3: Question Generation (v2 format)
     "craft_question": {"model": "openai:gpt-4o", "temperature": 0.7},
     "enhance_terminology": {"model": "openai:gpt-4o-mini", "temperature": 0.5},
     "craft_evaluation_scenarios": {"model": "openai:gpt-4o", "temperature": 0.6},
@@ -58,6 +58,11 @@ ACTIVITY_MODEL_CONFIG = {
     "quality_review": {"model": "openai:gpt-4o", "temperature": 0.3},
     "finalize_candidate_summary": {"model": "openai:gpt-4o", "temperature": 0.5},
     "finalize_interviewer_guide": {"model": "openai:gpt-4o-mini", "temperature": 0.5},
+
+    # Phase 4c: v2 Intel/Analysis Generation
+    "generate_intel_brief": {"model": "openai:gpt-4o", "temperature": 0.5},
+    "generate_deep_analysis": {"model": "openai:gpt-4o", "temperature": 0.5},
+    "generate_decision_support": {"model": "openai:gpt-4o", "temperature": 0.5},
 }
 
 # YAML 키 → Activity 이름 매핑

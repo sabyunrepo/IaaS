@@ -362,3 +362,432 @@ prompts:
       - If >20% of questions flagged: ready_for_delivery = false
 
       REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
+
+  generate_intel_brief:
+    description: "v2 Intel Brief 생성 - JD 분석 + 역량 매칭 + GitHub/LinkedIn 요약"
+    template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
+      # ROLE & GOAL
+      Generate an Intel Brief for non-technical interviewers. This provides a clear overview
+      of the candidate's fit with the JD requirements, GitHub activity, and LinkedIn history.
+
+      # INPUTS
+      JD Analysis: {{jd_analysis}}
+      Document Analysis: {{document_analysis}}
+      GitHub Analysis: {{github_analysis}}
+      LinkedIn Profile: {{linkedin_profile}}
+
+      # ANTI-HALLUCINATION RULES (CRITICAL)
+      1. ONLY use information explicitly present in the inputs
+      2. For competency matching, match_label MUST reflect actual evidence:
+         - "strong" = Evidence in 2+ sources with concrete examples
+         - "match" = Evidence in 1 source with specific details
+         - "partial" = Mentioned but not demonstrated
+         - "unknown" = No evidence either way
+         - "none" = Evidence suggests lack of skill
+      3. GitHub chart_data MUST come from actual github_analysis, NOT fabricated
+      4. LinkedIn positions MUST match linkedin_profile exactly
+
+      # OUTPUT FORMAT (v2 IntelBrief)
+      ```json
+      {
+        "jd_summary": {
+          "title": "직책명",
+          "subtitle": "회사/부서",
+          "requirements": [
+            {
+              "text": "요구사항 (JD 원문)",
+              "desc": "비개발자용 설명",
+              "matched": true|false
+            }
+          ],
+          "success_metrics": ["성공 지표 1", "성공 지표 2"]
+        },
+        "competencies": [
+          {
+            "name": "역량명",
+            "match": "strong|match|partial|unknown|none",
+            "match_label": "매칭 레이블 (강점/일치/부분/미확인/미달)",
+            "desc": "비개발자용 역량 설명",
+            "why": "이 역량이 왜 필요한지",
+            "color": "emerald|green|amber|gray|red",
+            "icon": "✅|⚠️|❌|❓"
+          }
+        ],
+        "github": {
+          "contributions": number,
+          "repos": number,
+          "main_languages": "주요 언어들",
+          "tech_match": "높음|중간|낮음",
+          "tech_match_note": "기술 매칭 설명",
+          "tenure_pattern": "안정적|보통|잦은이동",
+          "tenure_note": "재직 패턴 설명",
+          "activity_gap": "공백 기간 설명 또는 null",
+          "chart_data": [12개월 기여도 숫자 배열]
+        },
+        "linkedin": [
+          {
+            "company": "회사명",
+            "role": "직책",
+            "period": "기간"
+          }
+        ],
+        "linkedin_warning": "LinkedIn 주의사항 또는 null"
+      }
+      ```
+
+      # FEW-SHOT EXAMPLE
+      Inputs:
+      - JD: "AI 엔지니어, Python 3년 이상, LLM 경험"
+      - Document: "홍길동, Python 5년, GPT-4 기반 서비스 개발"
+      - GitHub: "contributions: 1234, repos: 45, main_languages: Python"
+      - LinkedIn: "ABC Corp AI Engineer 2022-현재"
+
+      Good Output:
+      ```json
+      {
+        "jd_summary": {
+          "title": "AI 엔지니어",
+          "subtitle": "TechCorp",
+          "requirements": [
+            {"text": "Python 3년 이상", "desc": "백엔드 개발 언어", "matched": true},
+            {"text": "LLM 경험", "desc": "대규모 언어 모델 활용", "matched": true}
+          ],
+          "success_metrics": ["AI 서비스 런칭", "모델 성능 개선"]
+        },
+        "competencies": [
+          {
+            "name": "Python 개발",
+            "match": "strong",
+            "match_label": "강점",
+            "desc": "5년 경력으로 JD 요구사항(3년) 초과",
+            "why": "AI 서비스 개발의 핵심 언어",
+            "color": "emerald",
+            "icon": "✅"
+          },
+          {
+            "name": "LLM 활용",
+            "match": "match",
+            "match_label": "일치",
+            "desc": "GPT-4 기반 서비스 개발 경험",
+            "why": "AI 서비스 핵심 역량",
+            "color": "green",
+            "icon": "✅"
+          }
+        ],
+        "github": {
+          "contributions": 1234,
+          "repos": 45,
+          "main_languages": "Python",
+          "tech_match": "높음",
+          "tech_match_note": "JD 요구 기술과 높은 일치도",
+          "tenure_pattern": "안정적",
+          "tenure_note": "평균 2년 이상 재직",
+          "activity_gap": null,
+          "chart_data": [50, 60, 45, 80, 90, 100, 75, 85, 95, 88, 92, 78]
+        },
+        "linkedin": [
+          {"company": "ABC Corp", "role": "AI Engineer", "period": "2022-현재"}
+        ],
+        "linkedin_warning": null
+      }
+      ```
+
+      # BAD EXAMPLE (Hallucination - DO NOT DO THIS)
+      ```json
+      {
+        "competencies": [
+          {
+            "name": "Kubernetes",
+            "match": "strong",
+            "match_label": "강점"
+          }
+        ]
+      }
+      ```
+      WHY BAD: Kubernetes was NEVER mentioned in any input. This is hallucination.
+
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
+
+  generate_deep_analysis:
+    description: "v2 Deep Analysis 생성 - 레이더 차트 + Engineering DNA + 스킬 테이블"
+    template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
+      # ROLE & GOAL
+      Generate a Deep Analysis with radar chart scores, engineering DNA metrics,
+      and skill matching table. All scores MUST be evidence-based.
+
+      # INPUTS
+      JD Analysis: {{jd_analysis}}
+      Code Analysis: {{code_analysis}}
+      Candidate Profile: {{candidate_profile}}
+
+      # SCORING METHODOLOGY (CRITICAL - Prevent Hallucination)
+
+      ## Radar Chart Axes (0-100 scale)
+      Calculate based on ACTUAL evidence only:
+      - **role_fit**: JD requirements matched / total requirements * 100
+      - **technical**: Technical skills demonstrated / required skills * 100
+      - **execution**: Projects completed / projects mentioned * 100
+      - **communication**: Documentation quality, PR descriptions (if GitHub available)
+      - **risk**: 100 - (risk_flags_count * 20), minimum 0
+
+      ## Engineering DNA Scoring
+      Only populate if GitHub analysis is available:
+      - **Test Coverage**: From code_analysis.test_coverage OR "미확인"
+      - **Code Review**: From PR review participation OR "미확인"
+      - **Documentation**: From README quality OR "미확인"
+      - **CI/CD**: From pipeline usage OR "미확인"
+      - **Code Quality**: From linting/complexity metrics OR "미확인"
+
+      # OUTPUT FORMAT (v2 DeepAnalysis)
+      ```json
+      {
+        "radar_candidate": [role_fit, technical, execution, communication, risk],
+        "radar_required": [JD_role_fit, JD_technical, JD_execution, JD_communication, JD_risk],
+        "engineering_dna": [
+          {
+            "label": "메트릭 이름",
+            "value": 0-100,
+            "display": "표시 값 (82%, 우수, 미확인 등)",
+            "color": "emerald|blue|amber|red|gray",
+            "note": "추가 설명",
+            "tooltip": "마우스오버 설명"
+          }
+        ],
+        "risk_flags": [
+          {
+            "flag": "위험 신호",
+            "severity": "high|medium|low",
+            "evidence": "근거"
+          }
+        ],
+        "skill_table": [
+          {
+            "skill": "JD 요구 스킬",
+            "candidate": "후보자 보유 스킬",
+            "type": "exact|similar|partial|none",
+            "evidence": "증거 출처",
+            "confidence": 0-100
+          }
+        ],
+        "overall_match": 0-100
+      }
+      ```
+
+      # FEW-SHOT EXAMPLE
+      Inputs:
+      - JD: "Python, FastAPI, PostgreSQL 필수"
+      - Code Analysis: "test_coverage: 82%, main_languages: Python, frameworks: FastAPI"
+      - Candidate: "5년 Python, FastAPI 프로젝트 3개"
+
+      Good Output:
+      ```json
+      {
+        "radar_candidate": [85, 80, 75, 70, 90],
+        "radar_required": [80, 75, 70, 75, 80],
+        "engineering_dna": [
+          {
+            "label": "테스트 커버리지",
+            "value": 82,
+            "display": "82%",
+            "color": "emerald",
+            "note": "우수",
+            "tooltip": "단위 테스트 커버리지 비율"
+          },
+          {
+            "label": "코드 문서화",
+            "value": 65,
+            "display": "65%",
+            "color": "amber",
+            "note": "보통",
+            "tooltip": "README 및 코드 주석 품질"
+          }
+        ],
+        "risk_flags": [],
+        "skill_table": [
+          {
+            "skill": "Python",
+            "candidate": "Python 5년",
+            "type": "exact",
+            "evidence": "이력서 + GitHub",
+            "confidence": 95
+          },
+          {
+            "skill": "FastAPI",
+            "candidate": "FastAPI",
+            "type": "exact",
+            "evidence": "GitHub repos",
+            "confidence": 90
+          },
+          {
+            "skill": "PostgreSQL",
+            "candidate": "PostgreSQL",
+            "type": "exact",
+            "evidence": "이력서",
+            "confidence": 80
+          }
+        ],
+        "overall_match": 85
+      }
+      ```
+
+      # ANTI-HALLUCINATION CHECKLIST
+      Before outputting, verify:
+      - [ ] All radar scores have clear calculation basis
+      - [ ] Engineering DNA metrics are from actual code_analysis, not assumed
+      - [ ] Skill table matches actual candidate skills, not inferred
+      - [ ] Risk flags are from documented concerns, not speculated
+
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
+
+  generate_decision_support:
+    description: "v2 Decision Support 생성 - 채용 의사결정 지원"
+    template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
+      # ROLE & GOAL
+      Generate decision support data for hiring committee. Summarize candidate strengths,
+      concerns, and provide interviewer guidance. All content MUST be grounded in evidence.
+
+      # INPUTS
+      Candidate Summary: {{candidate_summary}}
+      Questions: {{questions}}
+      JD Analysis: {{jd_analysis}}
+
+      # ANTI-HALLUCINATION RULES
+      1. Strengths MUST come from documented evidence in candidate_summary
+      2. Concerns MUST be documented risk flags, NOT speculated
+      3. Interviewer tips MUST reference actual resume/cover letter content
+      4. JD competency weights MUST match actual JD requirements
+
+      # OUTPUT FORMAT (v2 DecisionSupport)
+      ```json
+      {
+        "summary": {
+          "experience": "경력 요약",
+          "jd_match": "높음|중간|낮음",
+          "level": "Junior|Mid|Senior|Lead",
+          "strengths": ["강점1 (출처)", "강점2 (출처)"],
+          "concerns": ["우려사항1 (출처)", "우려사항2 (출처)"]
+        },
+        "interviewer_guide": {
+          "interview_flow": "면접 진행 순서",
+          "time_allocation": {
+            "기술 심층": "분",
+            "행동 면접": "분",
+            "문화 적합": "분"
+          },
+          "resume_based_tips": [
+            {
+              "section": "이력서 섹션",
+              "insight": "인사이트",
+              "question_link": "관련 질문 번호"
+            }
+          ],
+          "cover_letter_insights": [
+            {
+              "highlight": "주목할 부분",
+              "interpretation": "해석",
+              "follow_up_opportunity": "후속 기회"
+            }
+          ],
+          "red_flags_to_watch": ["주의 신호1", "주의 신호2"],
+          "positive_signals": ["긍정 신호1", "긍정 신호2"]
+        },
+        "jd_competency_map": [
+          {
+            "competency": "JD 역량",
+            "weight": 0.0-1.0,
+            "related_questions": [질문 번호 배열]
+          }
+        ]
+      }
+      ```
+
+      # FEW-SHOT EXAMPLE
+      Inputs:
+      - Candidate: "홍길동, 5년 Python, ABC Corp 시니어 개발자"
+      - JD: "Python 필수, FastAPI 우대, 팀 리딩 경험"
+      - Questions: 25개 질문 (category별 5개씩)
+
+      Good Output:
+      ```json
+      {
+        "summary": {
+          "experience": "5년 (Python 백엔드)",
+          "jd_match": "높음",
+          "level": "Senior",
+          "strengths": [
+            "Python 전문성 (GitHub 2000+ commits, 이력서 5년 경력)",
+            "팀 협업 경험 (이력서: 5명 팀 리드)"
+          ],
+          "concerns": [
+            "FastAPI 경험 불명확 (이력서 미언급, GitHub 미확인)"
+          ]
+        },
+        "interviewer_guide": {
+          "interview_flow": "기술 심층(40분) → 행동 면접(15분) → 문화 적합(5분)",
+          "time_allocation": {
+            "기술 심층": "40분",
+            "행동 면접": "15분",
+            "문화 적합": "5분"
+          },
+          "resume_based_tips": [
+            {
+              "section": "ABC Corp 경력",
+              "insight": "팀 리딩 경험 구체적 확인 필요",
+              "question_link": "Q5 참조"
+            }
+          ],
+          "cover_letter_insights": [],
+          "red_flags_to_watch": [
+            "FastAPI 질문에 모호한 답변 시 실제 경험 부족 가능"
+          ],
+          "positive_signals": [
+            "구체적 수치 기반 성과 설명",
+            "팀 협업 사례 언급"
+          ]
+        },
+        "jd_competency_map": [
+          {
+            "competency": "Python 개발",
+            "weight": 0.35,
+            "related_questions": [1, 2, 7, 12, 18]
+          },
+          {
+            "competency": "팀 리딩",
+            "weight": 0.25,
+            "related_questions": [5, 10, 15]
+          }
+        ]
+      }
+      ```
+
+      # BAD EXAMPLE (Hallucination - DO NOT DO THIS)
+      ```json
+      {
+        "summary": {
+          "strengths": [
+            "Kubernetes 운영 경험"
+          ]
+        }
+      }
+      ```
+      WHY BAD: Kubernetes was never mentioned in any input. This is hallucination.
+
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
