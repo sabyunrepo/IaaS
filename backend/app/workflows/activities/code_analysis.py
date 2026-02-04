@@ -19,8 +19,8 @@ from app.services.activity_logger import ActivityLogger
 logger = logging.getLogger(__name__)
 
 # GLM 모델 (비용 최적화)
-# settings.CODE_ANALYSIS_MODEL 사용 (기본값: deepseek/deepseek-coder)
-GLM_MODEL = settings.CODE_ANALYSIS_MODEL
+# settings.GLM_CODER_MODEL 사용 (기본값: zai/glm-4.7)
+GLM_MODEL = settings.GLM_CODER_MODEL
 
 
 @activity.defn
