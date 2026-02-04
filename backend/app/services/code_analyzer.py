@@ -406,7 +406,7 @@ class CodeAnalyzer:
             + "\n\n".join(context_parts)
         )
 
-        result = await llm.run(prompt)
+        result = await llm.run(prompt, activity_name="analyze_code")
         if isinstance(result, dict):
             return result
         return {"notable_implementations": [], "patterns": [], "quality_assessment": str(result)}

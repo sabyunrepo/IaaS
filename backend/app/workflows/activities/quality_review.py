@@ -67,7 +67,7 @@ async def review_questions(questions: list[dict]) -> dict:
         from app.prompts import get_prompt
         formatted_questions = "\n".join(f"{i+1}. {t}" for i, t in enumerate(question_texts))
         prompt = get_prompt("quality_review.yaml", "review", questions=formatted_questions)
-        review_result = await llm.run(prompt)
+        review_result = await llm.run(prompt, activity_name="quality_review")
         if isinstance(review_result, dict):
             if review_result.get("duplicates"):
                 issues.append({"type": "duplicates", "details": review_result["duplicates"]})

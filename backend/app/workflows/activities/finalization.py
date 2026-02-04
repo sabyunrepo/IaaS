@@ -127,7 +127,7 @@ async def finalize_output(
         code_analysis=json.dumps(analysis.get("code_analysis", {}), default=str)[:2000],
         linkedin_profile=linkedin_summary,
     )
-    candidate_summary = await llm.run(summary_prompt)
+    candidate_summary = await llm.run(summary_prompt, activity_name="finalize_candidate_summary")
 
     # 3. 면접관 가이드
     activity.heartbeat("Generating interviewer guide...")
@@ -137,7 +137,7 @@ async def finalize_output(
         total_questions=len(questions),
         categories=list(set(q.get("category", "") for q in questions)),
     )
-    interviewer_guide = await llm.run(guide_prompt)
+    interviewer_guide = await llm.run(guide_prompt, activity_name="finalize_interviewer_guide")
 
     # 4. 최종 스크립트 조립
     final_script = {
