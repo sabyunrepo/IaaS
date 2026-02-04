@@ -5,12 +5,159 @@ CachedLLMService — Redis 기반 LLM 응답 캐시 + Langfuse 추적
 import hashlib
 import json
 import logging
+import re
 from typing import Any
 
 from app.core.config import settings
-from app.core.observability import get_current_trace_metadata, is_langfuse_enabled
+from app.core.observability import get_current_trace_metadata, is_langfuse_enabled, get_langfuse_client
 
 logger = logging.getLogger(__name__)
+
+
+def _log_llm_generation(
+    model: str,
+    prompt: str,
+    output: Any,
+    run_result: Any,
+    trace_meta: dict,
+    activity_name: str | None = None,
+) -> None:
+    """Langfuse에 LLM generation 기록 (비용 추적용)
+
+    Langfuse SDK v3에서는 start_generation()을 사용하여 현재 트레이스 내에
+    generation span을 생성합니다.
+
+    Args:
+        model: LLM 모델명
+        prompt: 입력 프롬프트
+        output: LLM 출력
+        run_result: Pydantic AI RunResult 객체
+        trace_meta: 트레이스 메타데이터
+        activity_name: Activity 이름
+    """
+    if not is_langfuse_enabled():
+        return
+
+    try:
+        client = get_langfuse_client()
+        if not client:
+            return
+
+        # Pydantic AI RunResult에서 usage 정보 추출
+        usage_details = None
+        model_name = model
+        if hasattr(run_result, 'usage'):
+            try:
+                usage_obj = run_result.usage()
+                if usage_obj:
+                    input_tokens = getattr(usage_obj, 'input_tokens', 0) or 0
+                    output_tokens = getattr(usage_obj, 'output_tokens', 0) or 0
+                    usage_details = {
+                        "input": input_tokens,
+                        "output": output_tokens,
+                        "total": input_tokens + output_tokens,
+                    }
+            except Exception as e:
+                logger.debug(f"Failed to get usage from run_result: {e}")
+
+        # all_messages에서 실제 model_name 추출
+        if hasattr(run_result, 'all_messages'):
+            try:
+                messages = run_result.all_messages()
+                for msg in reversed(messages):
+                    if hasattr(msg, 'model_name') and msg.model_name:
+                        model_name = msg.model_name
+                        break
+            except Exception:
+                pass
+
+        # Langfuse SDK v3: start_generation으로 LLM 호출 기록
+        # 현재 trace 컨텍스트 내에서 자동으로 연결됨
+        generation = client.start_generation(
+            name=activity_name or "llm_call",
+            model=model_name,
+            input=prompt[:5000] if isinstance(prompt, str) else str(prompt)[:5000],
+            output=str(output)[:5000] if output else None,
+            usage_details=usage_details,
+            metadata={
+                **trace_meta,
+                "configured_model": model,
+            },
+        )
+        generation.end()
+
+        logger.info(
+            f"Logged Langfuse generation: {activity_name}, "
+            f"model={model_name}, tokens={usage_details}"
+        )
+    except Exception as e:
+        logger.warning(f"Failed to log Langfuse generation: {e}")
+
+
+def _strip_markdown_json(text: str) -> str:
+    """Strip markdown code blocks from LLM response.
+
+    LLMs sometimes wrap JSON responses in ```json ... ``` blocks.
+    This function extracts the raw JSON content.
+
+    Args:
+        text: Raw LLM response string
+
+    Returns:
+        Cleaned JSON string without markdown formatting
+    """
+    if not isinstance(text, str):
+        return text
+
+    # Strip leading/trailing whitespace
+    text = text.strip()
+
+    # Pattern 1: ```json ... ```
+    json_block_pattern = r'^```(?:json)?\s*\n?(.*?)\n?```$'
+    match = re.match(json_block_pattern, text, re.DOTALL | re.IGNORECASE)
+    if match:
+        logger.debug("Stripped markdown code block from LLM response")
+        return match.group(1).strip()
+
+    # Pattern 2: ``` ... ``` (without language specifier)
+    generic_block_pattern = r'^```\s*\n?(.*?)\n?```$'
+    match = re.match(generic_block_pattern, text, re.DOTALL)
+    if match:
+        logger.debug("Stripped generic code block from LLM response")
+        return match.group(1).strip()
+
+    return text
+
+
+def _parse_llm_json_response(data: Any) -> Any:
+    """Parse LLM response, handling markdown-wrapped JSON.
+
+    Args:
+        data: Raw LLM response (string or dict)
+
+    Returns:
+        Parsed JSON object (dict or list) if parsing succeeds,
+        original data otherwise
+    """
+    # If already a dict/list, return as-is
+    if isinstance(data, (dict, list)):
+        return data
+
+    # If string, try to parse as JSON
+    if isinstance(data, str):
+        # First strip any markdown code blocks
+        cleaned = _strip_markdown_json(data)
+        try:
+            parsed = json.loads(cleaned)
+            if isinstance(parsed, (dict, list)):
+                logger.debug("Successfully parsed JSON from string LLM response")
+                return parsed
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse LLM response as JSON: {e}")
+            # Return original string if parsing fails
+            pass
+
+    return data
 
 
 class CachedLLMService:
@@ -87,6 +234,19 @@ class CachedLLMService:
         if hasattr(data, "model_dump"):
             data = data.model_dump()
 
+        # Parse JSON from string responses (handles markdown-wrapped JSON)
+        data = _parse_llm_json_response(data)
+
+        # Langfuse에 generation 기록 (비용 추적)
+        _log_llm_generation(
+            model=model,
+            prompt=prompt,
+            output=data,
+            run_result=run_result,
+            trace_meta=trace_meta,
+            activity_name=activity_name,
+        )
+
         # 캐시 저장
         try:
             redis = await self._get_redis()
@@ -101,16 +261,14 @@ class CachedLLMService:
         if not is_langfuse_enabled():
             return
         try:
-            try:
-                from langfuse import langfuse_context
-            except ImportError:
-                from langfuse.decorators import langfuse_context
-            langfuse_context.update_current_observation(
-                metadata={
-                    **metadata,
-                    "cache_event": event_type,
-                }
-            )
+            client = get_langfuse_client()
+            if client:
+                client.update_current_span(
+                    metadata={
+                        **metadata,
+                        "cache_event": event_type,
+                    }
+                )
         except Exception:
             pass  # 캐시 이벤트 로깅 실패는 무시
 
@@ -119,18 +277,16 @@ class CachedLLMService:
         if not is_langfuse_enabled():
             return
         try:
-            try:
-                from langfuse import langfuse_context
-            except ImportError:
-                from langfuse.decorators import langfuse_context
-            langfuse_context.update_current_observation(
-                metadata={
-                    **metadata,
-                    "fallback_event": True,
-                    "primary_model": primary_model,
-                    "fallback_model": fallback_model,
-                }
-            )
+            client = get_langfuse_client()
+            if client:
+                client.update_current_span(
+                    metadata={
+                        **metadata,
+                        "fallback_event": True,
+                        "primary_model": primary_model,
+                        "fallback_model": fallback_model,
+                    }
+                )
         except Exception:
             pass  # 폴백 이벤트 로깅 실패는 무시
 
@@ -227,6 +383,19 @@ class CachedLLMService:
         if hasattr(data, "model_dump"):
             data = data.model_dump()
 
+        # Parse JSON from string responses (handles markdown-wrapped JSON)
+        data = _parse_llm_json_response(data)
+
+        # Langfuse에 generation 기록 (비용 추적)
+        _log_llm_generation(
+            model=model,
+            prompt=prompt,
+            output=data,
+            run_result=run_result,
+            trace_meta=trace_meta,
+            activity_name=prompt_config.name if prompt_config else None,
+        )
+
         # 캐시 저장
         try:
             redis = await self._get_redis()
@@ -294,6 +463,19 @@ class CachedLLMService:
             raise ValueError(f"AgentRunResult has neither 'output' nor 'data' attribute: {type(run_result)}")
         if hasattr(data, "model_dump"):
             data = data.model_dump()
+
+        # Parse JSON from string responses (handles markdown-wrapped JSON)
+        data = _parse_llm_json_response(data)
+
+        # Langfuse에 generation 기록 (비용 추적)
+        _log_llm_generation(
+            model=model,
+            prompt=prompt,
+            output=data,
+            run_result=run_result,
+            trace_meta=trace_meta,
+            activity_name=activity_name,
+        )
 
         # 캐시 저장
         try:

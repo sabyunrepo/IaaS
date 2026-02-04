@@ -2,6 +2,12 @@ prompts:
   analyze:
     description: "Job Description 분석 및 구조화 추출 (Few-shot Enhanced)"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       You are an expert HR analyst specializing in job description parsing.
       Your task is to extract structured information from job descriptions for interview preparation.
@@ -161,4 +167,4 @@ prompts:
       - DO categorize technologies even if JD doesn't specify type
       - DO note all ambiguities transparently
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.

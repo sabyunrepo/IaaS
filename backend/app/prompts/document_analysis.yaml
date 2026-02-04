@@ -2,6 +2,12 @@ prompts:
   extract_profile:
     description: "이력서/포트폴리오에서 후보자 프로필 추출 (Few-shot Enhanced)"
     template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY raw JSON, NO markdown formatting
+      - Do NOT wrap output in ```json or ``` code blocks
+      - Start your response with { and end with }
+      - No explanatory text before or after the JSON
+
       # ROLE & GOAL
       You are an expert HR analyst specializing in candidate profile extraction.
       Your task is to extract a structured candidate profile from documents.
@@ -153,4 +159,4 @@ prompts:
       - DO calculate confidence scores honestly
       - DO note all missing sections for transparency
 
-      Return ONLY the JSON object, no additional text.
+      REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
