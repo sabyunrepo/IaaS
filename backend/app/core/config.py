@@ -81,6 +81,8 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_SECRET: str | None = None
     FRONTEND_URL: str = "http://localhost:5173"
     BACKEND_URL: str = "http://localhost:8000"
+    # Worker → Backend 내부 통신용 URL (Docker: http://backend:8000)
+    INTERNAL_API_URL: str = "http://backend:8000"
 
     # Embedding
     EMBEDDING_DIMENSION: int = 1536

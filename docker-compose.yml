@@ -105,6 +105,7 @@ services:
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
+      - INTERNAL_API_URL=http://backend:8000
     volumes:
       - ./backend:/app
       - backend_venv:/app/.venv

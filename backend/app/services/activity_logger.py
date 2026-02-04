@@ -36,7 +36,7 @@ class ActivityLogger:
         self.job_id = job_id
         self.activity_name = activity_name
         self.phase = phase
-        self.base_url = base_url or f"http://localhost:{settings.PORT}"
+        self.base_url = base_url or settings.INTERNAL_API_URL
         self._start_time: Optional[float] = None
 
     async def _post_log(
@@ -144,7 +144,7 @@ class SyncActivityLogger:
         self.job_id = job_id
         self.activity_name = activity_name
         self.phase = phase
-        self.base_url = base_url or f"http://localhost:{settings.PORT}"
+        self.base_url = base_url or settings.INTERNAL_API_URL
         self._start_time: Optional[float] = None
 
     def _post_log(
