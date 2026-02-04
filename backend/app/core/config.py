@@ -51,12 +51,14 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str | None = None
     ANTHROPIC_API_KEY: str | None = None
     GEMINI_API_KEY: str | None = None  # Google AI Studio API Key
-    DEEPSEEK_API_KEY: str | None = None  # DeepSeek API Key (코드 분석용 GLM)
+    DEEPSEEK_API_KEY: str | None = None  # DeepSeek API Key
+    ZAI_API_KEY: str | None = None  # Z.AI (Zhipu AI) API Key for GLM models
     LLM_MODEL: str = "openai:gpt-4o"
     LLM_FALLBACK_MODEL: str = "anthropic:claude-3-5-sonnet-20241022"
-    # 코드 분석 최적화 모델 (GLM - 비용 효율적)
-    # DeepSeek Coder: 코딩 효율 우수, GPT-4o 대비 ~70% 비용 절감
-    CODE_ANALYSIS_MODEL: str = "deepseek/deepseek-coder"
+    # GLM 모델 (Z.AI - Zhipu AI)
+    # glm-4.5-flash: 무료!, glm-4.5-air: 저렴, glm-4.7: 최신 플래그십
+    GLM_MODEL: str = "zai/glm-4.5-flash"  # 무료 모델
+    GLM_CODER_MODEL: str = "zai/glm-4.7"  # 코드 분석용 플래그십
 
     # Document Parsing
     PDF_PARSER_MIN_CHARS: int = 200  # pymupdf4llm 결과가 이보다 짧으면 Gemini OCR 사용

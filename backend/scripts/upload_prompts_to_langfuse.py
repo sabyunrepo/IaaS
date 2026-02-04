@@ -32,32 +32,52 @@ import yaml
 # 별도의 변환이 필요 없습니다. Langfuse와 YAML fallback 모두 동일한 문법 사용.
 
 
+# =============================================================================
 # Activity별 최적 모델 설정 (llm_config.py와 동기화)
-ACTIVITY_MODEL_CONFIG = {
-    # Phase 0: Input Enrichment
-    "enrich_input": {"model": "openai:gpt-4o-mini", "temperature": 0.3},
+# =============================================================================
+# 모델 선택 기준:
+# - 복잡한 추론/정확성 필요: openai:gpt-4o, anthropic:claude-3-5-sonnet
+# - 단순 작업/비용 최적화: Z.AI GLM (glm-4.5-flash: 무료!)
+# - 코드 분석 최적화: Z.AI GLM-4.7 (플래그십)
+# =============================================================================
 
-    # Phase 1: Planning
+# Z.AI GLM 모델 (Zhipu AI)
+# glm-4.5-flash: 무료! 단순 작업에 최적
+# glm-4.5-air: $0.20/1M input, $1.10/1M output
+# glm-4.7: $0.60/1M input, $2.20/1M output (최신 플래그십)
+GLM_CHAT_MODEL = "zai/glm-4.5-flash"  # 무료 모델
+GLM_CODER_MODEL = "zai/glm-4.7"  # 코드 분석용 플래그십
+
+ACTIVITY_MODEL_CONFIG = {
+    # Phase 0: Input Enrichment - 빠른 처리, GLM으로 비용 절감
+    "enrich_input": {"model": GLM_CHAT_MODEL, "temperature": 0.3},
+
+    # Phase 1: Planning - 중요 의사결정은 GPT-4o 유지
     "select_topics": {"model": "openai:gpt-4o", "temperature": 0.7},
 
     # Phase 2: Analysis
-    "analyze_documents": {"model": "openai:gpt-4o", "temperature": 0.5},
-    "analyze_code": {"model": "openai:gpt-4o", "temperature": 0.5},
-    "analyze_jd": {"model": "openai:gpt-4o-mini", "temperature": 0.3},
+    "analyze_documents": {"model": "openai:gpt-4o", "temperature": 0.5},  # 문서 분석은 품질 중요
+    "analyze_code": {"model": GLM_CODER_MODEL, "temperature": 0.5},  # 코드 분석은 GLM Coder
+    "analyze_jd": {"model": GLM_CHAT_MODEL, "temperature": 0.3},  # JD 분석은 GLM Chat
+
+    # Phase 2: HYBRID 3-Stage 코드 분석 (GLM Coder 모델)
+    "code_overview_analysis": {"model": GLM_CODER_MODEL, "temperature": 0.3},
+    "code_deep_analysis": {"model": GLM_CODER_MODEL, "temperature": 0.5},
+    "code_synthesis_analysis": {"model": GLM_CODER_MODEL, "temperature": 0.5},
 
     # Phase 3: Question Generation (v2 format)
-    "craft_question": {"model": "openai:gpt-4o", "temperature": 0.7},
-    "enhance_terminology": {"model": "openai:gpt-4o-mini", "temperature": 0.5},
+    "craft_question": {"model": "openai:gpt-4o", "temperature": 0.7},  # 핵심 품질 유지
+    "enhance_terminology": {"model": GLM_CHAT_MODEL, "temperature": 0.5},  # 단순 작업 GLM
     "craft_evaluation_scenarios": {"model": "openai:gpt-4o", "temperature": 0.6},
-    "design_follow_ups": {"model": "openai:gpt-4o-mini", "temperature": 0.7},
-    "generate_interviewer_notes": {"model": "openai:gpt-4o-mini", "temperature": 0.5},
+    "design_follow_ups": {"model": GLM_CHAT_MODEL, "temperature": 0.7},  # 단순 작업 GLM
+    "generate_interviewer_notes": {"model": GLM_CHAT_MODEL, "temperature": 0.5},  # 단순 작업 GLM
     "generate_decision_guide": {"model": "openai:gpt-4o", "temperature": 0.5},
-    "revise_questions": {"model": "openai:gpt-4o-mini", "temperature": 0.5},
+    "revise_questions": {"model": GLM_CHAT_MODEL, "temperature": 0.5},  # 단순 작업 GLM
 
     # Phase 4: Finalization
-    "quality_review": {"model": "openai:gpt-4o", "temperature": 0.3},
+    "quality_review": {"model": "openai:gpt-4o", "temperature": 0.3},  # 품질 검토는 GPT-4o
     "finalize_candidate_summary": {"model": "openai:gpt-4o", "temperature": 0.5},
-    "finalize_interviewer_guide": {"model": "openai:gpt-4o-mini", "temperature": 0.5},
+    "finalize_interviewer_guide": {"model": GLM_CHAT_MODEL, "temperature": 0.5},  # GLM
 
     # Phase 4c: v2 Intel/Analysis Generation
     "generate_intel_brief": {"model": "openai:gpt-4o", "temperature": 0.5},

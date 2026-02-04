@@ -10,60 +10,65 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 # =============================================================================
-# Activity별 최적 LLM 모델 설정
+# Activity별 최적 LLM 모델 설정 (Langfuse upload_prompts_to_langfuse.py와 동기화)
 # =============================================================================
 # 모델 선택 기준:
 # - 복잡한 추론/정확성 필요: GPT-4o, Claude Sonnet
-# - 단순 작업/비용 최적화: GPT-4o-mini, Claude Haiku
-# - 코드 분석 최적화: DeepSeek Coder (GLM 모델 - 비용 효율적)
+# - 단순 작업/비용 최적화: Z.AI GLM (glm-4.5-flash: 무료!)
+# - 코드 분석 최적화: Z.AI GLM-4.7 (플래그십)
 # - 창의적 작업: Claude Sonnet
 # =============================================================================
 
-# GLM 모델 (코드 분석 비용 최적화)
-# DeepSeek Coder는 GPT-4o 대비 ~70% 비용 절감, 코드 분석에 최적화
-CODE_ANALYSIS_GLM_MODEL = "deepseek/deepseek-coder"
+# Z.AI GLM 모델 (Zhipu AI)
+# glm-4.5-flash: 무료! 단순 작업에 최적
+# glm-4.5-air: $0.20/1M input, $1.10/1M output
+# glm-4.7: $0.60/1M input, $2.20/1M output (최신 플래그십)
+GLM_CHAT_MODEL = "zai/glm-4.5-flash"  # 무료 모델
+GLM_CODER_MODEL = "zai/glm-4.7"  # 코드 분석용 플래그십
+
+# Legacy alias (backward compatibility)
+CODE_ANALYSIS_GLM_MODEL = GLM_CODER_MODEL
 
 ACTIVITY_MODEL_CONFIG: dict[str, str] = {
-    # Phase 0: Input Enrichment - 빠른 처리
-    "enrich_input": "openai:gpt-4o-mini",
+    # Phase 0: Input Enrichment - 빠른 처리, GLM으로 비용 절감
+    "enrich_input": GLM_CHAT_MODEL,
 
     # Phase 1: Planning
     "select_topics": "openai:gpt-4o",  # 중요한 의사결정 (토픽 선정)
 
-    # Phase 2: Analysis - 복잡한 추론
-    "analyze_documents": "openai:gpt-4o",  # 이력서/포트폴리오 분석
-    "analyze_code": "openai:gpt-4o",  # GitHub 코드 분석 (Manager)
-    "analyze_jd": "openai:gpt-4o-mini",  # JD 분석 (상대적으로 단순)
+    # Phase 2: Analysis
+    "analyze_documents": "openai:gpt-4o",  # 문서 분석 (품질 중요)
+    "analyze_code": GLM_CODER_MODEL,  # 코드 분석 Manager (GLM Coder)
+    "analyze_jd": GLM_CHAT_MODEL,  # JD 분석 (GLM Chat)
 
-    # Phase 2: HYBRID 3-Stage 코드 분석 (GLM 모델 - 비용 최적화)
-    # DeepSeek Coder: 코딩 효율 우수, 비용 효율적 (~$0.14/1M input, $0.28/1M output)
-    "code_overview_analysis": CODE_ANALYSIS_GLM_MODEL,      # Stage 1: Overview Agent
-    "code_deep_analysis": CODE_ANALYSIS_GLM_MODEL,          # Stage 2: Deep Analysis (prefix match)
-    "code_synthesis_analysis": CODE_ANALYSIS_GLM_MODEL,     # Stage 3: Synthesis Agent
+    # Phase 2: HYBRID 3-Stage 코드 분석 (GLM Coder 모델)
+    "code_overview_analysis": GLM_CODER_MODEL,      # Stage 1: Overview Agent
+    "code_deep_analysis": GLM_CODER_MODEL,          # Stage 2: Deep Analysis (prefix match)
+    "code_synthesis_analysis": GLM_CODER_MODEL,     # Stage 3: Synthesis Agent
 
-    # Phase 3: Question Generation - 고품질 콘텐츠 생성
+    # Phase 3: Question Generation - 핵심은 GPT-4o, 보조는 GLM
     "craft_question": "openai:gpt-4o",  # 핵심 질문 생성 (중요)
-    "enhance_terminology": "openai:gpt-4o-mini",  # 용어 설명 추가
+    "enhance_terminology": GLM_CHAT_MODEL,  # 용어 설명 추가 (GLM)
     "craft_evaluation_scenarios": "openai:gpt-4o",  # 평가 시나리오 생성
-    "design_follow_ups": "openai:gpt-4o-mini",  # 후속 질문 설계
-    "generate_interviewer_notes": "openai:gpt-4o-mini",  # 면접관 노트 생성
+    "design_follow_ups": GLM_CHAT_MODEL,  # 후속 질문 설계 (GLM)
+    "generate_interviewer_notes": GLM_CHAT_MODEL,  # 면접관 노트 생성 (GLM)
     "generate_decision_guide": "openai:gpt-4o",  # 채용 의사결정 가이드
-    "revise_questions": "openai:gpt-4o-mini",  # 질문 수정 (피드백 반영)
+    "revise_questions": GLM_CHAT_MODEL,  # 질문 수정 (GLM)
 
     # Legacy activity names (backward compatibility)
-    "enhance_question": "openai:gpt-4o-mini",  # 질문 개선 (보조 작업)
+    "enhance_question": GLM_CHAT_MODEL,  # 질문 개선 (GLM)
     "generate_expected_answer": "openai:gpt-4o",  # 예상 답변 생성
-    "generate_follow_ups": "openai:gpt-4o-mini",  # 후속 질문
-    "generate_evaluation_rubric": "openai:gpt-4o-mini",  # 평가 기준
-    "generate_interviewer_note": "openai:gpt-4o-mini",  # 인터뷰어 노트
-    "generate_terminology": "openai:gpt-4o-mini",  # 용어 설명
-    "generate_depth_markers": "openai:gpt-4o-mini",  # 깊이 마커
+    "generate_follow_ups": GLM_CHAT_MODEL,  # 후속 질문 (GLM)
+    "generate_evaluation_rubric": GLM_CHAT_MODEL,  # 평가 기준 (GLM)
+    "generate_interviewer_note": GLM_CHAT_MODEL,  # 인터뷰어 노트 (GLM)
+    "generate_terminology": GLM_CHAT_MODEL,  # 용어 설명 (GLM)
+    "generate_depth_markers": GLM_CHAT_MODEL,  # 깊이 마커 (GLM)
 
     # Phase 4: Review & Finalization
     "quality_review": "openai:gpt-4o",  # 품질 검토 (중요)
     "finalize_candidate_summary": "openai:gpt-4o",  # 후보자 요약 생성
-    "finalize_interviewer_guide": "openai:gpt-4o-mini",  # 면접관 가이드 생성
-    "finalize_output": "openai:gpt-4o-mini",  # 최종 요약
+    "finalize_interviewer_guide": GLM_CHAT_MODEL,  # 면접관 가이드 (GLM)
+    "finalize_output": GLM_CHAT_MODEL,  # 최종 요약 (GLM)
 }
 
 
