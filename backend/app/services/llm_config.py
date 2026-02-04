@@ -15,8 +15,13 @@ logger = logging.getLogger(__name__)
 # 모델 선택 기준:
 # - 복잡한 추론/정확성 필요: GPT-4o, Claude Sonnet
 # - 단순 작업/비용 최적화: GPT-4o-mini, Claude Haiku
+# - 코드 분석 최적화: DeepSeek Coder (GLM 모델 - 비용 효율적)
 # - 창의적 작업: Claude Sonnet
 # =============================================================================
+
+# GLM 모델 (코드 분석 비용 최적화)
+# DeepSeek Coder는 GPT-4o 대비 ~70% 비용 절감, 코드 분석에 최적화
+CODE_ANALYSIS_GLM_MODEL = "deepseek/deepseek-coder"
 
 ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     # Phase 0: Input Enrichment - 빠른 처리
@@ -27,8 +32,14 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
 
     # Phase 2: Analysis - 복잡한 추론
     "analyze_documents": "openai:gpt-4o",  # 이력서/포트폴리오 분석
-    "analyze_code": "openai:gpt-4o",  # GitHub 코드 분석
+    "analyze_code": "openai:gpt-4o",  # GitHub 코드 분석 (Manager)
     "analyze_jd": "openai:gpt-4o-mini",  # JD 분석 (상대적으로 단순)
+
+    # Phase 2: HYBRID 3-Stage 코드 분석 (GLM 모델 - 비용 최적화)
+    # DeepSeek Coder: 코딩 효율 우수, 비용 효율적 (~$0.14/1M input, $0.28/1M output)
+    "code_overview_analysis": CODE_ANALYSIS_GLM_MODEL,      # Stage 1: Overview Agent
+    "code_deep_analysis": CODE_ANALYSIS_GLM_MODEL,          # Stage 2: Deep Analysis (prefix match)
+    "code_synthesis_analysis": CODE_ANALYSIS_GLM_MODEL,     # Stage 3: Synthesis Agent
 
     # Phase 3: Question Generation - 고품질 콘텐츠 생성
     "craft_question": "openai:gpt-4o",  # 핵심 질문 생성 (중요)
@@ -64,11 +75,23 @@ def get_model_for_activity(activity_name: str) -> str:
 
     Returns:
         LLM 모델명 (예: "openai:gpt-4o")
+
+    Note:
+        HYBRID 코드 분석 Activity는 prefix 매칭 지원
+        (예: "code_deep_analysis_src/main.py" → "code_deep_analysis" 매칭)
     """
+    # 정확한 매칭 먼저 시도
     model = ACTIVITY_MODEL_CONFIG.get(activity_name)
     if model:
         logger.debug(f"Using optimized model for {activity_name}: {model}")
         return model
+
+    # Prefix 매칭 시도 (HYBRID 코드 분석용)
+    # code_deep_analysis_file/path.py → code_deep_analysis
+    for config_key, config_model in ACTIVITY_MODEL_CONFIG.items():
+        if activity_name.startswith(config_key):
+            logger.debug(f"Using prefix-matched model for {activity_name}: {config_model}")
+            return config_model
 
     # 기본값: settings에서 가져옴
     default_model = settings.LLM_MODEL

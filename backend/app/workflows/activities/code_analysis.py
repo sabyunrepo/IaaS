@@ -1,15 +1,26 @@
 """
 backend/app/workflows/activities/code_analysis.py
 코드 분석 Activity (PyGithub + PyDriller + AST + LLM)
+
+HYBRID 3-Stage Multi-Agent 아키텍처 지원:
+- Stage 1: Overview Agent (전체 diff 분석, 핵심 파일 선별)
+- Stage 2: Deep Analysis Agents (선별 파일별 심층 분석) [PARALLEL]
+- Stage 3: Synthesis Agent (분석 결과 종합)
 """
+import asyncio
 import logging
 
 from temporalio import activity
 
+from app.core.config import settings
 from app.core.observability import observe_activity
 from app.services.activity_logger import ActivityLogger
 
 logger = logging.getLogger(__name__)
+
+# GLM 모델 (비용 최적화)
+# settings.CODE_ANALYSIS_MODEL 사용 (기본값: deepseek/deepseek-coder)
+GLM_MODEL = settings.CODE_ANALYSIS_MODEL
 
 
 @activity.defn
@@ -200,3 +211,297 @@ def _jd_to_file_types(jd_tech_stack: list[str]) -> list[str]:
     for tech in jd_tech_stack:
         types.extend(mapping.get(tech, []))
     return types or [".py"]
+
+
+def _get_file_commits(driller_result: dict, file_path: str) -> list[dict]:
+    """특정 파일의 커밋 이력 추출"""
+    commits = []
+    for diff in driller_result.get("commit_diffs", []):
+        if diff.get("file_path") == file_path:
+            commits.append({
+                "commit_hash": diff.get("commit_hash"),
+                "message": diff.get("message"),
+                "date": diff.get("date"),
+                "additions": diff.get("additions"),
+                "deletions": diff.get("deletions"),
+            })
+    return commits[:10]  # 최대 10개
+
+
+@activity.defn
+@observe_activity(name="analyze_single_repo", phase="analysis")
+async def analyze_single_repo(
+    repo_info: dict,
+    jd_tech_stack: list[str],
+    candidate_username: str | None,
+    job_id: str | None = None,
+) -> dict:
+    """
+    단일 레포 분석 (HYBRID 3-Stage Multi-Agent)
+
+    Stage 1: Overview Agent - 전체 diff 분석, 핵심 파일 선별
+    Stage 2: Deep Analysis Agents - 선별 파일별 심층 분석 [PARALLEL]
+    Stage 3: Synthesis Agent - 분석 결과 종합
+
+    모든 LLM 호출은 GLM 모델 사용 (비용 최적화)
+
+    Args:
+        repo_info: 레포지토리 정보 (url, name, languages 등)
+        jd_tech_stack: JD에서 추출한 기술 스택
+        candidate_username: 후보자 GitHub username
+        job_id: Job ID (로깅용)
+
+    Returns:
+        레포지토리 분석 결과 (HYBRID 메타데이터 포함)
+    """
+    from app.services.code_analyzer import CodeAnalyzer
+
+    analyzer = CodeAnalyzer()
+    repo_url = repo_info.get("url", "")
+    repo_name = repo_info.get("name", "unknown")
+
+    # Activity Logger 초기화
+    alog = ActivityLogger(job_id, "analyze_single_repo", "analyzing") if job_id else None
+    if alog:
+        await alog.start(f"Analyzing {repo_name} (HYBRID 3-Stage)", {
+            "repo_url": repo_url,
+            "jd_tech_stack": jd_tech_stack,
+        })
+
+    # ================================================================
+    # Phase 2: PyDriller - diff 추출 (클론 자동 처리)
+    # ================================================================
+    activity.heartbeat(f"Phase 2: PyDriller for {repo_name}")
+    if alog:
+        await alog.progress(f"Phase 2: PyDriller for {repo_name}", {"phase": 2})
+
+    file_types = _jd_to_file_types(jd_tech_stack)
+    driller_result = await analyzer.analyze_with_pydriller(
+        repo_url=repo_url,
+        job_id=job_id or "",
+        author=candidate_username,
+        since_years=settings.GITHUB_ANALYSIS_YEARS,
+        file_types=file_types,
+    )
+
+    # ================================================================
+    # Phase 3: AST 분석
+    # ================================================================
+    activity.heartbeat(f"Phase 3: AST for {repo_name}")
+    if alog:
+        await alog.progress(f"Phase 3: AST for {repo_name}", {
+            "phase": 3,
+            "files_count": len(driller_result.get("files", [])),
+        })
+
+    primary_lang = max(
+        repo_info.get("languages", {}),
+        key=repo_info.get("languages", {}).get,
+        default=None
+    )
+    top_files = analyzer.select_top_files(
+        files=driller_result["files"],
+        jd_tech_stack=jd_tech_stack,
+        max_files=20,
+    )
+    ast_result = await analyzer.analyze_ast(files=top_files, primary_language=primary_lang)
+
+    # ================================================================
+    # Phase 4: HYBRID 3-Stage LLM 분석 (GLM 모델 사용)
+    # ================================================================
+
+    # ---- Stage 1: Overview Agent ----
+    activity.heartbeat(f"Stage 1: Overview Agent for {repo_name}")
+    if alog:
+        await alog.progress(f"Stage 1: Overview Agent for {repo_name}", {
+            "stage": 1,
+            "model": GLM_MODEL,
+        })
+
+    overview_result = await analyzer.llm_overview_analysis(
+        files=driller_result["files"],
+        commit_diffs=driller_result.get("commit_diffs", []),
+        ast_summary=ast_result,
+        jd_tech_stack=jd_tech_stack,
+        model=GLM_MODEL,
+    )
+
+    # 핵심 파일 추출 (최대 10개)
+    key_files = overview_result.get("key_files", [])[:10]
+    if not key_files:
+        # Fallback: Overview 실패 시 상위 파일 사용
+        key_files = [
+            {"path": f.get("filename"), "relevance_score": 0.5, "reason": "Top by complexity"}
+            for f in top_files[:5]
+        ]
+
+    # ---- Stage 2: Deep Analysis Agents (PARALLEL) ----
+    activity.heartbeat(f"Stage 2: Deep Analysis ({len(key_files)} files) for {repo_name}")
+    if alog:
+        await alog.progress(f"Stage 2: Deep Analysis for {repo_name}", {
+            "stage": 2,
+            "key_files_count": len(key_files),
+        })
+
+    deep_analysis_tasks = []
+    for file_info in key_files:
+        file_path = file_info.get("path", file_info.get("filename", ""))
+        commit_history = _get_file_commits(driller_result, file_path)
+
+        # 파일 diff 정보 추가
+        enriched_file_info = {
+            **file_info,
+            "diff": next(
+                (f.get("diff", "") for f in driller_result["files"]
+                 if f.get("filename") == file_path),
+                ""
+            ),
+        }
+
+        task = analyzer.llm_deep_file_analysis(
+            file_info=enriched_file_info,
+            commit_history=commit_history,
+            jd_tech_stack=jd_tech_stack,
+            model=GLM_MODEL,
+        )
+        deep_analysis_tasks.append(task)
+
+    # 병렬 실행 (asyncio.gather)
+    deep_results = await asyncio.gather(*deep_analysis_tasks, return_exceptions=True)
+
+    # 실패한 분석 필터링
+    successful_analyses = [
+        r for r in deep_results
+        if not isinstance(r, Exception) and isinstance(r, dict)
+    ]
+    failed_count = len(deep_results) - len(successful_analyses)
+    if failed_count > 0:
+        logger.warning(f"{failed_count} deep analyses failed for {repo_name}")
+
+    # ---- Stage 3: Synthesis Agent ----
+    activity.heartbeat(f"Stage 3: Synthesis Agent for {repo_name}")
+    if alog:
+        await alog.progress(f"Stage 3: Synthesis Agent for {repo_name}", {
+            "stage": 3,
+            "successful_analyses": len(successful_analyses),
+        })
+
+    synthesis_result = await analyzer.llm_synthesize_analysis(
+        overview=overview_result,
+        deep_analyses=successful_analyses,
+        repo_info=repo_info,
+        jd_tech_stack=jd_tech_stack,
+        model=GLM_MODEL,
+    )
+
+    # ================================================================
+    # 결과 조립
+    # ================================================================
+    result = {
+        "repo_url": repo_url,
+        "repo_name": repo_name,
+        "language": primary_lang,
+        "candidate_commits": driller_result["stats"]["total_commits"],
+        "candidate_additions": driller_result["stats"]["total_additions"],
+        "avg_complexity": driller_result["stats"]["avg_complexity"],
+        "ast_analysis": ast_result,
+        "analysis": synthesis_result,
+        "notable_implementations": synthesis_result.get("notable_implementations", []),
+        # HYBRID 분석 메타데이터
+        "hybrid_metadata": {
+            "key_files_count": len(key_files),
+            "deep_analyses_count": len(successful_analyses),
+            "failed_analyses_count": failed_count,
+            "model_used": GLM_MODEL,
+        },
+    }
+
+    if alog:
+        await alog.result(f"Completed {repo_name} (HYBRID)", {
+            "commits": result["candidate_commits"],
+            "notables": len(result["notable_implementations"]),
+            "key_files": len(key_files),
+            "quality_score": synthesis_result.get("quality_score", 0),
+        })
+
+    return result
+
+
+@activity.defn
+@observe_activity(name="validate_code_analysis", phase="analysis")
+async def validate_code_analysis(
+    repo_result: dict,
+    min_commits: int = 1,
+    min_notables: int = 0,
+) -> dict:
+    """
+    코드 분석 결과 품질 검증
+
+    Args:
+        repo_result: analyze_single_repo 결과
+        min_commits: 최소 커밋 수 (기본: 1)
+        min_notables: 최소 notable_implementations 수 (기본: 0)
+
+    Returns:
+        {
+            "valid": bool,
+            "issues": list[str],
+            "suggestions": list[str],
+            "repo_name": str,
+        }
+    """
+    issues = []
+    suggestions = []
+    repo_name = repo_result.get("repo_name", "unknown")
+
+    # 1. 기본 데이터 검증
+    commit_count = repo_result.get("candidate_commits", 0)
+    if commit_count < min_commits:
+        issues.append(f"커밋 수 부족: {commit_count} < {min_commits}")
+        suggestions.append("분석 기간 확대 (since_years + 1)")
+
+    # 2. AST 분석 결과 검증
+    ast = repo_result.get("ast_analysis", {})
+    functions_count = len(ast.get("functions", []))
+    classes_count = len(ast.get("classes", []))
+    if not functions_count and not classes_count:
+        issues.append("AST에서 함수/클래스 미발견")
+        suggestions.append("max_files 증가 또는 file_types 확장")
+
+    # 3. LLM 분석 결과 검증
+    analysis = repo_result.get("analysis", {})
+    notables = repo_result.get("notable_implementations", [])
+    if len(notables) < min_notables:
+        issues.append(f"notable_implementations 부족: {len(notables)} < {min_notables}")
+        suggestions.append("LLM 프롬프트에 더 구체적 지시 추가")
+
+    # 4. 데이터 일관성 검증
+    if functions_count > 0 and not analysis.get("patterns"):
+        issues.append("함수는 있으나 패턴 미식별")
+        suggestions.append("Deep Analysis 재실행 권장")
+
+    # 5. HYBRID 메타데이터 검증
+    hybrid_meta = repo_result.get("hybrid_metadata", {})
+    if hybrid_meta.get("deep_analyses_count", 0) == 0 and hybrid_meta.get("key_files_count", 0) > 0:
+        issues.append("Deep Analysis 전체 실패")
+        suggestions.append("GLM 모델 연결 확인 필요")
+
+    # 6. 품질 점수 검증
+    quality_score = analysis.get("quality_score", 0)
+    if quality_score < 0.3 and commit_count > 10:
+        issues.append(f"낮은 품질 점수: {quality_score}")
+        suggestions.append("코드 품질 평가 기준 재검토")
+
+    return {
+        "valid": len(issues) == 0,
+        "issues": issues,
+        "suggestions": suggestions,
+        "repo_name": repo_name,
+        "metrics": {
+            "commit_count": commit_count,
+            "functions_count": functions_count,
+            "classes_count": classes_count,
+            "notables_count": len(notables),
+            "quality_score": quality_score,
+        },
+    }

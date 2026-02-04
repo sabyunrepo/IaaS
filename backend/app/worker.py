@@ -22,7 +22,11 @@ WORKER_BUILD_ID = f"vantict-worker-v{WORKFLOW_VERSION}"
 from app.workflows.activities.input_enrichment import enrich_input
 from app.workflows.activities.planning import create_execution_plan
 from app.workflows.activities.document_analysis import analyze_documents
-from app.workflows.activities.code_analysis import analyze_code
+from app.workflows.activities.code_analysis import (
+    analyze_code,
+    analyze_single_repo,
+    validate_code_analysis,
+)
 from app.workflows.activities.jd_analysis import analyze_jd
 from app.workflows.activities.question_generation import (
     select_topics, craft_question,
@@ -51,6 +55,8 @@ ACTIVITIES = [
     create_execution_plan,
     analyze_documents,
     analyze_code,
+    analyze_single_repo,      # HYBRID 3-Stage 단일 레포 분석
+    validate_code_analysis,   # 코드 분석 품질 검증
     analyze_jd,
     select_topics,
     craft_question,

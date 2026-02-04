@@ -5,13 +5,24 @@ PyDriller + AST + LLM 기반 코드 분석 파이프라인
 4-Channel GitHub Analysis의 Channel A (본인 레포 분석) 담당
 - diff 기반 코드 추출 (토큰 효율적)
 - 분석 기간: GITHUB_ANALYSIS_YEARS 환경변수 (기본 1년)
+- HYBRID 3-Stage Multi-Agent 분석 지원 (GLM 모델 비용 최적화)
 """
 import logging
 from typing import Any
 
 from app.core.config import settings
+from app.models.analysis import (
+    OverviewAnalysisResult,
+    DeepAnalysisResult,
+    SynthesisAnalysisResult,
+)
 
 logger = logging.getLogger(__name__)
+
+# GLM 모델 설정 (비용 최적화)
+# DeepSeek Coder는 코드 분석에 최적화된 저비용 모델
+# settings.CODE_ANALYSIS_MODEL 사용 (기본값: deepseek/deepseek-coder)
+GLM_MODEL = settings.CODE_ANALYSIS_MODEL
 
 
 class CodeAnalyzer:
@@ -410,3 +421,350 @@ class CodeAnalyzer:
         if isinstance(result, dict):
             return result
         return {"notable_implementations": [], "patterns": [], "quality_assessment": str(result)}
+
+    # =========================================================================
+    # HYBRID 3-Stage Multi-Agent 분석 메서드
+    # =========================================================================
+
+    def _build_overview_prompt(
+        self,
+        files: list[dict],
+        commit_diffs: list[dict],
+        ast_summary: dict,
+        jd_tech_stack: list[str],
+    ) -> str:
+        """Stage 1: Overview Agent 프롬프트 생성"""
+        file_summary = "\n".join([
+            f"- {f.get('filename', 'unknown')}: {f.get('added', 0)} additions, complexity={f.get('complexity', 0)}"
+            for f in files[:30]
+        ])
+
+        diff_summary = "\n".join([
+            f"### {d.get('file_path', '')} ({d.get('commit_hash', '')})\n"
+            f"```diff\n{d.get('diff', '')[:800]}\n```"
+            for d in commit_diffs[:10]
+        ])
+
+        ast_info = (
+            f"Functions: {len(ast_summary.get('functions', []))}, "
+            f"Classes: {len(ast_summary.get('classes', []))}, "
+            f"Parser: {ast_summary.get('parser_used', 'N/A')}"
+        )
+
+        return f"""Analyze this repository to identify key files for technical interview preparation.
+
+## Target Tech Stack (from Job Description)
+{', '.join(jd_tech_stack) if jd_tech_stack else 'Not specified'}
+
+## File Summary ({len(files)} files)
+{file_summary}
+
+## Recent Code Changes (Top Diffs)
+{diff_summary}
+
+## AST Summary
+{ast_info}
+
+## Your Task
+1. Select 5-10 key files that best demonstrate the candidate's technical skills matching the JD tech stack
+2. Provide a technical overview of the repository
+3. Identify initial candidate strengths
+
+Respond in JSON format:
+{{
+    "key_files": [
+        {{"path": "...", "relevance_score": 0.0-1.0, "reason": "...", "language": "...", "complexity": 0}}
+    ],
+    "tech_overview": "Brief technical overview of the repository",
+    "candidate_strengths": ["strength1", "strength2"],
+    "primary_languages": ["Python", "JavaScript"],
+    "frameworks_detected": ["FastAPI", "React"]
+}}
+"""
+
+    def _build_deep_analysis_prompt(
+        self,
+        file_info: dict,
+        commit_history: list[dict],
+        jd_tech_stack: list[str],
+    ) -> str:
+        """Stage 2: Deep Analysis Agent 프롬프트 생성"""
+        file_path = file_info.get("path", file_info.get("filename", "unknown"))
+        diff_content = file_info.get("diff", file_info.get("diff_preview", ""))[:2000]
+
+        commit_info = "\n".join([
+            f"- {c.get('commit_hash', '')} ({c.get('date', '')}): {c.get('message', '')[:100]}"
+            for c in commit_history[:5]
+        ])
+
+        return f"""Perform deep analysis on this file for technical interview preparation.
+
+## File: {file_path}
+
+## Target Tech Stack
+{', '.join(jd_tech_stack) if jd_tech_stack else 'Not specified'}
+
+## Code/Diff Content
+```
+{diff_content}
+```
+
+## Commit History
+{commit_info if commit_info else 'No commit history available'}
+
+## Your Task
+1. Identify design patterns used
+2. Identify algorithms implemented
+3. Assess code quality (0.0-1.0 scale)
+4. Generate potential interview questions
+5. Note any remarkable implementation aspects
+
+Respond in JSON format:
+{{
+    "file_path": "{file_path}",
+    "patterns_found": ["Singleton", "Factory"],
+    "algorithms_used": ["Binary Search", "DFS"],
+    "code_quality_score": 0.0-1.0,
+    "quality_notes": "Notes about code quality",
+    "question_candidates": ["How would you optimize...", "Explain your choice of..."],
+    "notable_aspects": ["Efficient caching implementation", "Clean error handling"],
+    "complexity_assessment": "Assessment of code complexity"
+}}
+"""
+
+    def _build_synthesis_prompt(
+        self,
+        overview: dict,
+        deep_analyses: list[dict],
+        repo_info: dict,
+        jd_tech_stack: list[str],
+    ) -> str:
+        """Stage 3: Synthesis Agent 프롬프트 생성"""
+        repo_name = repo_info.get("name", "unknown")
+
+        overview_summary = f"""
+Tech Overview: {overview.get('tech_overview', 'N/A')}
+Primary Languages: {', '.join(overview.get('primary_languages', []))}
+Frameworks: {', '.join(overview.get('frameworks_detected', []))}
+Key Files Analyzed: {len(overview.get('key_files', []))}
+"""
+
+        deep_summaries = []
+        for i, da in enumerate(deep_analyses[:10], 1):
+            deep_summaries.append(f"""
+### File {i}: {da.get('file_path', 'unknown')}
+- Patterns: {', '.join(da.get('patterns_found', [])) or 'None'}
+- Algorithms: {', '.join(da.get('algorithms_used', [])) or 'None'}
+- Quality Score: {da.get('code_quality_score', 'N/A')}
+- Notable: {', '.join(da.get('notable_aspects', [])[:3]) or 'None'}
+- Questions: {len(da.get('question_candidates', []))} candidates
+""")
+
+        return f"""Synthesize all analysis results for repository: {repo_name}
+
+## Target Tech Stack
+{', '.join(jd_tech_stack) if jd_tech_stack else 'Not specified'}
+
+## Overview Analysis
+{overview_summary}
+
+## Deep Analysis Results
+{''.join(deep_summaries) if deep_summaries else 'No deep analysis results'}
+
+## Your Task
+1. Synthesize all findings into a coherent assessment
+2. Rank notable implementations by interview question potential
+3. Deduplicate and prioritize patterns/algorithms
+4. Generate top 10 interview questions
+5. Provide overall quality and candidate assessment
+
+Respond in JSON format:
+{{
+    "notable_implementations": [
+        {{
+            "title": "Implementation title",
+            "description": "What it does",
+            "file_path": "path/to/file.py",
+            "why_notable": "Why this is interesting for interview",
+            "question_potential": 0.0-1.0,
+            "related_patterns": ["Pattern1"],
+            "interview_angles": ["Performance", "Design decisions"]
+        }}
+    ],
+    "tech_stack": ["Python", "FastAPI", "PostgreSQL"],
+    "patterns": ["Singleton", "Factory", "Repository"],
+    "algorithms": ["Binary Search", "BFS"],
+    "quality_score": 0.0-1.0,
+    "quality_summary": "Overall code quality assessment",
+    "candidate_assessment": "Assessment of candidate's technical abilities",
+    "top_interview_questions": ["Question 1", "Question 2"]
+}}
+"""
+
+    async def llm_overview_analysis(
+        self,
+        files: list[dict],
+        commit_diffs: list[dict],
+        ast_summary: dict,
+        jd_tech_stack: list[str],
+        model: str | None = None,
+    ) -> dict:
+        """Stage 1: Overview Agent - 전체 diff 분석, 핵심 파일 선별
+
+        Args:
+            files: PyDriller로 추출한 파일 목록
+            commit_diffs: 커밋별 diff 데이터
+            ast_summary: AST 분석 결과
+            jd_tech_stack: JD에서 추출한 기술 스택
+            model: 사용할 LLM 모델 (기본: GLM)
+
+        Returns:
+            OverviewAnalysisResult 형식의 딕셔너리
+        """
+        model = model or GLM_MODEL
+        prompt = self._build_overview_prompt(files, commit_diffs, ast_summary, jd_tech_stack)
+
+        from app.services.cached_llm import CachedLLMService
+        llm = CachedLLMService()
+
+        try:
+            result = await llm.run(
+                prompt=prompt,
+                model=model,
+                activity_name="code_overview_analysis",
+                result_type=OverviewAnalysisResult,
+            )
+            if isinstance(result, dict):
+                return result
+            if hasattr(result, "model_dump"):
+                return result.model_dump()
+            return {"key_files": [], "tech_overview": str(result), "candidate_strengths": []}
+        except Exception as e:
+            logger.warning(f"Overview analysis failed: {e}")
+            return {
+                "key_files": [],
+                "tech_overview": f"Analysis failed: {e}",
+                "candidate_strengths": [],
+                "primary_languages": [],
+                "frameworks_detected": [],
+            }
+
+    async def llm_deep_file_analysis(
+        self,
+        file_info: dict,
+        commit_history: list[dict],
+        jd_tech_stack: list[str],
+        model: str | None = None,
+    ) -> dict:
+        """Stage 2: Deep Analysis Agent - 단일 파일 심층 분석
+
+        Args:
+            file_info: 분석할 파일 정보 (path, diff 등)
+            commit_history: 해당 파일의 커밋 이력
+            jd_tech_stack: JD에서 추출한 기술 스택
+            model: 사용할 LLM 모델 (기본: GLM)
+
+        Returns:
+            DeepAnalysisResult 형식의 딕셔너리
+        """
+        model = model or GLM_MODEL
+        prompt = self._build_deep_analysis_prompt(file_info, commit_history, jd_tech_stack)
+
+        from app.services.cached_llm import CachedLLMService
+        llm = CachedLLMService()
+
+        file_path = file_info.get("path", file_info.get("filename", "unknown"))
+
+        try:
+            result = await llm.run(
+                prompt=prompt,
+                model=model,
+                activity_name=f"code_deep_analysis_{file_path[:30]}",
+                result_type=DeepAnalysisResult,
+            )
+            if isinstance(result, dict):
+                return result
+            if hasattr(result, "model_dump"):
+                return result.model_dump()
+            return {
+                "file_path": file_path,
+                "patterns_found": [],
+                "algorithms_used": [],
+                "code_quality_score": 0.5,
+                "quality_notes": str(result),
+                "question_candidates": [],
+                "notable_aspects": [],
+                "complexity_assessment": "",
+            }
+        except Exception as e:
+            logger.warning(f"Deep analysis failed for {file_path}: {e}")
+            return {
+                "file_path": file_path,
+                "patterns_found": [],
+                "algorithms_used": [],
+                "code_quality_score": 0.0,
+                "quality_notes": f"Analysis failed: {e}",
+                "question_candidates": [],
+                "notable_aspects": [],
+                "complexity_assessment": "Failed",
+            }
+
+    async def llm_synthesize_analysis(
+        self,
+        overview: dict,
+        deep_analyses: list[dict],
+        repo_info: dict,
+        jd_tech_stack: list[str],
+        model: str | None = None,
+    ) -> dict:
+        """Stage 3: Synthesis Agent - 분석 결과 종합
+
+        Args:
+            overview: Stage 1 Overview 분석 결과
+            deep_analyses: Stage 2 Deep Analysis 결과 리스트
+            repo_info: 레포지토리 정보
+            jd_tech_stack: JD에서 추출한 기술 스택
+            model: 사용할 LLM 모델 (기본: GLM)
+
+        Returns:
+            SynthesisAnalysisResult 형식의 딕셔너리
+        """
+        model = model or GLM_MODEL
+        prompt = self._build_synthesis_prompt(overview, deep_analyses, repo_info, jd_tech_stack)
+
+        from app.services.cached_llm import CachedLLMService
+        llm = CachedLLMService()
+
+        try:
+            result = await llm.run(
+                prompt=prompt,
+                model=model,
+                activity_name="code_synthesis_analysis",
+                result_type=SynthesisAnalysisResult,
+            )
+            if isinstance(result, dict):
+                return result
+            if hasattr(result, "model_dump"):
+                return result.model_dump()
+            return {
+                "notable_implementations": [],
+                "tech_stack": [],
+                "patterns": [],
+                "algorithms": [],
+                "quality_score": 0.0,
+                "quality_summary": str(result),
+                "candidate_assessment": "",
+                "top_interview_questions": [],
+            }
+        except Exception as e:
+            logger.warning(f"Synthesis analysis failed: {e}")
+            return {
+                "notable_implementations": [],
+                "tech_stack": [],
+                "patterns": [],
+                "algorithms": [],
+                "quality_score": 0.0,
+                "quality_summary": f"Synthesis failed: {e}",
+                "candidate_assessment": "",
+                "top_interview_questions": [],
+            }
