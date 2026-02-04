@@ -22,6 +22,7 @@ from .question import (
     InterviewQuestion, InterviewScript, TerminologyEntry,
     EvaluationScenario, FollowUpQuestion, CodeReference,
     ExpectedAnswer, InterviewerNote, CandidateSummary,
+    ScenarioLevel, FollowUpResponse, AnswerKeyword,
 )
 from .checkpoint import (
     PipelineStep, PIPELINE_STEPS,
@@ -29,6 +30,19 @@ from .checkpoint import (
 )
 from .workflow import WorkflowState, AnalysisPhaseResult
 from .database import Base, UserDB, OAuthAccountDB, APIKeyDB, JobDB, CheckpointDB, EmbeddingDB
+
+# v2 모델
+from .intel import (
+    IntelBrief, JDSummary, CompetencyMatch, GitHubSummary,
+    LinkedInPosition, RequirementMatch,
+)
+from .deep_analysis import (
+    DeepAnalysis, EngineeringDNAItem, RiskFlag, SkillMatchRow,
+)
+from .decision import (
+    DecisionSupport, DecisionSummary, InterviewerGuideTips,
+    JDCompetencyWeight, ResumeTip, CoverLetterInsight,
+)
 
 __all__ = [
     # Enums
@@ -42,12 +56,21 @@ __all__ = [
     "CreateJobRequest", "CreateJobResponse",
     # Analysis
     "CandidateProfile", "CodeAnalysis", "JDAnalysis",
-    # Question
+    # Question (v1/v2)
     "InterviewQuestion", "InterviewScript",
+    "ScenarioLevel", "FollowUpResponse", "AnswerKeyword",
     # Checkpoint
     "PipelineStep", "PIPELINE_STEPS",
     # Workflow
     "WorkflowState",
     # Database ORM
     "Base", "UserDB", "OAuthAccountDB", "APIKeyDB", "JobDB", "CheckpointDB", "EmbeddingDB",
+    # v2 Intel
+    "IntelBrief", "JDSummary", "CompetencyMatch", "GitHubSummary",
+    "LinkedInPosition", "RequirementMatch",
+    # v2 Deep Analysis
+    "DeepAnalysis", "EngineeringDNAItem", "RiskFlag", "SkillMatchRow",
+    # v2 Decision
+    "DecisionSupport", "DecisionSummary", "InterviewerGuideTips",
+    "JDCompetencyWeight", "ResumeTip", "CoverLetterInsight",
 ]

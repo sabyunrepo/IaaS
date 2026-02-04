@@ -49,6 +49,8 @@ from app.workflows.activities.knowledge_graph_activities import (
     get_evidence_chain,
     clear_knowledge_graph,
 )
+from app.workflows.activities.intel_generation import generate_intel_brief
+from app.workflows.activities.analysis_generation import generate_deep_analysis
 
 ACTIVITIES = [
     enrich_input,
@@ -79,6 +81,9 @@ ACTIVITIES = [
     get_kg_question_candidates,
     get_evidence_chain,
     clear_knowledge_graph,
+    # v2 Intel/Analysis generation
+    generate_intel_brief,
+    generate_deep_analysis,
 ]
 
 

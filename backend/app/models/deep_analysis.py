@@ -1,0 +1,43 @@
+"""
+backend/app/models/deep_analysis.py
+Deep Analysis 탭 데이터 모델
+"""
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+
+class EngineeringDNAItem(BaseModel):
+    """Engineering DNA 항목"""
+    label: str  # 예: "테스트 커버리지"
+    value: int  # 퍼센트 (0-100)
+    display: str  # 표시 텍스트 (예: "82%", "우수", "미확인")
+    color: Literal["emerald", "blue", "amber", "red", "slate"]
+    note: str | None = None  # 추가 설명
+    tooltip: str | None = None  # 마우스오버 설명
+
+
+class RiskFlag(BaseModel):
+    """리스크 플래그"""
+    label: str
+    detail: str
+
+
+class SkillMatchRow(BaseModel):
+    """스킬 매칭 테이블 행"""
+    skill: str  # JD 요구 스킬
+    candidate: str  # 후보자 보유 스킬
+    type: Literal["exact", "similar", "partial", "none"]
+    evidence: str  # 증거 출처
+    confidence: int  # 신뢰도 (0-100)
+
+
+class DeepAnalysis(BaseModel):
+    """Deep Analysis 탭 데이터"""
+    # 5축 레이더 차트: [role_fit, technical, execution, communication, risk]
+    radar_candidate: list[int] = Field(default_factory=list)  # 후보자 점수
+    radar_required: list[int] = Field(default_factory=list)  # JD 요구 점수
+    engineering_dna: list[EngineeringDNAItem] = Field(default_factory=list)
+    risk_flags: list[RiskFlag] = Field(default_factory=list)
+    skill_table: list[SkillMatchRow] = Field(default_factory=list)
+    overall_match: int = 0  # 전체 매칭 퍼센트
