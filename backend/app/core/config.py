@@ -50,8 +50,12 @@ class Settings(BaseSettings):
     # LLM
     OPENAI_API_KEY: str | None = None
     ANTHROPIC_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None  # Google AI Studio API Key
     LLM_MODEL: str = "openai:gpt-4o"
     LLM_FALLBACK_MODEL: str = "anthropic:claude-3-5-sonnet-20241022"
+
+    # Document Parsing
+    PDF_PARSER_MIN_CHARS: int = 200  # pymupdf4llm 결과가 이보다 짧으면 Gemini OCR 사용
 
     # Langfuse
     LANGFUSE_HOST: str = "http://localhost:3100"
