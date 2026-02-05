@@ -65,6 +65,11 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
                     "partial_match_probe": "technical_depth",
                 }
 
+                # KG 후보에 가중치 부스트 적용 (evidence-backed = higher priority)
+                kg_boost = 0.15  # KG evidence backing bonus
+                base_score = kgc.priority / 100  # Normalize to 0-1
+                boosted_score = min(1.0, base_score + kg_boost)
+
                 candidates.append({
                     "source": f"kg_{kgc.category}",
                     "topic": kgc.topic,
@@ -73,7 +78,7 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
                         "code_reference": kgc.code_reference,
                         "recommended_probe": kgc.recommended_probe,
                     },
-                    "score": kgc.priority / 100,  # Normalize to 0-1
+                    "score": boosted_score,
                     "kg_category": kgc.category,
                     "interview_category": category_map.get(kgc.category, "technical_depth"),
                 })
