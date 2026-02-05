@@ -143,12 +143,23 @@ async def finalize_output(
     interviewer_guide = await run_llm_with_heartbeat(llm, guide_prompt, "finalize_interviewer_guide", interval=30.0)
 
     # 4. 최종 스크립트 조립
+    # LLM 응답이 string인 경우 dict로 래핑 (Temporal 직렬화 호환성)
+    if isinstance(candidate_summary, str):
+        candidate_summary = {"summary_text": candidate_summary}
+    elif not isinstance(candidate_summary, dict):
+        candidate_summary = {}
+
+    if isinstance(interviewer_guide, str):
+        interviewer_guide = {"guide_text": interviewer_guide}
+    elif not isinstance(interviewer_guide, dict):
+        interviewer_guide = {}
+
     final_script = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "output_language": output_language,
-        "candidate_summary": candidate_summary if isinstance(candidate_summary, (dict, str)) else {},
+        "candidate_summary": candidate_summary,
         "questions": questions,
-        "interviewer_guide": interviewer_guide if isinstance(interviewer_guide, (dict, str)) else {},
+        "interviewer_guide": interviewer_guide,
         "full_glossary": all_terms,
         "linkedin_profile": {
             "name": linkedin_profile.get("full_name"),

@@ -11,6 +11,7 @@ Features:
 import time
 from typing import Any
 
+from temporalio import activity
 from temporalio.worker import (
     ActivityInboundInterceptor,
     ExecuteActivityInput,
@@ -59,9 +60,12 @@ class ActivityLoggingInterceptor(ActivityInboundInterceptor):
 
     async def execute_activity(self, input: ExecuteActivityInput) -> Any:
         activity_type = input.fn.__name__
-        workflow_id = input.info.workflow_id
-        task_queue = input.info.task_queue
-        attempt = input.info.attempt
+        # Activity 메타데이터는 temporalio.activity.info()로 접근해야 함
+        # (ExecuteActivityInput.info는 존재하지 않음)
+        info = activity.info()
+        workflow_id = info.workflow_id
+        task_queue = info.task_queue
+        attempt = info.attempt
         job_id = _extract_job_id(input)
 
         # Structlog 컨텍스트 바인딩

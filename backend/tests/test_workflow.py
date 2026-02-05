@@ -37,11 +37,15 @@ class TestActivityRegistration:
             "get_kg_question_candidates",
             "get_evidence_chain",
             "clear_knowledge_graph",
+            # v2 Generation activities
+            "generate_intel_brief",
+            "generate_deep_analysis",
+            "generate_decision_support",
         ]
         assert names == expected
 
     def test_activity_count(self):
-        assert len(ACTIVITIES) == 26
+        assert len(ACTIVITIES) == 29
 
 
 class TestWorkflow:
