@@ -1,13 +1,24 @@
 """
 backend/app/services/llm_config.py
-Pydantic AI Agent + LiteLLM 초기화 with Activity-specific Model Configuration
+LLM Configuration with Resilient Routing
+
+Features:
+- Activity별 최적 모델 설정
+- LiteLLM Router 통합 (Fallback, Retry, Cooldown)
+- Pydantic AI Agent 지원 (pydantic-ai-litellm 브릿지)
+- Instructor 통합 (구조화된 출력)
+- Tenacity 기반 재시도 (Exponential Backoff)
 """
 import logging
-from typing import Any
+from typing import Any, TypeVar
+
+from pydantic import BaseModel
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+T = TypeVar('T', bound=BaseModel)
 
 # =============================================================================
 # Activity별 최적 LLM 모델 설정 (Langfuse upload_prompts_to_langfuse.py와 동기화)
