@@ -58,10 +58,12 @@ class ActivityLogger:
         }
 
         try:
+            headers = {"X-Internal-Token": settings.INTERNAL_API_TOKEN}
             async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.post(
                     f"{self.base_url}/api/internal/analysis-logs",
                     json=payload,
+                    headers=headers,
                 )
                 if response.status_code != 201:
                     logger.warning(f"Failed to post log: {response.status_code} - {response.text}")
@@ -166,10 +168,12 @@ class SyncActivityLogger:
         }
 
         try:
+            headers = {"X-Internal-Token": settings.INTERNAL_API_TOKEN}
             with httpx.Client(timeout=5.0) as client:
                 response = client.post(
                     f"{self.base_url}/api/internal/analysis-logs",
                     json=payload,
+                    headers=headers,
                 )
                 if response.status_code != 201:
                     logger.warning(f"Failed to post log: {response.status_code}")

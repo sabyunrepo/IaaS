@@ -5,14 +5,27 @@ Internal API - Activity에서 사용하는 내부 엔드포인트
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
+from app.core.config import settings
 from app.services.analysis_log_service import AnalysisLogService
 
 router = APIRouter(prefix="/api/internal", tags=["internal"])
+
+
+async def verify_internal_token(
+    x_internal_token: str | None = Header(None, alias="X-Internal-Token"),
+) -> None:
+    """Worker → Backend 내부 API 인증"""
+    if not settings.is_local:
+        if not x_internal_token or x_internal_token != settings.INTERNAL_API_TOKEN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Invalid internal API token",
+            )
 logger = logging.getLogger(__name__)
 
 
@@ -41,6 +54,7 @@ class CreateAnalysisLogResponse(BaseModel):
 async def create_analysis_log(
     request: CreateAnalysisLogRequest,
     db: AsyncSession = Depends(get_db),
+    _auth: None = Depends(verify_internal_token),
 ):
     """Activity에서 분석 로그를 기록하는 내부 엔드포인트.
 
