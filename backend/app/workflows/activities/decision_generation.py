@@ -120,9 +120,9 @@ async def _llm_generate_interviewer_tips(
         for tip in result.get("resume_based_tips", [])[:5]:
             if isinstance(tip, dict):
                 resume_tips.append(ResumeTip(
-                    area=tip.get("area", ""),
-                    detail=tip.get("detail", ""),
-                    source=tip.get("source", "이력서"),
+                    section=tip.get("section", ""),
+                    insight=tip.get("insight", ""),
+                    question_link=tip.get("question_link"),
                 ))
 
         # cover_letter_insights 변환
@@ -130,8 +130,9 @@ async def _llm_generate_interviewer_tips(
         for ins in result.get("cover_letter_insights", [])[:3]:
             if isinstance(ins, dict):
                 cl_insights.append(CoverLetterInsight(
-                    claim=ins.get("claim", ""),
-                    verify_with=ins.get("verify_with", ""),
+                    highlight=ins.get("highlight", ""),
+                    interpretation=ins.get("interpretation", ""),
+                    follow_up_opportunity=ins.get("follow_up_opportunity"),
                 ))
 
         tips = InterviewerGuideTips(
@@ -273,9 +274,9 @@ def _build_interviewer_tips(
                     related_q_ids.append(i + 1)
 
             resume_tips.append(ResumeTip(
-                area=f"{role} @ {company}",
-                detail=f"해당 경력 관련 구체적 성과와 역할 확인",
-                source="이력서",
+                section=f"{role} @ {company}",
+                insight="해당 경력 관련 구체적 성과와 역할 확인",
+                question_link=f"Q{',Q'.join(str(q) for q in related_q_ids)}" if related_q_ids else None,
             ))
 
     # 커버레터 인사이트 (있는 경우)
@@ -286,8 +287,9 @@ def _build_interviewer_tips(
         for m in motivations[:2]:
             if isinstance(m, str):
                 cover_letter_insights.append(CoverLetterInsight(
-                    claim=m,
-                    verify_with="관련 경험 구체적 사례 요청",
+                    highlight=m,
+                    interpretation="관련 경험 구체적 사례 요청",
+                    follow_up_opportunity="해당 주장을 뒷받침하는 구체적 사례를 요청하세요",
                 ))
 
     # Red flags
