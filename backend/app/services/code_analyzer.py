@@ -20,9 +20,9 @@ from app.models.analysis import (
 logger = logging.getLogger(__name__)
 
 # GLM 모델 설정 (비용 최적화)
-# DeepSeek Coder는 코드 분석에 최적화된 저비용 모델
-# settings.CODE_ANALYSIS_MODEL 사용 (기본값: deepseek/deepseek-coder)
-GLM_MODEL = settings.CODE_ANALYSIS_MODEL
+# Z.AI GLM 모델 사용 (glm-4.7: 코드 분석용 플래그십)
+# settings.GLM_CODER_MODEL 사용 (기본값: zai/glm-4.7)
+GLM_MODEL = settings.GLM_CODER_MODEL
 
 
 class CodeAnalyzer:
