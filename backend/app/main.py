@@ -22,6 +22,7 @@ from app.api.routes.ws import router as ws_router
 from app.api.routes.upload import router as upload_router
 from app.api.routes.analysis_logs import router as analysis_logs_router
 from app.api.routes.internal import router as internal_router
+from app.api.routes.evals import router as evals_router
 
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
@@ -114,6 +115,7 @@ app.include_router(ws_router)
 app.include_router(upload_router)
 app.include_router(analysis_logs_router)
 app.include_router(internal_router)
+app.include_router(evals_router)
 
 
 @app.get("/")

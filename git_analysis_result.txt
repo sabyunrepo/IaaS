@@ -1,0 +1,971 @@
+Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+2026-02-04 17:44:22,845 [INFO] github.Requester: Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+2026-02-04 17:44:23,588 [INFO] github.Requester: Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+2026-02-04 17:44:24,865 [INFO] github.Requester: Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+2026-02-04 17:44:26,289 [INFO] app.services.github_service: Found personal GitHub account: tiangolo from https://github.com/tiangolo/fastapi
+2026-02-04 17:44:26,292 [INFO] app.services.code_analyzer: PyDriller analysis: https://github.com/tiangolo/fastapi (author=tiangolo, years=1, diff=True)
+2026-02-04 17:44:26,348 [INFO] pydriller.repository: Cloning https://github.com/tiangolo/fastapi in temporary folder /tmp/tmpdzctnh92/fastapi
+2026-02-04 17:44:31,580 [INFO] pydriller.repository: Analyzing git repository in /tmp/tmpdzctnh92/fastapi
+2026-02-04 17:44:31,596 [INFO] pydriller.repository: Commit #50b307c9f68ad9a966e86d7f62c82d476abd0cc5 in 2025-02-07 22:10:25+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,599 [INFO] pydriller.repository: Commit #50b307c9f68ad9a966e86d7f62c82d476abd0cc5 filtered
+2026-02-04 17:44:31,599 [INFO] pydriller.repository: Commit #495ff5baa9694c773015abfaaf233a5b74ceaec5 in 2025-02-07 22:10:37+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,601 [INFO] pydriller.repository: Commit #495ff5baa9694c773015abfaaf233a5b74ceaec5 filtered
+2026-02-04 17:44:31,601 [INFO] pydriller.repository: Commit #b6b031b456d825fd8378d280d5d7d7c167784bb6 in 2025-02-07 22:10:51+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,603 [INFO] pydriller.repository: Commit #b6b031b456d825fd8378d280d5d7d7c167784bb6 filtered
+2026-02-04 17:44:31,604 [INFO] pydriller.repository: Commit #e814707cd1daebcdd765e80a35316f8316496b30 in 2025-02-07 22:15:49+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,605 [INFO] pydriller.repository: Commit #e814707cd1daebcdd765e80a35316f8316496b30 filtered
+2026-02-04 17:44:31,605 [INFO] pydriller.repository: Commit #9ec452a154e15e4af0f57f51a4fe1fee58879c4c in 2025-02-15 17:23:59+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,629 [INFO] pydriller.repository: Commit #08b817a84294a7e606f8437d11ee75fd3ef207a4 in 2025-02-15 17:28:09+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,650 [INFO] pydriller.repository: Commit #c868581ce7a108bfbef7c3fb4b42fa663dfdea97 in 2025-02-18 15:18:14+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,652 [INFO] pydriller.repository: Commit #c868581ce7a108bfbef7c3fb4b42fa663dfdea97 filtered
+2026-02-04 17:44:31,652 [INFO] pydriller.repository: Commit #70137c0f7d9534b30ef4ec39f3cea471ade9e567 in 2025-02-18 19:44:00+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,653 [INFO] pydriller.repository: Commit #70137c0f7d9534b30ef4ec39f3cea471ade9e567 filtered
+2026-02-04 17:44:31,653 [INFO] pydriller.repository: Commit #987d2f9a92bcb8f453a41d7e3230e00cb9a8d8db in 2025-02-20 18:49:13+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,655 [INFO] pydriller.repository: Commit #987d2f9a92bcb8f453a41d7e3230e00cb9a8d8db filtered
+2026-02-04 17:44:31,656 [INFO] pydriller.repository: Commit #7710a3480003518f48dc86cf29e8f19b5a4e5e46 in 2025-02-27 15:39:48+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,657 [INFO] pydriller.repository: Commit #7710a3480003518f48dc86cf29e8f19b5a4e5e46 filtered
+2026-02-04 17:44:31,657 [INFO] pydriller.repository: Commit #d90030c1e242d1e954a097c253734122eec926e3 in 2025-02-27 17:40:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,668 [INFO] pydriller.repository: Commit #433837d9cabd4e87367eda9ab6c81cbea2bdf7dc in 2025-02-28 17:43:04+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,681 [INFO] pydriller.repository: Commit #a2644728f6cdfe48c686803446ca92a5aa386061 in 2025-02-28 17:46:04+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,684 [INFO] pydriller.repository: Commit #a2644728f6cdfe48c686803446ca92a5aa386061 filtered
+2026-02-04 17:44:31,684 [INFO] pydriller.repository: Commit #89e0c105474075f5e6b50192da82d7189e5d6617 in 2025-03-01 18:19:17+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,686 [INFO] pydriller.repository: Commit #89e0c105474075f5e6b50192da82d7189e5d6617 filtered
+2026-02-04 17:44:31,686 [INFO] pydriller.repository: Commit #186544760a803b39895ad9a563d56646a334588c in 2025-03-01 18:19:24+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,688 [INFO] pydriller.repository: Commit #186544760a803b39895ad9a563d56646a334588c filtered
+2026-02-04 17:44:31,688 [INFO] pydriller.repository: Commit #ea57612d69290be8298369d9f1542d6afeea459e in 2025-03-01 18:19:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,689 [INFO] pydriller.repository: Commit #ea57612d69290be8298369d9f1542d6afeea459e filtered
+2026-02-04 17:44:31,690 [INFO] pydriller.repository: Commit #74fe89bf35034aae531ca0a527c37d2f545161f5 in 2025-03-01 22:02:35+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,707 [INFO] pydriller.repository: Commit #a01ed2f6a71b4f5eb38cd25f4ad435b749f120df in 2025-03-01 23:13:11+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,711 [INFO] pydriller.repository: Commit #a01ed2f6a71b4f5eb38cd25f4ad435b749f120df filtered
+2026-02-04 17:44:31,711 [INFO] pydriller.repository: Commit #3824664620433f0055125adbf2fc212ced2bdf94 in 2025-03-01 23:14:01+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,722 [INFO] pydriller.repository: Commit #316566e40efb5b7dabc549ff0060a016e68719ce in 2025-03-03 15:33:33+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,724 [INFO] pydriller.repository: Commit #316566e40efb5b7dabc549ff0060a016e68719ce filtered
+2026-02-04 17:44:31,724 [INFO] pydriller.repository: Commit #d3cfe72cd7f5148ac89d5f411391bb565f25662a in 2025-03-19 12:33:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,726 [INFO] pydriller.repository: Commit #d3cfe72cd7f5148ac89d5f411391bb565f25662a filtered
+2026-02-04 17:44:31,726 [INFO] pydriller.repository: Commit #2537d9d1c2517f9e552ca2b076b3b63b1acbc55d in 2025-03-23 21:48:54+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,754 [INFO] pydriller.repository: Commit #628c34e0cae200564d191c95d7edea78c88c4b5e in 2025-03-23 23:54:13+01:00 from Sebastián Ramírez
+2026-02-04 17:44:31,766 [INFO] pydriller.repository: Commit #286f5a0c42e1817f0d64564afb4e8051ce85140c in 2025-04-02 21:47:36+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,768 [INFO] pydriller.repository: Commit #286f5a0c42e1817f0d64564afb4e8051ce85140c filtered
+2026-02-04 17:44:31,769 [INFO] pydriller.repository: Commit #1abef20dbddde878ef6844f219ab6e1d84444248 in 2025-04-02 21:47:46+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,770 [INFO] pydriller.repository: Commit #1abef20dbddde878ef6844f219ab6e1d84444248 filtered
+2026-02-04 17:44:31,770 [INFO] pydriller.repository: Commit #f0576e8ffdc6b6b1b6fdd82b7802797d660deb6f in 2025-04-02 21:47:54+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,773 [INFO] pydriller.repository: Commit #f0576e8ffdc6b6b1b6fdd82b7802797d660deb6f filtered
+2026-02-04 17:44:31,773 [INFO] pydriller.repository: Commit #7b7ec90308d21fd61fd55f0588f2e7a714822052 in 2025-04-03 21:48:09+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,775 [INFO] pydriller.repository: Commit #7b7ec90308d21fd61fd55f0588f2e7a714822052 filtered
+2026-02-04 17:44:31,775 [INFO] pydriller.repository: Commit #9b5b2dd7a241bbfaaf85e16ae35a48b3257c4ce3 in 2025-05-01 11:32:33+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,778 [INFO] pydriller.repository: Commit #9b5b2dd7a241bbfaaf85e16ae35a48b3257c4ce3 filtered
+2026-02-04 17:44:31,778 [INFO] pydriller.repository: Commit #a748e7336b4a1799acccf36d8fc5d738649101c7 in 2025-05-01 11:32:46+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,780 [INFO] pydriller.repository: Commit #a748e7336b4a1799acccf36d8fc5d738649101c7 filtered
+2026-02-04 17:44:31,780 [INFO] pydriller.repository: Commit #418c3c8d2b00dbee8eaa63bb9265b5a660a85121 in 2025-05-01 12:58:00+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,782 [INFO] pydriller.repository: Commit #418c3c8d2b00dbee8eaa63bb9265b5a660a85121 filtered
+2026-02-04 17:44:31,782 [INFO] pydriller.repository: Commit #3da3f3ab826d3dc32f655a1e8c76cbc14cf59a8b in 2025-05-01 14:58:12+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,784 [INFO] pydriller.repository: Commit #3da3f3ab826d3dc32f655a1e8c76cbc14cf59a8b filtered
+2026-02-04 17:44:31,784 [INFO] pydriller.repository: Commit #f512b17992c34ecab6267ea49336771e2be34f66 in 2025-05-01 14:59:46+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,787 [INFO] pydriller.repository: Commit #f512b17992c34ecab6267ea49336771e2be34f66 filtered
+2026-02-04 17:44:31,787 [INFO] pydriller.repository: Commit #16234a3f4fcc323d4aad92c3a4fd0201770b077b in 2025-05-01 13:13:51+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,788 [INFO] pydriller.repository: Commit #16234a3f4fcc323d4aad92c3a4fd0201770b077b filtered
+2026-02-04 17:44:31,788 [INFO] pydriller.repository: Commit #3620a2b213a16eefe6b6bc9cfc90b33bfedacd92 in 2025-05-01 14:42:39+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,790 [INFO] pydriller.repository: Commit #3620a2b213a16eefe6b6bc9cfc90b33bfedacd92 filtered
+2026-02-04 17:44:31,790 [INFO] pydriller.repository: Commit #f61fe35178d0ea00067da0cbdab058d3c8b87a37 in 2025-05-09 13:48:50+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,792 [INFO] pydriller.repository: Commit #f61fe35178d0ea00067da0cbdab058d3c8b87a37 filtered
+2026-02-04 17:44:31,792 [INFO] pydriller.repository: Commit #a9a2782f951eaaeb42123d54b14f4db05d1c332b in 2025-05-09 18:36:42+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,794 [INFO] pydriller.repository: Commit #a9a2782f951eaaeb42123d54b14f4db05d1c332b filtered
+2026-02-04 17:44:31,794 [INFO] pydriller.repository: Commit #214e0740c8cea64858285b02defac2d8ae071f7b in 2025-05-11 15:37:26+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,837 [INFO] pydriller.repository: Commit #214e0740c8cea64858285b02defac2d8ae071f7b filtered
+2026-02-04 17:44:31,838 [INFO] pydriller.repository: Commit #7382ceda579e73776df0ea71cb76adefdcb21d4b in 2025-05-21 17:17:03+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,840 [INFO] pydriller.repository: Commit #7382ceda579e73776df0ea71cb76adefdcb21d4b filtered
+2026-02-04 17:44:31,840 [INFO] pydriller.repository: Commit #a01a665b5723aef8613d269ccb7d8d77b6ecd678 in 2025-05-22 09:18:52+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,841 [INFO] pydriller.repository: Commit #a01a665b5723aef8613d269ccb7d8d77b6ecd678 filtered
+2026-02-04 17:44:31,841 [INFO] pydriller.repository: Commit #29ed7d052b58f32444ff14ae299de365262fcc56 in 2025-05-22 09:45:32+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,843 [INFO] pydriller.repository: Commit #29ed7d052b58f32444ff14ae299de365262fcc56 filtered
+2026-02-04 17:44:31,843 [INFO] pydriller.repository: Commit #751c7dc1799ec4a3979668b0d1899f080ca916f1 in 2025-06-05 08:48:55+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,846 [INFO] pydriller.repository: Commit #751c7dc1799ec4a3979668b0d1899f080ca916f1 filtered
+2026-02-04 17:44:31,846 [INFO] pydriller.repository: Commit #c430ef1ac13f190a0d7669e394366ddd5eb75a47 in 2025-06-05 08:58:14+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,847 [INFO] pydriller.repository: Commit #c430ef1ac13f190a0d7669e394366ddd5eb75a47 filtered
+2026-02-04 17:44:31,847 [INFO] pydriller.repository: Commit #e71d87d8ef00c6ff5e77366a29b10af4e59144ce in 2025-06-05 09:29:13+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,849 [INFO] pydriller.repository: Commit #e71d87d8ef00c6ff5e77366a29b10af4e59144ce filtered
+2026-02-04 17:44:31,849 [INFO] pydriller.repository: Commit #38c282039a1c7fe39a41bc41400ff4c3bac9a148 in 2025-06-05 13:51:48+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,851 [INFO] pydriller.repository: Commit #38c282039a1c7fe39a41bc41400ff4c3bac9a148 filtered
+2026-02-04 17:44:31,851 [INFO] pydriller.repository: Commit #2116d8aa564c9a70100225781f76ff2a7687bcd8 in 2025-06-05 12:27:20+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,852 [INFO] pydriller.repository: Commit #2116d8aa564c9a70100225781f76ff2a7687bcd8 filtered
+2026-02-04 17:44:31,852 [INFO] pydriller.repository: Commit #44d5abffc164b787832e2e3a83990e0a027a7eea in 2025-06-10 18:52:33+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,854 [INFO] pydriller.repository: Commit #44d5abffc164b787832e2e3a83990e0a027a7eea filtered
+2026-02-04 17:44:31,854 [INFO] pydriller.repository: Commit #4734df1db89607c9579d2bb9795b02214e1e1d47 in 2025-06-17 13:41:24+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,866 [INFO] pydriller.repository: Commit #8fa19a6faa3309a150f6e6fafd2c3a5043c09718 in 2025-06-26 17:24:56+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,870 [INFO] pydriller.repository: Commit #8fa19a6faa3309a150f6e6fafd2c3a5043c09718 filtered
+2026-02-04 17:44:31,870 [INFO] pydriller.repository: Commit #ebdeda2de6e17036e3048940b7a9e725ef6a95b7 in 2025-06-26 17:26:32+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,881 [INFO] pydriller.repository: Commit #c6037fc96fa11d411fd57499f8a42306edee5325 in 2025-07-01 07:14:26+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,883 [INFO] pydriller.repository: Commit #c6037fc96fa11d411fd57499f8a42306edee5325 filtered
+2026-02-04 17:44:31,883 [INFO] pydriller.repository: Commit #f4bacfe1b5418db6519a47515d95b8079256c514 in 2025-07-01 15:20:03+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,885 [INFO] pydriller.repository: Commit #f4bacfe1b5418db6519a47515d95b8079256c514 filtered
+2026-02-04 17:44:31,885 [INFO] pydriller.repository: Commit #be91d0c1bde305c441d9aeda5c00f21094656de7 in 2025-07-01 15:20:19+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,886 [INFO] pydriller.repository: Commit #be91d0c1bde305c441d9aeda5c00f21094656de7 filtered
+2026-02-04 17:44:31,887 [INFO] pydriller.repository: Commit #b083ccd250e8fd22c3f9f8b3fd34765c6d625917 in 2025-07-07 17:00:35+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,889 [INFO] pydriller.repository: Commit #b083ccd250e8fd22c3f9f8b3fd34765c6d625917 filtered
+2026-02-04 17:44:31,889 [INFO] pydriller.repository: Commit #18eb7a708096ab7a19f31a59918bc010aba0ddba in 2025-07-07 17:05:38+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,892 [INFO] pydriller.repository: Commit #18eb7a708096ab7a19f31a59918bc010aba0ddba filtered
+2026-02-04 17:44:31,893 [INFO] pydriller.repository: Commit #bd8f358fd93416835b06486566b9d9ab991577b6 in 2025-07-07 17:07:03+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,903 [INFO] pydriller.repository: Commit #cad6880fd97d6f25d3f05025c88230285386e7f9 in 2025-07-11 18:15:27+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,924 [INFO] pydriller.repository: Commit #313723494be79d4b24ccaa60e4f6d1f96c150fed in 2025-07-11 18:17:57+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,934 [INFO] pydriller.repository: Commit #ce26b8e1caa3d375dba527612717c3279a290b3d in 2025-07-12 19:09:49+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,941 [INFO] pydriller.repository: Commit #6726bf8559c5a0744f64e4534e475a42a8c0b6a4 in 2025-07-12 19:32:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,943 [INFO] pydriller.repository: Commit #6726bf8559c5a0744f64e4534e475a42a8c0b6a4 filtered
+2026-02-04 17:44:31,943 [INFO] pydriller.repository: Commit #a5a4daa705fe4ee10d5c0eacdd3df84eb6973e8e in 2025-07-23 15:02:20+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,945 [INFO] pydriller.repository: Commit #a5a4daa705fe4ee10d5c0eacdd3df84eb6973e8e filtered
+2026-02-04 17:44:31,945 [INFO] pydriller.repository: Commit #ae02be90b6857cac1a00ea47c154457effcdcb5d in 2025-07-26 20:57:50+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,952 [INFO] pydriller.repository: Commit #adc328e258d00c5717070a103626cb48a03abecf in 2025-07-26 23:19:05+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,956 [INFO] pydriller.repository: Commit #273b06adab5fd527492ff9ed3f98cfa653d10002 in 2025-07-26 21:27:35+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,962 [INFO] pydriller.repository: Commit #6516a6c4a60c91de881cc73c40a3c609001dd29c in 2025-07-27 21:12:19+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,968 [INFO] pydriller.repository: Commit #9aab3d9e2239c51628f580eff442b630bd165d31 in 2025-07-28 01:51:53+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,975 [INFO] pydriller.repository: Commit #e326cec10ebab167d8ae77cf211b29bfa19e7195 in 2025-07-31 17:47:31+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,977 [INFO] pydriller.repository: Commit #e326cec10ebab167d8ae77cf211b29bfa19e7195 filtered
+2026-02-04 17:44:31,977 [INFO] pydriller.repository: Commit #8abfa0f106b1f3c40ed858c64cd8035c0b4ac4eb in 2025-07-31 18:20:49+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,979 [INFO] pydriller.repository: Commit #8abfa0f106b1f3c40ed858c64cd8035c0b4ac4eb filtered
+2026-02-04 17:44:31,979 [INFO] pydriller.repository: Commit #a9fbc4b8f508d938bbfe280ee4df6f028194b6f8 in 2025-08-01 08:16:58+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,981 [INFO] pydriller.repository: Commit #a9fbc4b8f508d938bbfe280ee4df6f028194b6f8 filtered
+2026-02-04 17:44:31,981 [INFO] pydriller.repository: Commit #3ad01a124707f05f743a85dfd6544dea79188b0e in 2025-08-01 08:19:53+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,983 [INFO] pydriller.repository: Commit #3ad01a124707f05f743a85dfd6544dea79188b0e filtered
+2026-02-04 17:44:31,983 [INFO] pydriller.repository: Commit #2e16e105c9a0085d4deb952e39a78d919a29c3a2 in 2025-08-01 15:19:22+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,984 [INFO] pydriller.repository: Commit #2e16e105c9a0085d4deb952e39a78d919a29c3a2 filtered
+2026-02-04 17:44:31,984 [INFO] pydriller.repository: Commit #f736e48ab3e46684bf379407e27a1bd7f300a865 in 2025-08-01 16:32:33+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,986 [INFO] pydriller.repository: Commit #f736e48ab3e46684bf379407e27a1bd7f300a865 filtered
+2026-02-04 17:44:31,986 [INFO] pydriller.repository: Commit #784f068abaa57aa25eac104e6d831ca12980f90e in 2025-08-31 11:11:15+02:00 from Sebastián Ramírez
+2026-02-04 17:44:31,991 [INFO] pydriller.repository: Commit #ee9ccac1e5f5faca45a56e0e0eea109dfb2988a4 in 2025-08-31 15:02:08+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,993 [INFO] pydriller.repository: Commit #ee9ccac1e5f5faca45a56e0e0eea109dfb2988a4 filtered
+2026-02-04 17:44:31,993 [INFO] pydriller.repository: Commit #1884d76f613d951e2243e50a3df4d9a479f00a9d in 2025-08-31 15:19:49+00:00 from Sebastián Ramírez
+2026-02-04 17:44:31,997 [INFO] pydriller.repository: Commit #1884d76f613d951e2243e50a3df4d9a479f00a9d filtered
+2026-02-04 17:44:31,997 [INFO] pydriller.repository: Commit #f5b77ff0fcd8e191d9be98d61292ecfaa6cb89a6 in 2025-08-31 21:34:08+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,004 [INFO] pydriller.repository: Commit #3d763c8d3855e11a27ce552c7f363e383ba0781a in 2025-09-05 10:57:16+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,006 [INFO] pydriller.repository: Commit #3d763c8d3855e11a27ce552c7f363e383ba0781a filtered
+2026-02-04 17:44:32,006 [INFO] pydriller.repository: Commit #7cf567010d808b3238ad812e437b0cd197e65f38 in 2025-09-05 10:57:41+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,008 [INFO] pydriller.repository: Commit #7cf567010d808b3238ad812e437b0cd197e65f38 filtered
+2026-02-04 17:44:32,008 [INFO] pydriller.repository: Commit #2ad28d436f4bc57e0b9b9580c6fddb2ecca8aa0d in 2025-09-05 10:58:22+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,010 [INFO] pydriller.repository: Commit #2ad28d436f4bc57e0b9b9580c6fddb2ecca8aa0d filtered
+2026-02-04 17:44:32,010 [INFO] pydriller.repository: Commit #45601585025083af04c3499c6ab8a5267c3a9203 in 2025-09-05 10:58:29+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,012 [INFO] pydriller.repository: Commit #45601585025083af04c3499c6ab8a5267c3a9203 filtered
+2026-02-04 17:44:32,012 [INFO] pydriller.repository: Commit #a372edf7e8825068a780df643700e6cce7e035c5 in 2025-09-16 20:23:54+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,025 [INFO] pydriller.repository: Commit #382d083e26a28e95c731e85345c85c6dc99b08b4 in 2025-09-20 21:34:05+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,043 [INFO] pydriller.repository: Commit #a84001000e59ff362e74f93b8d9a58a4309dac2d in 2025-09-20 21:35:43+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,047 [INFO] pydriller.repository: Commit #a84001000e59ff362e74f93b8d9a58a4309dac2d filtered
+2026-02-04 17:44:32,047 [INFO] pydriller.repository: Commit #784f06cb9b7cc63f6a0cb2bc9cf238473eef93e2 in 2025-09-20 22:15:41+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,060 [INFO] pydriller.repository: Commit #e329d78f866a12893699f786f1209a666e1688e3 in 2025-09-29 05:29:38+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,114 [INFO] pydriller.repository: Commit #1d5168a4a1293fbc44799fbab615a120c6fdb85e in 2025-09-29 05:33:39+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,119 [INFO] pydriller.repository: Commit #1d5168a4a1293fbc44799fbab615a120c6fdb85e filtered
+2026-02-04 17:44:32,119 [INFO] pydriller.repository: Commit #333f1ba737be6507fc707278f6b69cf1f81efdc1 in 2025-09-29 05:34:21+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,137 [INFO] pydriller.repository: Commit #2f6fb122589fbdb9d581de9586c0ab3c4ab4b94f in 2025-09-30 07:56:53+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,146 [INFO] pydriller.repository: Commit #e7fc394e15d2d5ca2149d5cfe21c0fcbbd12e6d5 in 2025-09-30 08:25:57+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,157 [INFO] pydriller.repository: Commit #e7fc394e15d2d5ca2149d5cfe21c0fcbbd12e6d5 filtered
+2026-02-04 17:44:32,157 [INFO] pydriller.repository: Commit #9d920d616f3ce56e1c61606b8a84aaaace89ecd9 in 2025-10-01 18:42:31+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,159 [INFO] pydriller.repository: Commit #9d920d616f3ce56e1c61606b8a84aaaace89ecd9 filtered
+2026-02-04 17:44:32,159 [INFO] pydriller.repository: Commit #28f910a10bfd12d0c54162e0970bc4c22311c9fc in 2025-10-01 18:42:38+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,161 [INFO] pydriller.repository: Commit #28f910a10bfd12d0c54162e0970bc4c22311c9fc filtered
+2026-02-04 17:44:32,161 [INFO] pydriller.repository: Commit #975e7190e41a7301e5a4919f593b338fec3de9dd in 2025-10-01 18:43:11+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,162 [INFO] pydriller.repository: Commit #975e7190e41a7301e5a4919f593b338fec3de9dd filtered
+2026-02-04 17:44:32,162 [INFO] pydriller.repository: Commit #61596ebe5b270a619fb2a3e73ff55b71333f4760 in 2025-10-06 13:09:58+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,163 [INFO] pydriller.repository: Commit #61596ebe5b270a619fb2a3e73ff55b71333f4760 filtered
+2026-02-04 17:44:32,163 [INFO] pydriller.repository: Commit #485bfedf5d5d4a51c53b12010d685854174da92f in 2025-10-08 09:03:21+00:00 from Sebastián Ramírez
+2026-02-04 17:44:32,166 [INFO] pydriller.repository: Commit #485bfedf5d5d4a51c53b12010d685854174da92f filtered
+2026-02-04 17:44:32,166 [INFO] pydriller.repository: Commit #01be148429241adb7a9ba5eb8f6cd5e17230b646 in 2025-10-08 11:05:44+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,181 [INFO] pydriller.repository: Commit #942fce394bd66b841b9399cff815bb8a18cfd4c6 in 2025-10-08 16:49:59+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,193 [INFO] pydriller.repository: Commit #352dbefc634b21cff94663be1ab0a1aa5dbd6ed5 in 2025-10-10 12:34:39+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,208 [INFO] pydriller.repository: Commit #d34918abf00c93ac592c5d1d1c55650d8c1b92ec in 2025-10-11 18:45:54+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,356 [INFO] pydriller.repository: Commit #fc7a0686af29c7793b3cc999f1af47bf05f5fa74 in 2025-10-11 19:07:40+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,361 [INFO] pydriller.repository: Commit #fc7a0686af29c7793b3cc999f1af47bf05f5fa74 filtered
+2026-02-04 17:44:32,361 [INFO] pydriller.repository: Commit #2e721e1b02186467dc3a7a95dfe45d8e7bd7d0d9 in 2025-10-11 19:09:01+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,378 [INFO] pydriller.repository: Commit #7df594d284cabf837774dffc40e542cca9333ad2 in 2025-10-19 21:12:22+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,380 [INFO] pydriller.repository: Commit #7df594d284cabf837774dffc40e542cca9333ad2 filtered
+2026-02-04 17:44:32,380 [INFO] pydriller.repository: Commit #864b569cf8453654fc3bc2c64108c0f644e2918c in 2025-10-20 13:28:38+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,392 [INFO] pydriller.repository: Commit #d390f2e41fb508de416071d481937bc7be486589 in 2025-10-23 22:31:35+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,455 [INFO] pydriller.repository: Commit #1c6ee57bbfeebfa21a393b7939c85d9d4d29f0b0 in 2025-10-23 22:54:19+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,459 [INFO] pydriller.repository: Commit #1c6ee57bbfeebfa21a393b7939c85d9d4d29f0b0 filtered
+2026-02-04 17:44:32,459 [INFO] pydriller.repository: Commit #cd40c5b40ffd8ba0c6a6a6c96bbf34ec1cf9c525 in 2025-10-23 22:54:45+02:00 from Sebastián Ramírez
+2026-02-04 17:44:32,470 [INFO] pydriller.repository: Commit #78c94c3f565b9b992d1eecafaeb0991e2b177d7c in 2025-10-27 18:51:46+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,481 [INFO] pydriller.repository: Commit #6a657f360db5a666c75ba143e0d923ad05789b1d in 2025-10-29 14:09:30+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,497 [INFO] pydriller.repository: Commit #35aa12b9bd638eb9f7b7d0be2a8439831df61899 in 2025-10-29 14:43:11+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,499 [INFO] pydriller.repository: Commit #35aa12b9bd638eb9f7b7d0be2a8439831df61899 filtered
+2026-02-04 17:44:32,499 [INFO] pydriller.repository: Commit #22ccca21fc13b7ac138e277490ec4d05b4f5094a in 2025-10-29 14:44:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,510 [INFO] pydriller.repository: Commit #c144f9fbd356e7e378a6b42cff68cf4a4667111a in 2025-10-30 05:51:50+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,529 [INFO] pydriller.repository: Commit #bb88a0f94a9633b861f90f6752e397980a7cfea9 in 2025-10-30 05:58:49+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,539 [INFO] pydriller.repository: Commit #dcfb8b9dda7b8117141b89e84527b48f978e0b31 in 2025-10-30 20:35:04+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,551 [INFO] pydriller.repository: Commit #2cf04ee30db9df2db04a5b1e0d2c625dfbf1a211 in 2025-10-30 21:40:08+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,562 [INFO] pydriller.repository: Commit #fad35ef43fdde74845b416cd2dc795ff489e9719 in 2025-10-31 19:35:33+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,573 [INFO] pydriller.repository: Commit #dbb7020a4d98ec994594096f897edaa70c01c67b in 2025-11-03 10:23:52+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,574 [INFO] pydriller.repository: Commit #dbb7020a4d98ec994594096f897edaa70c01c67b filtered
+2026-02-04 17:44:32,574 [INFO] pydriller.repository: Commit #f8df43d734c6982c4ad5c6094b05179d0326583b in 2025-11-03 10:24:09+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,576 [INFO] pydriller.repository: Commit #f8df43d734c6982c4ad5c6094b05179d0326583b filtered
+2026-02-04 17:44:32,576 [INFO] pydriller.repository: Commit #566e0d60b29f3fe302c0a8561d108621e496d009 in 2025-11-03 10:24:36+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,578 [INFO] pydriller.repository: Commit #566e0d60b29f3fe302c0a8561d108621e496d009 filtered
+2026-02-04 17:44:32,578 [INFO] pydriller.repository: Commit #ac438b99342c859ae0e10f7064021125bd247bf5 in 2025-11-03 11:12:49+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,633 [INFO] pydriller.repository: Commit #36901405559018bd97c1c70eb86748b8b9d67533 in 2025-11-03 11:19:56+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,637 [INFO] pydriller.repository: Commit #36901405559018bd97c1c70eb86748b8b9d67533 filtered
+2026-02-04 17:44:32,637 [INFO] pydriller.repository: Commit #4efae81a76b809998c12fc0f7e1c172f451cb304 in 2025-11-03 11:21:36+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,648 [INFO] pydriller.repository: Commit #289b4aa2faff3bbfa364abbb21fe2b23aebe6270 in 2025-11-03 14:19:58+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,650 [INFO] pydriller.repository: Commit #289b4aa2faff3bbfa364abbb21fe2b23aebe6270 filtered
+2026-02-04 17:44:32,650 [INFO] pydriller.repository: Commit #1c7e2540c22ba5e81250cc715d82db31e52a63d6 in 2025-11-08 22:47:00+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,661 [INFO] pydriller.repository: Commit #5d40dfbc9bc1df1c7801acc53857ec7a072b7697 in 2025-11-13 14:59:07+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,669 [INFO] pydriller.repository: Commit #02e108d1663149faac4156dd23595cbdf74287c2 in 2025-11-13 18:03:55+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,681 [INFO] pydriller.repository: Commit #994d6cc912ecb160e1495132bcd347f4511708bc in 2025-11-17 20:33:53+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,708 [INFO] pydriller.repository: Commit #85701631a0241c5f02b4940734a5428f66abe167 in 2025-11-19 17:50:18+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,725 [INFO] pydriller.repository: Commit #325fd16d32fd815633d6caf3d0d75aa7f30c51c9 in 2025-11-19 17:51:59+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,736 [INFO] pydriller.repository: Commit #be5a6311f5ad542f253f48ca95cd863026b67c05 in 2025-11-20 11:45:16+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,747 [INFO] pydriller.repository: Commit #ae951f698177b7fc00a61768376c78a92d8b3995 in 2025-11-23 10:27:40+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,748 [INFO] pydriller.repository: Commit #ae951f698177b7fc00a61768376c78a92d8b3995 filtered
+2026-02-04 17:44:32,748 [INFO] pydriller.repository: Commit #79bc4b9ca0d039921310e13f726f8a17c0469d8d in 2025-11-23 17:36:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,750 [INFO] pydriller.repository: Commit #79bc4b9ca0d039921310e13f726f8a17c0469d8d filtered
+2026-02-04 17:44:32,750 [INFO] pydriller.repository: Commit #4f3ff797361a7a1d953353d90fd809d54469267f in 2025-11-23 18:41:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,759 [INFO] pydriller.repository: Commit #8732c53478513ddd35ae152ff9bf5e6217ed3d99 in 2025-11-24 20:12:28+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,763 [INFO] pydriller.repository: Commit #8732c53478513ddd35ae152ff9bf5e6217ed3d99 filtered
+2026-02-04 17:44:32,763 [INFO] pydriller.repository: Commit #5b0625df96e4ea11b54fcb2a76f21f7ad94764fe in 2025-11-24 20:14:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,774 [INFO] pydriller.repository: Commit #8ab7167eaf046fb1c7a700dd72e773bb16e7d88f in 2025-11-28 15:55:15+00:00 from Sebastián Ramírez
+2026-02-04 17:44:32,775 [INFO] pydriller.repository: Commit #8ab7167eaf046fb1c7a700dd72e773bb16e7d88f filtered
+2026-02-04 17:44:32,775 [INFO] pydriller.repository: Commit #63d7a2b9978258d13dfc22664e60fc2110d30e20 in 2025-11-30 13:00:20+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,788 [INFO] pydriller.repository: Commit #7fbd30460f480e90faf321b9158bffb5116000d5 in 2025-11-30 15:45:49+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,802 [INFO] pydriller.repository: Commit #f2bab952678f301349c9805dd576af9425a95953 in 2025-11-30 15:47:35+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,814 [INFO] pydriller.repository: Commit #32aba57b499c9ec01a87f4e3a9aca980941e8959 in 2025-12-01 07:27:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,816 [INFO] pydriller.repository: Commit #32aba57b499c9ec01a87f4e3a9aca980941e8959 filtered
+2026-02-04 17:44:32,816 [INFO] pydriller.repository: Commit #8a7ad3d255f7318b67bf5dd03f8f231d2ade4b42 in 2025-12-01 07:30:56+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,817 [INFO] pydriller.repository: Commit #8a7ad3d255f7318b67bf5dd03f8f231d2ade4b42 filtered
+2026-02-04 17:44:32,818 [INFO] pydriller.repository: Commit #0dee714026a01df50f24b7f69b8978bdb91c8ff0 in 2025-12-01 14:17:29+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,819 [INFO] pydriller.repository: Commit #0dee714026a01df50f24b7f69b8978bdb91c8ff0 filtered
+2026-02-04 17:44:32,819 [INFO] pydriller.repository: Commit #6e82df816dcc3eeaae821e67cac598b0fb90179d in 2025-12-01 21:06:57+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,822 [INFO] pydriller.repository: Commit #6e82df816dcc3eeaae821e67cac598b0fb90179d filtered
+2026-02-04 17:44:32,822 [INFO] pydriller.repository: Commit #c3373205d03af626631b12ad91f26e77e6ddfd49 in 2025-12-02 05:30:18+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,834 [INFO] pydriller.repository: Commit #3c54a8f07b70cdd40e3d81ea319e9fcccd2481d2 in 2025-12-02 06:31:27+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,847 [INFO] pydriller.repository: Commit #c516c9904bfd07a5b48aaac205740bc20e8ec21e in 2025-12-02 08:42:22+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,859 [INFO] pydriller.repository: Commit #4976568fc7cb7501729d8f84d946cde1e91299cd in 2025-12-02 11:47:05+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,872 [INFO] pydriller.repository: Commit #247ef32e790ef296d8febc3fbc639849ff24b1a5 in 2025-12-02 13:43:31+00:00 from Sebastián Ramírez
+2026-02-04 17:44:32,891 [INFO] pydriller.repository: Commit #a79ae3d66fb093adfe9f8d15a53af74b49947562 in 2025-12-02 16:48:46+00:00 from Sebastián Ramírez
+2026-02-04 17:44:32,910 [INFO] pydriller.repository: Commit #c57ac7bdf3613798c94caceff562a41fa16d4a2d in 2025-12-02 22:06:25+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,923 [INFO] pydriller.repository: Commit #bba4d4c95e0de8fc9c99f88c269909d37d64d494 in 2025-12-04 08:29:28+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,939 [INFO] pydriller.repository: Commit #811fa898752e7f5697733a2958ff79ad8dfb5276 in 2025-12-04 08:33:11+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,953 [INFO] pydriller.repository: Commit #603df6e36f59cc4a3e189f506b8f36d1e816c3ac in 2025-12-04 09:27:38+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,968 [INFO] pydriller.repository: Commit #0ec4bafca204c92dca903437e78514246fe14eac in 2025-12-04 13:59:24+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,977 [INFO] pydriller.repository: Commit #eb1d50479ba0ac873e4ffa08a824b1d822ca3a17 in 2025-12-04 14:01:00+01:00 from Sebastián Ramírez
+2026-02-04 17:44:32,993 [INFO] pydriller.repository: Commit #0b5fa563cdfb887e4145d8419ae91b6a40905349 in 2025-12-04 23:22:01+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,014 [INFO] pydriller.repository: Commit #f0dd1046a688935ffd23666b3d4164b838a4d8fe in 2025-12-04 23:23:21+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,028 [INFO] pydriller.repository: Commit #08b09e5236e315b6f10265ed229f130d4befb4ea in 2025-12-05 22:26:36+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,042 [INFO] pydriller.repository: Commit #b5ca13249e3f2002c70c3f2de528a128af2008f7 in 2025-12-06 14:09:51+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,056 [INFO] pydriller.repository: Commit #8cedb742cb59f72a752bb0a6b4f73c02aeb15bf6 in 2025-12-09 12:12:24+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,060 [INFO] pydriller.repository: Commit #42b250d14dd42d3c0c24dd085fa53878172a985f in 2025-12-10 11:36:29+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,069 [INFO] pydriller.repository: Commit #60699f306b67dc1f4918ebea17f04d7a48cda645 in 2025-12-10 11:38:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,084 [INFO] pydriller.repository: Commit #7ba042e069ad424a584a37f1db03887798d9af80 in 2025-12-10 13:06:05+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,096 [INFO] pydriller.repository: Commit #7b0b915749582206025f306924e6a7bf86041a13 in 2025-12-10 13:07:53+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,111 [INFO] pydriller.repository: Commit #442cb306f6bcffa3e3d7446a67800ad637829d68 in 2025-12-10 12:28:40+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,113 [INFO] pydriller.repository: Commit #442cb306f6bcffa3e3d7446a67800ad637829d68 filtered
+2026-02-04 17:44:33,113 [INFO] pydriller.repository: Commit #cd9d093f603b81f34eb2751e9ca4522089fa9696 in 2025-12-10 12:56:50+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,120 [INFO] pydriller.repository: Commit #4c4d5201986dce315107ba70ae930d9db4575904 in 2025-12-11 14:48:47+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,122 [INFO] pydriller.repository: Commit #4c4d5201986dce315107ba70ae930d9db4575904 filtered
+2026-02-04 17:44:33,122 [INFO] pydriller.repository: Commit #564a4ac1b8c7c75c7229f18f06c5800944b38508 in 2025-12-11 16:02:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,123 [INFO] pydriller.repository: Commit #564a4ac1b8c7c75c7229f18f06c5800944b38508 filtered
+2026-02-04 17:44:33,123 [INFO] pydriller.repository: Commit #c0556ac3a50420d0ba298b5641517c61f3c1c2c4 in 2025-12-12 15:31:21+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,133 [INFO] pydriller.repository: Commit #3fe6522aaed4d36d6a38175a4a8137ee0fc62451 in 2025-12-12 15:32:58+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,148 [INFO] pydriller.repository: Commit #b1d9769f97295a238df8c2d318ad65dd6a40c6ff in 2025-12-12 15:59:12+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,163 [INFO] pydriller.repository: Commit #435d839c72d8fcef93ef4914a276df0b47728c6e in 2025-12-12 16:54:13+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,165 [INFO] pydriller.repository: Commit #435d839c72d8fcef93ef4914a276df0b47728c6e filtered
+2026-02-04 17:44:33,165 [INFO] pydriller.repository: Commit #59917ab67947919ce0c26b0ca66cf5a36ccc0ef3 in 2025-12-12 16:56:39+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,167 [INFO] pydriller.repository: Commit #59917ab67947919ce0c26b0ca66cf5a36ccc0ef3 filtered
+2026-02-04 17:44:33,167 [INFO] pydriller.repository: Commit #c54834838628966ac14c45e2a57c31383e0c8a9f in 2025-12-16 12:34:01+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,184 [INFO] pydriller.repository: Commit #2e7aaea52483dbc5af3c61b6b6ec146e2a7efc01 in 2025-12-16 12:40:50+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,191 [INFO] pydriller.repository: Commit #5da1cb07927575ca3fa036f82fd220ca84510106 in 2025-12-16 12:53:28+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,198 [INFO] pydriller.repository: Commit #886b367a8c8df26c722c901cac5372a0a798fd82 in 2025-12-16 15:34:37+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,199 [INFO] pydriller.repository: Commit #886b367a8c8df26c722c901cac5372a0a798fd82 filtered
+2026-02-04 17:44:33,199 [INFO] pydriller.repository: Commit #cbbb11f4dfa8b65494986b0891808f72c9f29ec4 in 2025-12-16 16:16:35+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,200 [INFO] pydriller.repository: Commit #cbbb11f4dfa8b65494986b0891808f72c9f29ec4 filtered
+2026-02-04 17:44:33,201 [INFO] pydriller.repository: Commit #da83d795464f479885c68029fb6233a79bc6df05 in 2025-12-16 17:33:45+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,223 [INFO] pydriller.repository: Commit #da83d795464f479885c68029fb6233a79bc6df05 filtered
+2026-02-04 17:44:33,223 [INFO] pydriller.repository: Commit #6281f8721a443b47e61128b8536412bb4353b6b2 in 2025-12-16 18:00:12+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,224 [INFO] pydriller.repository: Commit #6281f8721a443b47e61128b8536412bb4353b6b2 filtered
+2026-02-04 17:44:33,224 [INFO] pydriller.repository: Commit #c0e4b9cd679d70adda60940527ffd13ffac28fff in 2025-12-16 17:36:42+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,226 [INFO] pydriller.repository: Commit #c0e4b9cd679d70adda60940527ffd13ffac28fff filtered
+2026-02-04 17:44:33,226 [INFO] pydriller.repository: Commit #c68dc2d4190ebc5b9a820310dbfdde41437443ac in 2025-12-16 17:52:17+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,227 [INFO] pydriller.repository: Commit #c68dc2d4190ebc5b9a820310dbfdde41437443ac filtered
+2026-02-04 17:44:33,227 [INFO] pydriller.repository: Commit #c4fb93f9c2a3ce3505314cbcba06166d58e7e20c in 2025-12-16 20:32:09+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,228 [INFO] pydriller.repository: Commit #c4fb93f9c2a3ce3505314cbcba06166d58e7e20c filtered
+2026-02-04 17:44:33,228 [INFO] pydriller.repository: Commit #9a035035429b9bbfac65486a39baef81075ba396 in 2025-12-16 21:32:40+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,235 [INFO] pydriller.repository: Commit #9a035035429b9bbfac65486a39baef81075ba396 filtered
+2026-02-04 17:44:33,235 [INFO] pydriller.repository: Commit #4a6a87674ae049935d73f800768891bba8ed50c9 in 2025-12-16 21:44:10+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,255 [INFO] pydriller.repository: Commit #4a6a87674ae049935d73f800768891bba8ed50c9 filtered
+2026-02-04 17:44:33,255 [INFO] pydriller.repository: Commit #58bc4a15ac46abffcb0aea1481996337cd5a58e3 in 2025-12-16 20:58:53+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,273 [INFO] pydriller.repository: Commit #818ce0fa2f93f9001c7258616444243e09dacde3 in 2025-12-16 21:05:18+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,278 [INFO] pydriller.repository: Commit #818ce0fa2f93f9001c7258616444243e09dacde3 filtered
+2026-02-04 17:44:33,278 [INFO] pydriller.repository: Commit #1a1c29e57d98d3989ba8aad5578c2d0ae78bdc9c in 2025-12-17 11:41:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,279 [INFO] pydriller.repository: Commit #1a1c29e57d98d3989ba8aad5578c2d0ae78bdc9c filtered
+2026-02-04 17:44:33,279 [INFO] pydriller.repository: Commit #56a549b4d56c970acdcfcd6cb62ce2fd28810871 in 2025-12-17 20:59:04+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,280 [INFO] pydriller.repository: Commit #56a549b4d56c970acdcfcd6cb62ce2fd28810871 filtered
+2026-02-04 17:44:33,280 [INFO] pydriller.repository: Commit #ed97d9dc0c23651eaef1181ac530a6992f5059c2 in 2025-12-17 21:41:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:33,938 [INFO] pydriller.repository: Commit #84668c2acc3bd3443556d5ba98af674505e1d84b in 2025-12-17 20:47:16+00:00 from Sebastián Ramírez
+2026-02-04 17:44:33,940 [INFO] pydriller.repository: Commit #84668c2acc3bd3443556d5ba98af674505e1d84b filtered
+2026-02-04 17:44:33,940 [INFO] pydriller.repository: Commit #1c4fc96c917a1097149b6e1ff8e36a62f8d994b1 in 2025-12-17 21:25:59+00:00 from Sebastián Ramírez
+2026-02-04 17:44:34,336 [INFO] pydriller.repository: Commit #241ca9a533590f16fe2e3ecebd79054d4925c521 in 2025-12-17 22:35:20+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,340 [INFO] pydriller.repository: Commit #241ca9a533590f16fe2e3ecebd79054d4925c521 filtered
+2026-02-04 17:44:34,340 [INFO] pydriller.repository: Commit #c75f17d483bfc6f79cc94d1d6acfc6b080005eff in 2025-12-17 22:37:19+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,353 [INFO] pydriller.repository: Commit #caee1d3123113808f6f3fbfb78a5ff809e9e085b in 2025-12-18 14:24:09+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,363 [INFO] pydriller.repository: Commit #09ab90ed3598fbb2fa255229191b90b74d67505f in 2025-12-19 12:44:55+00:00 from Sebastián Ramírez
+2026-02-04 17:44:34,364 [INFO] pydriller.repository: Commit #09ab90ed3598fbb2fa255229191b90b74d67505f filtered
+2026-02-04 17:44:34,364 [INFO] pydriller.repository: Commit #75d4f9c09837901d60fe910cad40d0a42a99b586 in 2025-12-19 13:51:53+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,365 [INFO] pydriller.repository: Commit #75d4f9c09837901d60fe910cad40d0a42a99b586 filtered
+2026-02-04 17:44:34,365 [INFO] pydriller.repository: Commit #e2cd8a420110132bd08893d743fdb617f59fd15b in 2025-12-20 16:55:38+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,668 [INFO] pydriller.repository: Commit #1cb4e25651d7cb6690d658ff60289a5fb9d65167 in 2025-12-20 17:08:57+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,670 [INFO] pydriller.repository: Commit #1cb4e25651d7cb6690d658ff60289a5fb9d65167 filtered
+2026-02-04 17:44:34,670 [INFO] pydriller.repository: Commit #10252b193716e8b5c64d5b6760fc9aac9e3787d6 in 2025-12-20 17:11:50+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,683 [INFO] pydriller.repository: Commit #6b591ddd7e16727c57be1dad153b49ad9741a863 in 2025-12-20 17:15:42+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,687 [INFO] pydriller.repository: Commit #6b591ddd7e16727c57be1dad153b49ad9741a863 filtered
+2026-02-04 17:44:34,687 [INFO] pydriller.repository: Commit #026b43e5d3008c86cbf6f1a76ba471276418413c in 2025-12-20 18:30:52+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,688 [INFO] pydriller.repository: Commit #026b43e5d3008c86cbf6f1a76ba471276418413c filtered
+2026-02-04 17:44:34,688 [INFO] pydriller.repository: Commit #52892592753333c89076616824e3fe23181d65b6 in 2025-12-20 18:32:05+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,689 [INFO] pydriller.repository: Commit #52892592753333c89076616824e3fe23181d65b6 filtered
+2026-02-04 17:44:34,689 [INFO] pydriller.repository: Commit #1d93d531bc950ae880679e2e365fb6d7e028d106 in 2025-12-21 08:06:22+00:00 from Sebastián Ramírez
+2026-02-04 17:44:34,696 [INFO] pydriller.repository: Commit #6e42bcd8ce2ade33d94f478310dad20ee84f8f0f in 2025-12-21 17:44:10+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,781 [INFO] pydriller.repository: Commit #c4a1ab503635918938e3741d1fb6f2fff73dc1d3 in 2025-12-21 17:45:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,794 [INFO] pydriller.repository: Commit #b9b2793bda6898295593302b1213b4a61b91dd31 in 2025-12-21 17:40:17+00:00 from Sebastián Ramírez
+2026-02-04 17:44:34,802 [INFO] pydriller.repository: Commit #6539b80d9f798af4143d772b7962218861e4d1ae in 2025-12-21 18:51:45+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,804 [INFO] pydriller.repository: Commit #6539b80d9f798af4143d772b7962218861e4d1ae filtered
+2026-02-04 17:44:34,804 [INFO] pydriller.repository: Commit #a329baaa5495c51aafe2f2214f15b5992e17c4a3 in 2025-12-23 11:17:16+00:00 from Sebastián Ramírez
+2026-02-04 17:44:34,805 [INFO] pydriller.repository: Commit #a329baaa5495c51aafe2f2214f15b5992e17c4a3 filtered
+2026-02-04 17:44:34,805 [INFO] pydriller.repository: Commit #c264467efec71548d4feeecbfb29da78cceb1be5 in 2025-12-25 11:01:37+00:00 from Sebastián Ramírez
+2026-02-04 17:44:34,807 [INFO] pydriller.repository: Commit #c264467efec71548d4feeecbfb29da78cceb1be5 filtered
+2026-02-04 17:44:34,807 [INFO] pydriller.repository: Commit #d98f4eb56eae3155034fe631d9639d95171fb9ab in 2025-12-26 11:36:58+00:00 from Sebastián Ramírez
+2026-02-04 17:44:34,808 [INFO] pydriller.repository: Commit #d98f4eb56eae3155034fe631d9639d95171fb9ab filtered
+2026-02-04 17:44:34,808 [INFO] pydriller.repository: Commit #535b5daa317a9d1d1f9a1058e57650a7beefa861 in 2025-12-26 12:45:20+00:00 from Sebastián Ramírez
+2026-02-04 17:44:34,887 [INFO] pydriller.repository: Commit #cd90c78391f86f3fd06d5b327bffad9666b05b44 in 2025-12-26 14:02:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:34,901 [INFO] pydriller.repository: Commit #34e884156f38dff4094a7764ff895c4d4b872060 in 2025-12-26 20:40:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:34,908 [INFO] pydriller.repository: Commit #e3006305518a56ea35f62a31748ad26fe4356fcc in 2025-12-27 13:54:56+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,025 [INFO] pydriller.repository: Commit #8322a4445a3b25acd9b26b61192571b2d92f9bcd in 2025-12-27 16:19:50+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,039 [INFO] pydriller.repository: Commit #44c849c4fc3636f54eae74ab4e586c8ca9f3fb59 in 2025-12-27 19:19:10+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,308 [INFO] pydriller.repository: Commit #1b42639296b47f1344e24c1789f649caabbee67c in 2025-12-27 19:31:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,328 [INFO] pydriller.repository: Commit #4d4fb28f9f7331d758a0da908804348b5a0ba719 in 2025-12-27 18:48:45+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,329 [INFO] pydriller.repository: Commit #4d4fb28f9f7331d758a0da908804348b5a0ba719 filtered
+2026-02-04 17:44:35,329 [INFO] pydriller.repository: Commit #52842fb8d371ad1517dbac48950d55e9cfa5f64f in 2025-12-27 19:49:08+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,330 [INFO] pydriller.repository: Commit #52842fb8d371ad1517dbac48950d55e9cfa5f64f filtered
+2026-02-04 17:44:35,330 [INFO] pydriller.repository: Commit #dbe83f3919c6de3438b572b8395e8bed9f0060d6 in 2025-12-27 19:49:46+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,331 [INFO] pydriller.repository: Commit #dbe83f3919c6de3438b572b8395e8bed9f0060d6 filtered
+2026-02-04 17:44:35,331 [INFO] pydriller.repository: Commit #3b1b4f034bebddb873d4bd8c1bb5f52aaae17240 in 2025-12-27 19:05:53+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,338 [INFO] pydriller.repository: Commit #edf799577539de24b5ff52381dcc4830803fffbb in 2025-12-29 13:38:11+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,339 [INFO] pydriller.repository: Commit #edf799577539de24b5ff52381dcc4830803fffbb filtered
+2026-02-04 17:44:35,339 [INFO] pydriller.repository: Commit #d9b7b65b8139eca2a3a2b61c9a024ffd970d5c3c in 2025-12-29 18:54:20+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,355 [INFO] pydriller.repository: Commit #258deb925d9d65f2d75392a2b941d6b072e305b4 in 2026-01-02 07:40:15+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,357 [INFO] pydriller.repository: Commit #258deb925d9d65f2d75392a2b941d6b072e305b4 filtered
+2026-02-04 17:44:35,357 [INFO] pydriller.repository: Commit #31c7ffcdfebe32ca6b2feb7b33260aff3880c268 in 2026-01-02 07:46:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,359 [INFO] pydriller.repository: Commit #31c7ffcdfebe32ca6b2feb7b33260aff3880c268 filtered
+2026-02-04 17:44:35,359 [INFO] pydriller.repository: Commit #052d6e86c21dc83a7ad458a2b620145b91a1b4b8 in 2026-01-02 07:46:57+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,360 [INFO] pydriller.repository: Commit #052d6e86c21dc83a7ad458a2b620145b91a1b4b8 filtered
+2026-02-04 17:44:35,360 [INFO] pydriller.repository: Commit #c75ae058e448063c2ace68c5c8ad0af99bee3e52 in 2026-01-10 22:17:46+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,362 [INFO] pydriller.repository: Commit #c75ae058e448063c2ace68c5c8ad0af99bee3e52 filtered
+2026-02-04 17:44:35,362 [INFO] pydriller.repository: Commit #7eac6e31695bd02d3607aa4416df50a02bc5445a in 2026-01-10 23:43:44+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,394 [INFO] pydriller.repository: Commit #cefd50702a5269351fadbf8110628356bd505449 in 2026-01-10 23:06:37+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,401 [INFO] pydriller.repository: Commit #a2912ffa26ea49db08d9a02a4888ebe60b44e702 in 2026-01-11 00:41:20+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,405 [INFO] pydriller.repository: Commit #a2912ffa26ea49db08d9a02a4888ebe60b44e702 filtered
+2026-02-04 17:44:35,405 [INFO] pydriller.repository: Commit #49653aa295eedd1f0deeae6d61f4324c70d74e32 in 2026-01-11 00:03:50+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,413 [INFO] pydriller.repository: Commit #6f977366a4154b762f257460b028f44e9686e5a6 in 2026-01-11 01:15:06+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,460 [INFO] pydriller.repository: Commit #cf8dc98aadc07d28c8f3dc0497324128e782c358 in 2026-01-11 00:15:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,538 [INFO] pydriller.repository: Commit #5ec2615b1ac7b6970b8d548a8556cd6b2026c30f in 2026-01-11 01:21:07+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,540 [INFO] pydriller.repository: Commit #5ec2615b1ac7b6970b8d548a8556cd6b2026c30f filtered
+2026-02-04 17:44:35,540 [INFO] pydriller.repository: Commit #1054fbd2563c91ac7798ae25c486c426df9d7909 in 2026-01-11 18:18:38+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,548 [INFO] pydriller.repository: Commit #249a776b70dfc173d4c9b91a3b0c8d9319d0ee14 in 2026-01-11 19:19:05+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,549 [INFO] pydriller.repository: Commit #249a776b70dfc173d4c9b91a3b0c8d9319d0ee14 filtered
+2026-02-04 17:44:35,549 [INFO] pydriller.repository: Commit #7b864acf370f3587cc29eb58f1f897c5c21d139d in 2026-01-11 21:19:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,551 [INFO] pydriller.repository: Commit #7b864acf370f3587cc29eb58f1f897c5c21d139d filtered
+2026-02-04 17:44:35,551 [INFO] pydriller.repository: Commit #1be80f48851845d9e0a6ce8ee6a8b871cd9ff5ce in 2026-01-11 23:22:58+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,552 [INFO] pydriller.repository: Commit #1be80f48851845d9e0a6ce8ee6a8b871cd9ff5ce filtered
+2026-02-04 17:44:35,553 [INFO] pydriller.repository: Commit #f317ede223131a2822723602fb3f576f1ca0f5bf in 2026-01-16 12:54:01+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,556 [INFO] pydriller.repository: Commit #f317ede223131a2822723602fb3f576f1ca0f5bf filtered
+2026-02-04 17:44:35,556 [INFO] pydriller.repository: Commit #fb15bba819a71df10fee28891c6c7c29fdf48d56 in 2026-01-16 12:57:08+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,558 [INFO] pydriller.repository: Commit #fb15bba819a71df10fee28891c6c7c29fdf48d56 filtered
+2026-02-04 17:44:35,558 [INFO] pydriller.repository: Commit #536a5bafe74a77f207b57cf6fb0cf3059121fffb in 2026-01-19 21:40:17+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,559 [INFO] pydriller.repository: Commit #536a5bafe74a77f207b57cf6fb0cf3059121fffb filtered
+2026-02-04 17:44:35,559 [INFO] pydriller.repository: Commit #463a3a24d7aee142bede2bcdd0ef542646b1fe3f in 2026-01-19 20:55:32+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,560 [INFO] pydriller.repository: Commit #463a3a24d7aee142bede2bcdd0ef542646b1fe3f filtered
+2026-02-04 17:44:35,561 [INFO] pydriller.repository: Commit #2d459e4845e8de9e080039d8f3ab2f1fd2e774a9 in 2026-01-20 21:40:17+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,566 [INFO] pydriller.repository: Commit #2d459e4845e8de9e080039d8f3ab2f1fd2e774a9 filtered
+2026-02-04 17:44:35,566 [INFO] pydriller.repository: Commit #2eb978b87a2227801cc9abaeddd5e27d941af868 in 2026-01-21 00:03:07+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,571 [INFO] pydriller.repository: Commit #2eb978b87a2227801cc9abaeddd5e27d941af868 filtered
+2026-02-04 17:44:35,571 [INFO] pydriller.repository: Commit #509afeb475e602bd11f2ffa165ccd0ed3d10a19f in 2026-01-22 10:27:31+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,573 [INFO] pydriller.repository: Commit #509afeb475e602bd11f2ffa165ccd0ed3d10a19f filtered
+2026-02-04 17:44:35,573 [INFO] pydriller.repository: Commit #c9629e0eb245836b7ecd7b12c1eb7ef12dbdb1ee in 2026-01-31 18:32:27+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,579 [INFO] pydriller.repository: Commit #c9629e0eb245836b7ecd7b12c1eb7ef12dbdb1ee filtered
+2026-02-04 17:44:35,579 [INFO] pydriller.repository: Commit #3626d764c13cb12414b2b1a254af075f2799c716 in 2026-02-02 11:24:23+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,581 [INFO] pydriller.repository: Commit #3626d764c13cb12414b2b1a254af075f2799c716 filtered
+2026-02-04 17:44:35,581 [INFO] pydriller.repository: Commit #20ff394d7540dd560df1e9252584e3965d59b0c9 in 2026-02-02 11:26:58+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,583 [INFO] pydriller.repository: Commit #20ff394d7540dd560df1e9252584e3965d59b0c9 filtered
+2026-02-04 17:44:35,583 [INFO] pydriller.repository: Commit #7621a3aa4b29713aa2ce0ab9605a008a5a8b9335 in 2026-02-04 11:46:32+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,584 [INFO] pydriller.repository: Commit #7621a3aa4b29713aa2ce0ab9605a008a5a8b9335 filtered
+2026-02-04 17:44:35,584 [INFO] pydriller.repository: Commit #261736ab4c3d7a3ec642071ba6f9408ebf9618d1 in 2026-02-04 11:49:00+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,589 [INFO] pydriller.repository: Commit #440bfd70a948c187dadb2e89ee7e94933e867a00 in 2026-02-04 14:20:36+00:00 from Sebastián Ramírez
+2026-02-04 17:44:35,594 [INFO] pydriller.repository: Commit #ee0c12521fa0817cc19a4cbbd949c1e9d5fec1aa in 2026-02-04 15:35:17+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,595 [INFO] pydriller.repository: Commit #ee0c12521fa0817cc19a4cbbd949c1e9d5fec1aa filtered
+2026-02-04 17:44:35,595 [INFO] pydriller.repository: Commit #aea61373ae0c97b32611fc2dc993e84a9729edf8 in 2026-02-04 15:49:18+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,602 [INFO] pydriller.repository: Commit #b0e99d66e80426f3f13dd4bcbcb78d2a39ec10b5 in 2026-02-04 17:44:21+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,679 [INFO] pydriller.repository: Commit #84a5bcf82d265eb72fc2845f6625785a1524f023 in 2026-02-04 18:00:40+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,686 [INFO] pydriller.repository: Commit #1de0de56c8e9f90d1e8f5fe82323f343d0c2a936 in 2026-02-04 18:33:29+01:00 from Sebastián Ramírez
+2026-02-04 17:44:35,697 [INFO] pydriller.repository: Commit #0e68d36cd5796384e833e97b57e98d17adc3c5ff in 2026-02-04 17:35:21+00:00 from Sebastián Ramírez
+Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+2026-02-04 17:44:36,016 [INFO] github.Requester: Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+2026-02-04 17:44:37,343 [INFO] github.Requester: Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+2026-02-04 17:44:38,041 [INFO] github.Requester: Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+2026-02-04 17:44:39,328 [INFO] github.Requester: Following Github server redirection from /repos/tiangolo/fastapi to /repositories/160919119
+2026-02-04 17:44:40,001 [INFO] app.services.github_service: Found personal GitHub account: tiangolo from https://github.com/tiangolo/fastapi
+2026-02-04 17:44:40,001 [INFO] app.services.code_analyzer: PyDriller analysis: https://github.com/tiangolo/fastapi (author=tiangolo, years=1, diff=True)
+2026-02-04 17:44:40,003 [INFO] pydriller.repository: Cloning https://github.com/tiangolo/fastapi in temporary folder /tmp/tmpi47ksi58/fastapi
+2026-02-04 17:44:44,616 [INFO] pydriller.repository: Analyzing git repository in /tmp/tmpi47ksi58/fastapi
+2026-02-04 17:44:44,626 [INFO] pydriller.repository: Commit #50b307c9f68ad9a966e86d7f62c82d476abd0cc5 in 2025-02-07 22:10:25+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,629 [INFO] pydriller.repository: Commit #50b307c9f68ad9a966e86d7f62c82d476abd0cc5 filtered
+2026-02-04 17:44:44,629 [INFO] pydriller.repository: Commit #495ff5baa9694c773015abfaaf233a5b74ceaec5 in 2025-02-07 22:10:37+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,631 [INFO] pydriller.repository: Commit #495ff5baa9694c773015abfaaf233a5b74ceaec5 filtered
+2026-02-04 17:44:44,631 [INFO] pydriller.repository: Commit #b6b031b456d825fd8378d280d5d7d7c167784bb6 in 2025-02-07 22:10:51+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,633 [INFO] pydriller.repository: Commit #b6b031b456d825fd8378d280d5d7d7c167784bb6 filtered
+2026-02-04 17:44:44,633 [INFO] pydriller.repository: Commit #e814707cd1daebcdd765e80a35316f8316496b30 in 2025-02-07 22:15:49+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,635 [INFO] pydriller.repository: Commit #e814707cd1daebcdd765e80a35316f8316496b30 filtered
+2026-02-04 17:44:44,635 [INFO] pydriller.repository: Commit #9ec452a154e15e4af0f57f51a4fe1fee58879c4c in 2025-02-15 17:23:59+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,654 [INFO] pydriller.repository: Commit #08b817a84294a7e606f8437d11ee75fd3ef207a4 in 2025-02-15 17:28:09+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,675 [INFO] pydriller.repository: Commit #c868581ce7a108bfbef7c3fb4b42fa663dfdea97 in 2025-02-18 15:18:14+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,676 [INFO] pydriller.repository: Commit #c868581ce7a108bfbef7c3fb4b42fa663dfdea97 filtered
+2026-02-04 17:44:44,676 [INFO] pydriller.repository: Commit #70137c0f7d9534b30ef4ec39f3cea471ade9e567 in 2025-02-18 19:44:00+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,677 [INFO] pydriller.repository: Commit #70137c0f7d9534b30ef4ec39f3cea471ade9e567 filtered
+2026-02-04 17:44:44,677 [INFO] pydriller.repository: Commit #987d2f9a92bcb8f453a41d7e3230e00cb9a8d8db in 2025-02-20 18:49:13+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,680 [INFO] pydriller.repository: Commit #987d2f9a92bcb8f453a41d7e3230e00cb9a8d8db filtered
+2026-02-04 17:44:44,680 [INFO] pydriller.repository: Commit #7710a3480003518f48dc86cf29e8f19b5a4e5e46 in 2025-02-27 15:39:48+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,681 [INFO] pydriller.repository: Commit #7710a3480003518f48dc86cf29e8f19b5a4e5e46 filtered
+2026-02-04 17:44:44,681 [INFO] pydriller.repository: Commit #d90030c1e242d1e954a097c253734122eec926e3 in 2025-02-27 17:40:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,694 [INFO] pydriller.repository: Commit #433837d9cabd4e87367eda9ab6c81cbea2bdf7dc in 2025-02-28 17:43:04+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,706 [INFO] pydriller.repository: Commit #a2644728f6cdfe48c686803446ca92a5aa386061 in 2025-02-28 17:46:04+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,710 [INFO] pydriller.repository: Commit #a2644728f6cdfe48c686803446ca92a5aa386061 filtered
+2026-02-04 17:44:44,710 [INFO] pydriller.repository: Commit #89e0c105474075f5e6b50192da82d7189e5d6617 in 2025-03-01 18:19:17+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,711 [INFO] pydriller.repository: Commit #89e0c105474075f5e6b50192da82d7189e5d6617 filtered
+2026-02-04 17:44:44,712 [INFO] pydriller.repository: Commit #186544760a803b39895ad9a563d56646a334588c in 2025-03-01 18:19:24+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,714 [INFO] pydriller.repository: Commit #186544760a803b39895ad9a563d56646a334588c filtered
+2026-02-04 17:44:44,714 [INFO] pydriller.repository: Commit #ea57612d69290be8298369d9f1542d6afeea459e in 2025-03-01 18:19:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,715 [INFO] pydriller.repository: Commit #ea57612d69290be8298369d9f1542d6afeea459e filtered
+2026-02-04 17:44:44,715 [INFO] pydriller.repository: Commit #74fe89bf35034aae531ca0a527c37d2f545161f5 in 2025-03-01 22:02:35+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,733 [INFO] pydriller.repository: Commit #a01ed2f6a71b4f5eb38cd25f4ad435b749f120df in 2025-03-01 23:13:11+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,737 [INFO] pydriller.repository: Commit #a01ed2f6a71b4f5eb38cd25f4ad435b749f120df filtered
+2026-02-04 17:44:44,737 [INFO] pydriller.repository: Commit #3824664620433f0055125adbf2fc212ced2bdf94 in 2025-03-01 23:14:01+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,748 [INFO] pydriller.repository: Commit #316566e40efb5b7dabc549ff0060a016e68719ce in 2025-03-03 15:33:33+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,749 [INFO] pydriller.repository: Commit #316566e40efb5b7dabc549ff0060a016e68719ce filtered
+2026-02-04 17:44:44,749 [INFO] pydriller.repository: Commit #d3cfe72cd7f5148ac89d5f411391bb565f25662a in 2025-03-19 12:33:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,751 [INFO] pydriller.repository: Commit #d3cfe72cd7f5148ac89d5f411391bb565f25662a filtered
+2026-02-04 17:44:44,751 [INFO] pydriller.repository: Commit #2537d9d1c2517f9e552ca2b076b3b63b1acbc55d in 2025-03-23 21:48:54+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,780 [INFO] pydriller.repository: Commit #628c34e0cae200564d191c95d7edea78c88c4b5e in 2025-03-23 23:54:13+01:00 from Sebastián Ramírez
+2026-02-04 17:44:44,792 [INFO] pydriller.repository: Commit #286f5a0c42e1817f0d64564afb4e8051ce85140c in 2025-04-02 21:47:36+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,795 [INFO] pydriller.repository: Commit #286f5a0c42e1817f0d64564afb4e8051ce85140c filtered
+2026-02-04 17:44:44,795 [INFO] pydriller.repository: Commit #1abef20dbddde878ef6844f219ab6e1d84444248 in 2025-04-02 21:47:46+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,796 [INFO] pydriller.repository: Commit #1abef20dbddde878ef6844f219ab6e1d84444248 filtered
+2026-02-04 17:44:44,796 [INFO] pydriller.repository: Commit #f0576e8ffdc6b6b1b6fdd82b7802797d660deb6f in 2025-04-02 21:47:54+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,798 [INFO] pydriller.repository: Commit #f0576e8ffdc6b6b1b6fdd82b7802797d660deb6f filtered
+2026-02-04 17:44:44,798 [INFO] pydriller.repository: Commit #7b7ec90308d21fd61fd55f0588f2e7a714822052 in 2025-04-03 21:48:09+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,799 [INFO] pydriller.repository: Commit #7b7ec90308d21fd61fd55f0588f2e7a714822052 filtered
+2026-02-04 17:44:44,799 [INFO] pydriller.repository: Commit #9b5b2dd7a241bbfaaf85e16ae35a48b3257c4ce3 in 2025-05-01 11:32:33+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,801 [INFO] pydriller.repository: Commit #9b5b2dd7a241bbfaaf85e16ae35a48b3257c4ce3 filtered
+2026-02-04 17:44:44,801 [INFO] pydriller.repository: Commit #a748e7336b4a1799acccf36d8fc5d738649101c7 in 2025-05-01 11:32:46+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,803 [INFO] pydriller.repository: Commit #a748e7336b4a1799acccf36d8fc5d738649101c7 filtered
+2026-02-04 17:44:44,803 [INFO] pydriller.repository: Commit #418c3c8d2b00dbee8eaa63bb9265b5a660a85121 in 2025-05-01 12:58:00+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,805 [INFO] pydriller.repository: Commit #418c3c8d2b00dbee8eaa63bb9265b5a660a85121 filtered
+2026-02-04 17:44:44,805 [INFO] pydriller.repository: Commit #3da3f3ab826d3dc32f655a1e8c76cbc14cf59a8b in 2025-05-01 14:58:12+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,806 [INFO] pydriller.repository: Commit #3da3f3ab826d3dc32f655a1e8c76cbc14cf59a8b filtered
+2026-02-04 17:44:44,806 [INFO] pydriller.repository: Commit #f512b17992c34ecab6267ea49336771e2be34f66 in 2025-05-01 14:59:46+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,808 [INFO] pydriller.repository: Commit #f512b17992c34ecab6267ea49336771e2be34f66 filtered
+2026-02-04 17:44:44,808 [INFO] pydriller.repository: Commit #16234a3f4fcc323d4aad92c3a4fd0201770b077b in 2025-05-01 13:13:51+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,809 [INFO] pydriller.repository: Commit #16234a3f4fcc323d4aad92c3a4fd0201770b077b filtered
+2026-02-04 17:44:44,809 [INFO] pydriller.repository: Commit #3620a2b213a16eefe6b6bc9cfc90b33bfedacd92 in 2025-05-01 14:42:39+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,811 [INFO] pydriller.repository: Commit #3620a2b213a16eefe6b6bc9cfc90b33bfedacd92 filtered
+2026-02-04 17:44:44,811 [INFO] pydriller.repository: Commit #f61fe35178d0ea00067da0cbdab058d3c8b87a37 in 2025-05-09 13:48:50+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,812 [INFO] pydriller.repository: Commit #f61fe35178d0ea00067da0cbdab058d3c8b87a37 filtered
+2026-02-04 17:44:44,812 [INFO] pydriller.repository: Commit #a9a2782f951eaaeb42123d54b14f4db05d1c332b in 2025-05-09 18:36:42+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,814 [INFO] pydriller.repository: Commit #a9a2782f951eaaeb42123d54b14f4db05d1c332b filtered
+2026-02-04 17:44:44,814 [INFO] pydriller.repository: Commit #214e0740c8cea64858285b02defac2d8ae071f7b in 2025-05-11 15:37:26+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,859 [INFO] pydriller.repository: Commit #214e0740c8cea64858285b02defac2d8ae071f7b filtered
+2026-02-04 17:44:44,859 [INFO] pydriller.repository: Commit #7382ceda579e73776df0ea71cb76adefdcb21d4b in 2025-05-21 17:17:03+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,861 [INFO] pydriller.repository: Commit #7382ceda579e73776df0ea71cb76adefdcb21d4b filtered
+2026-02-04 17:44:44,861 [INFO] pydriller.repository: Commit #a01a665b5723aef8613d269ccb7d8d77b6ecd678 in 2025-05-22 09:18:52+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,862 [INFO] pydriller.repository: Commit #a01a665b5723aef8613d269ccb7d8d77b6ecd678 filtered
+2026-02-04 17:44:44,862 [INFO] pydriller.repository: Commit #29ed7d052b58f32444ff14ae299de365262fcc56 in 2025-05-22 09:45:32+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,864 [INFO] pydriller.repository: Commit #29ed7d052b58f32444ff14ae299de365262fcc56 filtered
+2026-02-04 17:44:44,864 [INFO] pydriller.repository: Commit #751c7dc1799ec4a3979668b0d1899f080ca916f1 in 2025-06-05 08:48:55+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,867 [INFO] pydriller.repository: Commit #751c7dc1799ec4a3979668b0d1899f080ca916f1 filtered
+2026-02-04 17:44:44,867 [INFO] pydriller.repository: Commit #c430ef1ac13f190a0d7669e394366ddd5eb75a47 in 2025-06-05 08:58:14+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,868 [INFO] pydriller.repository: Commit #c430ef1ac13f190a0d7669e394366ddd5eb75a47 filtered
+2026-02-04 17:44:44,868 [INFO] pydriller.repository: Commit #e71d87d8ef00c6ff5e77366a29b10af4e59144ce in 2025-06-05 09:29:13+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,870 [INFO] pydriller.repository: Commit #e71d87d8ef00c6ff5e77366a29b10af4e59144ce filtered
+2026-02-04 17:44:44,870 [INFO] pydriller.repository: Commit #38c282039a1c7fe39a41bc41400ff4c3bac9a148 in 2025-06-05 13:51:48+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,872 [INFO] pydriller.repository: Commit #38c282039a1c7fe39a41bc41400ff4c3bac9a148 filtered
+2026-02-04 17:44:44,872 [INFO] pydriller.repository: Commit #2116d8aa564c9a70100225781f76ff2a7687bcd8 in 2025-06-05 12:27:20+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,873 [INFO] pydriller.repository: Commit #2116d8aa564c9a70100225781f76ff2a7687bcd8 filtered
+2026-02-04 17:44:44,873 [INFO] pydriller.repository: Commit #44d5abffc164b787832e2e3a83990e0a027a7eea in 2025-06-10 18:52:33+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,875 [INFO] pydriller.repository: Commit #44d5abffc164b787832e2e3a83990e0a027a7eea filtered
+2026-02-04 17:44:44,875 [INFO] pydriller.repository: Commit #4734df1db89607c9579d2bb9795b02214e1e1d47 in 2025-06-17 13:41:24+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,888 [INFO] pydriller.repository: Commit #8fa19a6faa3309a150f6e6fafd2c3a5043c09718 in 2025-06-26 17:24:56+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,891 [INFO] pydriller.repository: Commit #8fa19a6faa3309a150f6e6fafd2c3a5043c09718 filtered
+2026-02-04 17:44:44,892 [INFO] pydriller.repository: Commit #ebdeda2de6e17036e3048940b7a9e725ef6a95b7 in 2025-06-26 17:26:32+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,903 [INFO] pydriller.repository: Commit #c6037fc96fa11d411fd57499f8a42306edee5325 in 2025-07-01 07:14:26+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,905 [INFO] pydriller.repository: Commit #c6037fc96fa11d411fd57499f8a42306edee5325 filtered
+2026-02-04 17:44:44,905 [INFO] pydriller.repository: Commit #f4bacfe1b5418db6519a47515d95b8079256c514 in 2025-07-01 15:20:03+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,907 [INFO] pydriller.repository: Commit #f4bacfe1b5418db6519a47515d95b8079256c514 filtered
+2026-02-04 17:44:44,907 [INFO] pydriller.repository: Commit #be91d0c1bde305c441d9aeda5c00f21094656de7 in 2025-07-01 15:20:19+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,908 [INFO] pydriller.repository: Commit #be91d0c1bde305c441d9aeda5c00f21094656de7 filtered
+2026-02-04 17:44:44,908 [INFO] pydriller.repository: Commit #b083ccd250e8fd22c3f9f8b3fd34765c6d625917 in 2025-07-07 17:00:35+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,911 [INFO] pydriller.repository: Commit #b083ccd250e8fd22c3f9f8b3fd34765c6d625917 filtered
+2026-02-04 17:44:44,911 [INFO] pydriller.repository: Commit #18eb7a708096ab7a19f31a59918bc010aba0ddba in 2025-07-07 17:05:38+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,914 [INFO] pydriller.repository: Commit #18eb7a708096ab7a19f31a59918bc010aba0ddba filtered
+2026-02-04 17:44:44,914 [INFO] pydriller.repository: Commit #bd8f358fd93416835b06486566b9d9ab991577b6 in 2025-07-07 17:07:03+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,925 [INFO] pydriller.repository: Commit #cad6880fd97d6f25d3f05025c88230285386e7f9 in 2025-07-11 18:15:27+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,947 [INFO] pydriller.repository: Commit #313723494be79d4b24ccaa60e4f6d1f96c150fed in 2025-07-11 18:17:57+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,958 [INFO] pydriller.repository: Commit #ce26b8e1caa3d375dba527612717c3279a290b3d in 2025-07-12 19:09:49+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,965 [INFO] pydriller.repository: Commit #6726bf8559c5a0744f64e4534e475a42a8c0b6a4 in 2025-07-12 19:32:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,966 [INFO] pydriller.repository: Commit #6726bf8559c5a0744f64e4534e475a42a8c0b6a4 filtered
+2026-02-04 17:44:44,966 [INFO] pydriller.repository: Commit #a5a4daa705fe4ee10d5c0eacdd3df84eb6973e8e in 2025-07-23 15:02:20+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,969 [INFO] pydriller.repository: Commit #a5a4daa705fe4ee10d5c0eacdd3df84eb6973e8e filtered
+2026-02-04 17:44:44,969 [INFO] pydriller.repository: Commit #ae02be90b6857cac1a00ea47c154457effcdcb5d in 2025-07-26 20:57:50+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,975 [INFO] pydriller.repository: Commit #adc328e258d00c5717070a103626cb48a03abecf in 2025-07-26 23:19:05+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,980 [INFO] pydriller.repository: Commit #273b06adab5fd527492ff9ed3f98cfa653d10002 in 2025-07-26 21:27:35+00:00 from Sebastián Ramírez
+2026-02-04 17:44:44,985 [INFO] pydriller.repository: Commit #6516a6c4a60c91de881cc73c40a3c609001dd29c in 2025-07-27 21:12:19+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,992 [INFO] pydriller.repository: Commit #9aab3d9e2239c51628f580eff442b630bd165d31 in 2025-07-28 01:51:53+02:00 from Sebastián Ramírez
+2026-02-04 17:44:44,999 [INFO] pydriller.repository: Commit #e326cec10ebab167d8ae77cf211b29bfa19e7195 in 2025-07-31 17:47:31+00:00 from Sebastián Ramírez
+2026-02-04 17:44:45,001 [INFO] pydriller.repository: Commit #e326cec10ebab167d8ae77cf211b29bfa19e7195 filtered
+2026-02-04 17:44:45,001 [INFO] pydriller.repository: Commit #8abfa0f106b1f3c40ed858c64cd8035c0b4ac4eb in 2025-07-31 18:20:49+00:00 from Sebastián Ramírez
+2026-02-04 17:44:45,003 [INFO] pydriller.repository: Commit #8abfa0f106b1f3c40ed858c64cd8035c0b4ac4eb filtered
+2026-02-04 17:44:45,003 [INFO] pydriller.repository: Commit #a9fbc4b8f508d938bbfe280ee4df6f028194b6f8 in 2025-08-01 08:16:58+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,005 [INFO] pydriller.repository: Commit #a9fbc4b8f508d938bbfe280ee4df6f028194b6f8 filtered
+2026-02-04 17:44:45,005 [INFO] pydriller.repository: Commit #3ad01a124707f05f743a85dfd6544dea79188b0e in 2025-08-01 08:19:53+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,007 [INFO] pydriller.repository: Commit #3ad01a124707f05f743a85dfd6544dea79188b0e filtered
+2026-02-04 17:44:45,007 [INFO] pydriller.repository: Commit #2e16e105c9a0085d4deb952e39a78d919a29c3a2 in 2025-08-01 15:19:22+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,008 [INFO] pydriller.repository: Commit #2e16e105c9a0085d4deb952e39a78d919a29c3a2 filtered
+2026-02-04 17:44:45,008 [INFO] pydriller.repository: Commit #f736e48ab3e46684bf379407e27a1bd7f300a865 in 2025-08-01 16:32:33+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,010 [INFO] pydriller.repository: Commit #f736e48ab3e46684bf379407e27a1bd7f300a865 filtered
+2026-02-04 17:44:45,010 [INFO] pydriller.repository: Commit #784f068abaa57aa25eac104e6d831ca12980f90e in 2025-08-31 11:11:15+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,015 [INFO] pydriller.repository: Commit #ee9ccac1e5f5faca45a56e0e0eea109dfb2988a4 in 2025-08-31 15:02:08+00:00 from Sebastián Ramírez
+2026-02-04 17:44:45,017 [INFO] pydriller.repository: Commit #ee9ccac1e5f5faca45a56e0e0eea109dfb2988a4 filtered
+2026-02-04 17:44:45,017 [INFO] pydriller.repository: Commit #1884d76f613d951e2243e50a3df4d9a479f00a9d in 2025-08-31 15:19:49+00:00 from Sebastián Ramírez
+2026-02-04 17:44:45,020 [INFO] pydriller.repository: Commit #1884d76f613d951e2243e50a3df4d9a479f00a9d filtered
+2026-02-04 17:44:45,020 [INFO] pydriller.repository: Commit #f5b77ff0fcd8e191d9be98d61292ecfaa6cb89a6 in 2025-08-31 21:34:08+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,027 [INFO] pydriller.repository: Commit #3d763c8d3855e11a27ce552c7f363e383ba0781a in 2025-09-05 10:57:16+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,029 [INFO] pydriller.repository: Commit #3d763c8d3855e11a27ce552c7f363e383ba0781a filtered
+2026-02-04 17:44:45,029 [INFO] pydriller.repository: Commit #7cf567010d808b3238ad812e437b0cd197e65f38 in 2025-09-05 10:57:41+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,030 [INFO] pydriller.repository: Commit #7cf567010d808b3238ad812e437b0cd197e65f38 filtered
+2026-02-04 17:44:45,030 [INFO] pydriller.repository: Commit #2ad28d436f4bc57e0b9b9580c6fddb2ecca8aa0d in 2025-09-05 10:58:22+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,032 [INFO] pydriller.repository: Commit #2ad28d436f4bc57e0b9b9580c6fddb2ecca8aa0d filtered
+2026-02-04 17:44:45,032 [INFO] pydriller.repository: Commit #45601585025083af04c3499c6ab8a5267c3a9203 in 2025-09-05 10:58:29+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,034 [INFO] pydriller.repository: Commit #45601585025083af04c3499c6ab8a5267c3a9203 filtered
+2026-02-04 17:44:45,034 [INFO] pydriller.repository: Commit #a372edf7e8825068a780df643700e6cce7e035c5 in 2025-09-16 20:23:54+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,046 [INFO] pydriller.repository: Commit #382d083e26a28e95c731e85345c85c6dc99b08b4 in 2025-09-20 21:34:05+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,059 [INFO] pydriller.repository: Commit #a84001000e59ff362e74f93b8d9a58a4309dac2d in 2025-09-20 21:35:43+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,063 [INFO] pydriller.repository: Commit #a84001000e59ff362e74f93b8d9a58a4309dac2d filtered
+2026-02-04 17:44:45,063 [INFO] pydriller.repository: Commit #784f06cb9b7cc63f6a0cb2bc9cf238473eef93e2 in 2025-09-20 22:15:41+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,076 [INFO] pydriller.repository: Commit #e329d78f866a12893699f786f1209a666e1688e3 in 2025-09-29 05:29:38+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,130 [INFO] pydriller.repository: Commit #1d5168a4a1293fbc44799fbab615a120c6fdb85e in 2025-09-29 05:33:39+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,134 [INFO] pydriller.repository: Commit #1d5168a4a1293fbc44799fbab615a120c6fdb85e filtered
+2026-02-04 17:44:45,134 [INFO] pydriller.repository: Commit #333f1ba737be6507fc707278f6b69cf1f81efdc1 in 2025-09-29 05:34:21+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,146 [INFO] pydriller.repository: Commit #2f6fb122589fbdb9d581de9586c0ab3c4ab4b94f in 2025-09-30 07:56:53+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,152 [INFO] pydriller.repository: Commit #e7fc394e15d2d5ca2149d5cfe21c0fcbbd12e6d5 in 2025-09-30 08:25:57+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,162 [INFO] pydriller.repository: Commit #e7fc394e15d2d5ca2149d5cfe21c0fcbbd12e6d5 filtered
+2026-02-04 17:44:45,162 [INFO] pydriller.repository: Commit #9d920d616f3ce56e1c61606b8a84aaaace89ecd9 in 2025-10-01 18:42:31+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,164 [INFO] pydriller.repository: Commit #9d920d616f3ce56e1c61606b8a84aaaace89ecd9 filtered
+2026-02-04 17:44:45,164 [INFO] pydriller.repository: Commit #28f910a10bfd12d0c54162e0970bc4c22311c9fc in 2025-10-01 18:42:38+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,166 [INFO] pydriller.repository: Commit #28f910a10bfd12d0c54162e0970bc4c22311c9fc filtered
+2026-02-04 17:44:45,166 [INFO] pydriller.repository: Commit #975e7190e41a7301e5a4919f593b338fec3de9dd in 2025-10-01 18:43:11+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,167 [INFO] pydriller.repository: Commit #975e7190e41a7301e5a4919f593b338fec3de9dd filtered
+2026-02-04 17:44:45,167 [INFO] pydriller.repository: Commit #61596ebe5b270a619fb2a3e73ff55b71333f4760 in 2025-10-06 13:09:58+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,168 [INFO] pydriller.repository: Commit #61596ebe5b270a619fb2a3e73ff55b71333f4760 filtered
+2026-02-04 17:44:45,168 [INFO] pydriller.repository: Commit #485bfedf5d5d4a51c53b12010d685854174da92f in 2025-10-08 09:03:21+00:00 from Sebastián Ramírez
+2026-02-04 17:44:45,169 [INFO] pydriller.repository: Commit #485bfedf5d5d4a51c53b12010d685854174da92f filtered
+2026-02-04 17:44:45,170 [INFO] pydriller.repository: Commit #01be148429241adb7a9ba5eb8f6cd5e17230b646 in 2025-10-08 11:05:44+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,182 [INFO] pydriller.repository: Commit #942fce394bd66b841b9399cff815bb8a18cfd4c6 in 2025-10-08 16:49:59+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,195 [INFO] pydriller.repository: Commit #352dbefc634b21cff94663be1ab0a1aa5dbd6ed5 in 2025-10-10 12:34:39+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,208 [INFO] pydriller.repository: Commit #d34918abf00c93ac592c5d1d1c55650d8c1b92ec in 2025-10-11 18:45:54+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,351 [INFO] pydriller.repository: Commit #fc7a0686af29c7793b3cc999f1af47bf05f5fa74 in 2025-10-11 19:07:40+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,356 [INFO] pydriller.repository: Commit #fc7a0686af29c7793b3cc999f1af47bf05f5fa74 filtered
+2026-02-04 17:44:45,356 [INFO] pydriller.repository: Commit #2e721e1b02186467dc3a7a95dfe45d8e7bd7d0d9 in 2025-10-11 19:09:01+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,370 [INFO] pydriller.repository: Commit #7df594d284cabf837774dffc40e542cca9333ad2 in 2025-10-19 21:12:22+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,371 [INFO] pydriller.repository: Commit #7df594d284cabf837774dffc40e542cca9333ad2 filtered
+2026-02-04 17:44:45,371 [INFO] pydriller.repository: Commit #864b569cf8453654fc3bc2c64108c0f644e2918c in 2025-10-20 13:28:38+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,384 [INFO] pydriller.repository: Commit #d390f2e41fb508de416071d481937bc7be486589 in 2025-10-23 22:31:35+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,450 [INFO] pydriller.repository: Commit #1c6ee57bbfeebfa21a393b7939c85d9d4d29f0b0 in 2025-10-23 22:54:19+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,454 [INFO] pydriller.repository: Commit #1c6ee57bbfeebfa21a393b7939c85d9d4d29f0b0 filtered
+2026-02-04 17:44:45,454 [INFO] pydriller.repository: Commit #cd40c5b40ffd8ba0c6a6a6c96bbf34ec1cf9c525 in 2025-10-23 22:54:45+02:00 from Sebastián Ramírez
+2026-02-04 17:44:45,465 [INFO] pydriller.repository: Commit #78c94c3f565b9b992d1eecafaeb0991e2b177d7c in 2025-10-27 18:51:46+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,477 [INFO] pydriller.repository: Commit #6a657f360db5a666c75ba143e0d923ad05789b1d in 2025-10-29 14:09:30+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,492 [INFO] pydriller.repository: Commit #35aa12b9bd638eb9f7b7d0be2a8439831df61899 in 2025-10-29 14:43:11+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,495 [INFO] pydriller.repository: Commit #35aa12b9bd638eb9f7b7d0be2a8439831df61899 filtered
+2026-02-04 17:44:45,495 [INFO] pydriller.repository: Commit #22ccca21fc13b7ac138e277490ec4d05b4f5094a in 2025-10-29 14:44:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,506 [INFO] pydriller.repository: Commit #c144f9fbd356e7e378a6b42cff68cf4a4667111a in 2025-10-30 05:51:50+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,524 [INFO] pydriller.repository: Commit #bb88a0f94a9633b861f90f6752e397980a7cfea9 in 2025-10-30 05:58:49+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,534 [INFO] pydriller.repository: Commit #dcfb8b9dda7b8117141b89e84527b48f978e0b31 in 2025-10-30 20:35:04+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,546 [INFO] pydriller.repository: Commit #2cf04ee30db9df2db04a5b1e0d2c625dfbf1a211 in 2025-10-30 21:40:08+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,557 [INFO] pydriller.repository: Commit #fad35ef43fdde74845b416cd2dc795ff489e9719 in 2025-10-31 19:35:33+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,568 [INFO] pydriller.repository: Commit #dbb7020a4d98ec994594096f897edaa70c01c67b in 2025-11-03 10:23:52+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,570 [INFO] pydriller.repository: Commit #dbb7020a4d98ec994594096f897edaa70c01c67b filtered
+2026-02-04 17:44:45,570 [INFO] pydriller.repository: Commit #f8df43d734c6982c4ad5c6094b05179d0326583b in 2025-11-03 10:24:09+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,571 [INFO] pydriller.repository: Commit #f8df43d734c6982c4ad5c6094b05179d0326583b filtered
+2026-02-04 17:44:45,571 [INFO] pydriller.repository: Commit #566e0d60b29f3fe302c0a8561d108621e496d009 in 2025-11-03 10:24:36+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,573 [INFO] pydriller.repository: Commit #566e0d60b29f3fe302c0a8561d108621e496d009 filtered
+2026-02-04 17:44:45,573 [INFO] pydriller.repository: Commit #ac438b99342c859ae0e10f7064021125bd247bf5 in 2025-11-03 11:12:49+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,636 [INFO] pydriller.repository: Commit #36901405559018bd97c1c70eb86748b8b9d67533 in 2025-11-03 11:19:56+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,640 [INFO] pydriller.repository: Commit #36901405559018bd97c1c70eb86748b8b9d67533 filtered
+2026-02-04 17:44:45,641 [INFO] pydriller.repository: Commit #4efae81a76b809998c12fc0f7e1c172f451cb304 in 2025-11-03 11:21:36+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,652 [INFO] pydriller.repository: Commit #289b4aa2faff3bbfa364abbb21fe2b23aebe6270 in 2025-11-03 14:19:58+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,653 [INFO] pydriller.repository: Commit #289b4aa2faff3bbfa364abbb21fe2b23aebe6270 filtered
+2026-02-04 17:44:45,653 [INFO] pydriller.repository: Commit #1c7e2540c22ba5e81250cc715d82db31e52a63d6 in 2025-11-08 22:47:00+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,665 [INFO] pydriller.repository: Commit #5d40dfbc9bc1df1c7801acc53857ec7a072b7697 in 2025-11-13 14:59:07+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,673 [INFO] pydriller.repository: Commit #02e108d1663149faac4156dd23595cbdf74287c2 in 2025-11-13 18:03:55+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,684 [INFO] pydriller.repository: Commit #994d6cc912ecb160e1495132bcd347f4511708bc in 2025-11-17 20:33:53+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,698 [INFO] pydriller.repository: Commit #85701631a0241c5f02b4940734a5428f66abe167 in 2025-11-19 17:50:18+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,715 [INFO] pydriller.repository: Commit #325fd16d32fd815633d6caf3d0d75aa7f30c51c9 in 2025-11-19 17:51:59+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,726 [INFO] pydriller.repository: Commit #be5a6311f5ad542f253f48ca95cd863026b67c05 in 2025-11-20 11:45:16+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,737 [INFO] pydriller.repository: Commit #ae951f698177b7fc00a61768376c78a92d8b3995 in 2025-11-23 10:27:40+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,738 [INFO] pydriller.repository: Commit #ae951f698177b7fc00a61768376c78a92d8b3995 filtered
+2026-02-04 17:44:45,738 [INFO] pydriller.repository: Commit #79bc4b9ca0d039921310e13f726f8a17c0469d8d in 2025-11-23 17:36:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,739 [INFO] pydriller.repository: Commit #79bc4b9ca0d039921310e13f726f8a17c0469d8d filtered
+2026-02-04 17:44:45,739 [INFO] pydriller.repository: Commit #4f3ff797361a7a1d953353d90fd809d54469267f in 2025-11-23 18:41:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,748 [INFO] pydriller.repository: Commit #8732c53478513ddd35ae152ff9bf5e6217ed3d99 in 2025-11-24 20:12:28+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,752 [INFO] pydriller.repository: Commit #8732c53478513ddd35ae152ff9bf5e6217ed3d99 filtered
+2026-02-04 17:44:45,752 [INFO] pydriller.repository: Commit #5b0625df96e4ea11b54fcb2a76f21f7ad94764fe in 2025-11-24 20:14:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,764 [INFO] pydriller.repository: Commit #8ab7167eaf046fb1c7a700dd72e773bb16e7d88f in 2025-11-28 15:55:15+00:00 from Sebastián Ramírez
+2026-02-04 17:44:45,765 [INFO] pydriller.repository: Commit #8ab7167eaf046fb1c7a700dd72e773bb16e7d88f filtered
+2026-02-04 17:44:45,765 [INFO] pydriller.repository: Commit #63d7a2b9978258d13dfc22664e60fc2110d30e20 in 2025-11-30 13:00:20+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,777 [INFO] pydriller.repository: Commit #7fbd30460f480e90faf321b9158bffb5116000d5 in 2025-11-30 15:45:49+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,791 [INFO] pydriller.repository: Commit #f2bab952678f301349c9805dd576af9425a95953 in 2025-11-30 15:47:35+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,803 [INFO] pydriller.repository: Commit #32aba57b499c9ec01a87f4e3a9aca980941e8959 in 2025-12-01 07:27:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,805 [INFO] pydriller.repository: Commit #32aba57b499c9ec01a87f4e3a9aca980941e8959 filtered
+2026-02-04 17:44:45,805 [INFO] pydriller.repository: Commit #8a7ad3d255f7318b67bf5dd03f8f231d2ade4b42 in 2025-12-01 07:30:56+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,807 [INFO] pydriller.repository: Commit #8a7ad3d255f7318b67bf5dd03f8f231d2ade4b42 filtered
+2026-02-04 17:44:45,807 [INFO] pydriller.repository: Commit #0dee714026a01df50f24b7f69b8978bdb91c8ff0 in 2025-12-01 14:17:29+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,808 [INFO] pydriller.repository: Commit #0dee714026a01df50f24b7f69b8978bdb91c8ff0 filtered
+2026-02-04 17:44:45,808 [INFO] pydriller.repository: Commit #6e82df816dcc3eeaae821e67cac598b0fb90179d in 2025-12-01 21:06:57+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,811 [INFO] pydriller.repository: Commit #6e82df816dcc3eeaae821e67cac598b0fb90179d filtered
+2026-02-04 17:44:45,811 [INFO] pydriller.repository: Commit #c3373205d03af626631b12ad91f26e77e6ddfd49 in 2025-12-02 05:30:18+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,823 [INFO] pydriller.repository: Commit #3c54a8f07b70cdd40e3d81ea319e9fcccd2481d2 in 2025-12-02 06:31:27+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,836 [INFO] pydriller.repository: Commit #c516c9904bfd07a5b48aaac205740bc20e8ec21e in 2025-12-02 08:42:22+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,848 [INFO] pydriller.repository: Commit #4976568fc7cb7501729d8f84d946cde1e91299cd in 2025-12-02 11:47:05+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,861 [INFO] pydriller.repository: Commit #247ef32e790ef296d8febc3fbc639849ff24b1a5 in 2025-12-02 13:43:31+00:00 from Sebastián Ramírez
+2026-02-04 17:44:45,880 [INFO] pydriller.repository: Commit #a79ae3d66fb093adfe9f8d15a53af74b49947562 in 2025-12-02 16:48:46+00:00 from Sebastián Ramírez
+2026-02-04 17:44:45,900 [INFO] pydriller.repository: Commit #c57ac7bdf3613798c94caceff562a41fa16d4a2d in 2025-12-02 22:06:25+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,913 [INFO] pydriller.repository: Commit #bba4d4c95e0de8fc9c99f88c269909d37d64d494 in 2025-12-04 08:29:28+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,929 [INFO] pydriller.repository: Commit #811fa898752e7f5697733a2958ff79ad8dfb5276 in 2025-12-04 08:33:11+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,942 [INFO] pydriller.repository: Commit #603df6e36f59cc4a3e189f506b8f36d1e816c3ac in 2025-12-04 09:27:38+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,956 [INFO] pydriller.repository: Commit #0ec4bafca204c92dca903437e78514246fe14eac in 2025-12-04 13:59:24+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,966 [INFO] pydriller.repository: Commit #eb1d50479ba0ac873e4ffa08a824b1d822ca3a17 in 2025-12-04 14:01:00+01:00 from Sebastián Ramírez
+2026-02-04 17:44:45,982 [INFO] pydriller.repository: Commit #0b5fa563cdfb887e4145d8419ae91b6a40905349 in 2025-12-04 23:22:01+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,003 [INFO] pydriller.repository: Commit #f0dd1046a688935ffd23666b3d4164b838a4d8fe in 2025-12-04 23:23:21+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,017 [INFO] pydriller.repository: Commit #08b09e5236e315b6f10265ed229f130d4befb4ea in 2025-12-05 22:26:36+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,031 [INFO] pydriller.repository: Commit #b5ca13249e3f2002c70c3f2de528a128af2008f7 in 2025-12-06 14:09:51+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,045 [INFO] pydriller.repository: Commit #8cedb742cb59f72a752bb0a6b4f73c02aeb15bf6 in 2025-12-09 12:12:24+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,049 [INFO] pydriller.repository: Commit #42b250d14dd42d3c0c24dd085fa53878172a985f in 2025-12-10 11:36:29+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,058 [INFO] pydriller.repository: Commit #60699f306b67dc1f4918ebea17f04d7a48cda645 in 2025-12-10 11:38:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,073 [INFO] pydriller.repository: Commit #7ba042e069ad424a584a37f1db03887798d9af80 in 2025-12-10 13:06:05+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,084 [INFO] pydriller.repository: Commit #7b0b915749582206025f306924e6a7bf86041a13 in 2025-12-10 13:07:53+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,099 [INFO] pydriller.repository: Commit #442cb306f6bcffa3e3d7446a67800ad637829d68 in 2025-12-10 12:28:40+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,101 [INFO] pydriller.repository: Commit #442cb306f6bcffa3e3d7446a67800ad637829d68 filtered
+2026-02-04 17:44:46,101 [INFO] pydriller.repository: Commit #cd9d093f603b81f34eb2751e9ca4522089fa9696 in 2025-12-10 12:56:50+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,110 [INFO] pydriller.repository: Commit #4c4d5201986dce315107ba70ae930d9db4575904 in 2025-12-11 14:48:47+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,112 [INFO] pydriller.repository: Commit #4c4d5201986dce315107ba70ae930d9db4575904 filtered
+2026-02-04 17:44:46,112 [INFO] pydriller.repository: Commit #564a4ac1b8c7c75c7229f18f06c5800944b38508 in 2025-12-11 16:02:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,113 [INFO] pydriller.repository: Commit #564a4ac1b8c7c75c7229f18f06c5800944b38508 filtered
+2026-02-04 17:44:46,113 [INFO] pydriller.repository: Commit #c0556ac3a50420d0ba298b5641517c61f3c1c2c4 in 2025-12-12 15:31:21+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,123 [INFO] pydriller.repository: Commit #3fe6522aaed4d36d6a38175a4a8137ee0fc62451 in 2025-12-12 15:32:58+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,138 [INFO] pydriller.repository: Commit #b1d9769f97295a238df8c2d318ad65dd6a40c6ff in 2025-12-12 15:59:12+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,153 [INFO] pydriller.repository: Commit #435d839c72d8fcef93ef4914a276df0b47728c6e in 2025-12-12 16:54:13+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,154 [INFO] pydriller.repository: Commit #435d839c72d8fcef93ef4914a276df0b47728c6e filtered
+2026-02-04 17:44:46,154 [INFO] pydriller.repository: Commit #59917ab67947919ce0c26b0ca66cf5a36ccc0ef3 in 2025-12-12 16:56:39+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,156 [INFO] pydriller.repository: Commit #59917ab67947919ce0c26b0ca66cf5a36ccc0ef3 filtered
+2026-02-04 17:44:46,156 [INFO] pydriller.repository: Commit #c54834838628966ac14c45e2a57c31383e0c8a9f in 2025-12-16 12:34:01+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,172 [INFO] pydriller.repository: Commit #2e7aaea52483dbc5af3c61b6b6ec146e2a7efc01 in 2025-12-16 12:40:50+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,180 [INFO] pydriller.repository: Commit #5da1cb07927575ca3fa036f82fd220ca84510106 in 2025-12-16 12:53:28+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,187 [INFO] pydriller.repository: Commit #886b367a8c8df26c722c901cac5372a0a798fd82 in 2025-12-16 15:34:37+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,188 [INFO] pydriller.repository: Commit #886b367a8c8df26c722c901cac5372a0a798fd82 filtered
+2026-02-04 17:44:46,188 [INFO] pydriller.repository: Commit #cbbb11f4dfa8b65494986b0891808f72c9f29ec4 in 2025-12-16 16:16:35+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,189 [INFO] pydriller.repository: Commit #cbbb11f4dfa8b65494986b0891808f72c9f29ec4 filtered
+2026-02-04 17:44:46,189 [INFO] pydriller.repository: Commit #da83d795464f479885c68029fb6233a79bc6df05 in 2025-12-16 17:33:45+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,212 [INFO] pydriller.repository: Commit #da83d795464f479885c68029fb6233a79bc6df05 filtered
+2026-02-04 17:44:46,212 [INFO] pydriller.repository: Commit #6281f8721a443b47e61128b8536412bb4353b6b2 in 2025-12-16 18:00:12+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,214 [INFO] pydriller.repository: Commit #6281f8721a443b47e61128b8536412bb4353b6b2 filtered
+2026-02-04 17:44:46,214 [INFO] pydriller.repository: Commit #c0e4b9cd679d70adda60940527ffd13ffac28fff in 2025-12-16 17:36:42+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,215 [INFO] pydriller.repository: Commit #c0e4b9cd679d70adda60940527ffd13ffac28fff filtered
+2026-02-04 17:44:46,215 [INFO] pydriller.repository: Commit #c68dc2d4190ebc5b9a820310dbfdde41437443ac in 2025-12-16 17:52:17+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,216 [INFO] pydriller.repository: Commit #c68dc2d4190ebc5b9a820310dbfdde41437443ac filtered
+2026-02-04 17:44:46,216 [INFO] pydriller.repository: Commit #c4fb93f9c2a3ce3505314cbcba06166d58e7e20c in 2025-12-16 20:32:09+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,217 [INFO] pydriller.repository: Commit #c4fb93f9c2a3ce3505314cbcba06166d58e7e20c filtered
+2026-02-04 17:44:46,217 [INFO] pydriller.repository: Commit #9a035035429b9bbfac65486a39baef81075ba396 in 2025-12-16 21:32:40+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,225 [INFO] pydriller.repository: Commit #9a035035429b9bbfac65486a39baef81075ba396 filtered
+2026-02-04 17:44:46,226 [INFO] pydriller.repository: Commit #4a6a87674ae049935d73f800768891bba8ed50c9 in 2025-12-16 21:44:10+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,248 [INFO] pydriller.repository: Commit #4a6a87674ae049935d73f800768891bba8ed50c9 filtered
+2026-02-04 17:44:46,248 [INFO] pydriller.repository: Commit #58bc4a15ac46abffcb0aea1481996337cd5a58e3 in 2025-12-16 20:58:53+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,267 [INFO] pydriller.repository: Commit #818ce0fa2f93f9001c7258616444243e09dacde3 in 2025-12-16 21:05:18+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,272 [INFO] pydriller.repository: Commit #818ce0fa2f93f9001c7258616444243e09dacde3 filtered
+2026-02-04 17:44:46,272 [INFO] pydriller.repository: Commit #1a1c29e57d98d3989ba8aad5578c2d0ae78bdc9c in 2025-12-17 11:41:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,273 [INFO] pydriller.repository: Commit #1a1c29e57d98d3989ba8aad5578c2d0ae78bdc9c filtered
+2026-02-04 17:44:46,273 [INFO] pydriller.repository: Commit #56a549b4d56c970acdcfcd6cb62ce2fd28810871 in 2025-12-17 20:59:04+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,274 [INFO] pydriller.repository: Commit #56a549b4d56c970acdcfcd6cb62ce2fd28810871 filtered
+2026-02-04 17:44:46,274 [INFO] pydriller.repository: Commit #ed97d9dc0c23651eaef1181ac530a6992f5059c2 in 2025-12-17 21:41:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:46,934 [INFO] pydriller.repository: Commit #84668c2acc3bd3443556d5ba98af674505e1d84b in 2025-12-17 20:47:16+00:00 from Sebastián Ramírez
+2026-02-04 17:44:46,936 [INFO] pydriller.repository: Commit #84668c2acc3bd3443556d5ba98af674505e1d84b filtered
+2026-02-04 17:44:46,936 [INFO] pydriller.repository: Commit #1c4fc96c917a1097149b6e1ff8e36a62f8d994b1 in 2025-12-17 21:25:59+00:00 from Sebastián Ramírez
+2026-02-04 17:44:47,340 [INFO] pydriller.repository: Commit #241ca9a533590f16fe2e3ecebd79054d4925c521 in 2025-12-17 22:35:20+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,344 [INFO] pydriller.repository: Commit #241ca9a533590f16fe2e3ecebd79054d4925c521 filtered
+2026-02-04 17:44:47,344 [INFO] pydriller.repository: Commit #c75f17d483bfc6f79cc94d1d6acfc6b080005eff in 2025-12-17 22:37:19+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,357 [INFO] pydriller.repository: Commit #caee1d3123113808f6f3fbfb78a5ff809e9e085b in 2025-12-18 14:24:09+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,366 [INFO] pydriller.repository: Commit #09ab90ed3598fbb2fa255229191b90b74d67505f in 2025-12-19 12:44:55+00:00 from Sebastián Ramírez
+2026-02-04 17:44:47,367 [INFO] pydriller.repository: Commit #09ab90ed3598fbb2fa255229191b90b74d67505f filtered
+2026-02-04 17:44:47,367 [INFO] pydriller.repository: Commit #75d4f9c09837901d60fe910cad40d0a42a99b586 in 2025-12-19 13:51:53+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,368 [INFO] pydriller.repository: Commit #75d4f9c09837901d60fe910cad40d0a42a99b586 filtered
+2026-02-04 17:44:47,368 [INFO] pydriller.repository: Commit #e2cd8a420110132bd08893d743fdb617f59fd15b in 2025-12-20 16:55:38+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,669 [INFO] pydriller.repository: Commit #1cb4e25651d7cb6690d658ff60289a5fb9d65167 in 2025-12-20 17:08:57+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,671 [INFO] pydriller.repository: Commit #1cb4e25651d7cb6690d658ff60289a5fb9d65167 filtered
+2026-02-04 17:44:47,671 [INFO] pydriller.repository: Commit #10252b193716e8b5c64d5b6760fc9aac9e3787d6 in 2025-12-20 17:11:50+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,684 [INFO] pydriller.repository: Commit #6b591ddd7e16727c57be1dad153b49ad9741a863 in 2025-12-20 17:15:42+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,688 [INFO] pydriller.repository: Commit #6b591ddd7e16727c57be1dad153b49ad9741a863 filtered
+2026-02-04 17:44:47,688 [INFO] pydriller.repository: Commit #026b43e5d3008c86cbf6f1a76ba471276418413c in 2025-12-20 18:30:52+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,689 [INFO] pydriller.repository: Commit #026b43e5d3008c86cbf6f1a76ba471276418413c filtered
+2026-02-04 17:44:47,689 [INFO] pydriller.repository: Commit #52892592753333c89076616824e3fe23181d65b6 in 2025-12-20 18:32:05+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,690 [INFO] pydriller.repository: Commit #52892592753333c89076616824e3fe23181d65b6 filtered
+2026-02-04 17:44:47,690 [INFO] pydriller.repository: Commit #1d93d531bc950ae880679e2e365fb6d7e028d106 in 2025-12-21 08:06:22+00:00 from Sebastián Ramírez
+2026-02-04 17:44:47,697 [INFO] pydriller.repository: Commit #6e42bcd8ce2ade33d94f478310dad20ee84f8f0f in 2025-12-21 17:44:10+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,781 [INFO] pydriller.repository: Commit #c4a1ab503635918938e3741d1fb6f2fff73dc1d3 in 2025-12-21 17:45:43+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,794 [INFO] pydriller.repository: Commit #b9b2793bda6898295593302b1213b4a61b91dd31 in 2025-12-21 17:40:17+00:00 from Sebastián Ramírez
+2026-02-04 17:44:47,802 [INFO] pydriller.repository: Commit #6539b80d9f798af4143d772b7962218861e4d1ae in 2025-12-21 18:51:45+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,803 [INFO] pydriller.repository: Commit #6539b80d9f798af4143d772b7962218861e4d1ae filtered
+2026-02-04 17:44:47,804 [INFO] pydriller.repository: Commit #a329baaa5495c51aafe2f2214f15b5992e17c4a3 in 2025-12-23 11:17:16+00:00 from Sebastián Ramírez
+2026-02-04 17:44:47,805 [INFO] pydriller.repository: Commit #a329baaa5495c51aafe2f2214f15b5992e17c4a3 filtered
+2026-02-04 17:44:47,805 [INFO] pydriller.repository: Commit #c264467efec71548d4feeecbfb29da78cceb1be5 in 2025-12-25 11:01:37+00:00 from Sebastián Ramírez
+2026-02-04 17:44:47,807 [INFO] pydriller.repository: Commit #c264467efec71548d4feeecbfb29da78cceb1be5 filtered
+2026-02-04 17:44:47,807 [INFO] pydriller.repository: Commit #d98f4eb56eae3155034fe631d9639d95171fb9ab in 2025-12-26 11:36:58+00:00 from Sebastián Ramírez
+2026-02-04 17:44:47,808 [INFO] pydriller.repository: Commit #d98f4eb56eae3155034fe631d9639d95171fb9ab filtered
+2026-02-04 17:44:47,808 [INFO] pydriller.repository: Commit #535b5daa317a9d1d1f9a1058e57650a7beefa861 in 2025-12-26 12:45:20+00:00 from Sebastián Ramírez
+2026-02-04 17:44:47,888 [INFO] pydriller.repository: Commit #cd90c78391f86f3fd06d5b327bffad9666b05b44 in 2025-12-26 14:02:41+01:00 from Sebastián Ramírez
+2026-02-04 17:44:47,902 [INFO] pydriller.repository: Commit #34e884156f38dff4094a7764ff895c4d4b872060 in 2025-12-26 20:40:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:47,908 [INFO] pydriller.repository: Commit #e3006305518a56ea35f62a31748ad26fe4356fcc in 2025-12-27 13:54:56+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,023 [INFO] pydriller.repository: Commit #8322a4445a3b25acd9b26b61192571b2d92f9bcd in 2025-12-27 16:19:50+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,038 [INFO] pydriller.repository: Commit #44c849c4fc3636f54eae74ab4e586c8ca9f3fb59 in 2025-12-27 19:19:10+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,300 [INFO] pydriller.repository: Commit #1b42639296b47f1344e24c1789f649caabbee67c in 2025-12-27 19:31:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,319 [INFO] pydriller.repository: Commit #4d4fb28f9f7331d758a0da908804348b5a0ba719 in 2025-12-27 18:48:45+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,320 [INFO] pydriller.repository: Commit #4d4fb28f9f7331d758a0da908804348b5a0ba719 filtered
+2026-02-04 17:44:48,320 [INFO] pydriller.repository: Commit #52842fb8d371ad1517dbac48950d55e9cfa5f64f in 2025-12-27 19:49:08+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,321 [INFO] pydriller.repository: Commit #52842fb8d371ad1517dbac48950d55e9cfa5f64f filtered
+2026-02-04 17:44:48,322 [INFO] pydriller.repository: Commit #dbe83f3919c6de3438b572b8395e8bed9f0060d6 in 2025-12-27 19:49:46+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,323 [INFO] pydriller.repository: Commit #dbe83f3919c6de3438b572b8395e8bed9f0060d6 filtered
+2026-02-04 17:44:48,323 [INFO] pydriller.repository: Commit #3b1b4f034bebddb873d4bd8c1bb5f52aaae17240 in 2025-12-27 19:05:53+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,329 [INFO] pydriller.repository: Commit #edf799577539de24b5ff52381dcc4830803fffbb in 2025-12-29 13:38:11+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,330 [INFO] pydriller.repository: Commit #edf799577539de24b5ff52381dcc4830803fffbb filtered
+2026-02-04 17:44:48,330 [INFO] pydriller.repository: Commit #d9b7b65b8139eca2a3a2b61c9a024ffd970d5c3c in 2025-12-29 18:54:20+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,346 [INFO] pydriller.repository: Commit #258deb925d9d65f2d75392a2b941d6b072e305b4 in 2026-01-02 07:40:15+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,348 [INFO] pydriller.repository: Commit #258deb925d9d65f2d75392a2b941d6b072e305b4 filtered
+2026-02-04 17:44:48,348 [INFO] pydriller.repository: Commit #31c7ffcdfebe32ca6b2feb7b33260aff3880c268 in 2026-01-02 07:46:34+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,350 [INFO] pydriller.repository: Commit #31c7ffcdfebe32ca6b2feb7b33260aff3880c268 filtered
+2026-02-04 17:44:48,350 [INFO] pydriller.repository: Commit #052d6e86c21dc83a7ad458a2b620145b91a1b4b8 in 2026-01-02 07:46:57+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,351 [INFO] pydriller.repository: Commit #052d6e86c21dc83a7ad458a2b620145b91a1b4b8 filtered
+2026-02-04 17:44:48,352 [INFO] pydriller.repository: Commit #c75ae058e448063c2ace68c5c8ad0af99bee3e52 in 2026-01-10 22:17:46+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,353 [INFO] pydriller.repository: Commit #c75ae058e448063c2ace68c5c8ad0af99bee3e52 filtered
+2026-02-04 17:44:48,353 [INFO] pydriller.repository: Commit #7eac6e31695bd02d3607aa4416df50a02bc5445a in 2026-01-10 23:43:44+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,385 [INFO] pydriller.repository: Commit #cefd50702a5269351fadbf8110628356bd505449 in 2026-01-10 23:06:37+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,391 [INFO] pydriller.repository: Commit #a2912ffa26ea49db08d9a02a4888ebe60b44e702 in 2026-01-11 00:41:20+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,396 [INFO] pydriller.repository: Commit #a2912ffa26ea49db08d9a02a4888ebe60b44e702 filtered
+2026-02-04 17:44:48,396 [INFO] pydriller.repository: Commit #49653aa295eedd1f0deeae6d61f4324c70d74e32 in 2026-01-11 00:03:50+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,404 [INFO] pydriller.repository: Commit #6f977366a4154b762f257460b028f44e9686e5a6 in 2026-01-11 01:15:06+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,470 [INFO] pydriller.repository: Commit #cf8dc98aadc07d28c8f3dc0497324128e782c358 in 2026-01-11 00:15:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,547 [INFO] pydriller.repository: Commit #5ec2615b1ac7b6970b8d548a8556cd6b2026c30f in 2026-01-11 01:21:07+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,548 [INFO] pydriller.repository: Commit #5ec2615b1ac7b6970b8d548a8556cd6b2026c30f filtered
+2026-02-04 17:44:48,548 [INFO] pydriller.repository: Commit #1054fbd2563c91ac7798ae25c486c426df9d7909 in 2026-01-11 18:18:38+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,556 [INFO] pydriller.repository: Commit #249a776b70dfc173d4c9b91a3b0c8d9319d0ee14 in 2026-01-11 19:19:05+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,558 [INFO] pydriller.repository: Commit #249a776b70dfc173d4c9b91a3b0c8d9319d0ee14 filtered
+2026-02-04 17:44:48,558 [INFO] pydriller.repository: Commit #7b864acf370f3587cc29eb58f1f897c5c21d139d in 2026-01-11 21:19:26+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,559 [INFO] pydriller.repository: Commit #7b864acf370f3587cc29eb58f1f897c5c21d139d filtered
+2026-02-04 17:44:48,559 [INFO] pydriller.repository: Commit #1be80f48851845d9e0a6ce8ee6a8b871cd9ff5ce in 2026-01-11 23:22:58+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,561 [INFO] pydriller.repository: Commit #1be80f48851845d9e0a6ce8ee6a8b871cd9ff5ce filtered
+2026-02-04 17:44:48,561 [INFO] pydriller.repository: Commit #f317ede223131a2822723602fb3f576f1ca0f5bf in 2026-01-16 12:54:01+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,565 [INFO] pydriller.repository: Commit #f317ede223131a2822723602fb3f576f1ca0f5bf filtered
+2026-02-04 17:44:48,565 [INFO] pydriller.repository: Commit #fb15bba819a71df10fee28891c6c7c29fdf48d56 in 2026-01-16 12:57:08+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,566 [INFO] pydriller.repository: Commit #fb15bba819a71df10fee28891c6c7c29fdf48d56 filtered
+2026-02-04 17:44:48,566 [INFO] pydriller.repository: Commit #536a5bafe74a77f207b57cf6fb0cf3059121fffb in 2026-01-19 21:40:17+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,568 [INFO] pydriller.repository: Commit #536a5bafe74a77f207b57cf6fb0cf3059121fffb filtered
+2026-02-04 17:44:48,568 [INFO] pydriller.repository: Commit #463a3a24d7aee142bede2bcdd0ef542646b1fe3f in 2026-01-19 20:55:32+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,569 [INFO] pydriller.repository: Commit #463a3a24d7aee142bede2bcdd0ef542646b1fe3f filtered
+2026-02-04 17:44:48,569 [INFO] pydriller.repository: Commit #2d459e4845e8de9e080039d8f3ab2f1fd2e774a9 in 2026-01-20 21:40:17+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,574 [INFO] pydriller.repository: Commit #2d459e4845e8de9e080039d8f3ab2f1fd2e774a9 filtered
+2026-02-04 17:44:48,574 [INFO] pydriller.repository: Commit #2eb978b87a2227801cc9abaeddd5e27d941af868 in 2026-01-21 00:03:07+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,579 [INFO] pydriller.repository: Commit #2eb978b87a2227801cc9abaeddd5e27d941af868 filtered
+2026-02-04 17:44:48,579 [INFO] pydriller.repository: Commit #509afeb475e602bd11f2ffa165ccd0ed3d10a19f in 2026-01-22 10:27:31+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,581 [INFO] pydriller.repository: Commit #509afeb475e602bd11f2ffa165ccd0ed3d10a19f filtered
+2026-02-04 17:44:48,581 [INFO] pydriller.repository: Commit #c9629e0eb245836b7ecd7b12c1eb7ef12dbdb1ee in 2026-01-31 18:32:27+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,587 [INFO] pydriller.repository: Commit #c9629e0eb245836b7ecd7b12c1eb7ef12dbdb1ee filtered
+2026-02-04 17:44:48,587 [INFO] pydriller.repository: Commit #3626d764c13cb12414b2b1a254af075f2799c716 in 2026-02-02 11:24:23+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,589 [INFO] pydriller.repository: Commit #3626d764c13cb12414b2b1a254af075f2799c716 filtered
+2026-02-04 17:44:48,590 [INFO] pydriller.repository: Commit #20ff394d7540dd560df1e9252584e3965d59b0c9 in 2026-02-02 11:26:58+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,591 [INFO] pydriller.repository: Commit #20ff394d7540dd560df1e9252584e3965d59b0c9 filtered
+2026-02-04 17:44:48,591 [INFO] pydriller.repository: Commit #7621a3aa4b29713aa2ce0ab9605a008a5a8b9335 in 2026-02-04 11:46:32+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,592 [INFO] pydriller.repository: Commit #7621a3aa4b29713aa2ce0ab9605a008a5a8b9335 filtered
+2026-02-04 17:44:48,592 [INFO] pydriller.repository: Commit #261736ab4c3d7a3ec642071ba6f9408ebf9618d1 in 2026-02-04 11:49:00+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,597 [INFO] pydriller.repository: Commit #440bfd70a948c187dadb2e89ee7e94933e867a00 in 2026-02-04 14:20:36+00:00 from Sebastián Ramírez
+2026-02-04 17:44:48,602 [INFO] pydriller.repository: Commit #ee0c12521fa0817cc19a4cbbd949c1e9d5fec1aa in 2026-02-04 15:35:17+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,604 [INFO] pydriller.repository: Commit #ee0c12521fa0817cc19a4cbbd949c1e9d5fec1aa filtered
+2026-02-04 17:44:48,604 [INFO] pydriller.repository: Commit #aea61373ae0c97b32611fc2dc993e84a9729edf8 in 2026-02-04 15:49:18+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,610 [INFO] pydriller.repository: Commit #b0e99d66e80426f3f13dd4bcbcb78d2a39ec10b5 in 2026-02-04 17:44:21+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,677 [INFO] pydriller.repository: Commit #84a5bcf82d265eb72fc2845f6625785a1524f023 in 2026-02-04 18:00:40+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,684 [INFO] pydriller.repository: Commit #1de0de56c8e9f90d1e8f5fe82323f343d0c2a936 in 2026-02-04 18:33:29+01:00 from Sebastián Ramírez
+2026-02-04 17:44:48,695 [INFO] pydriller.repository: Commit #0e68d36cd5796384e833e97b57e98d17adc3c5ff in 2026-02-04 17:35:21+00:00 from Sebastián Ramírez
+
+                  🔍 Git URL 분석 테스트 스크립트 🔍                   
+실행 시간: 2026-02-04T17:44:21.951035
+
+테스트 URL: https://github.com/tiangolo/fastapi
+JD 기술스택: ['Python', 'JavaScript', 'TypeScript']
+
+============================================================
+  1. GitHubService 테스트
+============================================================
+
+[1.1] GITHUB_TOKEN 설정: ✅ 있음
+
+[1.2] URL 파싱 테스트: https://github.com/tiangolo/fastapi
+  - repo_path: tiangolo/fastapi
+  - owner: tiangolo
+
+[1.3] 계정 타입 확인: tiangolo
+  - type: User
+  - name: Sebastián Ramírez
+  - error: None
+
+[1.4] 레포 정보 조회
+{
+  "url": "https://github.com/tiangolo/fastapi",
+  "name": "fastapi",
+  "full_name": "fastapi/fastapi",
+  "size": 32433,
+  "stars": 94803,
+  "forks": 8627,
+  "default_branch": "master",
+  "created_at": "2018-12-08T08:21:47+00:00",
+  "pushed_at": "2026-02-04T17:36:13+00:00",
+  "description": "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
+}
+
+[1.5] 레포 언어 비율
+  - Python: 99.9% (3,622,215 bytes)
+  - JavaScript: 0.0% (1,066 bytes)
+  - Shell: 0.0% (528 bytes)
+  - HTML: 0.0% (235 bytes)
+  - CSS: 0.0% (25 bytes)
+
+[1.6] 상위 기여자 (5명)
+  - tiangolo: 1923 commits (User)
+  - github-actions[bot]: 358 commits (Bot)
+  - dependabot[bot]: 139 commits (Bot)
+  - alejsdev: 56 commits (User)
+  - YuriiMotov: 54 commits (User)
+
+[1.7] 후보자 username 추론
+  - username: tiangolo
+  - confidence: high
+  - source: personal_repo:https://github.com/tiangolo/fastapi
+  - personal_repos: ['https://github.com/tiangolo/fastapi']
+  - skipped_org_repos: []
+
+============================================================
+  2. CodeAnalyzer 테스트 (PyDriller + AST)
+============================================================
+
+[2.1] PyDriller 분석 (최근 1년)
+  - repo_url: https://github.com/tiangolo/fastapi
+  - author filter: tiangolo
+  분석 중... (레포 클론 및 커밋 순회)
+
+  [통계]
+  - total_commits: 118
+  - total_additions: 34225
+  - total_deletions: 41814
+  - avg_complexity: 7.1
+
+  [분석된 파일 수]: 447
+  [커밋 diff 수]: 200
+
+  [상위 파일 (복잡도 기준)]:
+    - query-params-str-validations.md: complexity=0, added=713, deleted=526
+    - tutorial006b.py: complexity=0, added=0, deleted=24
+    - tutorial006b_an.py: complexity=0, added=0, deleted=12
+    - tutorial006b_an_py39.py: complexity=0, added=0, deleted=13
+    - tutorial006c.py: complexity=2, added=1, deleted=1
+
+  [상위 커밋 diff (복잡도×변경량)]:
+    - [44c849c4] test_path.py
+      +360 -822, complexity=75
+      diff: @@ -1,4 +1,3 @@\n-from dirty_equals import IsDict\n from fastapi.testclient import TestClient\n \n from .main import app\n@@ -45,57 +44,31 @@ def test_path_str_True():\n def test_path_int_foobar():\n     res...
+    - [d34918ab] test_pydantic_v1_v2_mixed.py
+      +1499 -0, complexity=56
+      diff: @@ -0,0 +1,1499 @@\n+import sys\n+from typing import Any, List, Union\n+\n+from tests.utils import pydantic_snapshot, skip_module_if_py_gte_314\n+\n+if sys.version_info >= (3, 14):\n+    skip_module_if_py_gt...
+    - [d34918ab] test_compat_params_v1.py
+      +1122 -0, complexity=48
+      diff: @@ -0,0 +1,1122 @@\n+import sys\n+from typing import List, Optional\n+\n+import pytest\n+\n+from tests.utils import pydantic_snapshot, skip_module_if_py_gte_314\n+\n+if sys.version_info >= (3, 14):\n+    skip_...
+
+[2.2] AST 분석 (Python)
+  - parser_used: ast
+  - functions: 0
+  - classes: 0
+  - imports: 0
+
+============================================================
+  3. JD 매칭 레포 필터링
+============================================================
+
+[3.1] JD 기술스택: ['Python', 'JavaScript', 'TypeScript']
+[3.2] 테스트 URL: https://github.com/tiangolo/fastapi
+[3.3] 최소 매칭 비율: 30%
+
+✅ 매칭됨!
+  - name: fastapi
+  - jd_match_ratio: 100.0%
+  - languages: {'Python': 3622215, 'JavaScript': 1066, 'Shell': 528, 'HTML': 235, 'CSS': 25}
+
+============================================================
+  4. 전체 파이프라인 테스트 (analyze_code Activity)
+============================================================
+
+[4.1] Phase 1: JD 매칭 레포 선별
+  - 매칭된 레포: 1개
+  - 추론된 username: tiangolo
+
+[4.2] Phase 2: PyDriller 분석 - fastapi
+  - commits: 118
+  - additions: 34225
+
+[4.3] Phase 3: AST 분석 - fastapi
+  - functions: 0
+  - classes: 0
+
+[4.4] Phase 4: LLM 분석 - fastapi
+  - LLM 분석 대상 파일: 50개
+  - ⚠️ LLM 호출은 스킵됨 (비용 절약). 실제 분석은 Langfuse에서 확인하세요.
+
+============================================================
+  5. 최종 결과
+============================================================
+
+{
+  "repositories": [
+    {
+      "repo_url": "https://github.com/tiangolo/fastapi",
+      "repo_name": "fastapi",
+      "language": "Python",
+      "candidate_commits": 118,
+      "candidate_additions": 34225,
+      "avg_complexity": 7.1,
+      "ast_summary": {
+        "functions": 0,
+        "classes": 0
+      }
+    }
+  ],
+  "combined_tech_stack": [
+    "Python",
+    "JavaScript",
+    "TypeScript"
+  ],
+  "total_repos_analyzed": 1
+}
+
+============================================================
+  ✅ 테스트 완료
+============================================================
+
+Langfuse에서 상세 트레이스를 확인하세요:
+  https://langfuse.mystery-place.com

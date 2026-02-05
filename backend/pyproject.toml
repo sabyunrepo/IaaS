@@ -41,6 +41,7 @@ dependencies = [
     "obstore>=0.1.0",
     # Observability
     "langfuse>=2.36.0",
+    "arize-phoenix[evals]>=8.0.0",
     # Templates
     "jinja2>=3.1.0",
     # HTTP
