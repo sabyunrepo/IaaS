@@ -68,6 +68,9 @@ class Settings(BaseSettings):
     LANGFUSE_PUBLIC_KEY: str | None = None
     LANGFUSE_SECRET_KEY: str | None = None
 
+    # Phoenix (AI Observability - Evaluation & Experiments)
+    PHOENIX_COLLECTOR_ENDPOINT: str | None = None
+
     # LinkedIn (Bright Data Web Scraper API)
     BRIGHTDATA_API_TOKEN: str | None = None
 

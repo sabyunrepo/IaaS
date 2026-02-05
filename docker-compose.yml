@@ -60,6 +60,7 @@ services:
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
       - BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
+      - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:6006
     volumes:
       - ./backend:/app
       - backend_venv:/app/.venv
@@ -69,6 +70,8 @@ services:
       redis:
         condition: service_started
       temporal:
+        condition: service_started
+      phoenix:
         condition: service_started
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     networks:
@@ -106,12 +109,14 @@ services:
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
       - INTERNAL_API_URL=http://backend:8000
+      - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:6006
     volumes:
       - ./backend:/app
       - backend_venv:/app/.venv
     depends_on:
       - backend
       - temporal
+      - phoenix
     command: python -m app.worker
     networks:
       - iaas_internal
@@ -198,7 +203,21 @@ services:
   # LLM Observability
   # ============================================
   # Langfuse는 외부 서버 사용: https://langfuse.mystery-place.com
-  # 로컬 서비스 제거됨 (2026-02-05)
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    container_name: iaas-phoenix
+    restart: unless-stopped
+    environment:
+      - PHOENIX_WORKING_DIR=/data
+      - PHOENIX_ENABLE_AUTH=false
+    volumes:
+      - phoenix_data:/data
+    networks:
+      - iaas_internal
+    ports:
+      - "6006:6006"    # UI + HTTP
+      - "4317:4317"    # gRPC (OpenTelemetry)
 
   # ============================================
   # AWS Local Emulation (내부망만)
@@ -241,3 +260,4 @@ volumes:
   redis_data:
   localstack_data:
   backend_venv:
+  phoenix_data:
