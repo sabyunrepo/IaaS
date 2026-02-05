@@ -55,7 +55,13 @@ def _extract_decision_summary(
 
     # 강점 추출
     strengths = []
-    key_skills = profile.get("skills", [])[:3]
+    raw_skills = profile.get("skills", [])
+    # skills가 dict인 경우 키만 추출 (list/dict 모두 지원)
+    skill_list = (
+        list(raw_skills.keys()) if isinstance(raw_skills, dict)
+        else list(raw_skills) if raw_skills else []
+    )
+    key_skills = skill_list[:3]
     for skill in key_skills:
         strengths.append(f"{skill} (이력서)")
 
