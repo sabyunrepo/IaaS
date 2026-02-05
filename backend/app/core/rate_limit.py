@@ -6,6 +6,8 @@ from starlette.requests import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+from app.core.config import settings
+
 
 def _get_rate_limit_key(request: Request) -> str:
     """사용자 인증 정보 기반 키, 미인증 시 IP 기반 키"""
@@ -27,7 +29,7 @@ def _get_rate_limit_key(request: Request) -> str:
 limiter = Limiter(
     key_func=_get_rate_limit_key,
     default_limits=["100/minute"],
-    storage_uri=None,  # in-memory (프로덕션에서는 Redis URI 사용)
+    storage_uri=settings.REDIS_URL,  # Redis 기반 분산 Rate Limiting
 )
 
 # 사용자 플랜별 Rate Limit 상수

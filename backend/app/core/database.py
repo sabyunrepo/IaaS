@@ -11,8 +11,9 @@ from .config import settings
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.is_local,
-    pool_size=5,
-    max_overflow=10,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_recycle=3600,
 )
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
