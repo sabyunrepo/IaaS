@@ -1,7 +1,8 @@
 """
 backend/app/workflows/activities/analysis_generation.py
-Deep Analysis 생성 Activity
+Deep Analysis 생성 Activity (LLM 강화 + 규칙 기반 fallback)
 """
+import json
 import logging
 from typing import Any
 
@@ -13,6 +14,131 @@ from app.models.deep_analysis import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+async def _llm_calculate_radar_scores(
+    jd_analysis: dict,
+    code_analysis: dict | None,
+    document_analysis: dict,
+) -> tuple[list[int], list[int]] | None:
+    """LLM 기반 레이더 점수 계산 (실패 시 None 반환)"""
+    try:
+        from app.services.cached_llm import CachedLLMService
+        from app.workflows.utils import run_llm_with_heartbeat
+
+        import yaml
+        from pathlib import Path
+        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
+        with open(prompts_path) as f:
+            prompts = yaml.safe_load(f)
+        template = prompts["prompts"]["radar_analysis"]["template"]
+
+        # 요약 데이터 준비
+        code_summary = "코드 분석 데이터 없음"
+        if code_analysis:
+            code_summary = json.dumps({
+                "tech_stack": code_analysis.get("tech_stack", [])[:10],
+                "quality_metrics": code_analysis.get("quality_metrics", {}),
+                "risk_flags_count": len(code_analysis.get("risk_flags", [])),
+                "repos_count": len(code_analysis.get("repositories", [])),
+            }, ensure_ascii=False, default=str)
+
+        doc_summary = json.dumps({
+            "skills": document_analysis.get("profile", {}).get("skills", [])[:10],
+            "experience_count": len(document_analysis.get("profile", {}).get("experiences", [])),
+            "jd_match_score": document_analysis.get("jd_match_score", 0),
+        }, ensure_ascii=False, default=str)
+
+        jd_summary = json.dumps({
+            "job_title": jd_analysis.get("job_title", ""),
+            "requirements_count": len(jd_analysis.get("requirements", [])),
+            "key_requirements": [r.get("skill", "") for r in jd_analysis.get("requirements", [])[:5]],
+        }, ensure_ascii=False, default=str)
+
+        prompt = template.format(
+            jd_analysis=jd_summary,
+            code_analysis_summary=code_summary,
+            document_analysis_summary=doc_summary,
+        )
+
+        llm = CachedLLMService(activity_name="radar_analysis")
+        result = await run_llm_with_heartbeat(llm, prompt, "radar_analysis", interval=30.0)
+
+        if not isinstance(result, dict) or "candidate_scores" not in result:
+            return None
+
+        scores = result["candidate_scores"]
+        if not isinstance(scores, list) or len(scores) != 5:
+            return None
+
+        # 점수 범위 보정 (0-100)
+        candidate_scores = [max(0, min(100, int(s))) for s in scores]
+        required_scores = [80, 80, 60, 70, 70]
+
+        logger.info(f"LLM radar scores: {candidate_scores}")
+        return candidate_scores, required_scores
+
+    except Exception as e:
+        logger.warning(f"LLM radar analysis failed, using fallback: {e}")
+        return None
+
+
+async def _llm_analyze_engineering_dna(code_analysis: dict | None) -> list[EngineeringDNAItem] | None:
+    """LLM 기반 Engineering DNA 분석 (실패 시 None 반환)"""
+    if not code_analysis:
+        return None
+
+    try:
+        from app.services.cached_llm import CachedLLMService
+        from app.workflows.utils import run_llm_with_heartbeat
+
+        import yaml
+        from pathlib import Path
+        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
+        with open(prompts_path) as f:
+            prompts = yaml.safe_load(f)
+        template = prompts["prompts"]["engineering_dna"]["template"]
+
+        code_data = json.dumps({
+            "quality_metrics": code_analysis.get("quality_metrics", {}),
+            "tech_stack": code_analysis.get("tech_stack", [])[:10],
+            "patterns": code_analysis.get("patterns", [])[:5] if isinstance(code_analysis.get("patterns"), list) else [],
+            "risk_flags": code_analysis.get("risk_flags", [])[:5],
+        }, ensure_ascii=False, default=str)
+
+        prompt = template.format(code_analysis=code_data)
+
+        llm = CachedLLMService(activity_name="engineering_dna")
+        result = await run_llm_with_heartbeat(llm, prompt, "engineering_dna", interval=30.0)
+
+        if not isinstance(result, list):
+            return None
+
+        items = []
+        valid_colors = {"emerald", "blue", "amber", "red", "slate"}
+        for item in result[:6]:
+            if not isinstance(item, dict):
+                continue
+            color = item.get("color", "slate")
+            if color not in valid_colors:
+                color = "slate"
+            items.append(EngineeringDNAItem(
+                label=item.get("label", ""),
+                value=max(0, min(100, int(item.get("value", 0)))),
+                display=item.get("display", ""),
+                color=color,
+                note=item.get("note"),
+                tooltip=item.get("tooltip"),
+            ))
+
+        if items:
+            logger.info(f"LLM engineering DNA: {len(items)} items")
+            return items
+        return None
+
+    except Exception as e:
+        logger.warning(f"LLM engineering DNA failed, using fallback: {e}")
+        return None
 
 
 def _calculate_radar_scores(
@@ -250,14 +376,20 @@ async def generate_deep_analysis(
     logger.info(f"Generating Deep Analysis for job_id={job_id}")
     activity.heartbeat()
 
-    # 1. 5축 레이더 점수 계산
-    radar_candidate, radar_required = _calculate_radar_scores(
-        jd_analysis, code_analysis, document_analysis
-    )
+    # 1. 5축 레이더 점수 계산 (LLM 우선, 규칙 기반 fallback)
+    llm_radar = await _llm_calculate_radar_scores(jd_analysis, code_analysis, document_analysis)
+    if llm_radar:
+        radar_candidate, radar_required = llm_radar
+    else:
+        radar_candidate, radar_required = _calculate_radar_scores(
+            jd_analysis, code_analysis, document_analysis
+        )
     activity.heartbeat()
 
-    # 2. Engineering DNA 분석
-    engineering_dna = _analyze_engineering_dna(code_analysis)
+    # 2. Engineering DNA 분석 (LLM 우선, 규칙 기반 fallback)
+    engineering_dna = await _llm_analyze_engineering_dna(code_analysis)
+    if engineering_dna is None:
+        engineering_dna = _analyze_engineering_dna(code_analysis)
     activity.heartbeat()
 
     # 3. 리스크 플래그 추출

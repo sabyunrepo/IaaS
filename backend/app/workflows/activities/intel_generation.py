@@ -1,7 +1,8 @@
 """
 backend/app/workflows/activities/intel_generation.py
-Intel Brief 생성 Activity
+Intel Brief 생성 Activity (LLM 강화 + 규칙 기반 fallback)
 """
+import json
 import logging
 from typing import Any
 
@@ -14,6 +15,79 @@ from app.models.intel import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+async def _llm_match_competencies(
+    jd_analysis: dict,
+    document_analysis: dict,
+    code_analysis: dict | None,
+) -> list[CompetencyMatch] | None:
+    """LLM 기반 시맨틱 역량 매칭 (실패 시 None 반환)"""
+    try:
+        from app.services.cached_llm import CachedLLMService
+        from app.workflows.utils import run_llm_with_heartbeat
+        from app.core.config import settings
+
+        jd_requirements = jd_analysis.get("requirements", [])
+        if not jd_requirements:
+            return None
+
+        candidate_skills = document_analysis.get("profile", {}).get("skills", [])
+        code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
+
+        # 프롬프트 로딩
+        import yaml
+        from pathlib import Path
+        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
+        with open(prompts_path) as f:
+            prompts = yaml.safe_load(f)
+        template = prompts["prompts"]["competency_matching"]["template"]
+
+        prompt = template.format(
+            jd_requirements=json.dumps(jd_requirements[:6], ensure_ascii=False, default=str),
+            candidate_skills=json.dumps(candidate_skills[:20], ensure_ascii=False, default=str),
+            code_skills=json.dumps(code_skills[:20], ensure_ascii=False, default=str),
+        )
+
+        llm = CachedLLMService(activity_name="intel_competency_matching")
+        result = await run_llm_with_heartbeat(llm, prompt, "intel_competency_matching", interval=30.0)
+
+        if not isinstance(result, list):
+            return None
+
+        # 색상 및 아이콘 매핑
+        match_config = {
+            "strong": ("emerald", "✅"),
+            "match": ("emerald", "✅"),
+            "partial": ("amber", "⚠️"),
+            "unknown": ("amber", "⚠️"),
+            "none": ("red", "❌"),
+        }
+
+        competencies = []
+        for item in result[:6]:
+            if not isinstance(item, dict):
+                continue
+            match_level = item.get("match", "none")
+            color, icon = match_config.get(match_level, ("slate", "❓"))
+            competencies.append(CompetencyMatch(
+                name=item.get("name", ""),
+                match=match_level,
+                match_label=item.get("match_label", ""),
+                desc=item.get("desc", ""),
+                why=item.get("why", ""),
+                color=color,
+                icon=icon,
+            ))
+
+        if competencies:
+            logger.info(f"LLM competency matching: {len(competencies)} items")
+            return competencies
+        return None
+
+    except Exception as e:
+        logger.warning(f"LLM competency matching failed, using fallback: {e}")
+        return None
 
 
 def _extract_jd_summary(jd_analysis: dict) -> JDSummary:
@@ -179,8 +253,10 @@ async def generate_intel_brief(
     jd_summary = _extract_jd_summary(jd_analysis)
     activity.heartbeat()
 
-    # 2. 역량 매칭 분석
-    competencies = _match_competencies(jd_analysis, document_analysis, code_analysis)
+    # 2. 역량 매칭 분석 (LLM 우선, 규칙 기반 fallback)
+    competencies = await _llm_match_competencies(jd_analysis, document_analysis, code_analysis)
+    if competencies is None:
+        competencies = _match_competencies(jd_analysis, document_analysis, code_analysis)
     activity.heartbeat()
 
     # 3. GitHub 기여도 데이터 포맷
