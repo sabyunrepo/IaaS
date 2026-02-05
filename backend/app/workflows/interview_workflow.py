@@ -36,6 +36,7 @@ with workflow.unsafe.imports_passed_through():
     )
     from app.workflows.activities.intel_generation import generate_intel_brief
     from app.workflows.activities.analysis_generation import generate_deep_analysis
+    from app.workflows.activities.decision_generation import generate_decision_support
 
 logger = logging.getLogger(__name__)
 
@@ -320,6 +321,9 @@ class InterviewGenerationWorkflow:
             code_analysis_data = analysis.get("code_analysis")
             linkedin_profile = enriched.get("linkedin_profile")
 
+            # Get candidate_summary for decision support
+            candidate_summary_data = final_script.get("candidate_summary", {})
+
             intel_analysis_tasks = [
                 workflow.execute_activity(
                     generate_intel_brief,
@@ -347,16 +351,39 @@ class InterviewGenerationWorkflow:
                     heartbeat_timeout=timedelta(seconds=60),
                     retry_policy=DEFAULT_RETRY,
                 ),
+                workflow.execute_activity(
+                    generate_decision_support,
+                    args=[
+                        candidate_summary_data,
+                        questions,
+                        jd_analysis_data,
+                        document_analysis,
+                        job_id,
+                    ],
+                    start_to_close_timeout=timedelta(minutes=2),
+                    heartbeat_timeout=timedelta(seconds=60),
+                    retry_policy=DEFAULT_RETRY,
+                ),
             ]
 
             intel_analysis_results = await asyncio.gather(*intel_analysis_tasks)
             intel_brief = intel_analysis_results[0]
             deep_analysis = intel_analysis_results[1]
+            decision_support = intel_analysis_results[2]
 
             # Attach v2 data to final script
             if isinstance(final_script, dict):
                 final_script["intel"] = intel_brief
                 final_script["analysis"] = deep_analysis
+                final_script["decision"] = decision_support
+                # Category weights for scoring
+                final_script["category_weights"] = {
+                    "role_fit": 0.25,
+                    "technical_depth": 0.20,
+                    "execution_ownership": 0.20,
+                    "communication": 0.20,
+                    "risk_flags": 0.15,
+                }
 
             # DB에 결과 저장
             job_id = input_data.get("job_id")

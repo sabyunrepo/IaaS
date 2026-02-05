@@ -217,8 +217,9 @@ class InterviewerGuide(BaseModel):
 
 
 # --- v2 Import ---
-# IntelBrief, DeepAnalysis, DecisionSupport are imported from separate modules
-# to avoid circular imports and keep this file clean
+from .intel import IntelBrief
+from .deep_analysis import DeepAnalysis
+from .decision import DecisionSupport
 
 
 class InterviewScript(BaseModel):
@@ -235,7 +236,7 @@ class InterviewScript(BaseModel):
 
     # v2 추가 필드 (Optional for backward compatibility)
     candidate: CandidateSummary | None = None  # v2 alias
-    intel: Any | None = None  # IntelBrief
-    analysis: Any | None = None  # DeepAnalysis
-    decision: Any | None = None  # DecisionSupport
+    intel: IntelBrief | None = None
+    analysis: DeepAnalysis | None = None
+    decision: DecisionSupport | None = None
     category_weights: dict[str, float] | None = None
