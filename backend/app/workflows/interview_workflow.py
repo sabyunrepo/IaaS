@@ -130,8 +130,9 @@ class InterviewGenerationWorkflow:
             analysis_tasks.append(
                 workflow.execute_activity(
                     analyze_jd,
-                    raw_input.get("jd_text", ""),
-                    start_to_close_timeout=timedelta(minutes=3),
+                    args=[raw_input.get("jd_text", ""), job_id],
+                    start_to_close_timeout=timedelta(minutes=5),
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=LLM_RETRY,
                 )
             )
@@ -175,7 +176,7 @@ class InterviewGenerationWorkflow:
             # 3a. 토픽 선정
             topics = await workflow.execute_activity(
                 select_topics,
-                args=[analysis, enriched],
+                args=[analysis, enriched, job_id],  # job_id 추가 (KG 기반 질문 후보 조회용)
                 start_to_close_timeout=timedelta(minutes=3),
                 retry_policy=LLM_RETRY,
             )
@@ -186,7 +187,7 @@ class InterviewGenerationWorkflow:
                 question_tasks.append(
                     workflow.execute_activity(
                         craft_question,
-                        args=[topic, analysis, enriched],
+                        args=[topic, analysis, enriched, job_id],  # job_id 추가 (KG evidence 조회용)
                         start_to_close_timeout=timedelta(minutes=2),
                         retry_policy=LLM_RETRY,
                     )
