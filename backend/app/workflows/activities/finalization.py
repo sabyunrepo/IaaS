@@ -99,6 +99,7 @@ async def finalize_output(
     """
     from app.services.cached_llm import CachedLLMService
     from app.core.config import settings
+    from app.workflows.utils import run_llm_with_heartbeat
 
     llm = CachedLLMService()
     raw_input = enriched_input.get("raw_input", {})
@@ -127,7 +128,8 @@ async def finalize_output(
         code_analysis=json.dumps(analysis.get("code_analysis", {}), default=str)[:2000],
         linkedin_profile=linkedin_summary,
     )
-    candidate_summary = await llm.run(summary_prompt, activity_name="finalize_candidate_summary")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    candidate_summary = await run_llm_with_heartbeat(llm, summary_prompt, "finalize_candidate_summary", interval=30.0)
 
     # 3. 면접관 가이드
     activity.heartbeat("Generating interviewer guide...")
@@ -137,7 +139,8 @@ async def finalize_output(
         total_questions=len(questions),
         categories=list(set(q.get("category", "") for q in questions)),
     )
-    interviewer_guide = await llm.run(guide_prompt, activity_name="finalize_interviewer_guide")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    interviewer_guide = await run_llm_with_heartbeat(llm, guide_prompt, "finalize_interviewer_guide", interval=30.0)
 
     # 4. 최종 스크립트 조립
     final_script = {

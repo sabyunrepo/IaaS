@@ -8,6 +8,7 @@ from temporalio import activity
 
 from app.core.observability import observe_activity
 from app.services.activity_logger import ActivityLogger
+from app.workflows.utils import run_llm_with_heartbeat
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +121,8 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
         candidates=_format_candidates(candidates),
     )
 
-    result = await llm.run(prompt, activity_name="select_topics")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    result = await run_llm_with_heartbeat(llm, prompt, "select_topics", interval=30.0)
     if isinstance(result, list):
         if alog:
             await alog.result("Topics selected", {
@@ -232,7 +234,8 @@ async def craft_question(
         recommended_probe=recommended_probe if recommended_probe else "",
     )
 
-    result = await llm.run(prompt, activity_name="craft_question")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    result = await run_llm_with_heartbeat(llm, prompt, "craft_question", interval=30.0)
 
     question = result if isinstance(result, dict) else {}
     question.setdefault("question_text", f"[{topic.get('topic')}] 관련 질문")
@@ -280,7 +283,8 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
         output_language=output_language,
         questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
     )
-    result = await llm.run(prompt, activity_name="enhance_terminology")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    result = await run_llm_with_heartbeat(llm, prompt, "enhance_terminology", interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -303,7 +307,8 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
         experience_level=experience_level,
         questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
     )
-    result = await llm.run(prompt, activity_name="craft_evaluation_scenarios")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    result = await run_llm_with_heartbeat(llm, prompt, "craft_evaluation_scenarios", interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -326,7 +331,8 @@ async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict
         experience_level=experience_level,
         questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
     )
-    result = await llm.run(prompt, activity_name="design_follow_ups")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    result = await run_llm_with_heartbeat(llm, prompt, "design_follow_ups", interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -347,7 +353,8 @@ async def generate_interviewer_notes(questions: list[dict], enriched_input: dict
         output_language=output_language,
         questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
     )
-    result = await llm.run(prompt, activity_name="generate_interviewer_notes")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    result = await run_llm_with_heartbeat(llm, prompt, "generate_interviewer_notes", interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -380,7 +387,8 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
         analysis_summary=analysis_summary,
         category_summary=category_summary,
     )
-    result = await llm.run(prompt, activity_name="generate_decision_guide")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    result = await run_llm_with_heartbeat(llm, prompt, "generate_decision_guide", interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -402,7 +410,8 @@ async def revise_questions(questions: list[dict], review_feedback: dict, enriche
         questions_json=json.dumps(questions, ensure_ascii=False, default=str),
         review_feedback=json.dumps(review_feedback, ensure_ascii=False, default=str),
     )
-    result = await llm.run(prompt, activity_name="revise_questions")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    result = await run_llm_with_heartbeat(llm, prompt, "revise_questions", interval=30.0)
     return result if isinstance(result, list) else questions
 
 

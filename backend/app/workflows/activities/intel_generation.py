@@ -27,9 +27,11 @@ def _extract_jd_summary(jd_analysis: dict) -> JDSummary:
             matched=req.get("matched", False),
         ))
 
+    # job_title: 프롬프트에서 추론하도록 수정됨, 방어적 폴백 추가
+    # company_name: null 허용 (subtitle은 빈 문자열로 처리)
     return JDSummary(
-        title=jd_analysis.get("job_title", jd_analysis.get("title", "Position")),
-        subtitle=jd_analysis.get("company_context", jd_analysis.get("subtitle", "")),
+        title=jd_analysis.get("job_title") or jd_analysis.get("title") or "소프트웨어 엔지니어",
+        subtitle=jd_analysis.get("company_context") or jd_analysis.get("company_name") or "",
         requirements=req_matches,
         success_metrics=jd_analysis.get("success_metrics", []),
     )

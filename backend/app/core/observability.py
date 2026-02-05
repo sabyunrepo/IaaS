@@ -1,8 +1,11 @@
 """
 backend/app/core/observability.py
 Langfuse LLM observability — LiteLLM callback + @observe 데코레이터 방식
+
+Structlog 통합:
+- langfuse_trace_context()가 structlog 컨텍스트도 함께 바인딩
+- 로그와 트레이스가 동일한 job_id/phase/activity 컨텍스트 공유
 """
-import logging
 import os
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -10,7 +13,16 @@ from typing import Any
 
 from app.core.config import settings
 
-logger = logging.getLogger(__name__)
+# Lazy import to avoid circular dependency
+def _get_logger():
+    try:
+        from app.core.logging import get_logger
+        return get_logger(__name__)
+    except ImportError:
+        import logging
+        return logging.getLogger(__name__)
+
+logger = _get_logger()
 
 _initialized = False
 _langfuse_client = None
@@ -84,11 +96,15 @@ def langfuse_trace_context(
     phase: str | None = None,
     activity: str | None = None,
 ):
-    """Langfuse 추적 컨텍스트 설정
+    """Langfuse 추적 컨텍스트 설정 + Structlog 컨텍스트 바인딩
+
+    Langfuse와 Structlog 모두에 동일한 컨텍스트를 설정하여
+    로그와 트레이스가 일관된 메타데이터를 공유합니다.
 
     Usage:
         with langfuse_trace_context(job_id="123", phase="question_generation"):
             await llm.run(prompt)
+            logger.info("Processing")  # job_id, phase 자동 포함
     """
     # Save previous values
     prev_job_id = _current_job_id.get()
@@ -102,6 +118,13 @@ def langfuse_trace_context(
         _current_phase.set(phase)
     if activity:
         _current_activity.set(activity)
+
+    # Structlog 컨텍스트도 함께 바인딩
+    try:
+        from app.core.logging import bind_job_context
+        bind_job_context(job_id=job_id, phase=phase, activity=activity)
+    except ImportError:
+        pass  # logging 모듈 미사용 환경
 
     try:
         # Update langfuse context if available
@@ -130,6 +153,17 @@ def langfuse_trace_context(
         _current_job_id.set(prev_job_id)
         _current_phase.set(prev_phase)
         _current_activity.set(prev_activity)
+
+        # Structlog 컨텍스트도 복원
+        try:
+            from app.core.logging import bind_job_context
+            bind_job_context(
+                job_id=prev_job_id,
+                phase=prev_phase,
+                activity=prev_activity,
+            )
+        except ImportError:
+            pass
 
 
 def get_current_trace_metadata() -> dict[str, Any]:
