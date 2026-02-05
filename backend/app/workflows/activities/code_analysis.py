@@ -160,8 +160,12 @@ async def analyze_code(
         all_notables.extend(repo.get("notable_implementations", []))
 
     # Build code analysis result
+    # target_repos 포함: 워크플로우에서 병렬 처리 활성화 기반
     code_analysis_result = {
         "repositories": repositories,
+        "target_repos": target_repos,  # Step 2 병렬 처리용
+        "jd_tech_stack": jd_tech_stack,
+        "candidate_username": candidate_username,
         "combined_tech_stack": list(set(tech for repo in repositories for tech in repo.get("analysis", {}).get("tech_stack", []))),
         "total_patterns": sum(len(repo.get("analysis", {}).get("patterns", [])) for repo in repositories),
         "total_notable_implementations": len(all_notables),

@@ -74,12 +74,26 @@ class CodeAnalyzer:
         total_deletions = 0
 
         try:
+            # Heartbeat helper (Activity 컨텍스트에서만 동작)
+            def _heartbeat(msg: str):
+                try:
+                    from temporalio import activity
+                    activity.heartbeat(msg)
+                except Exception:
+                    pass  # Activity 외부 호출 시 무시
+
+            commit_count = 0
             for commit in Repository(
                 repo_url,
                 since=since,
                 only_authors=[author] if author else None,
                 only_modifications_with_file_types=file_types,
             ).traverse_commits():
+                # 20개 커밋마다 heartbeat (Temporal 타임아웃 방지)
+                commit_count += 1
+                if commit_count % 20 == 0:
+                    _heartbeat(f"PyDriller: processed {commit_count} commits...")
+
                 commits.append({
                     "hash": commit.hash[:8],
                     "msg": commit.msg[:200],
@@ -416,6 +430,13 @@ class CodeAnalyzer:
             "3. Top question candidates for technical interview\n\n"
             + "\n\n".join(context_parts)
         )
+
+        # Heartbeat before LLM call (long-running operation)
+        try:
+            from temporalio import activity
+            activity.heartbeat("LLM analyze_code starting...")
+        except Exception:
+            pass
 
         result = await llm.run(prompt, activity_name="analyze_code")
         if isinstance(result, dict):
