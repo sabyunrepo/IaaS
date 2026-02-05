@@ -37,6 +37,15 @@ T = TypeVar('T', bound=BaseModel)
 GLM_CHAT_MODEL = "zai/glm-4.5-flash"  # 무료 모델
 GLM_CODER_MODEL = "zai/glm-4.7"  # 코드 분석용 플래그십
 
+# Moonshot AI (Kimi) 모델
+# K2: 128K context, MoE 1T params (32B active), $0.06/1M input, $0.18/1M output
+# K2.5: 256K context, vision 지원, $0.06/1M input, $0.18/1M output (권장)
+# 중국어+영어 최적화, 코드 분석/문서 이해에 강점
+KIMI_K2_MODEL = "moonshot/moonshot-v1-128k"  # K2: 128K context
+KIMI_K2_5_MODEL = "moonshot/moonshot-v1-auto"  # K2.5: auto mode (최신, 권장)
+KIMI_CHAT_MODEL = KIMI_K2_5_MODEL  # 기본 채팅용
+KIMI_CODER_MODEL = KIMI_K2_5_MODEL  # 코드 분석용
+
 # Legacy alias (backward compatibility)
 CODE_ANALYSIS_GLM_MODEL = GLM_CODER_MODEL
 
@@ -45,41 +54,41 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     "enrich_input": GLM_CHAT_MODEL,
 
     # Phase 1: Planning
-    "select_topics": "openai:gpt-4o",  # 중요한 의사결정 (토픽 선정)
+    "select_topics": KIMI_CHAT_MODEL,  # Kimi로 교체 (토픽 선정)
 
-    # Phase 2: Analysis
-    "analyze_documents": "openai:gpt-4o",  # 문서 분석 (품질 중요)
-    "analyze_code": GLM_CODER_MODEL,  # 코드 분석 Manager (GLM Coder)
-    "analyze_jd": GLM_CHAT_MODEL,  # JD 분석 (GLM Chat)
+    # Phase 2: Analysis - Kimi K2.5 (128K/256K context, 문서/코드 분석 강점)
+    "analyze_documents": KIMI_CHAT_MODEL,  # 문서 분석 → Kimi
+    "analyze_code": KIMI_CODER_MODEL,  # 코드 분석 Manager → Kimi
+    "analyze_jd": KIMI_CHAT_MODEL,  # JD 분석 → Kimi
 
-    # Phase 2: HYBRID 3-Stage 코드 분석 (GLM Coder 모델)
-    "code_overview_analysis": GLM_CODER_MODEL,      # Stage 1: Overview Agent
-    "code_deep_analysis": GLM_CODER_MODEL,          # Stage 2: Deep Analysis (prefix match)
-    "code_synthesis_analysis": GLM_CODER_MODEL,     # Stage 3: Synthesis Agent
+    # Phase 2: HYBRID 3-Stage 코드 분석 (Kimi Coder 모델)
+    "code_overview_analysis": KIMI_CODER_MODEL,      # Stage 1: Overview Agent
+    "code_deep_analysis": KIMI_CODER_MODEL,          # Stage 2: Deep Analysis (prefix match)
+    "code_synthesis_analysis": KIMI_CODER_MODEL,     # Stage 3: Synthesis Agent
 
-    # Phase 3: Question Generation - 핵심은 GPT-4o, 보조는 GLM
-    "craft_question": "openai:gpt-4o",  # 핵심 질문 생성 (중요)
-    "enhance_terminology": GLM_CHAT_MODEL,  # 용어 설명 추가 (GLM)
-    "craft_evaluation_scenarios": "openai:gpt-4o",  # 평가 시나리오 생성
-    "design_follow_ups": GLM_CHAT_MODEL,  # 후속 질문 설계 (GLM)
-    "generate_interviewer_notes": GLM_CHAT_MODEL,  # 면접관 노트 생성 (GLM)
-    "generate_decision_guide": "openai:gpt-4o",  # 채용 의사결정 가이드
-    "revise_questions": GLM_CHAT_MODEL,  # 질문 수정 (GLM)
+    # Phase 3: Question Generation - Kimi로 교체 (테스트 후 품질 확인)
+    "craft_question": KIMI_CHAT_MODEL,  # 핵심 질문 생성 → Kimi
+    "enhance_terminology": GLM_CHAT_MODEL,  # 용어 설명 추가 (GLM 유지)
+    "craft_evaluation_scenarios": KIMI_CHAT_MODEL,  # 평가 시나리오 → Kimi
+    "design_follow_ups": GLM_CHAT_MODEL,  # 후속 질문 설계 (GLM 유지)
+    "generate_interviewer_notes": GLM_CHAT_MODEL,  # 면접관 노트 (GLM 유지)
+    "generate_decision_guide": KIMI_CHAT_MODEL,  # 채용 의사결정 가이드 → Kimi
+    "revise_questions": GLM_CHAT_MODEL,  # 질문 수정 (GLM 유지)
 
     # Legacy activity names (backward compatibility)
-    "enhance_question": GLM_CHAT_MODEL,  # 질문 개선 (GLM)
-    "generate_expected_answer": "openai:gpt-4o",  # 예상 답변 생성
-    "generate_follow_ups": GLM_CHAT_MODEL,  # 후속 질문 (GLM)
-    "generate_evaluation_rubric": GLM_CHAT_MODEL,  # 평가 기준 (GLM)
-    "generate_interviewer_note": GLM_CHAT_MODEL,  # 인터뷰어 노트 (GLM)
-    "generate_terminology": GLM_CHAT_MODEL,  # 용어 설명 (GLM)
-    "generate_depth_markers": GLM_CHAT_MODEL,  # 깊이 마커 (GLM)
+    "enhance_question": GLM_CHAT_MODEL,  # 질문 개선 (GLM 유지)
+    "generate_expected_answer": KIMI_CHAT_MODEL,  # 예상 답변 → Kimi
+    "generate_follow_ups": GLM_CHAT_MODEL,  # 후속 질문 (GLM 유지)
+    "generate_evaluation_rubric": GLM_CHAT_MODEL,  # 평가 기준 (GLM 유지)
+    "generate_interviewer_note": GLM_CHAT_MODEL,  # 인터뷰어 노트 (GLM 유지)
+    "generate_terminology": GLM_CHAT_MODEL,  # 용어 설명 (GLM 유지)
+    "generate_depth_markers": GLM_CHAT_MODEL,  # 깊이 마커 (GLM 유지)
 
-    # Phase 4: Review & Finalization
-    "quality_review": "openai:gpt-4o",  # 품질 검토 (중요)
-    "finalize_candidate_summary": "openai:gpt-4o",  # 후보자 요약 생성
-    "finalize_interviewer_guide": GLM_CHAT_MODEL,  # 면접관 가이드 (GLM)
-    "finalize_output": GLM_CHAT_MODEL,  # 최종 요약 (GLM)
+    # Phase 4: Review & Finalization - Kimi로 교체
+    "quality_review": KIMI_CHAT_MODEL,  # 품질 검토 → Kimi
+    "finalize_candidate_summary": KIMI_CHAT_MODEL,  # 후보자 요약 → Kimi
+    "finalize_interviewer_guide": GLM_CHAT_MODEL,  # 면접관 가이드 (GLM 유지)
+    "finalize_output": GLM_CHAT_MODEL,  # 최종 요약 (GLM 유지)
 }
 
 
@@ -119,7 +128,7 @@ def _is_native_pydantic_ai_model(model_name: str) -> bool:
     """Check if model is natively supported by pydantic-ai.
 
     Native models: openai, anthropic, gemini, groq, mistral, ollama, vertexai, bedrock
-    Non-native (requires LiteLLM bridge): zai (Z.AI/Zhipu), cohere, ai21, etc.
+    Non-native (requires LiteLLM bridge): zai (Z.AI/Zhipu), moonshot (Kimi), cohere, ai21, etc.
     """
     native_prefixes = (
         "openai:", "openai/",

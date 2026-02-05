@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str | None = None  # Google AI Studio API Key
     DEEPSEEK_API_KEY: str | None = None  # DeepSeek API Key
     ZAI_API_KEY: str | None = None  # Z.AI (Zhipu AI) API Key for GLM models
+    MOONSHOT_API_KEY: str | None = None  # Moonshot AI (Kimi) API Key
     LLM_MODEL: str = "openai:gpt-4o"
     LLM_FALLBACK_MODEL: str = "anthropic:claude-3-5-sonnet-20241022"
     # GLM 모델 (Z.AI - Zhipu AI)
