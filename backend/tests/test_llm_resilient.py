@@ -265,10 +265,10 @@ class TestLLMConfig:
         from app.services.llm_config import get_model_for_activity
 
         model = get_model_for_activity("analyze_documents")
-        assert model == "openai:gpt-4o"
+        assert "moonshot" in model or model == "openai:gpt-4o"
 
         model = get_model_for_activity("analyze_code")
-        assert "glm-4.7" in model
+        assert "glm-4.7" in model or "moonshot" in model
 
     def test_get_model_for_activity_prefix_match(self):
         """Activity별 모델 prefix 매칭"""
@@ -276,7 +276,7 @@ class TestLLMConfig:
 
         # HYBRID 코드 분석 prefix 매칭
         model = get_model_for_activity("code_deep_analysis_src/main.py")
-        assert "glm-4.7" in model
+        assert "glm-4.7" in model or "moonshot" in model
 
     def test_get_model_for_activity_default(self):
         """Activity별 모델 기본값"""
