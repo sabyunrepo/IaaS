@@ -147,7 +147,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
               <button
                 key={q.id}
                 onClick={() => toggleQuestion(q.id)}
-                className={`w-full text-left p-4 rounded-xl border transition-all ${
+                className={`card-hover w-full text-left p-4 rounded-xl border transition-all ${
                   selectedQuestions.has(q.id)
                     ? 'bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200'
                     : 'bg-white border-gray-200 hover:border-gray-300'
@@ -308,7 +308,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
               <button
                 key={scenario.level}
                 onClick={() => handleScenarioSelect(currentQuestion.id, scenario.level, scenario.score)}
-                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                className={`card-hover p-4 rounded-xl border-2 text-left transition-all ${
                   currentScore?.selectedLevel === scenario.level
                     ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200'
                     : 'border-gray-200 hover:border-gray-300'
@@ -340,7 +340,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
               {currentQuestion.follow_ups
                 .filter(fu => fu.trigger === 'any' || fu.trigger === currentScore.selectedLevel)
                 .map((followUp) => (
-                  <div key={followUp.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div key={followUp.id} className="card-hover p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <p className="font-medium text-gray-900 mb-2">{followUp.question_text}</p>
                     <div className="grid sm:grid-cols-2 gap-3 mb-3">
                       <div className="p-2 bg-green-50 rounded-lg border border-green-200">

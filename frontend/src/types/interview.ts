@@ -37,7 +37,7 @@ export interface CompetencyMatch {
   match_label: string
   desc: string
   why: string
-  color: 'emerald' | 'amber' | 'red' | 'gray'
+  color: 'emerald' | 'amber' | 'red' | 'gray' | 'slate'
   icon: string
 }
 
@@ -81,7 +81,7 @@ export interface EngineeringDNAItem {
   label: string
   value: number
   display: string
-  color: 'emerald' | 'blue' | 'amber' | 'red' | 'gray'
+  color: 'emerald' | 'blue' | 'amber' | 'red' | 'gray' | 'slate'
   note?: string
   tooltip?: string
 }

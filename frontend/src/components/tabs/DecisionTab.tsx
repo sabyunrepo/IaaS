@@ -1,6 +1,7 @@
 /**
  * DecisionTab - JD Competency Achievement + Hiring Recommendation
  */
+import { useState } from 'react'
 import type { DecisionSupport, Candidate, CategoryWeights } from '../../types/interview'
 
 interface DecisionTabProps {
@@ -30,6 +31,7 @@ export function DecisionTab({
   }
 
   const recommendation = getRecommendation()
+  const [guideExpanded, setGuideExpanded] = useState(false)
 
   return (
     <div className="space-y-6">
@@ -81,7 +83,7 @@ export function DecisionTab({
 
         <div className="grid sm:grid-cols-2 gap-6">
           {/* Strengths */}
-          <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+          <div className="card-hover p-4 bg-emerald-50 rounded-xl border border-emerald-200">
             <h4 className="font-semibold text-emerald-900 mb-3 flex items-center gap-2">
               <span>✅</span> 강점
             </h4>
@@ -96,7 +98,7 @@ export function DecisionTab({
           </div>
 
           {/* Concerns */}
-          <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+          <div className="card-hover p-4 bg-amber-50 rounded-xl border border-amber-200">
             <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
               <span>⚠️</span> 우려 사항
             </h4>
@@ -124,7 +126,7 @@ export function DecisionTab({
 
           <div className="space-y-4">
             {jd_competency_map.map((comp, i) => (
-              <div key={i} className="p-4 bg-gray-50 rounded-lg">
+              <div key={i} className="card-hover p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-gray-900">{comp.competency}</span>
                   <span className="text-sm text-indigo-600 font-semibold">
@@ -172,14 +174,24 @@ export function DecisionTab({
       )}
 
       {/* Interviewer Guide Tips */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+        <button
+          onClick={() => setGuideExpanded(!guideExpanded)}
+          className="w-full p-6 flex items-center justify-between text-left"
+        >
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            면접관 가이드
+          </h3>
+          <svg className={`w-5 h-5 text-gray-400 transition-transform ${guideExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-          면접관 가이드
-        </h3>
+        </button>
 
+        {guideExpanded && (
+        <div className="px-6 pb-6 space-y-6 animate-fadeIn">
         {/* Interview Flow */}
         {interviewer_guide.interview_flow && (
           <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
@@ -268,6 +280,8 @@ export function DecisionTab({
             </div>
           )}
         </div>
+        </div>
+        )}
       </div>
     </div>
   )

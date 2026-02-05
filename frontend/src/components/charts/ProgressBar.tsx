@@ -10,7 +10,7 @@ interface ProgressBarProps {
   /** Display text (e.g., "82%", "우수", "미확인") */
   display: string
   /** Color variant */
-  color: 'emerald' | 'blue' | 'amber' | 'red' | 'gray'
+  color: 'emerald' | 'blue' | 'amber' | 'red' | 'gray' | 'slate'
   /** Optional note text */
   note?: string
   /** Optional tooltip text */
@@ -47,6 +47,12 @@ const colorMap = {
     fill: 'bg-gray-400',
     text: 'text-gray-600',
     border: 'border-gray-200'
+  },
+  slate: {
+    bg: 'bg-slate-100',
+    fill: 'bg-slate-500',
+    text: 'text-slate-700',
+    border: 'border-slate-200'
   }
 }
 
@@ -89,9 +95,9 @@ export function ProgressBar({
         <span className={`text-sm font-semibold ${colors.text}`}>{display}</span>
       </div>
 
-      <div className={`h-2.5 rounded-full ${colors.bg} overflow-hidden`}>
+      <div className={`h-2.5 rounded-full ${colors.bg} overflow-hidden group`}>
         <div
-          className={`h-full rounded-full ${colors.fill} transition-all duration-500 ease-out`}
+          className={`h-full rounded-full ${colors.fill} transition-all duration-500 ease-out hover:brightness-110`}
           style={{ width: `${Math.min(value, 100)}%` }}
         />
       </div>
@@ -114,7 +120,7 @@ interface ProgressBarGroupProps {
     label: string
     value: number
     display: string
-    color: 'emerald' | 'blue' | 'amber' | 'red' | 'gray'
+    color: 'emerald' | 'blue' | 'amber' | 'red' | 'gray' | 'slate'
     note?: string
     tooltip?: string
   }>

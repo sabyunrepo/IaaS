@@ -104,6 +104,7 @@ export function RadarChart({
           stroke="#6366f1"
           strokeWidth={2}
           strokeDasharray="4 2"
+          style={{ transition: 'all 0.4s ease' }}
         />
 
         {/* Candidate polygon (foreground) */}
@@ -112,21 +113,37 @@ export function RadarChart({
           fill="rgba(16, 185, 129, 0.3)"
           stroke="#10b981"
           strokeWidth={2}
+          style={{ transition: 'all 0.4s ease' }}
         />
 
-        {/* Data points */}
+        {/* Data points with hover tooltip */}
         {candidateData.map((value, i) => {
           const point = getPoint(value, i)
           return (
-            <circle
-              key={i}
-              cx={point.x}
-              cy={point.y}
-              r={4}
-              fill="#10b981"
-              stroke="white"
-              strokeWidth={2}
-            />
+            <g key={i}>
+              {/* Larger invisible hit area for hover */}
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={10}
+                fill="transparent"
+                style={{ cursor: 'pointer' }}
+              >
+                <title>{labels[i]}: {value} (요구: {requiredData[i]})</title>
+              </circle>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={4}
+                fill="#10b981"
+                stroke="white"
+                strokeWidth={2}
+                style={{ transition: 'r 0.2s ease' }}
+                className="hover:r-6"
+              >
+                <title>{labels[i]}: {value} (요구: {requiredData[i]})</title>
+              </circle>
+            </g>
           )
         })}
 

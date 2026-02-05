@@ -97,7 +97,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
           </h3>
           <div className="space-y-3">
             {risk_flags.map((flag, i) => (
-              <div key={i} className="bg-white rounded-lg p-4 border border-red-200">
+              <div key={i} className="card-hover bg-white rounded-lg p-4 border border-red-200">
                 <div className="font-medium text-red-900">{flag.label}</div>
                 <div className="text-sm text-red-700 mt-1">{flag.detail}</div>
               </div>
@@ -129,7 +129,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {skill_table.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
+                  <tr key={i} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.skill}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{row.candidate}</td>
                     <td className="px-6 py-4">
