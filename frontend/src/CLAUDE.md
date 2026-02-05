@@ -17,3 +17,34 @@
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
 | #1057 | 1:27 AM | 🟣 | CreateJobPage Enhanced with Comprehensive Candidate Input Fields | ~692 |
 </claude-mem-context>
+
+# frontend/src/
+
+React 앱 소스코드.
+
+## 디렉토리 구조
+
+```
+src/
+├── components/     # 공통 UI 컴포넌트 (Layout, ErrorBoundary, QuestionCard 등)
+├── hooks/          # 커스텀 훅 (useAuth, useJob)
+├── lib/            # API 클라이언트 (api.ts)
+├── pages/          # 라우트별 페이지 컴포넌트
+├── types/          # TypeScript 타입 정의
+├── i18n.ts         # 다국어 설정
+├── App.tsx         # 라우팅 + 코드 스플리팅
+└── main.tsx        # React 18+ 엔트리포인트
+```
+
+## 인증 흐름
+
+1. `useAuth` 훅: `/auth/me` API로 사용자 정보 조회
+2. `api.ts`: `localStorage`에 JWT 토큰 저장 (`vantict_access_token`)
+3. 401 응답 시 자동 로그아웃 + `/login` 리다이렉트
+4. `clearToken()`: 로그아웃 시 메모리 + localStorage 모두 정리
+
+## 코드 스플리팅
+
+`App.tsx`에서 `React.lazy()` + `Suspense`로 8개 페이지 lazy loading:
+- LoginPage, JobListPage, CreateJobPage, JobStatusPage
+- ResultPage, AnalysisLogsPage, NotFoundPage, AuthCallbackPage

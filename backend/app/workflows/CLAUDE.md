@@ -16,4 +16,35 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
+
+### Feb 6, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #2596 | 5:27 AM | 🔵 | Workflow Orchestrates 4-Phase Pipeline with v2 Intel/Analysis Generation | ~884 |
 </claude-mem-context>
+
+# backend/app/workflows/
+
+Temporal 워크플로우 오케스트레이션.
+
+## 구조
+
+| 파일 | 역할 |
+|------|------|
+| `interview_workflow.py` | 메인 워크플로우 — 4-Phase 파이프라인 |
+| `utils.py` | `run_llm_with_heartbeat()` 등 헬퍼 |
+| `activities/` | 16개 Activity 함수 (아래 참조) |
+
+## 워크플로우 파이프라인
+
+Phase 0: JD 분석 + 문서 파싱 → Phase 1: 코드/LinkedIn 분석 (병렬)
+→ Phase 2: 질문 생성 (Knowledge Graph 우선) → Phase 3: Intel/Deep Analysis/Decision
+→ Phase 4: Finalization (면접 스크립트 조립)
+
+## LLM 호출 패턴
+
+모든 Activity에서 `CachedLLMService` 사용:
+- `run()`: 글로벌 캐시 (`llm_cache:activity_name:hash`)
+- `run_for_job()`: 잡 스코프 캐시 (`llm_cache:job:id:activity_name:hash`)
+- `LLM_CACHE_ENABLED=false` 시 캐시 완전 바이패스

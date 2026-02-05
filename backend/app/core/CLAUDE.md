@@ -23,3 +23,41 @@
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
 </claude-mem-context>
+
+# backend/app/core/
+
+핵심 설정, 인프라 연결, 보안 모듈.
+
+## 주요 파일
+
+| 파일 | 역할 |
+|------|------|
+| `config.py` | Pydantic Settings 기반 전체 설정 관리 |
+| `database.py` | AsyncPG 엔진 + 커넥션 풀 설정 |
+| `rate_limit.py` | SlowAPI 기반 Redis 분산 Rate Limiting |
+| `logging.py` | Structlog 기반 구조화 로깅 |
+| `observability.py` | Langfuse 통합 |
+| `temporal.py` | Temporal 클라이언트 싱글톤 |
+
+## config.py 주요 설정 (Issue #77 추가분)
+
+```python
+LLM_CACHE_ENABLED: bool = True     # LLM 응답 캐싱 on/off
+DB_POOL_SIZE: int = 10             # DB 커넥션 풀 크기
+DB_MAX_OVERFLOW: int = 20          # 초과 허용 커넥션
+INTERNAL_API_TOKEN: str            # Worker↔Backend 내부 인증
+```
+
+- `has_secure_secrets` 프로퍼티: 프로덕션 환경에서 dev 기본 시크릿 사용 여부 검증
+
+## database.py 풀 설정
+
+```python
+pool_size=settings.DB_POOL_SIZE      # 기본 10
+max_overflow=settings.DB_MAX_OVERFLOW # 기본 20
+pool_recycle=3600                     # 1시간마다 커넥션 재생성
+```
+
+## rate_limit.py
+
+- `storage_uri=settings.REDIS_URL` → Redis 기반 분산 Rate Limiting (멀티 인스턴스 지원)

@@ -15,3 +15,48 @@
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
 </claude-mem-context>
+
+# Backend
+
+FastAPI + Temporal.io 기반 AI 면접 스크립트 생성 백엔드.
+
+## 디렉토리 구조
+
+```
+app/
+├── api/routes/     # REST API 엔드포인트
+├── core/           # 설정, DB, 보안, 로깅
+├── models/         # Pydantic 데이터 모델
+├── prompts/        # LLM 프롬프트 YAML
+├── services/       # 비즈니스 로직 (LLM 캐시, 라우터)
+└── workflows/      # Temporal 워크플로우 + Activity
+    └── activities/ # 16개 Activity 함수
+```
+
+## 아키텍처 감사 (Issue #77) 적용 현황
+
+| Phase | 내용 | PR |
+|-------|------|-----|
+| Phase 1 | 보안 강화: 시크릿 검증, Redis 인증, 내부 API 토큰 | #78 |
+| Phase 2 | 캐시 키 재설계: Activity 컨텍스트 + LLM_CACHE_ENABLED | #79 |
+| Phase 3 | DB 풀 확장, Redis Rate Limiting, 의존성 버전 정리 | #80 |
+| Phase 5 | 보안 헤더 미들웨어 (X-Content-Type-Options, X-Frame-Options) | #82 |
+
+## 주요 환경변수 (Phase 1-3 추가분)
+
+```
+LLM_CACHE_ENABLED=true       # LLM 캐시 on/off
+DB_POOL_SIZE=10               # DB 커넥션 풀
+DB_MAX_OVERFLOW=20            # 초과 허용 커넥션
+INTERNAL_API_TOKEN=...        # Worker↔Backend 내부 인증
+REDIS_PASSWORD=...            # Redis 인증
+```
+
+## 테스트
+
+```bash
+.venv/bin/python -m pytest tests/ -x --tb=short
+```
+
+- 로컬 venv에 `slowapi` 미설치로 rate_limit 관련 5개 테스트 실패 (pre-existing)
+- Docker 환경에서는 전체 통과

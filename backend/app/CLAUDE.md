@@ -8,4 +8,36 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
+
+### Feb 6, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #2595 | 5:26 AM | 🔵 | Worker Registration Confirms v2 Activities Already Integrated | ~687 |
 </claude-mem-context>
+
+# backend/app/
+
+FastAPI 애플리케이션 패키지.
+
+## 모듈 구조
+
+| 디렉토리 | 역할 |
+|----------|------|
+| `api/routes/` | REST API 엔드포인트 |
+| `core/` | 설정, DB, Rate Limiting, 로깅 |
+| `models/` | Pydantic 데이터 모델 (v1/v2 dual format) |
+| `prompts/` | LLM 프롬프트 YAML (6개 파일) |
+| `services/` | 비즈니스 로직 (캐시, 라우터) |
+| `workflows/` | Temporal 워크플로우 (4-Phase 파이프라인) |
+| `workflows/activities/` | 16개 Activity 함수 |
+
+## main.py (Issue #77 변경사항)
+
+- 프로덕션 시크릿 검증 경고 (Phase 1)
+- Redis 연결 풀 shutdown (Phase 2)
+- 보안 헤더 미들웨어: `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection` (Phase 5)
+
+## worker.py
+
+32개 Activity 함수 등록. 새 Activity 추가 시 반드시 여기에 등록.

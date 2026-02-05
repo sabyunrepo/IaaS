@@ -23,4 +23,39 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
+
+### Feb 6, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #2626 | 5:35 AM | 🔵 | Test Fixtures Provide Comprehensive Sample Data for All Workflow Phases | ~783 |
 </claude-mem-context>
+
+# backend/tests/
+
+pytest 기반 테스트 스위트.
+
+## 실행 방법
+
+```bash
+# 전체 테스트
+.venv/bin/python -m pytest tests/ -x --tb=short
+
+# 캐시 + Rate Limit 테스트
+.venv/bin/python -m pytest tests/test_cache_and_quotas.py -v
+```
+
+## Issue #77 Phase 2 추가 테스트
+
+`test_cache_and_quotas.py`에 3개 테스트 클래스 추가:
+
+| 클래스 | 테스트 수 | 검증 내용 |
+|--------|----------|----------|
+| `TestCacheKeyWithActivityName` | 5 | activity_name 포함 캐시 키 포맷 |
+| `TestLLMCacheEnabled` | 2 | LLM_CACHE_ENABLED 설정 존재 및 기본값 |
+| `TestRedisConnectionPool` | 2 | 공유 Redis 풀 함수 존재 |
+
+## 알려진 이슈
+
+- `slowapi` 미설치 시 `TestRateLimitKeyFunc` 5개 테스트 실패 (로컬 venv)
+- `test_models.py`, `test_workflow.py` 등 일부 모듈은 의존성 부족으로 collection error

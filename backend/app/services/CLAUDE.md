@@ -24,3 +24,51 @@
 | #1108 | 2:04 AM | 🔵 | Code Analyzer Service Implements Multi-Language AST Analysis Pipeline | ~1094 |
 | #1107 | " | 🔵 | GitHub Service Implementation for Repository Analysis | ~860 |
 </claude-mem-context>
+
+# backend/app/services/
+
+비즈니스 로직 서비스 레이어.
+
+## 주요 파일
+
+| 파일 | 역할 |
+|------|------|
+| `cached_llm.py` | LLM 응답 캐싱 + 모델 폴백 체인 |
+| `llm_router.py` | 멀티 프로바이더 LLM 라우팅 |
+| `activity_logger.py` | Temporal Activity 로그 → Backend HTTP 전송 |
+| `github_service.py` | GitHub 레포지토리 분석 |
+| `code_analyzer.py` | 멀티 언어 AST 분석 파이프라인 |
+
+## CachedLLMService (cached_llm.py)
+
+### 캐시 키 설계 (Issue #77 Phase 2)
+
+```
+글로벌: llm_cache:{activity_name}:{SHA256(model:prompt)}
+잡스코프: llm_cache:job:{job_id}:{activity_name}:{SHA256(model:prompt)}
+activity_name 없으면: llm_cache:{SHA256(model:prompt)}
+```
+
+### 환경변수 제어
+
+- `LLM_CACHE_ENABLED=true`: Redis 캐시 읽기/쓰기 활성화 (기본값)
+- `LLM_CACHE_ENABLED=false`: 캐시 완전 비활성화 (LLM 직접 호출)
+
+### Redis 연결 풀
+
+- `_redis_pool`: 모듈 레벨 싱글톤 (max_connections=20)
+- `_get_shared_redis()`: 전역 풀 반환 함수
+- `main.py` shutdown에서 `_redis_pool.aclose()` 호출
+
+### 호출 메서드
+
+| 메서드 | 용도 |
+|--------|------|
+| `run()` | 기본 캐싱 + 폴백 체인 |
+| `run_for_job()` | 잡 스코프 캐싱 (잡별 무효화 가능) |
+| `run_with_prompt_config()` | Langfuse 프롬프트 버전 연동 |
+| `invalidate_for_job()` | 잡별 캐시 삭제 |
+
+### activity_logger.py
+
+- `X-Internal-Token` 헤더로 내부 API 인증 (Phase 1)

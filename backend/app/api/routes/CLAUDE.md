@@ -9,3 +9,25 @@
 |----|------|---|-------|------|
 | #458 | 3:59 PM | 🟣 | Rate Limiting Infrastructure Added to Jobs API | ~303 |
 </claude-mem-context>
+
+# backend/app/api/routes/
+
+REST API 엔드포인트.
+
+## 주요 라우터
+
+| 파일 | 프리픽스 | 역할 |
+|------|----------|------|
+| `auth.py` | `/auth` | OAuth 인증 (Google, GitHub) |
+| `jobs.py` | `/api/v1/jobs` | Job CRUD + Temporal 워크플로우 시작 |
+| `upload.py` | `/api/v1/upload` | 파일 업로드 (이력서, 포트폴리오, 50MB 제한) |
+| `ws.py` | `/ws` | WebSocket 실시간 Job 진행률 |
+| `analysis_logs.py` | `/api/v1` | 분석 로그 조회 |
+| `internal.py` | `/internal` | Worker↔Backend 내부 API |
+| `evals.py` | `/api/v1/evals` | Phoenix 평가 (optional) |
+
+## internal.py 인증 (Issue #77 Phase 1)
+
+- `verify_internal_token` 의존성: `X-Internal-Token` 헤더 검증
+- 로컬 환경에서는 인증 스킵 (`settings.is_local`)
+- Worker의 `activity_logger.py`가 이 토큰을 자동으로 전송

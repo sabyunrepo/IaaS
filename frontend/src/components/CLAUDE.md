@@ -18,4 +18,24 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
+
+### Feb 6, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #2607 | 5:29 AM | 🔵 | QuestionCard Implements Revision Tracking and Confidence Scoring | ~704 |
 </claude-mem-context>
+
+# frontend/src/components/
+
+공통 UI 컴포넌트.
+
+## 주요 컴포넌트
+
+| 파일 | 역할 |
+|------|------|
+| `Layout.tsx` | 전체 레이아웃 (Navbar + Outlet) |
+| `ErrorBoundary.tsx` | React 에러 바운더리 |
+| `QuestionCard.tsx` | 면접 질문 카드 (v1/v2 dual schema, 리비전 추적, 신뢰도 점수) |
+| `charts/` | 레이더 차트 등 시각화 |
+| `tabs/` | ResultPage 탭 컴포넌트 |

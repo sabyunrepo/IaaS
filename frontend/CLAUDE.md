@@ -14,4 +14,44 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
+
+### Feb 6, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #2619 | 5:33 AM | 🔵 | Vite Configuration Enables Development API Proxy | ~494 |
+| #2611 | 5:31 AM | 🔵 | Frontend Stack Uses Modern React 19 with Vite and Playwright E2E Testing | ~633 |
 </claude-mem-context>
+
+# Frontend
+
+Vite + React 19 + Tailwind CSS + react-i18next 기반 SPA.
+
+## 빌드
+
+```bash
+cd frontend && npm run build    # tsc -b && vite build
+cd frontend && npx tsc --noEmit # 타입 체크만
+```
+
+## Issue #77 Phase 4 적용 현황 (PR #81)
+
+### 토큰 영속화 (`src/lib/api.ts`)
+- `localStorage` 기반 토큰 저장 → 새로고침 시 로그인 유지
+- `setToken()`, `getToken()`, `clearToken()` 통합 관리
+
+### 코드 스플리팅 (`src/App.tsx`)
+- `React.lazy()` + `Suspense` 로 페이지별 청크 분리
+- 8개 페이지 모두 lazy loading 적용
+- `.then(m => ({ default: m.ComponentName }))` 패턴 (named export 호환)
+
+### 빌드 결과 (청크 분리 확인)
+```
+index.js              295KB  (코어 번들)
+ResultPage.js          70KB  (가장 큰 페이지)
+CreateJobPage.js       13KB
+JobStatusPage.js       12KB
+AnalysisLogsPage.js     9KB
+JobListPage.js          8KB
+LoginPage.js            5KB
+```

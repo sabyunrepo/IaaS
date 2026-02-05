@@ -26,4 +26,27 @@
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
 | #1057 | 1:27 AM | 🟣 | CreateJobPage Enhanced with Comprehensive Candidate Input Fields | ~692 |
+
+### Feb 6, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #2608 | 5:29 AM | 🔵 | ResultPage Implements Adaptive v1/v2 Tab Navigation | ~810 |
 </claude-mem-context>
+
+# frontend/src/pages/
+
+라우트별 페이지 컴포넌트. 모두 `React.lazy()`로 코드 스플리팅 적용 (Issue #77 Phase 4).
+
+## 페이지 목록
+
+| 파일 | 라우트 | 역할 |
+|------|--------|------|
+| `LoginPage.tsx` | `/login` | OAuth 로그인 (Google, GitHub) |
+| `AuthCallbackPage.tsx` | `/auth/callback` | OAuth 콜백 처리 |
+| `JobListPage.tsx` | `/jobs` | Job 목록 + 상태 배지 + 페이지네이션 |
+| `CreateJobPage.tsx` | `/jobs/new` | 새 Job 생성 폼 (JD, 이력서, 포트폴리오) |
+| `JobStatusPage.tsx` | `/jobs/:jobId` | Job 실시간 진행률 표시 |
+| `ResultPage.tsx` | `/jobs/:jobId/result` | 면접 스크립트 결과 (v1/v2 4탭 뷰) |
+| `AnalysisLogsPage.tsx` | `/jobs/:jobId/logs` | 분석 로그 조회 |
+| `NotFoundPage.tsx` | `*` | 404 페이지 |

@@ -21,4 +21,33 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
+
+### Feb 6, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #2606 | 5:29 AM | 🔵 | Question Generation Prioritizes Knowledge Graph Candidates | ~663 |
+| #2594 | 5:26 AM | 🔵 | Finalization Activity Assembles Interview Script | ~602 |
 </claude-mem-context>
+
+# backend/app/workflows/activities/
+
+Temporal Activity 함수 (16개). 모두 `@activity.defn` 데코레이터 사용.
+
+## 주요 Activity
+
+| 파일 | 역할 |
+|------|------|
+| `jd_analysis.py` | JD 분석 + 직무 요약 |
+| `document_analysis.py` | 이력서/포트폴리오 파싱 |
+| `code_analysis.py` | 4-Phase 코드 분석 파이프라인 (GLM 최적화) |
+| `question_generation.py` | 면접 질문 생성 (KG 우선 부스팅) |
+| `intel_generation.py` | Intel Brief 생성 (역량 매칭) |
+| `analysis_generation.py` | Deep Analysis (레이더 차트 계산) |
+| `finalization.py` | 면접 스크립트 최종 조립 |
+
+## 필수 패턴
+
+- 긴 작업(>30s): `activity.heartbeat()` 필수
+- LLM 호출: `CachedLLMService` + `run_llm_with_heartbeat()` 래퍼
+- `worker.py`에 새 Activity 등록 필수

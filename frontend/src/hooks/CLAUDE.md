@@ -15,4 +15,27 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
+
+### Feb 6, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #2610 | 5:30 AM | 🔵 | useJob Hook Provides Job Management API Interface | ~182 |
 </claude-mem-context>
+
+# frontend/src/hooks/
+
+커스텀 React 훅.
+
+## 주요 훅
+
+| 파일 | 역할 |
+|------|------|
+| `useAuth.ts` | OAuth 인증 상태 관리 (user, loading, logout, isAuthenticated) |
+| `useJob.ts` | Job CRUD API 인터페이스 |
+
+## useAuth (Issue #77 Phase 4 수정)
+
+- `clearToken()` 함수 사용으로 로그아웃 로직 통일
+- `fetchUser()`: 토큰 있으면 `/auth/me` 호출하여 사용자 정보 로드
+- URL 파라미터에서 토큰 추출 → `setToken()` → URL 정리
