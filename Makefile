@@ -18,7 +18,7 @@ tunnel-logs:
 # Main Services
 # ============================================
 up:
-	docker compose up -d
+	docker compose --profile worker up -d
 	@echo "Services starting..."
 	@echo "Backend:     http://localhost:8000"
 	@echo "Temporal UI: http://localhost:8080"
@@ -26,7 +26,7 @@ up:
 	@echo "API Docs:    http://localhost:8000/docs"
 
 down:
-	docker compose down
+	docker compose --profile worker down
 
 logs:
 	docker compose logs -f $(service)
@@ -38,6 +38,6 @@ shell:
 	docker compose exec backend bash
 
 rebuild:
-	docker compose down -v
+	docker compose --profile worker down -v
 	docker compose build --no-cache
-	docker compose up -d
+	docker compose --profile worker up -d

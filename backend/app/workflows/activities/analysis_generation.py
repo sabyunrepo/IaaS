@@ -162,8 +162,18 @@ def _build_skill_table(
     rows = []
 
     jd_requirements = jd_analysis.get("requirements", [])
-    candidate_skills = document_analysis.get("profile", {}).get("skills", [])
-    code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
+    raw_candidate_skills = document_analysis.get("profile", {}).get("skills", [])
+    raw_code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
+
+    # skills가 dict인 경우 키만 추출 (list/dict 모두 지원)
+    candidate_skills = (
+        list(raw_candidate_skills.keys()) if isinstance(raw_candidate_skills, dict)
+        else list(raw_candidate_skills) if raw_candidate_skills else []
+    )
+    code_skills = (
+        list(raw_code_skills.keys()) if isinstance(raw_code_skills, dict)
+        else list(raw_code_skills) if raw_code_skills else []
+    )
 
     all_candidate_skills = set(s.lower() for s in candidate_skills + code_skills)
 

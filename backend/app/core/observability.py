@@ -56,13 +56,16 @@ def setup_langfuse() -> bool:
     try:
         import litellm
 
-        litellm.success_callback = ["langfuse"]
-        litellm.failure_callback = ["langfuse"]
+        # Langfuse 3.x 호환을 위해 langfuse_otel (OpenTelemetry 기반) 사용
+        # 참고: https://docs.litellm.ai/docs/observability/langfuse_otel_integration
+        litellm.callbacks = ["langfuse_otel"]
 
         # LiteLLM reads these env vars automatically, but set explicitly
         os.environ.setdefault("LANGFUSE_PUBLIC_KEY", settings.LANGFUSE_PUBLIC_KEY)
         os.environ.setdefault("LANGFUSE_SECRET_KEY", settings.LANGFUSE_SECRET_KEY)
         os.environ.setdefault("LANGFUSE_HOST", settings.LANGFUSE_HOST)
+        # langfuse_otel은 LANGFUSE_OTEL_HOST 환경 변수 사용
+        os.environ.setdefault("LANGFUSE_OTEL_HOST", settings.LANGFUSE_HOST)
 
         # Initialize Langfuse client for @observe decorator
         get_langfuse_client()
