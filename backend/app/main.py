@@ -2,7 +2,6 @@
 backend/app/main.py
 FastAPI 애플리케이션
 """
-import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -14,6 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import settings
 from app.core.rate_limit import limiter
+from app.core.logging import setup_logging, get_logger
 from app.exceptions import VantictBaseError
 from app.api.health import router as health_router
 from app.api.routes.auth import router as auth_router
@@ -31,8 +31,9 @@ except ImportError:
     evals_router = None
     EVALS_AVAILABLE = False
 
-logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
-logger = logging.getLogger(__name__)
+# Structlog 기반 구조화 로깅 설정
+setup_logging()
+logger = get_logger(__name__)
 
 
 @asynccontextmanager

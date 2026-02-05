@@ -8,15 +8,15 @@ HYBRID 3-Stage Multi-Agent 아키텍처 지원:
 - Stage 3: Synthesis Agent (분석 결과 종합)
 """
 import asyncio
-import logging
 
 from temporalio import activity
 
 from app.core.config import settings
 from app.core.observability import observe_activity
+from app.core.logging import get_logger, JobContextMiddleware
 from app.services.activity_logger import ActivityLogger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # GLM 모델 (비용 최적화)
 # settings.GLM_CODER_MODEL 사용 (기본값: zai/glm-4.7)

@@ -2,14 +2,13 @@
 backend/app/workflows/activities/jd_analysis.py
 채용공고(JD) 분석 Activity
 """
-import logging
-
 from temporalio import activity
 
 from app.core.observability import observe_activity
+from app.core.logging import get_logger, JobContextMiddleware
 from app.services.activity_logger import ActivityLogger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @activity.defn
@@ -23,6 +22,7 @@ async def analyze_jd(jd_text: str, job_id: str | None = None) -> dict:
     3. 회사 문화 추출
     """
     from app.services.cached_llm import CachedLLMService
+    from app.workflows.utils import run_llm_with_heartbeat
 
     # Initialize activity logger
     alog = ActivityLogger(job_id, "jd_analysis", "analyzing") if job_id else None
@@ -42,7 +42,8 @@ async def analyze_jd(jd_text: str, job_id: str | None = None) -> dict:
     if alog:
         await alog.progress("Extracting requirements with LLM", {})
 
-    result = await llm.run(prompt, activity_name="analyze_jd")
+    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    result = await run_llm_with_heartbeat(llm, prompt, "analyze_jd", interval=30.0)
 
     activity.heartbeat("JD analysis LLM call completed")
 
@@ -84,9 +85,19 @@ async def analyze_jd(jd_text: str, job_id: str | None = None) -> dict:
             kg = get_knowledge_graph(job_id)
             extraction_result = await kg.extract_and_store_jd_entities(jd_result)
             kg_entity_count = len(extraction_result.entities)
-            logger.info(f"Extracted {kg_entity_count} KG entities from JD for job {job_id}")
+            # Structlog 구조화 로깅: key=value 형식
+            with JobContextMiddleware(job_id=job_id, activity="analyze_jd"):
+                logger.info(
+                    "kg_entities_extracted",
+                    entity_count=kg_entity_count,
+                    job_title=jd_result.get("job_title"),
+                )
         except Exception as e:
-            logger.warning(f"KG extraction failed (non-fatal): {e}")
+            logger.warning(
+                "kg_extraction_failed",
+                error=str(e),
+                job_id=job_id,
+            )
 
     # Log final result
     if alog:
