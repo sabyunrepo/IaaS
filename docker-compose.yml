@@ -13,6 +13,16 @@ services:
       - VITE_BACKEND_URL=${FRONTEND_BACKEND_URL:-http://localhost:8000}
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     networks:
       - iaas_internal
       - cloudflare_tunnel  # Cloudflare 터널에서 접근 가능
@@ -76,6 +86,16 @@ services:
         condition: service_started
       phoenix:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     networks:
       - iaas_internal
@@ -123,6 +143,11 @@ services:
       - backend
       - temporal
       - phoenix
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     command: python -m app.worker
     networks:
       - iaas_internal
@@ -161,6 +186,16 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-redis_dev_password}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_dev_password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     networks:
       - iaas_internal
     ports:
@@ -186,6 +221,16 @@ services:
         condition: service_healthy
     volumes:
       - ./config/temporal:/etc/temporal/config/dynamicconfig
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     networks:
       - iaas_internal
     ports:
@@ -200,6 +245,11 @@ services:
       - TEMPORAL_CORS_ORIGINS=http://localhost:5173
     depends_on:
       - temporal
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     networks:
       - iaas_internal
     ports:
@@ -219,6 +269,11 @@ services:
       - PHOENIX_ENABLE_AUTH=false
     volumes:
       - phoenix_data:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     networks:
       - iaas_internal
     ports:
