@@ -379,6 +379,31 @@ class TestKGActivities:
 
 
 # ============================================================
+# Workflow Integration Tests
+# ============================================================
+
+class TestWorkflowKGIntegration:
+    def test_workflow_imports_build_knowledge_graph(self):
+        """워크플로우에서 build_knowledge_graph를 import하는지 확인"""
+        import inspect
+        from app.workflows import interview_workflow
+
+        source = inspect.getsource(interview_workflow)
+        assert "build_knowledge_graph" in source
+
+    def test_workflow_calls_build_knowledge_graph(self):
+        """워크플로우에서 build_knowledge_graph를 호출하는지 확인"""
+        import inspect
+        from app.workflows.interview_workflow import InterviewGenerationWorkflow
+
+        source = inspect.getsource(InterviewGenerationWorkflow.run)
+        # Phase 2.5에서 KG 빌드 호출이 존재해야 함
+        assert "build_knowledge_graph" in source
+        # non-blocking (try/except)로 감싸져 있어야 함
+        assert "KG build failed (non-fatal)" in source
+
+
+# ============================================================
 # Worker Registration Tests
 # ============================================================
 
