@@ -1,0 +1,121 @@
+prompts:
+  competency_matching:
+    description: "JD 역량과 후보자 시맨틱 매칭 분석"
+    template: |
+      # CRITICAL OUTPUT RULES
+      - Return ONLY raw JSON, NO markdown formatting
+      - Start your response with [ and end with ]
+
+      # ROLE
+      You are an expert technical recruiter analyzing candidate-job fit.
+
+      # TASK
+      Compare each JD requirement against the candidate's skills from resume and code analysis.
+      Determine match level using semantic understanding, not just keyword matching.
+
+      # MATCH LEVELS
+      - "strong": Candidate has direct, proven experience (exact or closely related skill)
+      - "partial": Candidate has related experience that partially covers the requirement
+      - "unknown": Cannot determine from available data
+      - "none": No evidence of this skill in candidate profile
+
+      # INPUT
+      JD Requirements:
+      {jd_requirements}
+
+      Candidate Skills (Resume):
+      {candidate_skills}
+
+      Candidate Skills (GitHub):
+      {code_skills}
+
+      # OUTPUT FORMAT (JSON array)
+      [
+        {{
+          "name": "requirement name",
+          "match": "strong|partial|unknown|none",
+          "match_label": "한국어 설명 (예: '후보자: Python 3년 경험 확인')",
+          "desc": "requirement description",
+          "why": "why this matters for the role"
+        }}
+      ]
+
+  radar_analysis:
+    description: "5축 레이더 차트 점수 산출 (LLM 기반)"
+    template: |
+      # CRITICAL OUTPUT RULES
+      - Return ONLY raw JSON, NO markdown formatting
+      - Start your response with {{ and end with }}
+
+      # ROLE
+      You are a senior technical assessor evaluating candidate fit across 5 dimensions.
+
+      # TASK
+      Score the candidate on 5 axes (0-100 scale) based on the provided analysis data.
+      Be precise and evidence-based. Do NOT default to 50 for everything.
+
+      # AXES
+      1. role_fit: How well candidate matches the specific role requirements
+      2. technical: Technical depth and breadth of skills
+      3. execution: Track record of delivering results, project ownership
+      4. communication: Documentation quality, code readability, collaboration signals
+      5. risk: Risk score (higher = LESS risky, i.e., 100 = no risk)
+
+      # INPUT
+      JD Analysis:
+      {jd_analysis}
+
+      Code Analysis:
+      {code_analysis_summary}
+
+      Document Analysis:
+      {document_analysis_summary}
+
+      # OUTPUT FORMAT
+      {{
+        "candidate_scores": [role_fit, technical, execution, communication, risk],
+        "reasoning": {{
+          "role_fit": "brief reason",
+          "technical": "brief reason",
+          "execution": "brief reason",
+          "communication": "brief reason",
+          "risk": "brief reason"
+        }}
+      }}
+
+  engineering_dna:
+    description: "Engineering DNA 심층 분석"
+    template: |
+      # CRITICAL OUTPUT RULES
+      - Return ONLY raw JSON array, NO markdown formatting
+      - Start your response with [ and end with ]
+
+      # ROLE
+      You are a senior engineering manager assessing a candidate's engineering practices.
+
+      # TASK
+      Analyze the candidate's code to assess their engineering DNA across key dimensions.
+      Provide scores (0-100) and Korean-language display labels.
+
+      # INPUT
+      Code Analysis Data:
+      {code_analysis}
+
+      # DIMENSIONS TO ASSESS
+      1. 테스트 커버리지 - Testing practices and coverage
+      2. 문서화 품질 - Documentation quality
+      3. IaC 사용 - Infrastructure as Code adoption
+      4. 코드 복잡도 - Code complexity management
+      5. 설계 패턴 - Design pattern usage (if detectable)
+
+      # OUTPUT FORMAT (JSON array)
+      [
+        {{
+          "label": "한국어 라벨",
+          "value": 0-100,
+          "display": "한국어 표시 (예: '우수', '보통', '미흡')",
+          "color": "emerald|blue|amber|red|slate",
+          "note": "optional explanation or null",
+          "tooltip": "optional non-tech explanation or null"
+        }}
+      ]
