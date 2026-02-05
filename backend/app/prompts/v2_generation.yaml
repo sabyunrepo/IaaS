@@ -119,3 +119,99 @@ prompts:
           "tooltip": "optional non-tech explanation or null"
         }}
       ]
+
+  decision_summary:
+    description: "후보자 Decision Summary 생성 (레벨/강점/우려사항)"
+    template: |
+      # CRITICAL OUTPUT RULES
+      - Return ONLY raw JSON, NO markdown formatting
+      - Start your response with {{ and end with }}
+
+      # ROLE
+      You are a senior hiring manager making a data-driven hiring decision.
+      Analyze the candidate holistically and produce a concise decision summary in Korean.
+
+      # TASK
+      Based on the candidate's profile and JD requirements, generate:
+      1. Experience summary (경력 요약)
+      2. JD match level (높음/중간/낮음)
+      3. Estimated level (Junior/Mid/Senior/Lead/Principal)
+      4. Key strengths with evidence sources
+      5. Key concerns or areas to verify
+
+      # LEVEL ESTIMATION RULES
+      - Junior: 0-2 years experience
+      - Mid: 3-6 years experience
+      - Senior: 7-9 years experience
+      - Lead: 10-14 years experience
+      - Principal: 15+ years experience
+      - ALSO consider: leadership scope, architectural decisions, mentoring evidence
+      - Experience years alone is insufficient — weigh role complexity and impact
+
+      # INPUT
+      JD Analysis:
+      {jd_analysis}
+
+      Candidate Profile:
+      {candidate_profile}
+
+      Candidate Summary:
+      {candidate_summary}
+
+      JD Match Score (0-1):
+      {jd_match_score}
+
+      # OUTPUT FORMAT
+      {{
+        "experience": "경력 요약 (예: '8년 (Senior Backend Engineer @ TechCorp)')",
+        "jd_match": "높음|중간|낮음",
+        "level": "Junior|Mid|Senior|Lead|Principal",
+        "strengths": ["강점1 (출처)", "강점2 (출처)", ...],
+        "concerns": ["우려사항1", "우려사항2", ...]
+      }}
+
+  interviewer_tips:
+    description: "면접관 가이드 팁 생성 (후보자 맞춤)"
+    template: |
+      # CRITICAL OUTPUT RULES
+      - Return ONLY raw JSON, NO markdown formatting
+      - Start your response with {{ and end with }}
+
+      # ROLE
+      You are a senior interviewer coach preparing a hiring manager for a technical interview.
+      Generate actionable, candidate-specific interview guidance in Korean.
+
+      # TASK
+      Based on the candidate's profile and generated questions, create:
+      1. Recommended interview flow (category order with time allocation)
+      2. Resume-based verification tips (specific claims to verify)
+      3. Cover letter insights (claims to validate)
+      4. Red flags to watch for during interview
+      5. Positive signals indicating strong fit
+
+      # INPUT
+      Questions:
+      {questions}
+
+      Candidate Profile:
+      {candidate_profile}
+
+      Cover Letter Analysis:
+      {cover_letter}
+
+      Job Title:
+      {job_title}
+
+      # OUTPUT FORMAT
+      {{
+        "interview_flow": "카테고리1(시간) → 카테고리2(시간) → ...",
+        "time_allocation": {{"category": "시간"}},
+        "resume_based_tips": [
+          {{"area": "검증 영역", "detail": "구체적 확인 방법", "source": "이력서|GitHub|커버레터"}}
+        ],
+        "cover_letter_insights": [
+          {{"claim": "커버레터 주장", "verify_with": "검증 질문"}}
+        ],
+        "red_flags_to_watch": ["주의사항1", "주의사항2"],
+        "positive_signals": ["긍정 신호1 (후보자 맞춤)", "긍정 신호2"]
+      }}
