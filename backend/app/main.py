@@ -42,6 +42,14 @@ async def lifespan(app: FastAPI):
     # --- Startup ---
     from app.core.observability import setup_langfuse
     setup_langfuse()
+
+    # 프로덕션 환경 시크릿 검증
+    if not settings.is_local and not settings.has_secure_secrets:
+        logger.warning(
+            "SECURITY WARNING: Default development secrets detected in non-local environment. "
+            "Set JWT_SECRET and SESSION_SECRET to secure values."
+        )
+
     logger.info("Vantict Sniper v4.0.0 started")
 
     yield

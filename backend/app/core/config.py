@@ -87,9 +87,17 @@ class Settings(BaseSettings):
     BACKEND_URL: str = "http://localhost:8000"
     # Worker → Backend 내부 통신용 URL (Docker: http://backend:8000)
     INTERNAL_API_URL: str = "http://backend:8000"
+    INTERNAL_API_TOKEN: str = "dev-internal-token"  # Worker↔Backend 내부 인증 토큰
+
+    # LLM Cache
+    LLM_CACHE_ENABLED: bool = True  # False면 LLM 응답 캐싱 비활성화
 
     # Embedding
     EMBEDDING_DIMENSION: int = 1536
+
+    # DB Pool
+    DB_POOL_SIZE: int = 10
+    DB_MAX_OVERFLOW: int = 20
 
     # 기타
     LOG_LEVEL: str = "INFO"
@@ -98,6 +106,18 @@ class Settings(BaseSettings):
     @property
     def is_local(self) -> bool:
         return self.ENV == "local"
+
+    @property
+    def has_secure_secrets(self) -> bool:
+        """프로덕션 환경에서 기본 시크릿 사용 여부 검증"""
+        dev_defaults = [
+            "dev-secret-change-in-production",
+            "dev-session-secret-change-in-production",
+        ]
+        return (
+            self.JWT_SECRET not in dev_defaults
+            and self.SESSION_SECRET not in dev_defaults
+        )
 
     @property
     def r2_endpoint(self) -> str | None:

@@ -35,7 +35,7 @@ services:
     environment:
       - ENV=local
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/vantict
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       - TEMPORAL_HOST=temporal:7233
       - STORAGE_BACKEND=local
       - LOCAL_STORAGE_PATH=/app/data
@@ -61,6 +61,8 @@ services:
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
       - BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev-internal-token}
+      - LLM_CACHE_ENABLED=${LLM_CACHE_ENABLED:-true}
       - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:6006
     volumes:
       - ./backend:/app
@@ -92,7 +94,7 @@ services:
     environment:
       - ENV=local
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/vantict
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       - TEMPORAL_HOST=temporal:7233
       - STORAGE_BACKEND=local
       - LOCAL_STORAGE_PATH=/app/data
@@ -111,6 +113,8 @@ services:
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
       - INTERNAL_API_URL=http://backend:8000
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev-internal-token}
+      - LLM_CACHE_ENABLED=${LLM_CACHE_ENABLED:-true}
       - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:6006
     volumes:
       - ./backend:/app
@@ -134,9 +138,9 @@ services:
     container_name: iaas-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: vantict
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-vantict}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
@@ -156,7 +160,7 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-redis_dev_password}
     networks:
       - iaas_internal
     ports:
@@ -173,8 +177,8 @@ services:
     environment:
       - DB=postgresql
       - DB_PORT=5432
-      - POSTGRES_USER=postgres
-      - POSTGRES_PWD=postgres
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PWD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_SEEDS=postgres
       - DYNAMIC_CONFIG_FILE_PATH=/etc/temporal/config/dynamicconfig/development.yaml
     depends_on:
