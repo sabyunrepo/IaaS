@@ -104,6 +104,25 @@ def get_model_for_activity(activity_name: str) -> str:
     return default_model
 
 
+def _is_native_pydantic_ai_model(model_name: str) -> bool:
+    """Check if model is natively supported by pydantic-ai.
+
+    Native models: openai, anthropic, gemini, groq, mistral, ollama, vertexai, bedrock
+    Non-native (requires LiteLLM bridge): zai (Z.AI/Zhipu), cohere, ai21, etc.
+    """
+    native_prefixes = (
+        "openai:", "openai/",
+        "anthropic:", "anthropic/",
+        "gemini:", "gemini/",
+        "groq:", "groq/",
+        "mistral:", "mistral/",
+        "ollama:", "ollama/",
+        "vertexai:", "vertexai/",
+        "bedrock:", "bedrock/",
+    )
+    return model_name.startswith(native_prefixes)
+
+
 def get_llm_agent(
     result_type: Any = None,
     system_prompt: str = "",
@@ -118,12 +137,33 @@ def get_llm_agent(
 
     Returns:
         pydantic_ai.Agent 인스턴스
+
+    Note:
+        - Native models (openai, anthropic, etc.): 직접 pydantic-ai Agent에 전달
+        - Non-native models (zai, cohere, etc.): LiteLLMModel wrapper 사용
     """
     from pydantic_ai import Agent
 
-    model = model or settings.LLM_MODEL  # e.g. "openai/gpt-4o"
+    model_name = model or settings.LLM_MODEL  # e.g. "openai/gpt-4o" or "zai/glm-4.5-flash"
 
-    kwargs = {"model": model}
+    # Determine model wrapper based on provider
+    if _is_native_pydantic_ai_model(model_name):
+        # Native pydantic-ai model - use directly
+        model_instance = model_name
+        logger.debug(f"Using native pydantic-ai model: {model_name}")
+    else:
+        # Non-native model (Z.AI, Cohere, etc.) - use LiteLLM bridge
+        try:
+            from pydantic_ai_litellm import LiteLLMModel
+            model_instance = LiteLLMModel(model_name=model_name)
+            logger.debug(f"Using LiteLLM bridge for non-native model: {model_name}")
+        except ImportError:
+            logger.warning(
+                f"pydantic-ai-litellm not installed. Falling back to native model handling for: {model_name}"
+            )
+            model_instance = model_name
+
+    kwargs = {"model": model_instance}
     if result_type:
         kwargs["result_type"] = result_type
     if system_prompt:

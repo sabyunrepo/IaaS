@@ -22,7 +22,14 @@ from app.api.routes.ws import router as ws_router
 from app.api.routes.upload import router as upload_router
 from app.api.routes.analysis_logs import router as analysis_logs_router
 from app.api.routes.internal import router as internal_router
-from app.api.routes.evals import router as evals_router
+
+# Phoenix evals (optional - requires arize-phoenix package)
+try:
+    from app.api.routes.evals import router as evals_router
+    EVALS_AVAILABLE = True
+except ImportError:
+    evals_router = None
+    EVALS_AVAILABLE = False
 
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
@@ -115,7 +122,11 @@ app.include_router(ws_router)
 app.include_router(upload_router)
 app.include_router(analysis_logs_router)
 app.include_router(internal_router)
-app.include_router(evals_router)
+
+# Phoenix evals (optional)
+if EVALS_AVAILABLE and evals_router:
+    app.include_router(evals_router)
+    logger.info("Phoenix evals router enabled")
 
 
 @app.get("/")
