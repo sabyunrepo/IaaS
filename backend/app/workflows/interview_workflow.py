@@ -498,24 +498,33 @@ class InterviewGenerationWorkflow:
         if not github_urls:
             return {"repositories": [], "top_question_candidates": []}
 
-        # Step 1: Manager가 레포 필터링
+        # Step 1: Manager가 레포 필터링 + 분석
+        # 타임아웃 증가: 여러 레포 분석 시 5분 초과 가능
         manager_result = await workflow.execute_activity(
             analyze_code,
             args=[github_urls, raw_input, execution_plan],
-            start_to_close_timeout=timedelta(minutes=5),
-            heartbeat_timeout=timedelta(seconds=60),
+            start_to_close_timeout=timedelta(minutes=15),
+            heartbeat_timeout=timedelta(seconds=120),
             retry_policy=EXTERNAL_API_RETRY,
         )
 
         target_repos = manager_result.get("target_repos", [])
+        repositories = manager_result.get("repositories", [])
+
+        # Case 1: 분석 결과가 이미 있으면 바로 반환 (analyze_code가 완료한 경우)
+        if repositories:
+            logger.info(f"Code analysis already completed with {len(repositories)} repos")
+            return manager_result
+
+        # Case 2: target_repos가 없으면 빈 결과 반환
         if not target_repos:
-            # Fallback: 기존 방식의 결과 사용
+            logger.info("No target repos found for parallel analysis")
             return manager_result
 
         jd_tech_stack = manager_result.get("jd_tech_stack", [])
         candidate_username = manager_result.get("candidate_username")
 
-        # Step 2: 각 레포 병렬 분석 (Sub-Agents)
+        # Step 2: 각 레포 병렬 분석 (Sub-Agents) - repositories가 없을 때만 실행
         repo_tasks = []
         for repo in target_repos:
             task = workflow.execute_activity(
