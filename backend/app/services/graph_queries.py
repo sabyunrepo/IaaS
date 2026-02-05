@@ -247,18 +247,19 @@ class InterviewGraphQueries:
         if not balance_categories or len(all_candidates) <= limit:
             return all_candidates[:limit]
 
-        # Balance across categories
-        categories = ["skill_depth", "gap_probe", "conflict_probe", "implementation_review"]
-        per_category = max(3, limit // len(categories))  # At least 3 per category
+        # Balance across categories (include partial_match_probe)
+        categories = ["skill_depth", "gap_probe", "conflict_probe", "implementation_review", "partial_match_probe"]
+        active_categories = [cat for cat in categories if any(c.category == cat for c in all_candidates)]
+        per_category = max(3, limit // len(active_categories)) if active_categories else 5
 
         balanced = []
-        by_category = {cat: [] for cat in categories}
+        by_category: dict[str, list[QuestionCandidate]] = {}
 
         for c in all_candidates:
             by_category.setdefault(c.category, []).append(c)
 
-        # Take top from each category
-        for cat in categories:
+        # Take top from each active category
+        for cat in active_categories:
             cat_candidates = by_category.get(cat, [])
             balanced.extend(cat_candidates[:per_category])
 
