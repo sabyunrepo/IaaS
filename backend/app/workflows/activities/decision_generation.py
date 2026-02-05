@@ -1,7 +1,8 @@
 """
 backend/app/workflows/activities/decision_generation.py
-Decision Support 생성 Activity
+Decision Support 생성 Activity (LLM 강화 + 규칙 기반 fallback)
 """
+import json
 import logging
 from typing import Any
 
@@ -14,6 +15,139 @@ from app.models.decision import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+async def _llm_generate_decision_summary(
+    candidate_summary: dict,
+    jd_analysis: dict,
+    document_analysis: dict,
+) -> DecisionSummary | None:
+    """LLM 기반 Decision Summary 생성 (실패 시 None 반환)"""
+    try:
+        from app.services.cached_llm import CachedLLMService
+        from app.workflows.utils import run_llm_with_heartbeat
+
+        import yaml
+        from pathlib import Path
+        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
+        with open(prompts_path) as f:
+            prompts = yaml.safe_load(f)
+        template = prompts["prompts"]["decision_summary"]["template"]
+
+        profile = document_analysis.get("profile", {})
+        prompt = template.format(
+            jd_analysis=json.dumps({
+                "job_title": jd_analysis.get("job_title", ""),
+                "requirements": jd_analysis.get("requirements", [])[:5],
+            }, ensure_ascii=False, default=str),
+            candidate_profile=json.dumps({
+                "experience_years": profile.get("experience_years", 0),
+                "experiences": profile.get("experiences", [])[:3],
+                "skills": profile.get("skills", [])[:10] if isinstance(profile.get("skills"), list) else list(profile.get("skills", {}).keys())[:10],
+                "areas_to_probe": profile.get("areas_to_probe", [])[:3],
+            }, ensure_ascii=False, default=str),
+            candidate_summary=json.dumps({
+                "key_strengths": candidate_summary.get("key_strengths", [])[:3] if isinstance(candidate_summary, dict) else [],
+            }, ensure_ascii=False, default=str),
+            jd_match_score=document_analysis.get("jd_match_score", 0.5),
+        )
+
+        llm = CachedLLMService(activity_name="decision_summary")
+        result = await run_llm_with_heartbeat(llm, prompt, "decision_summary", interval=30.0)
+
+        if not isinstance(result, dict):
+            return None
+
+        summary = DecisionSummary(
+            experience=result.get("experience", ""),
+            jd_match=result.get("jd_match", "중간"),
+            level=result.get("level", "Mid"),
+            strengths=result.get("strengths", [])[:5],
+            concerns=result.get("concerns", [])[:3],
+        )
+        logger.info(f"LLM decision summary: level={summary.level}, match={summary.jd_match}")
+        return summary
+
+    except Exception as e:
+        logger.warning(f"LLM decision summary failed, using fallback: {e}")
+        return None
+
+
+async def _llm_generate_interviewer_tips(
+    questions: list[dict],
+    document_analysis: dict,
+    jd_analysis: dict,
+) -> InterviewerGuideTips | None:
+    """LLM 기반 면접관 팁 생성 (실패 시 None 반환)"""
+    try:
+        from app.services.cached_llm import CachedLLMService
+        from app.workflows.utils import run_llm_with_heartbeat
+
+        import yaml
+        from pathlib import Path
+        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
+        with open(prompts_path) as f:
+            prompts = yaml.safe_load(f)
+        template = prompts["prompts"]["interviewer_tips"]["template"]
+
+        profile = document_analysis.get("profile", {})
+        question_summary = [
+            {"idx": i + 1, "category": q.get("category", ""), "text": q.get("question_text", "")[:80]}
+            for i, q in enumerate(questions[:10])
+        ]
+
+        prompt = template.format(
+            questions=json.dumps(question_summary, ensure_ascii=False, default=str),
+            candidate_profile=json.dumps({
+                "experiences": profile.get("experiences", [])[:3],
+                "areas_to_probe": profile.get("areas_to_probe", [])[:3],
+            }, ensure_ascii=False, default=str),
+            cover_letter=json.dumps(
+                document_analysis.get("cover_letter_analysis", {}),
+                ensure_ascii=False, default=str,
+            ),
+            job_title=jd_analysis.get("job_title", ""),
+        )
+
+        llm = CachedLLMService(activity_name="interviewer_tips")
+        result = await run_llm_with_heartbeat(llm, prompt, "interviewer_tips", interval=30.0)
+
+        if not isinstance(result, dict):
+            return None
+
+        # resume_based_tips 변환
+        resume_tips = []
+        for tip in result.get("resume_based_tips", [])[:5]:
+            if isinstance(tip, dict):
+                resume_tips.append(ResumeTip(
+                    area=tip.get("area", ""),
+                    detail=tip.get("detail", ""),
+                    source=tip.get("source", "이력서"),
+                ))
+
+        # cover_letter_insights 변환
+        cl_insights = []
+        for ins in result.get("cover_letter_insights", [])[:3]:
+            if isinstance(ins, dict):
+                cl_insights.append(CoverLetterInsight(
+                    claim=ins.get("claim", ""),
+                    verify_with=ins.get("verify_with", ""),
+                ))
+
+        tips = InterviewerGuideTips(
+            interview_flow=result.get("interview_flow", ""),
+            time_allocation=result.get("time_allocation", {}),
+            resume_based_tips=resume_tips,
+            cover_letter_insights=cl_insights,
+            red_flags_to_watch=result.get("red_flags_to_watch", [])[:5],
+            positive_signals=result.get("positive_signals", [])[:5],
+        )
+        logger.info(f"LLM interviewer tips: {len(resume_tips)} tips, {len(tips.positive_signals)} signals")
+        return tips
+
+    except Exception as e:
+        logger.warning(f"LLM interviewer tips failed, using fallback: {e}")
+        return None
 
 
 def _extract_decision_summary(
@@ -44,12 +178,12 @@ def _extract_decision_summary(
     else:
         jd_match = "낮음"
 
-    # 레벨 추정
+    # 레벨 추정 (높은 경력부터 체크 - 순서 중요)
     level = "Mid"
-    if experience_years >= 7:
-        level = "Senior"
-    elif experience_years >= 10:
+    if experience_years >= 10:
         level = "Lead"
+    elif experience_years >= 7:
+        level = "Senior"
     elif experience_years <= 2:
         level = "Junior"
 
@@ -252,12 +386,16 @@ async def generate_decision_support(
     logger.info(f"Generating Decision Support for job_id={job_id}")
     activity.heartbeat()
 
-    # 1. 후보자 요약 생성
-    summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis)
+    # 1. 후보자 요약 생성 (LLM 우선, 규칙 기반 fallback)
+    summary = await _llm_generate_decision_summary(candidate_summary, jd_analysis, document_analysis)
+    if summary is None:
+        summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis)
     activity.heartbeat()
 
-    # 2. 면접관 가이드 팁 생성
-    interviewer_guide = _build_interviewer_tips(questions, document_analysis, jd_analysis)
+    # 2. 면접관 가이드 팁 생성 (LLM 우선, 규칙 기반 fallback)
+    interviewer_guide = await _llm_generate_interviewer_tips(questions, document_analysis, jd_analysis)
+    if interviewer_guide is None:
+        interviewer_guide = _build_interviewer_tips(questions, document_analysis, jd_analysis)
     activity.heartbeat()
 
     # 3. JD 역량 매핑
