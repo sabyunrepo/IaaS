@@ -44,6 +44,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - ZAI_API_KEY=${ZAI_API_KEY:-}
+      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-openai:gpt-4o}
       - LLM_FALLBACK_MODEL=${LLM_FALLBACK_MODEL:-anthropic:claude-3-5-sonnet-20241022}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
@@ -100,6 +101,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - ZAI_API_KEY=${ZAI_API_KEY:-}
+      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-openai:gpt-4o}
       - LLM_FALLBACK_MODEL=${LLM_FALLBACK_MODEL:-anthropic:claude-3-5-sonnet-20241022}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
