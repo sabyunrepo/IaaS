@@ -37,6 +37,7 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.intel_generation import generate_intel_brief
     from app.workflows.activities.analysis_generation import generate_deep_analysis
     from app.workflows.activities.decision_generation import generate_decision_support
+    from app.workflows.activities.knowledge_graph_activities import build_knowledge_graph
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +170,26 @@ class InterviewGenerationWorkflow:
                 idx += 1
             if phases.get("code_analysis") and code_analysis_result:
                 analysis["code_analysis"] = code_analysis_result
+
+            # Phase 2.5: Knowledge Graph 구축 (non-blocking)
+            # 분석 데이터를 기반으로 KG를 구축하여 질문 생성에 활용
+            linkedin_profile = enriched.get("linkedin_profile", {})
+            try:
+                await workflow.execute_activity(
+                    build_knowledge_graph,
+                    args=[
+                        job_id,
+                        linkedin_profile,
+                        analysis.get("code_analysis"),
+                        analysis.get("jd_analysis", {}),
+                    ],
+                    start_to_close_timeout=timedelta(minutes=3),
+                    heartbeat_timeout=timedelta(seconds=60),
+                    retry_policy=DEFAULT_RETRY,
+                )
+                logger.info("Knowledge Graph built successfully")
+            except Exception as kg_err:
+                logger.warning(f"KG build failed (non-fatal): {kg_err}")
 
             # Phase 3: Question Generation
             self._update_status(JobStatus.GENERATING, "Phase 3: Generation", 60)
