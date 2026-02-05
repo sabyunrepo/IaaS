@@ -170,7 +170,8 @@ async def finalize_output(
     # 5. 저장 (local 또는 S3)
     from app.services.storage_service import get_storage
     storage = get_storage()
-    job_id = enriched_input.get("job_id", "unknown")
+    # job_id는 raw_input 안에 있음 (enrich_input이 raw_input을 포함하여 반환)
+    job_id = enriched_input.get("raw_input", {}).get("job_id", "unknown")
     storage_key = f"outputs/{job_id}/interview_script.json"
     output_path = storage.upload_json(storage_key, final_script)
 

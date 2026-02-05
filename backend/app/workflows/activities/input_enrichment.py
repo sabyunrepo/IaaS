@@ -168,6 +168,10 @@ async def enrich_input(input_data: dict) -> dict:
     if personal_github_urls:
         available.append("code_analysis")
 
+    # Debug logging for troubleshooting
+    logger.info(f"[Enrichment] personal_github_urls: {personal_github_urls}")
+    logger.info(f"[Enrichment] available_analyses: {available}")
+
     return {
         "raw_input": input_data,
         "github_urls": personal_github_urls,  # 개인 레포만 (조직 레포 제외)

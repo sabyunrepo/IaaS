@@ -2,6 +2,7 @@
 backend/app/services/cached_llm.py
 CachedLLMService — Redis 기반 LLM 응답 캐시 + Langfuse 추적
 """
+import asyncio
 import hashlib
 import json
 import logging
@@ -73,7 +74,7 @@ def _log_llm_generation(
 
         # Langfuse SDK v3: start_generation으로 LLM 호출 기록
         # 현재 trace 컨텍스트 내에서 자동으로 연결됨
-        # NOTE: output은 end()에서 설정하여 정확한 기록 보장
+        output_str = str(output)[:5000] if output else None
         generation = client.start_generation(
             name=activity_name or "llm_call",
             model=model_name,
@@ -84,8 +85,9 @@ def _log_llm_generation(
                 "configured_model": model,
             },
         )
-        # output을 end()에서 명시적으로 설정 (버그 수정)
-        generation.end(output=str(output)[:5000] if output else None)
+        # Langfuse 3.x: output은 update()로 설정 후 end() 호출 (end()에 output 파라미터 없음)
+        generation.update(output=output_str)
+        generation.end()
 
         logger.info(
             f"Logged Langfuse generation: {activity_name}, "
@@ -214,17 +216,21 @@ class CachedLLMService:
         self._log_cache_event("miss", trace_meta)
 
         # LLM 호출 (폴백 체인: primary → fallback)
+        # asyncio.shield로 감싸서 Temporal Activity 취소로 인한 CancelledError 방지
         from app.services.llm_config import get_llm_agent
         try:
             agent = get_llm_agent(result_type=result_type, model=model)
-            run_result = await agent.run(prompt)
+            run_result = await asyncio.shield(agent.run(prompt))
+        except asyncio.CancelledError:
+            logger.warning(f"LLM call cancelled for model {model}")
+            raise
         except Exception as primary_err:
             fallback_model = settings.LLM_FALLBACK_MODEL
             if fallback_model and fallback_model != model:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
                 self._log_fallback_event(model, fallback_model, trace_meta)
                 agent = get_llm_agent(result_type=result_type, model=fallback_model)
-                run_result = await agent.run(prompt)
+                run_result = await asyncio.shield(agent.run(prompt))
             else:
                 raise
 
@@ -444,17 +450,21 @@ class CachedLLMService:
         self._log_cache_event("miss", trace_meta)
 
         # LLM 호출 (폴백 체인: primary → fallback)
+        # asyncio.shield로 감싸서 Temporal Activity 취소로 인한 CancelledError 방지
         from app.services.llm_config import get_llm_agent
         try:
             agent = get_llm_agent(result_type=result_type, model=model)
-            run_result = await agent.run(prompt)
+            run_result = await asyncio.shield(agent.run(prompt))
+        except asyncio.CancelledError:
+            logger.warning(f"LLM call cancelled for model {model}")
+            raise
         except Exception as primary_err:
             fallback_model = settings.LLM_FALLBACK_MODEL
             if fallback_model and fallback_model != model:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
                 self._log_fallback_event(model, fallback_model, trace_meta)
                 agent = get_llm_agent(result_type=result_type, model=fallback_model)
-                run_result = await agent.run(prompt)
+                run_result = await asyncio.shield(agent.run(prompt))
             else:
                 raise
 

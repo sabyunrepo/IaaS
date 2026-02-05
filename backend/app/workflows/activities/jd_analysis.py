@@ -37,10 +37,14 @@ async def analyze_jd(jd_text: str, job_id: str | None = None) -> dict:
     from app.prompts import get_prompt
     prompt = get_prompt("jd_analysis.yaml", "analyze", jd_text=jd_text)
 
+    activity.heartbeat("Starting JD analysis LLM call...")
+
     if alog:
         await alog.progress("Extracting requirements with LLM", {})
 
     result = await llm.run(prompt, activity_name="analyze_jd")
+
+    activity.heartbeat("JD analysis LLM call completed")
 
     jd_result = {}
     kg_entity_count = 0

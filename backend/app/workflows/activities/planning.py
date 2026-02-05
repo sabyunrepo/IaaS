@@ -31,6 +31,11 @@ async def create_execution_plan(enriched_input: dict) -> dict:
     github_urls = enriched_input.get("github_urls", [])
     available = enriched_input.get("available_analyses", [])
 
+    # Debug logging for troubleshooting
+    logger.info(f"[Planning] Received github_urls: {github_urls}")
+    logger.info(f"[Planning] Received available_analyses: {available}")
+    logger.info(f"[Planning] code_analysis enabled: {'code_analysis' in available}")
+
     if alog:
         await alog.start("Creating execution plan", {
             "github_urls_count": len(github_urls),
@@ -57,6 +62,21 @@ async def create_execution_plan(enriched_input: dict) -> dict:
     # 사용 가능한 분석 목록
     available = enriched_input.get("available_analyses", [])
 
+    # JD text에서 기술 스택 추출 (code_analysis에서 사용)
+    jd_text = raw_input.get("jd_text", "")
+    jd_tech_stack = _extract_tech_stack_from_jd(jd_text)
+
+    # workload에서 수집된 언어들도 포함
+    repo_languages = set()
+    for w in workload.values():
+        repo_languages.update(w.get("languages", {}).keys())
+
+    # JD tech_stack과 repo languages 병합 (JD 우선)
+    if not jd_tech_stack and repo_languages:
+        jd_tech_stack = list(repo_languages)
+
+    logger.info(f"[Planning] Extracted jd_tech_stack: {jd_tech_stack}")
+
     plan = {
         "candidate_github_username": enriched_input.get("candidate_github_username"),
         "phases": [
@@ -69,6 +89,7 @@ async def create_execution_plan(enriched_input: dict) -> dict:
             w["estimated_time_seconds"] for w in workload.values()
         ) + 120,
         "raw_input": raw_input,
+        "jd_tech_stack": jd_tech_stack,  # ✅ code_analysis에서 사용
     }
 
     # Log final result
@@ -92,3 +113,52 @@ def _calculate_time(repo_info: dict) -> int:
     elif size < 100000:
         return 120
     return 300
+
+
+def _extract_tech_stack_from_jd(jd_text: str) -> list[str]:
+    """JD 텍스트에서 기술 스택 키워드 추출 (regex 기반)
+
+    code_analysis에서 레포 필터링에 사용됨.
+    """
+    import re
+
+    # 주요 프로그래밍 언어 및 기술 패턴
+    tech_patterns = {
+        # Languages (대소문자 무시)
+        r'\bPython\b': 'Python',
+        r'\bJavaScript\b': 'JavaScript',
+        r'\bTypeScript\b': 'TypeScript',
+        r'\bJava\b(?!\s*Script)': 'Java',  # JavaScript와 구분
+        r'\bGo\b(?:lang)?\b': 'Go',
+        r'\bRust\b': 'Rust',
+        r'\bC\+\+\b': 'C++',
+        r'\bC#\b': 'C#',
+        r'\bRuby\b': 'Ruby',
+        r'\bPHP\b': 'PHP',
+        r'\bSwift\b': 'Swift',
+        r'\bKotlin\b': 'Kotlin',
+        r'\bScala\b': 'Scala',
+        r'\bR\b(?:\s+language)?': 'R',
+        # Frameworks/Technologies (언어 추론)
+        r'\bReact\b': 'JavaScript',
+        r'\bVue\b': 'JavaScript',
+        r'\bAngular\b': 'TypeScript',
+        r'\bNode\.?js\b': 'JavaScript',
+        r'\bDjango\b': 'Python',
+        r'\bFlask\b': 'Python',
+        r'\bFastAPI\b': 'Python',
+        r'\bSpring\b': 'Java',
+        r'\bRails\b': 'Ruby',
+        r'\bLaravel\b': 'PHP',
+        r'\bNext\.?js\b': 'TypeScript',
+        r'\bNuxt\b': 'JavaScript',
+    }
+
+    found = set()
+    text_lower = jd_text
+
+    for pattern, language in tech_patterns.items():
+        if re.search(pattern, text_lower, re.IGNORECASE):
+            found.add(language)
+
+    return list(found)
