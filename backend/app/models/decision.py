@@ -16,15 +16,16 @@ class DecisionSummary(BaseModel):
 
 class ResumeTip(BaseModel):
     """이력서 기반 확인 포인트"""
-    area: str
-    detail: str
-    source: str
+    section: str
+    insight: str
+    question_link: str | None = None
 
 
 class CoverLetterInsight(BaseModel):
     """커버레터 검증 포인트"""
-    claim: str
-    verify_with: str
+    highlight: str
+    interpretation: str
+    follow_up_opportunity: str | None = None
 
 
 class InterviewerGuideTips(BaseModel):

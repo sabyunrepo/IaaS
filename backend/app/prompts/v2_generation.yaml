@@ -207,10 +207,10 @@ prompts:
         "interview_flow": "카테고리1(시간) → 카테고리2(시간) → ...",
         "time_allocation": {{"category": "시간"}},
         "resume_based_tips": [
-          {{"area": "검증 영역", "detail": "구체적 확인 방법", "source": "이력서|GitHub|커버레터"}}
+          {{"section": "검증 영역", "insight": "구체적 확인 방법", "question_link": "관련 질문 참조 (예: Q1, Q3) 또는 null"}}
         ],
         "cover_letter_insights": [
-          {{"claim": "커버레터 주장", "verify_with": "검증 질문"}}
+          {{"highlight": "커버레터 핵심 주장", "interpretation": "검증 질문", "follow_up_opportunity": "추가 확인 기회 (없으면 null)"}}
         ],
         "red_flags_to_watch": ["주의사항1", "주의사항2"],
         "positive_signals": ["긍정 신호1 (후보자 맞춤)", "긍정 신호2"]
