@@ -1,5 +1,22 @@
-.PHONY: up down logs test shell rebuild
+.PHONY: up down logs test shell rebuild tunnel-up tunnel-down tunnel-logs
 
+# ============================================
+# Cloudflare Tunnel (별도 프로젝트로 관리)
+# ============================================
+tunnel-up:
+	docker compose -f docker-compose.tunnel.yml -p cloudflare up -d
+	@echo "Cloudflare Tunnel started"
+
+tunnel-down:
+	docker compose -f docker-compose.tunnel.yml -p cloudflare down
+	@echo "Cloudflare Tunnel stopped"
+
+tunnel-logs:
+	docker compose -f docker-compose.tunnel.yml -p cloudflare logs -f
+
+# ============================================
+# Main Services
+# ============================================
 up:
 	docker compose up -d
 	@echo "Services starting..."
