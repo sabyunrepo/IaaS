@@ -14,6 +14,22 @@ from app.core.observability import get_current_trace_metadata, is_langfuse_enabl
 
 logger = logging.getLogger(__name__)
 
+# 모듈 레벨 Redis 연결 풀 싱글톤
+_redis_pool = None
+
+
+async def _get_shared_redis():
+    """모듈 레벨 Redis 연결 풀 (싱글톤)"""
+    global _redis_pool
+    if _redis_pool is None:
+        import redis.asyncio as aioredis
+        _redis_pool = aioredis.from_url(
+            settings.REDIS_URL,
+            max_connections=20,
+            decode_responses=False,
+        )
+    return _redis_pool
+
 
 def _log_llm_generation(
     model: str,
@@ -168,17 +184,21 @@ class CachedLLMService:
 
     def __init__(self, ttl: int = 86400):
         self.ttl = ttl
-        self._redis = None
 
     async def _get_redis(self):
-        if self._redis is None:
-            import redis.asyncio as aioredis
-            self._redis = aioredis.from_url(settings.REDIS_URL)
-        return self._redis
+        return await _get_shared_redis()
 
-    def _cache_key(self, prompt: str, model: str) -> str:
+    def _cache_key(self, prompt: str, model: str, activity_name: str | None = None) -> str:
+        """Activity 컨텍스트를 포함한 캐시 키 생성
+
+        기존: llm_cache:SHA256(model:prompt)
+        개선: llm_cache:activity_name:SHA256(model:prompt)
+        """
         content = f"{model}:{prompt}"
-        return f"llm_cache:{hashlib.sha256(content.encode()).hexdigest()}"
+        hash_part = hashlib.sha256(content.encode()).hexdigest()
+        if activity_name:
+            return f"llm_cache:{activity_name}:{hash_part}"
+        return f"llm_cache:{hash_part}"
 
     async def run(
         self,
@@ -199,19 +219,20 @@ class CachedLLMService:
             from app.services.llm_config import get_model_for_activity
             model = get_model_for_activity(activity_name)
         model = model or settings.LLM_MODEL
-        key = self._cache_key(prompt, model)
+        key = self._cache_key(prompt, model, activity_name)
         trace_meta = get_current_trace_metadata()
 
-        # 캐시 조회
-        try:
-            redis = await self._get_redis()
-            cached = await redis.get(key)
-            if cached:
-                logger.debug(f"LLM cache hit: {key[:20]}...")
-                self._log_cache_event("hit", trace_meta)
-                return json.loads(cached)
-        except Exception as e:
-            logger.warning(f"Redis cache read failed: {e}")
+        # 캐시 조회 (LLM_CACHE_ENABLED일 때만)
+        if settings.LLM_CACHE_ENABLED:
+            try:
+                redis = await self._get_redis()
+                cached = await redis.get(key)
+                if cached:
+                    logger.debug(f"LLM cache hit: {key[:20]}...")
+                    self._log_cache_event("hit", trace_meta)
+                    return json.loads(cached)
+            except Exception as e:
+                logger.warning(f"Redis cache read failed: {e}")
 
         self._log_cache_event("miss", trace_meta)
 
@@ -254,12 +275,13 @@ class CachedLLMService:
             activity_name=activity_name,
         )
 
-        # 캐시 저장
-        try:
-            redis = await self._get_redis()
-            await redis.setex(key, self.ttl, json.dumps(data, default=str))
-        except Exception as e:
-            logger.warning(f"Redis cache write failed: {e}")
+        # 캐시 저장 (LLM_CACHE_ENABLED일 때만)
+        if settings.LLM_CACHE_ENABLED:
+            try:
+                redis = await self._get_redis()
+                await redis.setex(key, self.ttl, json.dumps(data, default=str))
+            except Exception as e:
+                logger.warning(f"Redis cache write failed: {e}")
 
         return data
 
@@ -317,10 +339,13 @@ class CachedLLMService:
             logger.warning(f"Cache invalidation failed for job {job_id}: {e}")
             return 0
 
-    def _job_cache_key(self, job_id: str, prompt: str, model: str) -> str:
+    def _job_cache_key(self, job_id: str, prompt: str, model: str, activity_name: str | None = None) -> str:
         """Job 단위 캐시 키 생성 (무효화 가능)"""
         content = f"{model}:{prompt}"
-        return f"llm_cache:job:{job_id}:{hashlib.sha256(content.encode()).hexdigest()}"
+        hash_part = hashlib.sha256(content.encode()).hexdigest()
+        if activity_name:
+            return f"llm_cache:job:{job_id}:{activity_name}:{hash_part}"
+        return f"llm_cache:job:{job_id}:{hash_part}"
 
     async def run_with_prompt_config(
         self,
@@ -339,8 +364,9 @@ class CachedLLMService:
         # Langfuse config의 model 사용, 없으면 fallback
         model = prompt_config.model or settings.LLM_MODEL
         temperature = prompt_config.temperature
+        prompt_name = prompt_config.name if prompt_config else None
 
-        key = self._cache_key(prompt, model)
+        key = self._cache_key(prompt, model, prompt_name)
         trace_meta = get_current_trace_metadata()
 
         # Langfuse 프롬프트 소스 정보 추가
@@ -349,16 +375,17 @@ class CachedLLMService:
         if prompt_config.version:
             trace_meta["prompt_version"] = prompt_config.version
 
-        # 캐시 조회
-        try:
-            redis = await self._get_redis()
-            cached = await redis.get(key)
-            if cached:
-                logger.debug(f"LLM cache hit: {key[:20]}... (prompt: {prompt_config.name})")
-                self._log_cache_event("hit", trace_meta)
-                return json.loads(cached)
-        except Exception as e:
-            logger.warning(f"Redis cache read failed: {e}")
+        # 캐시 조회 (LLM_CACHE_ENABLED일 때만)
+        if settings.LLM_CACHE_ENABLED:
+            try:
+                redis = await self._get_redis()
+                cached = await redis.get(key)
+                if cached:
+                    logger.debug(f"LLM cache hit: {key[:20]}... (prompt: {prompt_config.name})")
+                    self._log_cache_event("hit", trace_meta)
+                    return json.loads(cached)
+            except Exception as e:
+                logger.warning(f"Redis cache read failed: {e}")
 
         self._log_cache_event("miss", trace_meta)
 
@@ -400,15 +427,16 @@ class CachedLLMService:
             output=data,
             run_result=run_result,
             trace_meta=trace_meta,
-            activity_name=prompt_config.name if prompt_config else None,
+            activity_name=prompt_name,
         )
 
-        # 캐시 저장
-        try:
-            redis = await self._get_redis()
-            await redis.setex(key, self.ttl, json.dumps(data, default=str))
-        except Exception as e:
-            logger.warning(f"Redis cache write failed: {e}")
+        # 캐시 저장 (LLM_CACHE_ENABLED일 때만)
+        if settings.LLM_CACHE_ENABLED:
+            try:
+                redis = await self._get_redis()
+                await redis.setex(key, self.ttl, json.dumps(data, default=str))
+            except Exception as e:
+                logger.warning(f"Redis cache write failed: {e}")
 
         return data
 
@@ -433,19 +461,20 @@ class CachedLLMService:
             from app.services.llm_config import get_model_for_activity
             model = get_model_for_activity(activity_name)
         model = model or settings.LLM_MODEL
-        key = self._job_cache_key(job_id, prompt, model)
+        key = self._job_cache_key(job_id, prompt, model, activity_name)
         trace_meta = {**get_current_trace_metadata(), "job_id": job_id}
 
-        # 캐시 조회
-        try:
-            redis = await self._get_redis()
-            cached = await redis.get(key)
-            if cached:
-                logger.debug(f"LLM job cache hit: {key[:30]}...")
-                self._log_cache_event("hit", trace_meta)
-                return json.loads(cached)
-        except Exception as e:
-            logger.warning(f"Redis cache read failed: {e}")
+        # 캐시 조회 (LLM_CACHE_ENABLED일 때만)
+        if settings.LLM_CACHE_ENABLED:
+            try:
+                redis = await self._get_redis()
+                cached = await redis.get(key)
+                if cached:
+                    logger.debug(f"LLM job cache hit: {key[:30]}...")
+                    self._log_cache_event("hit", trace_meta)
+                    return json.loads(cached)
+            except Exception as e:
+                logger.warning(f"Redis cache read failed: {e}")
 
         self._log_cache_event("miss", trace_meta)
 
@@ -488,11 +517,12 @@ class CachedLLMService:
             activity_name=activity_name,
         )
 
-        # 캐시 저장
-        try:
-            redis = await self._get_redis()
-            await redis.setex(key, self.ttl, json.dumps(data, default=str))
-        except Exception as e:
-            logger.warning(f"Redis cache write failed: {e}")
+        # 캐시 저장 (LLM_CACHE_ENABLED일 때만)
+        if settings.LLM_CACHE_ENABLED:
+            try:
+                redis = await self._get_redis()
+                await redis.setex(key, self.ttl, json.dumps(data, default=str))
+            except Exception as e:
+                logger.warning(f"Redis cache write failed: {e}")
 
         return data

@@ -75,12 +75,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Temporal shutdown error: {e}")
 
-    # Close Redis (CachedLLMService)
+    # Close Redis 연결 풀
     try:
-        from app.services.cached_llm import CachedLLMService
-        # CachedLLMService instances are per-use; just close any module-level redis
-    except Exception:
-        pass
+        from app.services.cached_llm import _redis_pool
+        if _redis_pool is not None:
+            await _redis_pool.aclose()
+            logger.info("Redis connection pool closed")
+    except Exception as e:
+        logger.warning(f"Redis shutdown error: {e}")
 
     logger.info("Shutdown complete")
 

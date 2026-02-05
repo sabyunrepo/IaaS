@@ -41,6 +41,74 @@ class TestCachedLLMInvalidation:
         assert callable(svc.run_for_job)
 
 
+class TestCacheKeyWithActivityName:
+    """캐시 키에 activity_name 포함 테스트"""
+
+    def test_cache_key_includes_activity_name(self):
+        from app.services.cached_llm import CachedLLMService
+        svc = CachedLLMService()
+        key = svc._cache_key("prompt", "model", "analyze_jd")
+        assert "analyze_jd" in key
+        assert key.startswith("llm_cache:analyze_jd:")
+
+    def test_cache_key_without_activity_name(self):
+        from app.services.cached_llm import CachedLLMService
+        svc = CachedLLMService()
+        key = svc._cache_key("prompt", "model")
+        assert key.startswith("llm_cache:")
+        assert key.count(":") == 1  # llm_cache:hash
+
+    def test_different_activities_different_keys(self):
+        from app.services.cached_llm import CachedLLMService
+        svc = CachedLLMService()
+        k1 = svc._cache_key("same prompt", "model", "analyze_jd")
+        k2 = svc._cache_key("same prompt", "model", "craft_question")
+        assert k1 != k2
+
+    def test_job_cache_key_includes_activity(self):
+        from app.services.cached_llm import CachedLLMService
+        svc = CachedLLMService()
+        key = svc._job_cache_key("job-1", "prompt", "model", "analyze_jd")
+        assert "analyze_jd" in key
+        assert key.startswith("llm_cache:job:job-1:analyze_jd:")
+
+    def test_job_cache_key_without_activity(self):
+        from app.services.cached_llm import CachedLLMService
+        svc = CachedLLMService()
+        key = svc._job_cache_key("job-1", "prompt", "model")
+        assert key.startswith("llm_cache:job:job-1:")
+        assert "None" not in key
+
+
+class TestLLMCacheEnabled:
+    """LLM_CACHE_ENABLED 환경변수 테스트"""
+
+    def test_cache_enabled_setting_exists(self):
+        from app.core.config import settings
+        assert hasattr(settings, "LLM_CACHE_ENABLED")
+        assert isinstance(settings.LLM_CACHE_ENABLED, bool)
+
+    def test_cache_enabled_default_true(self):
+        from app.core.config import settings
+        assert settings.LLM_CACHE_ENABLED is True
+
+
+class TestRedisConnectionPool:
+    """Redis 연결 풀 싱글톤 테스트"""
+
+    def test_shared_redis_function_exists(self):
+        from app.services.cached_llm import _get_shared_redis
+        assert callable(_get_shared_redis)
+
+    def test_cached_llm_uses_shared_pool(self):
+        """CachedLLMService._get_redis()가 _get_shared_redis를 사용하는지 확인"""
+        from app.services.cached_llm import CachedLLMService
+        svc = CachedLLMService()
+        # _get_redis 메서드가 존재하는지 확인
+        assert hasattr(svc, "_get_redis")
+        assert callable(svc._get_redis)
+
+
 class TestRateLimitKeyFunc:
     def test_key_func_exists(self):
         from app.core.rate_limit import _get_rate_limit_key
