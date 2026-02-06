@@ -40,7 +40,7 @@ class InputData(BaseModel):
     # 옵션
     experience_level: ExperienceLevel = Field(..., description="후보자 경험 레벨")
     language_config: LanguageConfig = Field(default_factory=LanguageConfig)
-    max_questions: int = Field(25, ge=5, le=25, description="생성할 질문 수")
+    max_questions: int = Field(20, description="생성할 질문 수 (퍼센트 기반 고정 20개)")
     include_expected_answers: bool = Field(True, description="예상 답변 포함 여부")
     focus_areas: list[str] | None = Field(None, description="집중할 기술 영역")
 

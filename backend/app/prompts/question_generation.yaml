@@ -1,6 +1,6 @@
 prompts:
   select_topics:
-    description: "면접 질문 토픽 25개 선정 - 다중 소스 기반 (Few-shot Enhanced)"
+    description: "면접 질문 토픽 20개 선정 - 퍼센트 기반 배분 (Few-shot Enhanced)"
     template: |
       # CRITICAL OUTPUT RULES (READ FIRST)
       - Return ONLY raw JSON, NO markdown formatting
@@ -45,18 +45,12 @@ prompts:
       # AVAILABLE TOPIC CANDIDATES
       {{candidates}}
 
-      # CATEGORY REQUIREMENTS
-      Distribute exactly 5 topics per category:
-      - **role_fit**: Culture fit, motivation, career goals
-      - **technical_depth**: Technical skills, problem-solving, architecture
-      - **execution_ownership**: Project delivery, ownership, impact
-      - **communication**: Collaboration, explanation ability, conflict resolution
-      - **risk_flags**: Gaps, concerns, areas needing clarification
+      # CATEGORY DISTRIBUTION (percentage-based, total {{max_questions}} topics)
+      # Distribution varies by experience level. Generate EXACTLY this many topics:
+      {{category_distribution}}
 
-      # DIFFICULTY DISTRIBUTION (per category)
-      - Easy: 2 topics (baseline verification questions)
-      - Medium: 2 topics (depth exploration questions)
-      - Hard: 1 topic (expertise probe questions)
+      # DIFFICULTY DISTRIBUTION
+      {{difficulty_distribution}}
 
       # OUTPUT FORMAT (JSON)
       ```json
