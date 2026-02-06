@@ -22,7 +22,7 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
               {candidate.initials || candidate.name?.charAt(0) || '?'}
             </div>
             <div>
-              <h2 className="text-2xl font-bold">{candidate.name}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold">{candidate.name}</h2>
               <p className="text-indigo-100">{candidate.role || candidate.current_title}</p>
             </div>
           </div>
@@ -56,7 +56,7 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
       )}
 
       {/* JD Summary */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm animate-fadeIn">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -123,10 +123,11 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
           {competencies.map((comp, i) => (
             <div
               key={i}
-              className={`p-4 rounded-lg border ${
+              className={`card-hover p-4 rounded-lg border ${
                 comp.color === 'emerald' ? 'bg-emerald-50 border-emerald-200' :
                 comp.color === 'amber' ? 'bg-amber-50 border-amber-200' :
                 comp.color === 'red' ? 'bg-red-50 border-red-200' :
+                comp.color === 'slate' ? 'bg-slate-50 border-slate-200' :
                 'bg-gray-50 border-gray-200'
               }`}
             >
@@ -139,6 +140,7 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
                   comp.color === 'emerald' ? 'bg-emerald-200 text-emerald-800' :
                   comp.color === 'amber' ? 'bg-amber-200 text-amber-800' :
                   comp.color === 'red' ? 'bg-red-200 text-red-800' :
+                  comp.color === 'slate' ? 'bg-slate-200 text-slate-800' :
                   'bg-gray-200 text-gray-800'
                 }`}>
                   {comp.match_label}
@@ -149,6 +151,7 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
                 comp.color === 'emerald' ? 'text-emerald-700' :
                 comp.color === 'amber' ? 'text-amber-700' :
                 comp.color === 'red' ? 'text-red-700' :
+                comp.color === 'slate' ? 'text-slate-700' :
                 'text-gray-700'
               }`}>
                 💡 {comp.why}

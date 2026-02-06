@@ -49,14 +49,20 @@ export function ResultPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <div className="relative">
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600"></div>
+      <div className="space-y-6 py-6">
+        <div className="flex items-center gap-4">
+          <div className="skeleton h-14 w-14 rounded-2xl" />
+          <div className="space-y-2">
+            <div className="skeleton h-6 w-48" />
+            <div className="skeleton h-4 w-32" />
           </div>
         </div>
-        <p className="mt-4 text-sm font-medium text-gray-500">{t('loading')}</p>
+        <div className="skeleton h-12 w-full" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="skeleton h-40" />
+          <div className="skeleton h-40" />
+        </div>
+        <div className="skeleton h-60 w-full" />
       </div>
     )
   }
@@ -175,78 +181,76 @@ export function ResultPage() {
 
       {/* Tab Navigation */}
       {hasV2Data ? (
-        // v2 4-tab navigation
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-xl no-print">
+        // v2 4-tab navigation (underline style)
+        <div className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setActiveTab('intel')}
-            className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'intel'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
+              activeTab === 'intel' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            🔍 Intel Brief
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Intel Brief
           </button>
           <button
             onClick={() => setActiveTab('analysis')}
-            className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'analysis'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
+              activeTab === 'analysis' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            📊 Deep Analysis
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Deep Analysis
           </button>
           <button
             onClick={() => setActiveTab('interview')}
-            className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'interview'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
+              activeTab === 'interview' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            🎯 Live Interview ({questions.length})
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            Live Interview ({questions.length})
           </button>
           <button
             onClick={() => setActiveTab('decision')}
-            className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'decision'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
+              activeTab === 'decision' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            ✅ Decision
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Decision
           </button>
         </div>
       ) : (
-        // v1 3-tab navigation (fallback)
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-xl no-print">
+        // v1 3-tab navigation (underline style)
+        <div className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setActiveTab('questions')}
-            className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'questions'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
+              activeTab === 'questions' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             질문 목록 ({questions.length})
           </button>
           <button
             onClick={() => setActiveTab('summary')}
-            className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'summary'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
+              activeTab === 'summary' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             후보자 분석
           </button>
           <button
             onClick={() => setActiveTab('guide')}
-            className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'guide'
-                ? 'bg-white text-indigo-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
+              activeTab === 'guide' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             면접관 가이드
@@ -256,7 +260,7 @@ export function ResultPage() {
 
       {/* V2 Tabs */}
       {hasV2Data && (
-        <>
+        <div key={activeTab} className="animate-fadeIn">
           {activeTab === 'intel' && script.intel && (
             <IntelBriefTab intel={script.intel} candidate={script.candidate} />
           )}
@@ -279,9 +283,10 @@ export function ResultPage() {
               categoryWeights={script.category_weights}
               totalScore={totalScore}
               maxScore={maxScore || 100}
+              riskFlags={script.analysis?.risk_flags}
             />
           )}
-        </>
+        </div>
       )}
 
       {/* V1 Tabs (Fallback) */}

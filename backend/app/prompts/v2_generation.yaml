@@ -59,7 +59,7 @@ prompts:
       2. technical: Technical depth and breadth of skills
       3. execution: Track record of delivering results, project ownership
       4. communication: Documentation quality, code readability, collaboration signals
-      5. risk: Risk score (higher = LESS risky, i.e., 100 = no risk)
+      5. code_quality: Code quality assessment (code readability, test coverage, documentation, architecture patterns)
 
       # INPUT
       JD Analysis:
@@ -73,13 +73,13 @@ prompts:
 
       # OUTPUT FORMAT
       {{
-        "candidate_scores": [role_fit, technical, execution, communication, risk],
+        "candidate_scores": [role_fit, technical, execution, communication, code_quality],
         "reasoning": {{
           "role_fit": "brief reason",
           "technical": "brief reason",
           "execution": "brief reason",
           "communication": "brief reason",
-          "risk": "brief reason"
+          "code_quality": "brief reason"
         }}
       }}
 

@@ -19,7 +19,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-medium text-indigo-100">전체 매칭 점수</h3>
-              <p className="text-4xl font-bold mt-1">{overall_match}%</p>
+              <p className="text-2xl sm:text-4xl font-bold mt-1">{overall_match}%</p>
             </div>
             <div className="text-6xl opacity-20">📊</div>
           </div>
@@ -45,7 +45,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
 
           {/* Score breakdown */}
           <div className="space-y-3 w-full lg:w-auto">
-            {['역할 적합도', '기술 역량', '실행력', '커뮤니케이션', '위험 요소'].map((label, i) => {
+            {['역할 적합도', '기술 역량', '실행력', '커뮤니케이션', '코드 품질'].map((label, i) => {
               const candidate = radar_candidate[i]
               const required = radar_required[i]
               const diff = candidate - required
@@ -97,7 +97,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
           </h3>
           <div className="space-y-3">
             {risk_flags.map((flag, i) => (
-              <div key={i} className="bg-white rounded-lg p-4 border border-red-200">
+              <div key={i} className="card-hover bg-white rounded-lg p-4 border border-red-200">
                 <div className="font-medium text-red-900">{flag.label}</div>
                 <div className="text-sm text-red-700 mt-1">{flag.detail}</div>
               </div>
@@ -117,7 +117,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
           </h3>
 
           <div className="overflow-x-auto -mx-6">
-            <table className="w-full min-w-[600px]">
+            <table className="w-full min-w-[500px]">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">JD 요구 스킬</th>
@@ -129,7 +129,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {skill_table.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
+                  <tr key={i} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.skill}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{row.candidate}</td>
                     <td className="px-6 py-4">

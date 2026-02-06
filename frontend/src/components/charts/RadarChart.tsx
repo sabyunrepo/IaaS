@@ -20,7 +20,7 @@ const DEFAULT_LABELS = [
   '기술 역량',
   '실행력',
   '커뮤니케이션',
-  '위험 요소'
+  '코드 품질'
 ]
 
 export function RadarChart({
@@ -59,8 +59,8 @@ export function RadarChart({
   const gridLevels = [20, 40, 60, 80, 100]
 
   return (
-    <div className="relative">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <div className="relative w-full max-w-[320px] mx-auto">
+      <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-auto">
         {/* Background grid circles */}
         {gridLevels.map((level) => {
           const radius = (level / 100) * maxRadius
@@ -104,6 +104,7 @@ export function RadarChart({
           stroke="#6366f1"
           strokeWidth={2}
           strokeDasharray="4 2"
+          style={{ transition: 'all 0.4s ease' }}
         />
 
         {/* Candidate polygon (foreground) */}
@@ -112,21 +113,37 @@ export function RadarChart({
           fill="rgba(16, 185, 129, 0.3)"
           stroke="#10b981"
           strokeWidth={2}
+          style={{ transition: 'all 0.4s ease' }}
         />
 
-        {/* Data points */}
+        {/* Data points with hover tooltip */}
         {candidateData.map((value, i) => {
           const point = getPoint(value, i)
           return (
-            <circle
-              key={i}
-              cx={point.x}
-              cy={point.y}
-              r={4}
-              fill="#10b981"
-              stroke="white"
-              strokeWidth={2}
-            />
+            <g key={i}>
+              {/* Larger invisible hit area for hover */}
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={10}
+                fill="transparent"
+                style={{ cursor: 'pointer' }}
+              >
+                <title>{labels[i]}: {value} (요구: {requiredData[i]})</title>
+              </circle>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={4}
+                fill="#10b981"
+                stroke="white"
+                strokeWidth={2}
+                style={{ transition: 'r 0.2s ease' }}
+                className="hover:r-6"
+              >
+                <title>{labels[i]}: {value} (요구: {requiredData[i]})</title>
+              </circle>
+            </g>
           )
         })}
 

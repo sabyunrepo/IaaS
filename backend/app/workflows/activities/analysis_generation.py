@@ -148,7 +148,7 @@ def _calculate_radar_scores(
 ) -> tuple[list[int], list[int]]:
     """5축 레이더 점수 계산
 
-    축: [role_fit, technical, execution, communication, risk]
+    축: [role_fit, technical, execution, communication, code_quality]
     """
     # JD 요구 점수 (기본값)
     required_scores = [80, 80, 60, 70, 70]
@@ -184,9 +184,16 @@ def _calculate_radar_scores(
         doc_quality = code_analysis.get("quality_metrics", {}).get("documentation_score", 50)
         candidate_scores[3] = min(100, doc_quality + 20)
 
-    # Risk: 리스크 플래그 기반 (낮을수록 좋음)
-    risk_flags = code_analysis.get("risk_flags", []) if code_analysis else []
-    candidate_scores[4] = max(30, 100 - len(risk_flags) * 15)
+    # Code Quality: 테스트 커버리지, 문서화, 아키텍처 패턴 기반
+    if code_analysis:
+        quality = code_analysis.get("quality_metrics", {})
+        test_cov = quality.get("test_coverage", 0)
+        doc_score = quality.get("documentation_score", 50)
+        complexity = quality.get("complexity_score", 50)
+        raw = (test_cov * 0.4 + doc_score * 0.3 + max(0, 100 - complexity) * 0.3)
+        candidate_scores[4] = max(20, min(100, int(raw)))
+    else:
+        candidate_scores[4] = 50
 
     return candidate_scores, required_scores
 

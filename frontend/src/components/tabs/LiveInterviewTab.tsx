@@ -98,7 +98,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">질문 선택</h3>
               <p className="text-sm text-gray-500 mt-1">
@@ -147,7 +147,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
               <button
                 key={q.id}
                 onClick={() => toggleQuestion(q.id)}
-                className={`w-full text-left p-4 rounded-xl border transition-all ${
+                className={`card-hover w-full text-left p-4 rounded-xl border transition-all ${
                   selectedQuestions.has(q.id)
                     ? 'bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200'
                     : 'bg-white border-gray-200 hover:border-gray-300'
@@ -303,12 +303,12 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
         {/* Scenario Selection */}
         <div className="mb-6">
           <h5 className="text-sm font-semibold text-gray-700 mb-3">답변 수준 평가</h5>
-          <div className="grid sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {currentQuestion.scenarios.map((scenario) => (
               <button
                 key={scenario.level}
                 onClick={() => handleScenarioSelect(currentQuestion.id, scenario.level, scenario.score)}
-                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                className={`card-hover p-4 rounded-xl border-2 text-left transition-all ${
                   currentScore?.selectedLevel === scenario.level
                     ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200'
                     : 'border-gray-200 hover:border-gray-300'
@@ -340,7 +340,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
               {currentQuestion.follow_ups
                 .filter(fu => fu.trigger === 'any' || fu.trigger === currentScore.selectedLevel)
                 .map((followUp) => (
-                  <div key={followUp.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div key={followUp.id} className="card-hover p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <p className="font-medium text-gray-900 mb-2">{followUp.question_text}</p>
                     <div className="grid sm:grid-cols-2 gap-3 mb-3">
                       <div className="p-2 bg-green-50 rounded-lg border border-green-200">
