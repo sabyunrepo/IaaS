@@ -145,7 +145,7 @@ async def finalize_output(
     """
     from app.services.cached_llm import CachedLLMService
     from app.core.config import settings
-    from app.workflows.utils import run_llm_with_heartbeat
+    from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
     llm = CachedLLMService()
     raw_input = enriched_input.get("raw_input", {})
@@ -167,26 +167,26 @@ async def finalize_output(
     linkedin_profile = enriched_input.get("linkedin_profile") or {}
     linkedin_summary = _format_linkedin_summary(linkedin_profile)
 
-    from app.prompts import get_prompt
-    summary_prompt = get_prompt(
+    from app.prompts import get_prompt_with_config
+    summary_config = get_prompt_with_config(
         "finalization.yaml", "candidate_summary",
         document_analysis=json.dumps(analysis.get("document_analysis", {}), default=str)[:2000],
         code_analysis=json.dumps(analysis.get("code_analysis", {}), default=str)[:2000],
         linkedin_profile=linkedin_summary,
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    candidate_summary = await run_llm_with_heartbeat(llm, summary_prompt, "finalize_candidate_summary", interval=30.0)
+    candidate_summary = await run_llm_with_prompt_config_heartbeat(llm, summary_config, interval=30.0)
 
     # 3. 면접관 가이드
     activity.heartbeat("Generating interviewer guide...")
-    guide_prompt = get_prompt(
+    guide_config = get_prompt_with_config(
         "finalization.yaml", "interviewer_guide",
         experience_level=raw_input.get("experience_level", "미들"),
         total_questions=len(questions),
         categories=list(set(q.get("category", "") for q in questions)),
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    interviewer_guide = await run_llm_with_heartbeat(llm, guide_prompt, "finalize_interviewer_guide", interval=30.0)
+    interviewer_guide = await run_llm_with_prompt_config_heartbeat(llm, guide_config, interval=30.0)
 
     # 4. 최종 스크립트 조립
     # LLM 응답이 string인 경우 dict로 래핑 (Temporal 직렬화 호환성)

@@ -23,7 +23,7 @@ async def analyze_documents(input_data: dict) -> dict:
     """
     from app.services.document_parser import parse_document
     from app.services.cached_llm import CachedLLMService
-    from app.workflows.utils import run_llm_with_heartbeat
+    from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
     # Initialize activity logger
     job_id = input_data.get("job_id")
@@ -84,11 +84,11 @@ async def analyze_documents(input_data: dict) -> dict:
             "total_chars": sum(len(d) for d in documents),
         })
 
-    from app.prompts import get_prompt
+    from app.prompts import get_prompt_with_config
     output_language = input_data.get("language_config", {}).get("output_language", "ko")
-    prompt = get_prompt("document_analysis.yaml", "extract_profile", documents="\n---\n".join(documents), output_language=output_language)
+    prompt_config = get_prompt_with_config("document_analysis.yaml", "extract_profile", documents="\n---\n".join(documents), output_language=output_language)
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    profile = await run_llm_with_heartbeat(llm, prompt, "analyze_documents", interval=30.0)
+    profile = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
     # 벡터 스토어에 프로필 저장 (job_id가 있을 경우)
     job_id = input_data.get("job_id")

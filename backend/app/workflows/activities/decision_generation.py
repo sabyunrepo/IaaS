@@ -22,21 +22,36 @@ async def _llm_generate_decision_summary(
     jd_analysis: dict,
     document_analysis: dict,
     output_language: str = "ko",
+    job_id: str | None = None,
 ) -> DecisionSummary | None:
     """LLM 기반 Decision Summary 생성 (실패 시 None 반환)"""
     try:
         from app.services.cached_llm import CachedLLMService
-        from app.workflows.utils import run_llm_with_heartbeat
+        from app.prompts import get_prompt_with_config
+        from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
-        import yaml
-        from pathlib import Path
-        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
-        with open(prompts_path) as f:
-            prompts = yaml.safe_load(f)
-        template = prompts["prompts"]["decision_summary"]["template"]
+        # KG 증거 수집 — conflicts → concerns, gaps → 주의 영역
+        kg_context = ""
+        if job_id:
+            try:
+                from app.services.graph_queries import get_interview_graph_queries
+                queries = get_interview_graph_queries(job_id)
+                conflicts = await queries._get_conflict_candidates()
+                gaps = await queries._get_gap_candidates()
+                if conflicts:
+                    kg_context += f"Conflicts requiring attention: {len(conflicts)}\n"
+                    for c in conflicts[:3]:
+                        kg_context += f"- {c.topic}\n"
+                if gaps:
+                    kg_context += f"Skill gaps identified: {len(gaps)}\n"
+                    for g in gaps[:3]:
+                        kg_context += f"- {g.topic}\n"
+            except Exception as e:
+                logger.debug(f"KG enrichment failed for decision summary: {e}")
 
         profile = document_analysis.get("profile", {})
-        prompt = template.format(
+        prompt_config = get_prompt_with_config(
+            "v2_generation.yaml", "decision_summary",
             jd_analysis=json.dumps({
                 "job_title": jd_analysis.get("job_title", ""),
                 "requirements": jd_analysis.get("requirements", [])[:5],
@@ -52,10 +67,11 @@ async def _llm_generate_decision_summary(
             }, ensure_ascii=False, default=str),
             jd_match_score=document_analysis.get("jd_match_score", 0.5),
             output_language=output_language,
+            kg_context=kg_context,
         )
 
         llm = CachedLLMService()
-        result = await run_llm_with_heartbeat(llm, prompt, "decision_summary", interval=30.0)
+        result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
         if not isinstance(result, dict):
             return None
@@ -80,18 +96,32 @@ async def _llm_generate_interviewer_tips(
     document_analysis: dict,
     jd_analysis: dict,
     output_language: str = "ko",
+    job_id: str | None = None,
 ) -> InterviewerGuideTips | None:
     """LLM 기반 면접관 팁 생성 (실패 시 None 반환)"""
     try:
         from app.services.cached_llm import CachedLLMService
-        from app.workflows.utils import run_llm_with_heartbeat
+        from app.prompts import get_prompt_with_config
+        from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
-        import yaml
-        from pathlib import Path
-        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
-        with open(prompts_path) as f:
-            prompts = yaml.safe_load(f)
-        template = prompts["prompts"]["interviewer_tips"]["template"]
+        # KG 증거 기반 면접관 팁 보강
+        kg_context = ""
+        if job_id:
+            try:
+                from app.services.graph_queries import get_interview_graph_queries
+                queries = get_interview_graph_queries(job_id)
+                # Evidence chains for top question topics
+                for q in questions[:5]:
+                    topic = q.get("topic", q.get("question_text", ""))
+                    if topic:
+                        evidence = await queries.get_evidence_chain_for_topic(topic)
+                        if evidence:
+                            kg_context += f"Evidence for '{topic[:50]}':\n"
+                            for item in evidence[:2]:
+                                if item.get("entity_type"):
+                                    kg_context += f"  - {item['entity_type']}: {item.get('name', 'N/A')}\n"
+            except Exception as e:
+                logger.debug(f"KG enrichment failed for interviewer tips: {e}")
 
         profile = document_analysis.get("profile", {})
         question_summary = [
@@ -99,7 +129,8 @@ async def _llm_generate_interviewer_tips(
             for i, q in enumerate(questions[:10])
         ]
 
-        prompt = template.format(
+        prompt_config = get_prompt_with_config(
+            "v2_generation.yaml", "interviewer_tips",
             questions=json.dumps(question_summary, ensure_ascii=False, default=str),
             candidate_profile=json.dumps({
                 "experiences": profile.get("experiences", [])[:3],
@@ -111,10 +142,11 @@ async def _llm_generate_interviewer_tips(
             ),
             job_title=jd_analysis.get("job_title", ""),
             output_language=output_language,
+            kg_context=kg_context,
         )
 
         llm = CachedLLMService()
-        result = await run_llm_with_heartbeat(llm, prompt, "interviewer_tips", interval=30.0)
+        result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
         if not isinstance(result, dict):
             return None
@@ -394,13 +426,13 @@ async def generate_decision_support(
     activity.heartbeat()
 
     # 1. 후보자 요약 생성 (LLM 우선, 규칙 기반 fallback)
-    summary = await _llm_generate_decision_summary(candidate_summary, jd_analysis, document_analysis, output_language)
+    summary = await _llm_generate_decision_summary(candidate_summary, jd_analysis, document_analysis, output_language, job_id=job_id)
     if summary is None:
         summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis)
     activity.heartbeat()
 
     # 2. 면접관 가이드 팁 생성 (LLM 우선, 규칙 기반 fallback)
-    interviewer_guide = await _llm_generate_interviewer_tips(questions, document_analysis, jd_analysis, output_language)
+    interviewer_guide = await _llm_generate_interviewer_tips(questions, document_analysis, jd_analysis, output_language, job_id=job_id)
     if interviewer_guide is None:
         interviewer_guide = _build_interviewer_tips(questions, document_analysis, jd_analysis)
     activity.heartbeat()

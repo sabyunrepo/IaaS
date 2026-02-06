@@ -9,7 +9,7 @@ from temporalio import activity
 
 from app.core.observability import observe_activity
 from app.services.activity_logger import ActivityLogger
-from app.workflows.utils import run_llm_with_heartbeat
+from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
 logger = logging.getLogger(__name__)
 
@@ -245,8 +245,8 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
 
     cat_dist_text, diff_dist_text = _format_distribution_for_prompt(dist)
 
-    from app.prompts import get_prompt
-    prompt = get_prompt(
+    from app.prompts import get_prompt_with_config
+    prompt_config = get_prompt_with_config(
         "question_generation.yaml", "select_topics",
         max_questions=max_questions,
         experience_level=experience_level,
@@ -256,7 +256,7 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
     )
 
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, "select_topics", interval=30.0)
+    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     if isinstance(result, list):
         if alog:
             await alog.result("Topics selected", {
@@ -373,12 +373,12 @@ async def craft_question(
         except Exception as e:
             logger.debug(f"Vector search failed for craft_question: {e}")
 
-    from app.prompts import get_prompt
+    from app.prompts import get_prompt_with_config
     # 카테고리별 특화 프롬프트 선택 (fallback → 범용 craft_question)
     category = topic.get("category", "technical_depth")
     category_prompt_key = f"craft_question_{category}"
     try:
-        prompt = get_prompt(
+        prompt_config = get_prompt_with_config(
             "question_generation.yaml", category_prompt_key,
             output_language=output_language,
             experience_level=experience_level,
@@ -391,7 +391,7 @@ async def craft_question(
         logger.info(f"Using category-specific prompt: {category_prompt_key}")
     except (KeyError, Exception) as e:
         logger.warning(f"Category prompt '{category_prompt_key}' not found, falling back to generic: {e}")
-        prompt = get_prompt(
+        prompt_config = get_prompt_with_config(
             "question_generation.yaml", "craft_question",
             output_language=output_language,
             experience_level=experience_level,
@@ -403,7 +403,7 @@ async def craft_question(
         )
 
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, category_prompt_key, interval=30.0)
+    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
     question = result if isinstance(result, dict) else {}
     # 고유 ID 강제 할당 — LLM이 중복 ID를 생성하는 문제 방지
@@ -441,20 +441,20 @@ async def craft_question(
 async def enhance_terminology(questions: list[dict], enriched_input: dict) -> dict:
     """3c. Terminology Agent — 전문용어에 비개발자용 설명 추가"""
     from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt
+    from app.prompts import get_prompt_with_config
     import json
 
     llm = CachedLLMService()
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
 
-    prompt = get_prompt(
+    prompt_config = get_prompt_with_config(
         "question_generation.yaml", "enhance_terminology",
         output_language=output_language,
         questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, "enhance_terminology", interval=30.0)
+    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -463,7 +463,7 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
 async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict) -> dict:
     """3d. Scenario Writer Agent — 3단계 평가 시나리오 생성"""
     from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt
+    from app.prompts import get_prompt_with_config
     import json
 
     llm = CachedLLMService()
@@ -471,14 +471,14 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
     experience_level = raw_input.get("experience_level", "미들")
 
-    prompt = get_prompt(
+    prompt_config = get_prompt_with_config(
         "question_generation.yaml", "craft_evaluation_scenarios",
         output_language=output_language,
         experience_level=experience_level,
         questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, "craft_evaluation_scenarios", interval=30.0)
+    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -487,7 +487,7 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
 async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict:
     """3e. Follow-up Designer Agent — 후속질문 분기 설계"""
     from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt
+    from app.prompts import get_prompt_with_config
     import json
 
     llm = CachedLLMService()
@@ -495,14 +495,14 @@ async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
     experience_level = raw_input.get("experience_level", "미들")
 
-    prompt = get_prompt(
+    prompt_config = get_prompt_with_config(
         "question_generation.yaml", "design_follow_ups",
         output_language=output_language,
         experience_level=experience_level,
         questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, "design_follow_ups", interval=30.0)
+    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -511,20 +511,20 @@ async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict
 async def generate_interviewer_notes(questions: list[dict], enriched_input: dict) -> dict:
     """3f. Interviewer Note Agent — 면접관 참고 노트"""
     from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt
+    from app.prompts import get_prompt_with_config
     import json
 
     llm = CachedLLMService()
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
 
-    prompt = get_prompt(
+    prompt_config = get_prompt_with_config(
         "question_generation.yaml", "generate_interviewer_notes",
         output_language=output_language,
         questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, "generate_interviewer_notes", interval=30.0)
+    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -533,7 +533,7 @@ async def generate_interviewer_notes(questions: list[dict], enriched_input: dict
 async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
     """3g. Decision Guide Agent — 채용 의사결정 가이드"""
     from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt
+    from app.prompts import get_prompt_with_config
     import json
 
     llm = CachedLLMService()
@@ -550,7 +550,7 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
     categories = ["role_fit", "technical_depth", "execution_ownership", "communication", "risk_flags"]
     category_summary = json.dumps(categories, ensure_ascii=False)
 
-    prompt = get_prompt(
+    prompt_config = get_prompt_with_config(
         "question_generation.yaml", "generate_decision_guide",
         output_language=output_language,
         experience_level=experience_level,
@@ -558,7 +558,7 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
         category_summary=category_summary,
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, "generate_decision_guide", interval=30.0)
+    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     return result if isinstance(result, dict) else {}
 
 
@@ -567,21 +567,21 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
 async def revise_questions(questions: list[dict], review_feedback: dict, enriched_input: dict) -> list[dict]:
     """3h. Quality Review revision — 피드백 기반 질문 수정"""
     from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt
+    from app.prompts import get_prompt_with_config
     import json
 
     llm = CachedLLMService()
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
 
-    prompt = get_prompt(
+    prompt_config = get_prompt_with_config(
         "question_generation.yaml", "revise_questions",
         output_language=output_language,
         questions_json=json.dumps(questions, ensure_ascii=False, default=str),
         review_feedback=json.dumps(review_feedback, ensure_ascii=False, default=str),
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, "revise_questions", interval=30.0)
+    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     return result if isinstance(result, list) else questions
 
 

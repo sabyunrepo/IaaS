@@ -24,13 +24,16 @@ prompts:
 
       # INPUT
       JD Requirements:
-      {jd_requirements}
+      {{jd_requirements}}
 
       Candidate Skills (Resume):
-      {candidate_skills}
+      {{candidate_skills}}
 
       Candidate Skills (GitHub):
-      {code_skills}
+      {{code_skills}}
+
+      # ADDITIONAL CONTEXT (may be empty)
+      {{kg_context}}
 
       # OUTPUT FORMAT (JSON array)
       [
@@ -69,13 +72,16 @@ prompts:
 
       # INPUT
       JD Analysis:
-      {jd_analysis}
+      {{jd_analysis}}
 
       Code Analysis:
-      {code_analysis_summary}
+      {{code_analysis_summary}}
 
       Document Analysis:
-      {document_analysis_summary}
+      {{document_analysis_summary}}
+
+      # ADDITIONAL CONTEXT (may be empty)
+      {{kg_context}}
 
       # OUTPUT FORMAT
       {{
@@ -105,7 +111,10 @@ prompts:
 
       # INPUT
       Code Analysis Data:
-      {code_analysis}
+      {{code_analysis}}
+
+      # ADDITIONAL CONTEXT (may be empty)
+      {{kg_context}}
 
       # OUTPUT LANGUAGE
       Write ALL output text (label, display, note, tooltip) in {{output_language}}. JSON keys must remain in English.
@@ -162,16 +171,19 @@ prompts:
 
       # INPUT
       JD Analysis:
-      {jd_analysis}
+      {{jd_analysis}}
 
       Candidate Profile:
-      {candidate_profile}
+      {{candidate_profile}}
 
       Candidate Summary:
-      {candidate_summary}
+      {{candidate_summary}}
 
       JD Match Score (0-1):
-      {jd_match_score}
+      {{jd_match_score}}
+
+      # ADDITIONAL CONTEXT (may be empty)
+      {{kg_context}}
 
       # OUTPUT FORMAT
       {{
@@ -206,16 +218,19 @@ prompts:
 
       # INPUT
       Questions:
-      {questions}
+      {{questions}}
 
       Candidate Profile:
-      {candidate_profile}
+      {{candidate_profile}}
 
       Cover Letter Analysis:
-      {cover_letter}
+      {{cover_letter}}
 
       Job Title:
-      {job_title}
+      {{job_title}}
+
+      # ADDITIONAL CONTEXT (may be empty)
+      {{kg_context}}
 
       # OUTPUT FORMAT
       {{

@@ -89,6 +89,13 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     "finalize_candidate_summary": KIMI_CHAT_MODEL,
     "finalize_interviewer_guide": KIMI_CHAT_MODEL,
     "finalize_output": KIMI_CHAT_MODEL,
+
+    # Phase 4: v2 Generation (Intel/Analysis/Decision) - Kimi K2.5
+    "intel_competency_matching": KIMI_CHAT_MODEL,
+    "radar_analysis": KIMI_CHAT_MODEL,
+    "engineering_dna": KIMI_CHAT_MODEL,
+    "decision_summary": KIMI_CHAT_MODEL,
+    "interviewer_tips": KIMI_CHAT_MODEL,
 }
 
 

@@ -22,7 +22,7 @@ async def analyze_jd(jd_text: str, job_id: str | None = None, output_language: s
     3. 회사 문화 추출
     """
     from app.services.cached_llm import CachedLLMService
-    from app.workflows.utils import run_llm_with_heartbeat
+    from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
     # Initialize activity logger
     alog = ActivityLogger(job_id, "jd_analysis", "analyzing") if job_id else None
@@ -34,8 +34,8 @@ async def analyze_jd(jd_text: str, job_id: str | None = None, output_language: s
 
     llm = CachedLLMService()
 
-    from app.prompts import get_prompt
-    prompt = get_prompt("jd_analysis.yaml", "analyze", jd_text=jd_text, output_language=output_language)
+    from app.prompts import get_prompt_with_config
+    prompt_config = get_prompt_with_config("jd_analysis.yaml", "analyze", jd_text=jd_text, output_language=output_language)
 
     activity.heartbeat("Starting JD analysis LLM call...")
 
@@ -43,7 +43,7 @@ async def analyze_jd(jd_text: str, job_id: str | None = None, output_language: s
         await alog.progress("Extracting requirements with LLM", {})
 
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, "analyze_jd", interval=30.0)
+    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
     activity.heartbeat("JD analysis LLM call completed")
 

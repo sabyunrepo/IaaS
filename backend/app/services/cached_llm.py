@@ -418,19 +418,22 @@ class CachedLLMService:
         try:
             # temperature가 있으면 agent에 전달
             agent = get_llm_agent(result_type=result_type, model=model)
-            run_result = await agent.run(prompt, model_settings=ms)
+            run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
 
             logger.info(
                 f"LLM call: {prompt_config.name} (source={prompt_config.source}, "
                 f"model={model})"
             )
+        except asyncio.CancelledError:
+            logger.warning(f"LLM call cancelled for model {model}")
+            raise
         except Exception as primary_err:
             fallback_model = settings.LLM_FALLBACK_MODEL
             if fallback_model and fallback_model != model:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
                 self._log_fallback_event(model, fallback_model, trace_meta)
                 agent = get_llm_agent(result_type=result_type, model=fallback_model)
-                run_result = await agent.run(prompt, model_settings=ms)
+                run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
             else:
                 raise
 

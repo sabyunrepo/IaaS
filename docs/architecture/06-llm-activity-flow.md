@@ -219,9 +219,9 @@ questions
 | **Phase** | `analysis` |
 | **입력 데이터** | JD 텍스트 (원문), job_id, output_language |
 | **출력 데이터** | `{job_title, company_name, requirements[], responsibilities[], company_culture[], tech_stack[], skill_matches, overall_match_score, gaps, strengths, kg_entity_count}` |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `jd_analysis.yaml` → `analyze` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()`, `KnowledgeGraph.extract_and_store_jd_entities()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()`, `KnowledgeGraph.extract_and_store_jd_entities()` |
 | **output_language** | 지원 (프롬프트 변수로 전달) |
 
 #### `analyze_documents`
@@ -233,9 +233,9 @@ questions
 | **Phase** | `analysis` |
 | **입력 데이터** | `input_data`: resume_path, portfolio_path, cover_letter_path, job_id, language_config |
 | **출력 데이터** | `{profile: {name, contact, education, work_experience, skills, projects, ...}, raw_texts[], parse_info[], kg_entity_count}` |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `document_analysis.yaml` → `extract_profile` |
-| **사용 도구/서비스** | `DocumentParser.parse_document()` (Docling primary, pymupdf4llm fallback), `CachedLLMService`, `run_llm_with_heartbeat()`, `VectorStore.store_profile()`, `KnowledgeGraph.extract_and_store_candidate_entities()` |
+| **사용 도구/서비스** | `DocumentParser.parse_document()` (Docling primary, pymupdf4llm fallback), `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()`, `VectorStore.store_profile()`, `KnowledgeGraph.extract_and_store_candidate_entities()` |
 | **output_language** | 지원 (프롬프트 변수로 전달) |
 
 #### `analyze_code`
@@ -347,9 +347,9 @@ questions
 | **Phase** | `question_generation` |
 | **입력 데이터** | 통합 분석 결과, enriched_input (경험 레벨 등), job_id |
 | **출력 데이터** | 20개 토픽 리스트: `[{category, topic, difficulty, source, evidence}]` |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `question_generation.yaml` → `select_topics` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()`, `InterviewGraphQueries.get_top_question_candidates()`, `VectorStore.search_profile()`, `VectorStore.search_code()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()`, `InterviewGraphQueries.get_top_question_candidates()`, `VectorStore.search_profile()`, `VectorStore.search_code()` |
 | **output_language** | 미사용 (토픽 선정은 내부 로직) |
 | **비고** | KG 후보 (0.15 부스트) → Vector Search 후보 → Code 후보 → JD 후보 우선순위 |
 
@@ -362,9 +362,9 @@ questions
 | **Phase** | `question_generation` |
 | **입력 데이터** | 단일 토픽, 통합 분석 결과, enriched_input, job_id |
 | **출력 데이터** | `{id, question_text, category, difficulty, language, topic, alternative_phrasing, expected_answer, evaluation_criteria, ...}` |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `question_generation.yaml` → `craft_question_{category}` (카테고리별 특화), fallback → `craft_question` (범용) |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()`, `InterviewGraphQueries.get_evidence_chain_for_topic()`, `VectorStore.search_profile()`, `VectorStore.search_code()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()`, `InterviewGraphQueries.get_evidence_chain_for_topic()`, `VectorStore.search_profile()`, `VectorStore.search_code()` |
 | **output_language** | 지원 (프롬프트 변수로 전달) |
 | **비고** | 카테고리별 5종 특화 프롬프트: `craft_question_role_fit`, `craft_question_technical_depth`, `craft_question_execution_ownership`, `craft_question_communication`, `craft_question_risk_flags` |
 
@@ -377,9 +377,9 @@ questions
 | **Phase** | `question_generation` |
 | **입력 데이터** | 생성된 질문 리스트 (최대 25개), enriched_input |
 | **출력 데이터** | `{question_id: [{term, explanation}]}` — 질문별 용어 설명 매핑 |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `question_generation.yaml` → `enhance_terminology` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()` |
 | **output_language** | 지원 |
 
 #### `craft_evaluation_scenarios`
@@ -391,9 +391,9 @@ questions
 | **Phase** | `question_generation` |
 | **입력 데이터** | 생성된 질문 리스트, enriched_input |
 | **출력 데이터** | `{question_id: {good, average, poor}}` — 3단계 평가 시나리오 |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `question_generation.yaml` → `craft_evaluation_scenarios` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()` |
 | **output_language** | 지원 |
 
 #### `design_follow_ups`
@@ -405,9 +405,9 @@ questions
 | **Phase** | `question_generation` |
 | **입력 데이터** | 생성된 질문 리스트, enriched_input |
 | **출력 데이터** | `{question_id: [{follow_up_text, trigger_condition}]}` — 후속 질문 분기 |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `question_generation.yaml` → `design_follow_ups` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()` |
 | **output_language** | 지원 |
 
 #### `generate_interviewer_notes`
@@ -419,9 +419,9 @@ questions
 | **Phase** | `question_generation` |
 | **입력 데이터** | 생성된 질문 리스트, enriched_input |
 | **출력 데이터** | `{question_id: {note_text, key_signals}}` — 면접관 참고 노트 |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `question_generation.yaml` → `generate_interviewer_notes` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()` |
 | **output_language** | 지원 |
 
 #### `generate_decision_guide`
@@ -433,9 +433,9 @@ questions
 | **Phase** | `question_generation` |
 | **입력 데이터** | 통합 분석 결과, enriched_input |
 | **출력 데이터** | `{hire_signals, caution_areas, decision_matrix, ...}` — 채용 의사결정 가이드 |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `question_generation.yaml` → `generate_decision_guide` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()` |
 | **output_language** | 지원 |
 
 #### `revise_questions`
@@ -447,9 +447,9 @@ questions
 | **Phase** | `question_generation` |
 | **입력 데이터** | 기존 질문 리스트, 리뷰 피드백, enriched_input |
 | **출력 데이터** | 수정된 질문 리스트 |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `question_generation.yaml` → `revise_questions` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()` |
 | **output_language** | 지원 |
 
 ---
@@ -465,9 +465,9 @@ questions
 | **Phase** | `quality_review` |
 | **입력 데이터** | 생성된 질문 리스트, output_language |
 | **출력 데이터** | `{verdict: "APPROVED"|"NEEDS_REVISION", issues[], questions_to_revise[], category_distribution, difficulty_distribution}` |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback |
 | **사용 프롬프트** | `quality_review.yaml` → `review` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()` |
 | **output_language** | 지원 |
 | **비고** | 규칙 기반 검증 (카테고리/난이도 분포) + LLM 기반 중복/품질 검토 결합 |
 
@@ -480,9 +480,9 @@ questions
 | **Phase** | `finalization` |
 | **입력 데이터** | 최종 질문 리스트, 통합 분석 결과, enriched_input |
 | **출력 데이터** | `{generated_at, output_language, candidate_summary, questions, interviewer_guide, full_glossary, linkedin_profile, candidate, metadata, output_path}` |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — 2회 호출 |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback, 2회 호출 |
 | **사용 프롬프트** | `finalization.yaml` → `candidate_summary` (후보자 요약), `finalization.yaml` → `interviewer_guide` (면접관 가이드) |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()`, `StorageService` (LocalStack S3 / AWS S3) |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()`, `StorageService` (LocalStack S3 / AWS S3) |
 | **output_language** | 지원 |
 
 #### `generate_intel_brief`
@@ -494,11 +494,11 @@ questions
 | **Phase** | `finalization` |
 | **입력 데이터** | JD 분석, 문서 분석, 코드 분석, LinkedIn 프로필, JD 원문, job_id, output_language |
 | **출력 데이터** | `IntelBrief {jd_summary, jd_full, competencies[], github, linkedin[], linkedin_warning}` |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — 역량 매칭에 1회 호출 |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback, 역량 매칭에 1회 호출 |
 | **사용 프롬프트** | `v2_generation.yaml` → `competency_matching` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()`, `VectorStore.search_profile()` (시맨틱 스킬 매칭) |
 | **output_language** | 지원 |
-| **비고** | LLM 우선, 실패 시 규칙 기반 fallback (`_match_competencies`) |
+| **비고** | LLM 우선 + VectorStore 시맨틱 스킬 매칭 연동 (similarity ≥ 0.6), 실패 시 규칙 기반 fallback (`_match_competencies`) |
 
 #### `generate_deep_analysis`
 
@@ -509,11 +509,11 @@ questions
 | **Phase** | `finalization` |
 | **입력 데이터** | JD 분석, 코드 분석, 문서 분석, job_id, output_language |
 | **출력 데이터** | `DeepAnalysis {radar_candidate[5], radar_required[5], engineering_dna[], risk_flags[], skill_table[], overall_match}` |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — 최대 2회 호출 (레이더 + DNA) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback, 최대 2회 호출 (레이더 + DNA) |
 | **사용 프롬프트** | `v2_generation.yaml` → `radar_analysis`, `v2_generation.yaml` → `engineering_dna` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()`, `InterviewGraphQueries` (KG conflict/gap 데이터), `VectorStore.search_code()` (Engineering DNA 코드 패턴) |
 | **output_language** | 지원 |
-| **비고** | LLM 우선, 실패 시 규칙 기반 fallback (각각 `_calculate_radar_scores`, `_analyze_engineering_dna`) |
+| **비고** | LLM 우선 + KG 충돌/갭 데이터 연동 (radar), VectorStore 코드 검색 연동 (DNA), 실패 시 규칙 기반 fallback (각각 `_calculate_radar_scores`, `_analyze_engineering_dna`) |
 
 #### `generate_decision_support`
 
@@ -524,11 +524,11 @@ questions
 | **Phase** | `finalization` |
 | **입력 데이터** | 후보자 요약, 질문 리스트, JD 분석, 문서 분석, job_id, output_language |
 | **출력 데이터** | `DecisionSupport {summary: DecisionSummary, interviewer_guide: InterviewerGuideTips, jd_competency_map[]}` |
-| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — 최대 2회 호출 (요약 + 팁) |
+| **사용 LLM 모델** | `Kimi K2.5` (`moonshot/moonshot-v1-auto`) — Langfuse 우선, YAML fallback, 최대 2회 호출 (요약 + 팁) |
 | **사용 프롬프트** | `v2_generation.yaml` → `decision_summary`, `v2_generation.yaml` → `interviewer_tips` |
-| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_heartbeat()` |
+| **사용 도구/서비스** | `CachedLLMService`, `run_llm_with_prompt_config_heartbeat()`, `get_prompt_with_config()`, `InterviewGraphQueries` (KG conflict/gap + evidence chain) |
 | **output_language** | 지원 |
-| **비고** | LLM 우선, 실패 시 규칙 기반 fallback (각각 `_extract_decision_summary`, `_build_interviewer_tips`) |
+| **비고** | LLM 우선 + KG 충돌/갭 데이터 연동 (decision_summary), KG evidence chain 연동 (interviewer_tips), 실패 시 규칙 기반 fallback (각각 `_extract_decision_summary`, `_build_interviewer_tips`) |
 
 ---
 
@@ -675,6 +675,16 @@ select_topics     ──→ VectorStore.search_profile()    ←── pgvector (
 craft_question    ──→ VectorStore.search_profile()    ←── pgvector (추가 컨텍스트)
                   ──→ GraphQueries.get_evidence()     ←── PostgreSQL (증거 체인)
 
+generate_intel    ──→ VectorStore.search_profile()    ←── pgvector (시맨틱 스킬 매칭)
+
+generate_analysis ──→ GraphQueries.get_conflicts()    ←── PostgreSQL (KG 충돌 감지)
+                  ──→ GraphQueries.get_gaps()          ←── PostgreSQL (KG 갭 감지)
+                  ──→ VectorStore.search_code()        ←── pgvector (Engineering DNA 패턴)
+
+generate_decision ──→ GraphQueries.get_conflicts()    ←── PostgreSQL (의사결정 증거)
+                  ──→ GraphQueries.get_gaps()          ←── PostgreSQL (주의 영역)
+                  ──→ GraphQueries.get_evidence()      ←── PostgreSQL (면접관 팁 증거)
+
 finalize_output   ──→ StorageService.upload_json()    ──→ S3 (최종 스크립트)
 persist_result    ──→ JobDB.update()                  ──→ PostgreSQL (Job 상태)
 ```
@@ -702,49 +712,67 @@ class CachedLLMService:
         """잡별 캐시 일괄 삭제"""
 ```
 
-### run_llm_with_heartbeat 래퍼
+### run_llm_with_prompt_config_heartbeat 래퍼 (Langfuse-First)
 
 ```python
-async def run_llm_with_heartbeat(
-    llm: CachedLLMService,
-    prompt: str,
-    activity_name: str,
+async def run_llm_with_prompt_config_heartbeat(
+    llm_service: CachedLLMService,
+    prompt_config: PromptWithConfig,
     interval: float = 30.0,
+    **kwargs,
 ) -> dict | list | str:
     """
-    LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
+    Langfuse-first LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
 
-    - asyncio.create_task()로 heartbeat 백그라운드 루프 생성
+    - CachedLLMService.run_with_prompt_config()를 heartbeat와 함께 실행
+    - prompt_config에 모델/온도/토큰 설정이 내장됨 (Langfuse 우선, YAML fallback)
+    - asyncio.shield()로 Temporal Activity 취소 시 LLM 호출 보호
     - interval초마다 activity.heartbeat() 호출
-    - LLM 응답 수신 후 heartbeat 태스크 cancel
     """
 ```
 
-### 모델 라우팅 흐름
+> **레거시**: `run_llm_with_heartbeat(llm, prompt, activity_name)` — 하위 호환으로 유지되나, 모든 Activity에서 `run_llm_with_prompt_config_heartbeat()`로 마이그레이션 완료.
+
+### Langfuse-First 모델 라우팅 흐름
 
 ```
 Activity 함수 호출
     │
     ▼
-CachedLLMService(activity_name="craft_question")
+get_prompt_with_config("question_generation.yaml", "craft_question", **vars)
     │
-    ├─ llm_config.get_model_for_activity("craft_question")
+    ├─ 1단계: Langfuse 프롬프트 조회 (prompt_name = "craft_question")
+    │   ├─ HIT → Langfuse에서 모델/온도/토큰 설정 + 프롬프트 텍스트 반환
+    │   └─ MISS → 2단계로 fallback
+    │
+    ├─ 2단계: YAML 파일에서 프롬프트 텍스트 로딩
+    │   └─ mustache_format(template, **vars) 적용
+    │
+    ├─ 3단계: 모델 설정 결정 (_prompt_key_to_activity_name → ACTIVITY_MODEL_CONFIG)
     │   └─ ACTIVITY_MODEL_CONFIG["craft_question"] = "moonshot/moonshot-v1-auto"
     │
-    ├─ Redis 캐시 조회 (LLM_CACHE_ENABLED=true 시)
-    │   ├─ HIT → 캐시된 응답 반환
-    │   └─ MISS → LLM 호출
+    └─ PromptWithConfig 반환 (source, name, version, model, temperature, config, text)
     │
-    ├─ LiteLLM Router (Fallback Chain)
-    │   ├─ Primary: moonshot/moonshot-v1-auto (Kimi K2.5)
-    │   └─ Fallback: settings.LLM_FALLBACK_MODEL (GPT-4o → Claude)
+    ▼
+run_llm_with_prompt_config_heartbeat(llm, prompt_config)
     │
-    ├─ Instructor (JSON 구조화 출력 강제)
+    ├─ CachedLLMService.run_with_prompt_config(prompt_config)
+    │   ├─ prompt_config에서 model/temperature/max_tokens 추출
+    │   ├─ Redis 캐시 조회 (LLM_CACHE_ENABLED=true 시)
+    │   │   ├─ HIT → 캐시된 응답 반환
+    │   │   └─ MISS → LLM 호출
+    │   ├─ asyncio.shield()로 LLM 호출 보호
+    │   ├─ LiteLLM Router (Fallback Chain)
+    │   │   ├─ Primary: prompt_config.model (Langfuse 또는 ACTIVITY_MODEL_CONFIG)
+    │   │   └─ Fallback: settings.LLM_FALLBACK_MODEL (GPT-4o → Claude)
+    │   ├─ Instructor (JSON 구조화 출력 강제)
+    │   ├─ Redis 캐시 저장
+    │   └─ Langfuse Span 기록 (observability, prompt version 추적)
     │
-    ├─ Redis 캐시 저장
-    │
-    └─ Langfuse Span 기록 (observability)
+    └─ heartbeat 루프 (interval초마다 activity.heartbeat())
 ```
+
+> **핵심 변경점**: Langfuse UI에서 모델/온도/토큰을 변경하면 코드 배포 없이 즉시 반영됨. Langfuse 미설정 환경에서는 YAML + `llm_config.py` ACTIVITY_MODEL_CONFIG로 자동 fallback.
 
 ### Phase별 LLM 호출 횟수 (1회 워크플로우 기준)
 
@@ -865,27 +893,32 @@ backend/app/prompts/
 ### Activity별 모델 할당
 
 ```
-Phase 0: enrich_input              → Kimi K2.5 (실제 LLM 미호출)
-Phase 1: select_topics             → Kimi K2.5
-Phase 2: analyze_documents         → Kimi K2.5
-Phase 2: analyze_jd                → Kimi K2.5
-Phase 2: analyze_code              → Kimi K2.5 (Coder)
-Phase 2: code_overview_analysis    → Kimi K2.5 (Coder)  ← 설정상, 실제 GLM-4.7 사용
-Phase 2: code_deep_analysis        → Kimi K2.5 (Coder)  ← 설정상, 실제 GLM-4.7 사용
-Phase 2: code_synthesis_analysis   → Kimi K2.5 (Coder)  ← 설정상, 실제 GLM-4.7 사용
-Phase 3: craft_question            → Kimi K2.5
-Phase 3: enhance_terminology       → Kimi K2.5
-Phase 3: craft_evaluation_scenarios → Kimi K2.5
-Phase 3: design_follow_ups        → Kimi K2.5
-Phase 3: generate_interviewer_notes → Kimi K2.5
-Phase 3: generate_decision_guide   → Kimi K2.5
-Phase 3: revise_questions          → Kimi K2.5
-Phase 4: quality_review            → Kimi K2.5
-Phase 4: finalize_candidate_summary → Kimi K2.5
-Phase 4: finalize_interviewer_guide → Kimi K2.5
+Phase 0: enrich_input              → (LLM 미호출)
+Phase 1: select_topics             → Kimi K2.5 (Langfuse 우선)
+Phase 2: analyze_documents         → Kimi K2.5 (Langfuse 우선)
+Phase 2: analyze_jd                → Kimi K2.5 (Langfuse 우선)
+Phase 2: analyze_code              → Kimi K2.5 Coder (설정상)
+Phase 2: code_overview_analysis    → GLM-4.7 (코드 내 직접 지정)
+Phase 2: code_deep_analysis        → GLM-4.7 (코드 내 직접 지정)
+Phase 2: code_synthesis_analysis   → GLM-4.7 (코드 내 직접 지정)
+Phase 3: craft_question            → Kimi K2.5 (Langfuse 우선)
+Phase 3: enhance_terminology       → Kimi K2.5 (Langfuse 우선)
+Phase 3: craft_evaluation_scenarios → Kimi K2.5 (Langfuse 우선)
+Phase 3: design_follow_ups        → Kimi K2.5 (Langfuse 우선)
+Phase 3: generate_interviewer_notes → Kimi K2.5 (Langfuse 우선)
+Phase 3: generate_decision_guide   → Kimi K2.5 (Langfuse 우선)
+Phase 3: revise_questions          → Kimi K2.5 (Langfuse 우선)
+Phase 4: quality_review            → Kimi K2.5 (Langfuse 우선)
+Phase 4: finalize_candidate_summary → Kimi K2.5 (Langfuse 우선)
+Phase 4: finalize_interviewer_guide → Kimi K2.5 (Langfuse 우선)
+Phase 4: intel_competency_matching → Kimi K2.5 (Langfuse 우선) + VectorStore
+Phase 4: radar_analysis            → Kimi K2.5 (Langfuse 우선) + KG conflict/gap
+Phase 4: engineering_dna           → Kimi K2.5 (Langfuse 우선) + VectorStore code
+Phase 4: decision_summary          → Kimi K2.5 (Langfuse 우선) + KG conflict/gap
+Phase 4: interviewer_tips          → Kimi K2.5 (Langfuse 우선) + KG evidence chain
 ```
 
-> **참고**: `analyze_single_repo`는 `llm_config.py`의 `ACTIVITY_MODEL_CONFIG`와 별도로 코드 내에서 직접 `GLM_MODEL = settings.GLM_CODER_MODEL` (`zai/glm-4.7`)을 사용한다. `v2_generation` 관련 Activity들(`generate_intel_brief`, `generate_deep_analysis`, `generate_decision_support`)은 내부에서 `CachedLLMService()`를 기본 생성하므로 `ACTIVITY_MODEL_CONFIG`의 기본 설정을 따른다.
+> **참고**: `analyze_single_repo`는 `llm_config.py`의 `ACTIVITY_MODEL_CONFIG`와 별도로 코드 내에서 직접 `GLM_MODEL = settings.GLM_CODER_MODEL` (`zai/glm-4.7`)을 사용한다. 나머지 모든 Activity는 `get_prompt_with_config()` → `run_llm_with_prompt_config_heartbeat()` 패턴으로 **Langfuse-first 아키텍처**를 사용: Langfuse UI에서 모델/온도/토큰을 변경하면 코드 배포 없이 즉시 반영되며, Langfuse 미설정 시 YAML + `ACTIVITY_MODEL_CONFIG` fallback으로 동작한다. Phase 4 v2 Activity들은 추가로 KG/VectorStore 시맨틱 컨텍스트를 LLM 프롬프트에 주입한다.
 
 ### 모델별 최대 출력 토큰
 

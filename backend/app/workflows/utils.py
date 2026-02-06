@@ -115,3 +115,43 @@ async def run_llm_with_heartbeat(
         interval=interval,
         message=heartbeat_message,
     )
+
+
+async def run_llm_with_prompt_config_heartbeat(
+    llm_service: Any,
+    prompt_config: Any,  # PromptWithConfig
+    interval: float = 30.0,
+    **kwargs: Any,
+) -> Any:
+    """CachedLLMService.run_with_prompt_config()을 heartbeat와 함께 실행
+
+    Args:
+        llm_service: CachedLLMService 인스턴스
+        prompt_config: PromptWithConfig 객체 (get_prompt_with_config 결과)
+        interval: heartbeat 간격 (초)
+        **kwargs: llm_service.run_with_prompt_config()에 전달할 추가 인자
+
+    Returns:
+        LLM 응답
+
+    Example:
+        from app.services.cached_llm import CachedLLMService
+        from app.prompts import get_prompt_with_config
+        from app.workflows.utils import run_llm_with_prompt_config_heartbeat
+
+        llm = CachedLLMService()
+        prompt_config = get_prompt_with_config("jd_analysis.yaml", "analyze", jd_text=text)
+        result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config)
+    """
+    prompt_name = getattr(prompt_config, 'name', 'unknown')
+    elapsed = [0]
+
+    def heartbeat_message() -> str:
+        elapsed[0] += int(interval)
+        return f"LLM call in progress ({prompt_name}, {elapsed[0]}s elapsed)"
+
+    return await run_with_heartbeat(
+        llm_service.run_with_prompt_config(prompt_config, **kwargs),
+        interval=interval,
+        message=heartbeat_message,
+    )
