@@ -81,6 +81,52 @@ def _format_linkedin_summary(profile: dict) -> str:
     return "\n\n".join(parts) if parts else "LinkedIn 프로필 정보 제한적"
 
 
+def _build_candidate(
+    linkedin_profile: dict | None,
+    analysis: dict,
+    raw_input: dict,
+) -> dict:
+    """LinkedIn 프로필 + 분석 데이터에서 Candidate 객체 생성"""
+    candidate = {}
+
+    # LinkedIn 프로필에서 기본 정보 추출
+    if linkedin_profile:
+        candidate["name"] = linkedin_profile.get("full_name", "")
+        candidate["avatar_url"] = linkedin_profile.get("avatar_url")
+        candidate["current_title"] = linkedin_profile.get("headline", "")
+        candidate["company_context"] = linkedin_profile.get("current_company", "")
+
+        # 이니셜 생성
+        name = candidate.get("name", "")
+        if name:
+            parts = name.split()
+            candidate["initials"] = "".join(p[0].upper() for p in parts if p)[:2]
+
+        # 경력에서 경험 연수 추론
+        experiences = linkedin_profile.get("experiences", [])
+        if experiences:
+            candidate["experience"] = f"{len(experiences)}+ 포지션"
+
+    # JD 분석에서 역할 정보 추출
+    jd_analysis = analysis.get("jd_analysis", {})
+    if jd_analysis:
+        candidate["role"] = jd_analysis.get("job_title", "")
+
+    # 경험 레벨
+    candidate["level"] = raw_input.get("experience_level", "")
+
+    # document_analysis에서 추가 정보
+    doc_analysis = analysis.get("document_analysis", {})
+    if doc_analysis:
+        profile = doc_analysis.get("profile", {})
+        if not candidate.get("name") and profile.get("name"):
+            candidate["name"] = profile["name"]
+        if not candidate.get("experience") and profile.get("experience_years"):
+            candidate["experience"] = f"{profile['experience_years']}년"
+
+    return candidate if candidate.get("name") else None
+
+
 @activity.defn
 @observe_activity(name="finalize_output", phase="finalization")
 async def finalize_output(
@@ -165,11 +211,18 @@ async def finalize_output(
             "name": linkedin_profile.get("full_name"),
             "headline": linkedin_profile.get("headline"),
             "current_company": linkedin_profile.get("current_company"),
+            "avatar_url": linkedin_profile.get("avatar_url"),
+            "skills": linkedin_profile.get("skills", []),
+            "experiences": linkedin_profile.get("experiences", []),
+            "education": linkedin_profile.get("education", []),
+            "languages": linkedin_profile.get("languages", []),
+            "certifications": linkedin_profile.get("certifications", []),
             "projects": linkedin_profile.get("projects", []),
             "honors_and_awards": linkedin_profile.get("honors_and_awards", []),
             "activity": linkedin_profile.get("activity", []),
             "profile_url": linkedin_profile.get("profile_url"),
         } if linkedin_profile else None,
+        "candidate": _build_candidate(linkedin_profile, analysis, raw_input) if linkedin_profile or analysis else None,
         "metadata": {
             "total_questions": len(questions),
             "language": output_language,

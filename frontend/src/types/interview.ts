@@ -273,6 +273,7 @@ export interface DecisionSupport {
 export interface Candidate {
   name: string
   initials?: string
+  avatar_url?: string
   role?: string
   company_context?: string
   experience?: string
@@ -362,6 +363,12 @@ export interface LinkedInProfile {
   name?: string
   headline?: string
   current_company?: string
+  avatar_url?: string
+  skills?: string[]
+  experiences?: Array<{ title?: string; company?: string; duration?: string }>
+  education?: Array<{ school?: string; degree?: string; field?: string }>
+  languages?: string[]
+  certifications?: Array<{ name?: string; authority?: string }>
   profile_url?: string
   projects?: Array<{ title: string; description?: string }>
   honors_and_awards?: Array<{ title: string; issuer?: string; description?: string }>

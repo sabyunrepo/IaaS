@@ -28,12 +28,12 @@ async def _llm_match_competencies(
         from app.workflows.utils import run_llm_with_heartbeat
         from app.core.config import settings
 
-        jd_requirements = jd_analysis.get("requirements", [])
+        jd_requirements = jd_analysis.get("requirements") or []
         if not jd_requirements:
             return None
 
-        candidate_skills = document_analysis.get("profile", {}).get("skills", [])
-        code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
+        candidate_skills = (document_analysis.get("profile") or {}).get("skills") or []
+        code_skills = (code_analysis.get("tech_stack") or []) if code_analysis else []
 
         # 프롬프트 로딩
         import yaml
@@ -92,7 +92,7 @@ async def _llm_match_competencies(
 
 def _extract_jd_summary(jd_analysis: dict) -> JDSummary:
     """JD 분석에서 요약 정보 추출"""
-    requirements = jd_analysis.get("requirements", [])
+    requirements = jd_analysis.get("requirements") or []
     req_matches = []
     for req in requirements[:5]:  # 상위 5개 요구사항
         req_matches.append(RequirementMatch(
@@ -118,11 +118,11 @@ def _match_competencies(
 ) -> list[CompetencyMatch]:
     """JD 역량과 후보자 매칭 분석"""
     competencies = []
-    jd_requirements = jd_analysis.get("requirements", [])
-    candidate_skills = document_analysis.get("profile", {}).get("skills", [])
+    jd_requirements = jd_analysis.get("requirements") or []
+    candidate_skills = (document_analysis.get("profile") or {}).get("skills") or []
     code_skills = []
     if code_analysis:
-        code_skills = code_analysis.get("tech_stack", [])
+        code_skills = code_analysis.get("tech_stack") or []
 
     # 색상 및 아이콘 매핑
     match_config = {
@@ -205,7 +205,7 @@ def _extract_linkedin_positions(linkedin_profile: dict | None) -> list[LinkedInP
     if not linkedin_profile:
         return []
 
-    experiences = linkedin_profile.get("experiences", [])
+    experiences = linkedin_profile.get("experiences") or linkedin_profile.get("experience") or []
     positions = []
 
     for exp in experiences[:5]:  # 최근 5개
@@ -270,7 +270,7 @@ async def generate_intel_brief(
     linkedin_warning = None
     if linkedin_profile:
         warnings = []
-        experiences = linkedin_profile.get("experiences", [])
+        experiences = linkedin_profile.get("experiences") or linkedin_profile.get("experience") or []
         if not any("CTO" in e.get("title", "") or "VP" in e.get("title", "") for e in experiences):
             warnings.append("CTO/VP 타이틀 경험 없음")
         if warnings:
