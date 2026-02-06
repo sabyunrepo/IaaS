@@ -23,7 +23,7 @@ async def review_questions(questions: list[dict], output_language: str = "ko") -
     3. 카테고리 분포
     """
     from app.services.cached_llm import CachedLLMService
-    from app.workflows.utils import run_llm_with_heartbeat
+    from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
     llm = CachedLLMService()
     issues = []
@@ -65,11 +65,11 @@ async def review_questions(questions: list[dict], output_language: str = "ko") -
     # 3. LLM 기반 중복/품질 검토
     if len(questions) > 0:
         question_texts = [q.get("question_text", "") for q in questions[:25]]
-        from app.prompts import get_prompt
+        from app.prompts import get_prompt_with_config
         formatted_questions = "\n".join(f"{i+1}. {t}" for i, t in enumerate(question_texts))
-        prompt = get_prompt("quality_review.yaml", "review", questions=formatted_questions, output_language=output_language)
+        prompt_config = get_prompt_with_config("quality_review.yaml", "review", questions=formatted_questions, output_language=output_language)
         # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-        review_result = await run_llm_with_heartbeat(llm, prompt, "quality_review", interval=30.0)
+        review_result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
         if isinstance(review_result, dict):
             if review_result.get("duplicates"):
                 issues.append({"type": "duplicates", "details": review_result["duplicates"]})

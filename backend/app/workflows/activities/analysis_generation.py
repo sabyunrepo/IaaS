@@ -21,18 +21,32 @@ async def _llm_calculate_radar_scores(
     code_analysis: dict | None,
     document_analysis: dict,
     output_language: str = "ko",
+    job_id: str | None = None,
 ) -> tuple[list[int], list[int]] | None:
     """LLM 기반 레이더 점수 계산 (실패 시 None 반환)"""
     try:
         from app.services.cached_llm import CachedLLMService
-        from app.workflows.utils import run_llm_with_heartbeat
+        from app.prompts import get_prompt_with_config
+        from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
-        import yaml
-        from pathlib import Path
-        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
-        with open(prompts_path) as f:
-            prompts = yaml.safe_load(f)
-        template = prompts["prompts"]["radar_analysis"]["template"]
+        # KG 증거 수집
+        kg_context = ""
+        if job_id:
+            try:
+                from app.services.graph_queries import get_interview_graph_queries
+                queries = get_interview_graph_queries(job_id)
+                conflicts = await queries._get_conflict_candidates()
+                gaps = await queries._get_gap_candidates()
+                if conflicts:
+                    kg_context += f"Conflicts detected: {len(conflicts)}\n"
+                    for c in conflicts[:3]:
+                        kg_context += f"- {c.topic}\n"
+                if gaps:
+                    kg_context += f"Skill gaps detected: {len(gaps)}\n"
+                    for g in gaps[:3]:
+                        kg_context += f"- {g.topic}\n"
+            except Exception as e:
+                logger.debug(f"KG enrichment failed for radar: {e}")
 
         # 요약 데이터 준비
         code_summary = "코드 분석 데이터 없음"
@@ -56,15 +70,17 @@ async def _llm_calculate_radar_scores(
             "key_requirements": [r.get("skill", "") for r in jd_analysis.get("requirements", [])[:5]],
         }, ensure_ascii=False, default=str)
 
-        prompt = template.format(
+        prompt_config = get_prompt_with_config(
+            "v2_generation.yaml", "radar_analysis",
             jd_analysis=jd_summary,
             code_analysis_summary=code_summary,
             document_analysis_summary=doc_summary,
             output_language=output_language,
+            kg_context=kg_context,
         )
 
         llm = CachedLLMService()
-        result = await run_llm_with_heartbeat(llm, prompt, "radar_analysis", interval=30.0)
+        result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
         if not isinstance(result, dict) or "candidate_scores" not in result:
             return None
@@ -85,21 +101,29 @@ async def _llm_calculate_radar_scores(
         return None
 
 
-async def _llm_analyze_engineering_dna(code_analysis: dict | None, output_language: str = "ko") -> list[EngineeringDNAItem] | None:
+async def _llm_analyze_engineering_dna(code_analysis: dict | None, output_language: str = "ko", job_id: str | None = None) -> list[EngineeringDNAItem] | None:
     """LLM 기반 Engineering DNA 분석 (실패 시 None 반환)"""
     if not code_analysis:
         return None
 
     try:
         from app.services.cached_llm import CachedLLMService
-        from app.workflows.utils import run_llm_with_heartbeat
+        from app.prompts import get_prompt_with_config
+        from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
-        import yaml
-        from pathlib import Path
-        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
-        with open(prompts_path) as f:
-            prompts = yaml.safe_load(f)
-        template = prompts["prompts"]["engineering_dna"]["template"]
+        # VectorStore 코드 패턴 검색
+        kg_context = ""
+        if job_id:
+            try:
+                from app.services.vector_store import get_vector_store
+                vs = get_vector_store(job_id)
+                for query in ["test coverage", "code quality", "architecture patterns"][:3]:
+                    results = await vs.search_code(query, limit=2)
+                    for r in results:
+                        if r["similarity"] >= 0.5:
+                            kg_context += f"- {query}: {r['content_text'][:100]} (sim={r['similarity']:.2f})\n"
+            except Exception as e:
+                logger.debug(f"Vector code enrichment failed for engineering DNA: {e}")
 
         code_data = json.dumps({
             "quality_metrics": code_analysis.get("quality_metrics", {}),
@@ -108,10 +132,15 @@ async def _llm_analyze_engineering_dna(code_analysis: dict | None, output_langua
             "risk_flags": code_analysis.get("risk_flags", [])[:5],
         }, ensure_ascii=False, default=str)
 
-        prompt = template.format(code_analysis=code_data, output_language=output_language)
+        prompt_config = get_prompt_with_config(
+            "v2_generation.yaml", "engineering_dna",
+            code_analysis=code_data,
+            output_language=output_language,
+            kg_context=kg_context,
+        )
 
         llm = CachedLLMService()
-        result = await run_llm_with_heartbeat(llm, prompt, "engineering_dna", interval=30.0)
+        result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
         if not isinstance(result, list):
             return None
@@ -387,7 +416,7 @@ async def generate_deep_analysis(
     activity.heartbeat()
 
     # 1. 5축 레이더 점수 계산 (LLM 우선, 규칙 기반 fallback)
-    llm_radar = await _llm_calculate_radar_scores(jd_analysis, code_analysis, document_analysis, output_language)
+    llm_radar = await _llm_calculate_radar_scores(jd_analysis, code_analysis, document_analysis, output_language, job_id=job_id)
     if llm_radar:
         radar_candidate, radar_required = llm_radar
     else:
@@ -397,7 +426,7 @@ async def generate_deep_analysis(
     activity.heartbeat()
 
     # 2. Engineering DNA 분석 (LLM 우선, 규칙 기반 fallback)
-    engineering_dna = await _llm_analyze_engineering_dna(code_analysis, output_language)
+    engineering_dna = await _llm_analyze_engineering_dna(code_analysis, output_language, job_id=job_id)
     if engineering_dna is None:
         engineering_dna = _analyze_engineering_dna(code_analysis)
     activity.heartbeat()

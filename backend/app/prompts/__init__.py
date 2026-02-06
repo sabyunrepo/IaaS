@@ -322,6 +322,11 @@ def _prompt_key_to_activity_name(filename: str, key: str) -> str:
         ("quality_review.yaml", "review"): "quality_review",
         ("finalization.yaml", "candidate_summary"): "finalize_candidate_summary",
         ("finalization.yaml", "interviewer_guide"): "finalize_interviewer_guide",
+        ("v2_generation.yaml", "competency_matching"): "intel_competency_matching",
+        ("v2_generation.yaml", "radar_analysis"): "radar_analysis",
+        ("v2_generation.yaml", "engineering_dna"): "engineering_dna",
+        ("v2_generation.yaml", "decision_summary"): "decision_summary",
+        ("v2_generation.yaml", "interviewer_tips"): "interviewer_tips",
     }
 
     mapping_key = (filename, key)

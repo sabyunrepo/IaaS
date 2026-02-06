@@ -22,12 +22,13 @@ async def _llm_match_competencies(
     document_analysis: dict,
     code_analysis: dict | None,
     output_language: str = "ko",
+    job_id: str | None = None,
 ) -> list[CompetencyMatch] | None:
     """LLM 기반 시맨틱 역량 매칭 (실패 시 None 반환)"""
     try:
         from app.services.cached_llm import CachedLLMService
-        from app.workflows.utils import run_llm_with_heartbeat
-        from app.core.config import settings
+        from app.prompts import get_prompt_with_config
+        from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
         jd_requirements = jd_analysis.get("requirements") or []
         if not jd_requirements:
@@ -36,23 +37,37 @@ async def _llm_match_competencies(
         candidate_skills = (document_analysis.get("profile") or {}).get("skills") or []
         code_skills = (code_analysis.get("tech_stack") or []) if code_analysis else []
 
-        # 프롬프트 로딩
-        import yaml
-        from pathlib import Path
-        prompts_path = Path(__file__).parent.parent.parent / "prompts" / "v2_generation.yaml"
-        with open(prompts_path) as f:
-            prompts = yaml.safe_load(f)
-        template = prompts["prompts"]["competency_matching"]["template"]
+        # VectorStore 시맨틱 스킬 매칭
+        vector_context = ""
+        if job_id:
+            try:
+                from app.services.vector_store import get_vector_store
+                vs = get_vector_store(job_id)
+                for req in jd_requirements[:6]:
+                    skill = req.get("skill", "") if isinstance(req, dict) else str(req)
+                    if skill:
+                        matches = await vs.search_profile(skill, limit=2)
+                        for m in matches:
+                            if m["similarity"] >= 0.6:
+                                vector_context += f"- {skill}: {m['content_text'][:100]} (sim={m['similarity']:.2f})\n"
+            except Exception as e:
+                logger.debug(f"Vector skill enrichment failed: {e}")
 
-        prompt = template.format(
+        kg_context = ""
+        if vector_context:
+            kg_context = f"Semantic skill matches from vector search:\n{vector_context}"
+
+        prompt_config = get_prompt_with_config(
+            "v2_generation.yaml", "competency_matching",
             jd_requirements=json.dumps(jd_requirements[:6], ensure_ascii=False, default=str),
             candidate_skills=json.dumps(candidate_skills[:20], ensure_ascii=False, default=str),
             code_skills=json.dumps(code_skills[:20], ensure_ascii=False, default=str),
             output_language=output_language,
+            kg_context=kg_context,
         )
 
-        llm = CachedLLMService(activity_name="intel_competency_matching")
-        result = await run_llm_with_heartbeat(llm, prompt, "intel_competency_matching", interval=30.0)
+        llm = CachedLLMService()
+        result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
         if not isinstance(result, list):
             return None
@@ -257,7 +272,7 @@ async def generate_intel_brief(
     activity.heartbeat()
 
     # 2. 역량 매칭 분석 (LLM 우선, 규칙 기반 fallback)
-    competencies = await _llm_match_competencies(jd_analysis, document_analysis, code_analysis, output_language)
+    competencies = await _llm_match_competencies(jd_analysis, document_analysis, code_analysis, output_language, job_id=job_id)
     if competencies is None:
         competencies = _match_competencies(jd_analysis, document_analysis, code_analysis)
     activity.heartbeat()
