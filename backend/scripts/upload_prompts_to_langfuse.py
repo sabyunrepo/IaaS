@@ -33,85 +33,31 @@ import yaml
 
 
 # =============================================================================
-# Activity별 최적 모델 설정 (llm_config.py와 동기화)
+# Activity별 최적 모델 설정 — llm_config.py를 단일 소스로 사용
 # =============================================================================
-# 모델 선택 기준:
-# - 복잡한 추론/정확성 필요: openai:gpt-4o, anthropic:claude-3-5-sonnet
-# - 단순 작업/비용 최적화: Z.AI GLM (glm-4.5-flash: 무료!)
-# - 코드 분석 최적화: Z.AI GLM-4.7 (플래그십)
-# =============================================================================
+from app.services.llm_config import (
+    ACTIVITY_MODEL_CONFIG,
+    get_model_for_activity,
+    get_max_output_tokens,
+)
 
-# Z.AI GLM 모델 (Zhipu AI)
-# glm-4.5-flash: 무료! 단순 작업에 최적
-# glm-4.5-air: $0.20/1M input, $1.10/1M output
-# glm-4.7: $0.60/1M input, $2.20/1M output (최신 플래그십)
-GLM_CHAT_MODEL = "zai/glm-4.5-flash"  # 무료 모델
-GLM_CODER_MODEL = "zai/glm-4.7"  # 코드 분석용 플래그십
-
-# 모델별 기본 max_output_tokens (llm_config.py MODEL_MAX_OUTPUT_TOKENS와 동기화)
-def _default_max_tokens(model: str) -> int:
-    """모델별 기본 max_output_tokens 반환"""
-    if model.startswith("moonshot/"):
-        return 16384
-    if model == "zai/glm-4.5-flash":
-        return 4096
-    if model.startswith("zai/"):
-        return 8192
-    if model.startswith("openai"):
-        return 16384
-    if model.startswith("anthropic"):
-        return 8192
-    return 8192
-
-ACTIVITY_MODEL_CONFIG = {
-    # Phase 0: Input Enrichment - 빠른 처리, GLM으로 비용 절감
-    "enrich_input": {"model": GLM_CHAT_MODEL, "temperature": 0.3},
-
-    # Phase 1: Planning - 중요 의사결정은 GPT-4o 유지
-    "select_topics": {"model": "openai:gpt-4o", "temperature": 0.7},
-
-    # Phase 2: Analysis
-    "analyze_documents": {"model": "openai:gpt-4o", "temperature": 0.5},  # 문서 분석은 품질 중요
-    "analyze_code": {"model": GLM_CODER_MODEL, "temperature": 0.5},  # 코드 분석은 GLM Coder
-    "analyze_jd": {"model": GLM_CHAT_MODEL, "temperature": 0.3},  # JD 분석은 GLM Chat
-
-    # Phase 2: HYBRID 3-Stage 코드 분석 (GLM Coder 모델)
-    "code_overview_analysis": {"model": GLM_CODER_MODEL, "temperature": 0.3},
-    "code_deep_analysis": {"model": GLM_CODER_MODEL, "temperature": 0.5},
-    "code_synthesis_analysis": {"model": GLM_CODER_MODEL, "temperature": 0.5},
-
-    # Phase 3: Question Generation (v2 format)
-    "craft_question": {"model": "openai:gpt-4o", "temperature": 0.7},  # 범용 fallback
-    "craft_question_role_fit": {"model": "openai:gpt-4o", "temperature": 0.7},
-    "craft_question_technical_depth": {"model": "openai:gpt-4o", "temperature": 0.7},
-    "craft_question_execution_ownership": {"model": "openai:gpt-4o", "temperature": 0.7},
-    "craft_question_communication": {"model": "openai:gpt-4o", "temperature": 0.7},
-    "craft_question_risk_flags": {"model": "openai:gpt-4o", "temperature": 0.6},
-    "enhance_terminology": {"model": GLM_CHAT_MODEL, "temperature": 0.5},  # 단순 작업 GLM
-    "craft_evaluation_scenarios": {"model": "openai:gpt-4o", "temperature": 0.6},
-    "design_follow_ups": {"model": GLM_CHAT_MODEL, "temperature": 0.7},  # 단순 작업 GLM
-    "generate_interviewer_notes": {"model": GLM_CHAT_MODEL, "temperature": 0.5},  # 단순 작업 GLM
-    "generate_decision_guide": {"model": "openai:gpt-4o", "temperature": 0.5},
-    "revise_questions": {"model": GLM_CHAT_MODEL, "temperature": 0.5},  # 단순 작업 GLM
-
-    # Phase 4: Finalization
-    "quality_review": {"model": "openai:gpt-4o", "temperature": 0.3},  # 품질 검토는 GPT-4o
-    "finalize_candidate_summary": {"model": "openai:gpt-4o", "temperature": 0.5},
-    "finalize_interviewer_guide": {"model": GLM_CHAT_MODEL, "temperature": 0.5},  # GLM
-
-    # Phase 4c: v2 Intel/Analysis Generation
-    "generate_intel_brief": {"model": "openai:gpt-4o", "temperature": 0.5},
-    "generate_deep_analysis": {"model": "openai:gpt-4o", "temperature": 0.5},
-    "generate_decision_support": {"model": "openai:gpt-4o", "temperature": 0.5},
-}
-
-# YAML 키 → Activity 이름 매핑
+# YAML 키 → Activity 이름 매핑 (prompts/__init__.py _prompt_key_to_activity_name과 동기화)
 YAML_TO_ACTIVITY = {
     ("document_analysis.yaml", "extract_profile"): "analyze_documents",
     ("jd_analysis.yaml", "analyze"): "analyze_jd",
     ("quality_review.yaml", "review"): "quality_review",
+    ("quality_review.yaml", "check_duplicates"): "check_duplicates",
     ("finalization.yaml", "candidate_summary"): "finalize_candidate_summary",
     ("finalization.yaml", "interviewer_guide"): "finalize_interviewer_guide",
+    ("finalization.yaml", "final_synthesis"): "finalize_output",
+    ("finalization.yaml", "generate_intel_brief"): "generate_intel_brief",
+    ("finalization.yaml", "generate_deep_analysis"): "generate_deep_analysis",
+    ("finalization.yaml", "generate_decision_support"): "generate_decision_support",
+    ("v2_generation.yaml", "competency_matching"): "intel_competency_matching",
+    ("v2_generation.yaml", "radar_analysis"): "radar_analysis",
+    ("v2_generation.yaml", "engineering_dna"): "engineering_dna",
+    ("v2_generation.yaml", "decision_summary"): "decision_summary",
+    ("v2_generation.yaml", "interviewer_tips"): "interviewer_tips",
 }
 
 
@@ -150,14 +96,14 @@ def load_yaml_prompts(prompts_dir: Path, filename: str | None = None) -> dict:
         for key, prompt_data in data.get("prompts", {}).items():
             langfuse_name = get_langfuse_name(fname, key)
             activity_name = get_activity_name(fname, key)
-            config = ACTIVITY_MODEL_CONFIG.get(activity_name, {
-                "model": "openai:gpt-4o",
-                "temperature": 0.5,
-            })
 
-            # max_output_tokens 자동 추가 (모델 기반)
-            if "max_output_tokens" not in config:
-                config["max_output_tokens"] = _default_max_tokens(config.get("model", "openai:gpt-4o"))
+            # llm_config.py의 단일 소스에서 모델/토큰 설정 조회
+            model = get_model_for_activity(activity_name)
+            config = {
+                "model": model,
+                "temperature": 0.5,
+                "max_output_tokens": get_max_output_tokens(model),
+            }
 
             # YAML 템플릿이 이미 Mustache 문법 사용 - 변환 불필요
             prompts[langfuse_name] = {

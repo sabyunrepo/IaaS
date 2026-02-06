@@ -5,7 +5,7 @@ PyDriller + AST + LLM 기반 코드 분석 파이프라인
 4-Channel GitHub Analysis의 Channel A (본인 레포 분석) 담당
 - diff 기반 코드 추출 (토큰 효율적)
 - 분석 기간: GITHUB_ANALYSIS_YEARS 환경변수 (기본 1년)
-- HYBRID 3-Stage Multi-Agent 분석 지원 (GLM 모델 비용 최적화)
+- HYBRID 3-Stage Multi-Agent 분석 지원 (Kimi K2.5 비용 최적화)
 """
 import logging
 from typing import Any
@@ -16,13 +16,9 @@ from app.models.analysis import (
     DeepAnalysisResult,
     SynthesisAnalysisResult,
 )
+from app.services.llm_config import KIMI_CODER_MODEL
 
 logger = logging.getLogger(__name__)
-
-# GLM 모델 설정 (비용 최적화)
-# Z.AI GLM 모델 사용 (glm-4.7: 코드 분석용 플래그십)
-# settings.GLM_CODER_MODEL 사용 (기본값: zai/glm-4.7)
-GLM_MODEL = settings.GLM_CODER_MODEL
 
 
 class CodeAnalyzer:
@@ -642,7 +638,7 @@ Respond in JSON format:
         Returns:
             OverviewAnalysisResult 형식의 딕셔너리
         """
-        model = model or GLM_MODEL
+        model = model or KIMI_CODER_MODEL
         prompt = self._build_overview_prompt(files, commit_diffs, ast_summary, jd_tech_stack)
 
         from app.services.cached_llm import CachedLLMService
@@ -688,7 +684,7 @@ Respond in JSON format:
         Returns:
             DeepAnalysisResult 형식의 딕셔너리
         """
-        model = model or GLM_MODEL
+        model = model or KIMI_CODER_MODEL
         prompt = self._build_deep_analysis_prompt(file_info, commit_history, jd_tech_stack)
 
         from app.services.cached_llm import CachedLLMService
@@ -750,7 +746,7 @@ Respond in JSON format:
         Returns:
             SynthesisAnalysisResult 형식의 딕셔너리
         """
-        model = model or GLM_MODEL
+        model = model or KIMI_CODER_MODEL
         prompt = self._build_synthesis_prompt(overview, deep_analyses, repo_info, jd_tech_stack)
 
         from app.services.cached_llm import CachedLLMService

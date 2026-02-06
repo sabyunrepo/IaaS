@@ -7,12 +7,46 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #60 | 6:12 AM | ✅ | Cover Letter File Upload Added to API Endpoint | ~405 |
+| #59 | " | ✅ | Cover Letter File Upload Support Added to API Spec | ~356 |
+| #58 | 6:11 AM | ✅ | API Status Enum Synchronized with JobStatus Model | ~428 |
+| #56 | 6:08 AM | 🔵 | Comprehensive Architecture Review Identifies Critical Data Flow Breaks | ~790 |
+| #55 | 6:03 AM | 🔵 | Supporting Model Definitions Added for Question Structure | ~481 |
+| #54 | " | ✅ | Added Supporting Models for Enhanced Question Structure | ~483 |
+| #53 | " | ✅ | ExperienceLevel TypeAlias Extended with CTO/VP | ~384 |
+| #52 | 6:02 AM | ✅ | InterviewScript Model Enhanced with Decision Guide Field | ~441 |
+| #51 | " | ✅ | ExpectedAnswer Model Restructured with AnswerKeyword Type | ~446 |
+| #50 | " | ✅ | Expanded InterviewQuestion Model with 8 New Fields | ~531 |
+| #49 | " | ✅ | EvaluationScenario Data Model Updated to Match Output Spec | ~445 |
+| #48 | " | ✅ | CodeReference Model Enhanced with GitHub Permalink and Plain Language Summary | ~463 |
+| #47 | " | ✅ | Simplified TerminologyEntry Model to Match Output Spec | ~400 |
+| #46 | 6:01 AM | ✅ | Question Difficulty Enum Standardized to Title Case | ~401 |
+| #45 | " | 🔵 | Category Weighting System by Experience Level | ~507 |
+| #44 | " | 🔵 | Output Spec Defines Interviewer Note Structure and Decision Guide | ~477 |
+| #43 | " | ✅ | Enhanced Experience Level and Question Count Limits | ~387 |
+| #42 | 5:59 AM | ✅ | Updated max_questions Default from 10 to 25 in Data Models | ~341 |
+| #41 | " | ✅ | Experience Level Enum Extended with CTO/VP Tier | ~375 |
+| #40 | 5:57 AM | 🔵 | Architecture Documentation Comprehensive Review Completed | ~611 |
+| #39 | 5:55 AM | 🔵 | RESTful API Specification with Checkpoint Recovery | ~598 |
+| #38 | " | 🔵 | Comprehensive Data Models Architecture Specification | ~629 |
 | #28 | 5:30 AM | 🔵 | Complete Architecture Documentation Confirms 25-Question Specification with 8-Agent Pipeline | ~1180 |
 | #23 | 5:27 AM | 🔵 | Comprehensive Data Models Specification for Multi-Phase Pipeline | ~873 |
 | #21 | 5:25 AM | 🔵 | Architecture-Implementation Gap Analysis Revealed Critical Misalignments | ~991 |
 | #17 | 5:24 AM | 🔵 | Comprehensive Output Specification with Multi-Agent Question Generation Pipeline | ~887 |
 | #16 | 5:23 AM | 🔵 | Smart Input Extraction Phase 0 Architecture | ~624 |
 | #15 | " | 🔵 | Vantict Sniper v4.0 Architecture: Local-First AI Interview Script Generator | ~618 |
+
+### Feb 3, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #509 | 1:06 AM | 🔵 | Temporal Workflow Architecture Documentation Review | ~541 |
+
+### Feb 4, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
 </claude-mem-context>
 
 # docs/architecture/
@@ -30,3 +64,9 @@
 | `04-infrastructure.md` | Docker/인프라 구성 |
 | `05-api-spec.md` | REST API 명세 |
 | `06-llm-activity-flow.md` | 16개 Activity LLM 입출력/도구 상세 분석 — Langfuse-first 아키텍처, KG/Vector 연동 |
+
+## GLM→Kimi 모델 동기화 (PR #93)
+
+`upload_prompts_to_langfuse.py`의 중복 `ACTIVITY_MODEL_CONFIG`(GLM 모델)를 삭제하고
+`llm_config.py`를 단일 소스로 통합. Langfuse에 업로드되는 모델이 Kimi K2.5로 정확히 동기화됨.
+`code_analysis.py`도 `GLM_MODEL` → `KIMI_CODER_MODEL`로 전환.
