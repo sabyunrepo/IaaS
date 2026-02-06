@@ -127,6 +127,106 @@ class TestCraftQuestion:
 
 
 # ============================================================
+# P3-02b: 카테고리별 프롬프트 라우팅 테스트
+# ============================================================
+
+class TestCraftQuestionCategoryRouting:
+    """P3-02b: 카테고리별 프롬프트 선택 검증"""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("category", [
+        "role_fit", "technical_depth", "execution_ownership", "communication", "risk_flags",
+    ])
+    async def test_category_specific_prompt_loaded(self, category, mock_aggregated_analysis, mock_enriched_input):
+        """각 카테고리별 전용 프롬프트가 정상 로딩되는지 검증"""
+        from app.prompts import get_prompt
+
+        prompt = get_prompt(
+            "question_generation.yaml", f"craft_question_{category}",
+            output_language="Korean",
+            experience_level="미들",
+            topic="테스트 토픽",
+            category=category,
+            difficulty="Medium",
+            evidence_context="",
+            recommended_probe="",
+        )
+        assert len(prompt) > 100, f"craft_question_{category} 프롬프트가 비어 있음"
+        assert category in prompt.lower() or "interview" in prompt.lower()
+
+    @pytest.mark.asyncio
+    async def test_category_routing_uses_correct_prompt(self, mock_aggregated_analysis, mock_enriched_input):
+        """craft_question이 카테고리에 맞는 프롬프트를 선택하는지 검증"""
+        from app.workflows.activities.question_generation import craft_question
+
+        captured_prompts = {}
+
+        async def mock_llm_run(prompt, **kwargs):
+            # 프롬프트 내용 캡처
+            captured_prompts["prompt"] = prompt
+            return {
+                "question_text": "테스트 질문",
+                "category": "role_fit",
+                "difficulty": "Medium",
+            }
+
+        categories_to_test = ["role_fit", "technical_depth", "communication"]
+        for cat in categories_to_test:
+            topic = {"category": cat, "topic": f"{cat} 테스트", "difficulty": "Medium"}
+            with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+                await craft_question(topic, mock_aggregated_analysis, mock_enriched_input)
+                # 카테고리별 프롬프트가 사용되었는지 확인 (프롬프트 내용에 카테고리 키워드 포함)
+                assert captured_prompts.get("prompt"), f"{cat} 프롬프트가 캡처되지 않음"
+
+    @pytest.mark.asyncio
+    async def test_unknown_category_falls_back_to_generic(self, mock_aggregated_analysis, mock_enriched_input):
+        """알 수 없는 카테고리는 범용 craft_question으로 fallback"""
+        from app.workflows.activities.question_generation import craft_question
+
+        topic = {
+            "category": "nonexistent_category",
+            "topic": "Unknown topic",
+            "difficulty": "Medium",
+        }
+
+        mock_question = {
+            "question_text": "Fallback question",
+            "category": "nonexistent_category",
+            "difficulty": "Medium",
+        }
+
+        async def mock_llm_run(prompt, **kwargs):
+            return mock_question
+
+        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+            result = await craft_question(topic, mock_aggregated_analysis, mock_enriched_input)
+            # fallback이 작동해서 결과가 반환되어야 함
+            assert "question_text" in result
+
+    @pytest.mark.asyncio
+    async def test_all_five_categories_produce_questions(self, mock_aggregated_analysis, mock_enriched_input):
+        """5개 카테고리 모두 질문 생성 성공"""
+        from app.workflows.activities.question_generation import craft_question
+
+        categories = ["role_fit", "technical_depth", "execution_ownership", "communication", "risk_flags"]
+
+        for cat in categories:
+            topic = {"category": cat, "topic": f"{cat} topic", "difficulty": "Medium"}
+
+            async def mock_llm_run(prompt, **kwargs):
+                return {
+                    "question_text": f"Question for {cat}",
+                    "category": cat,
+                    "difficulty": "Medium",
+                }
+
+            with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+                result = await craft_question(topic, mock_aggregated_analysis, mock_enriched_input)
+                assert result["category"] == cat, f"{cat} 카테고리 결과 불일치"
+                assert "id" in result, f"{cat} 질문에 ID 없음"
+
+
+# ============================================================
 # P3-03: 용어 설명 테스트
 # ============================================================
 

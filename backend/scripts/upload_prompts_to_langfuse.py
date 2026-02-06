@@ -66,7 +66,12 @@ ACTIVITY_MODEL_CONFIG = {
     "code_synthesis_analysis": {"model": GLM_CODER_MODEL, "temperature": 0.5},
 
     # Phase 3: Question Generation (v2 format)
-    "craft_question": {"model": "openai:gpt-4o", "temperature": 0.7},  # 핵심 품질 유지
+    "craft_question": {"model": "openai:gpt-4o", "temperature": 0.7},  # 범용 fallback
+    "craft_question_role_fit": {"model": "openai:gpt-4o", "temperature": 0.7},
+    "craft_question_technical_depth": {"model": "openai:gpt-4o", "temperature": 0.7},
+    "craft_question_execution_ownership": {"model": "openai:gpt-4o", "temperature": 0.7},
+    "craft_question_communication": {"model": "openai:gpt-4o", "temperature": 0.7},
+    "craft_question_risk_flags": {"model": "openai:gpt-4o", "temperature": 0.6},
     "enhance_terminology": {"model": GLM_CHAT_MODEL, "temperature": 0.5},  # 단순 작업 GLM
     "craft_evaluation_scenarios": {"model": "openai:gpt-4o", "temperature": 0.6},
     "design_follow_ups": {"model": GLM_CHAT_MODEL, "temperature": 0.7},  # 단순 작업 GLM
