@@ -399,7 +399,7 @@ class InterviewGenerationWorkflow:
                 final_script["analysis"] = deep_analysis
                 final_script["decision"] = decision_support
                 # Category weights for scoring — 경험 레벨별 차등 배분
-                exp_level = input_data.get("input_data", {}).get("experience_level", "미들")
+                exp_level = input_data.get("experience_level", "미들")
                 CATEGORY_WEIGHTS_BY_LEVEL = {
                     "신입":   {"role_fit": 0.30, "technical_depth": 0.25, "execution_ownership": 0.15, "communication": 0.20, "risk_flags": 0.10},
                     "주니어": {"role_fit": 0.30, "technical_depth": 0.25, "execution_ownership": 0.15, "communication": 0.20, "risk_flags": 0.10},
