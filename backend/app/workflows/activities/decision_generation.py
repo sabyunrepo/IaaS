@@ -21,6 +21,7 @@ async def _llm_generate_decision_summary(
     candidate_summary: dict,
     jd_analysis: dict,
     document_analysis: dict,
+    output_language: str = "ko",
 ) -> DecisionSummary | None:
     """LLM 기반 Decision Summary 생성 (실패 시 None 반환)"""
     try:
@@ -50,9 +51,10 @@ async def _llm_generate_decision_summary(
                 "key_strengths": candidate_summary.get("key_strengths", [])[:3] if isinstance(candidate_summary, dict) else [],
             }, ensure_ascii=False, default=str),
             jd_match_score=document_analysis.get("jd_match_score", 0.5),
+            output_language=output_language,
         )
 
-        llm = CachedLLMService(activity_name="decision_summary")
+        llm = CachedLLMService()
         result = await run_llm_with_heartbeat(llm, prompt, "decision_summary", interval=30.0)
 
         if not isinstance(result, dict):
@@ -77,6 +79,7 @@ async def _llm_generate_interviewer_tips(
     questions: list[dict],
     document_analysis: dict,
     jd_analysis: dict,
+    output_language: str = "ko",
 ) -> InterviewerGuideTips | None:
     """LLM 기반 면접관 팁 생성 (실패 시 None 반환)"""
     try:
@@ -107,9 +110,10 @@ async def _llm_generate_interviewer_tips(
                 ensure_ascii=False, default=str,
             ),
             job_title=jd_analysis.get("job_title", ""),
+            output_language=output_language,
         )
 
-        llm = CachedLLMService(activity_name="interviewer_tips")
+        llm = CachedLLMService()
         result = await run_llm_with_heartbeat(llm, prompt, "interviewer_tips", interval=30.0)
 
         if not isinstance(result, dict):
@@ -372,6 +376,7 @@ async def generate_decision_support(
     jd_analysis: dict,
     document_analysis: dict,
     job_id: str | None = None,
+    output_language: str = "ko",
 ) -> dict:
     """Decision Support 생성
 
@@ -389,13 +394,13 @@ async def generate_decision_support(
     activity.heartbeat()
 
     # 1. 후보자 요약 생성 (LLM 우선, 규칙 기반 fallback)
-    summary = await _llm_generate_decision_summary(candidate_summary, jd_analysis, document_analysis)
+    summary = await _llm_generate_decision_summary(candidate_summary, jd_analysis, document_analysis, output_language)
     if summary is None:
         summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis)
     activity.heartbeat()
 
     # 2. 면접관 가이드 팁 생성 (LLM 우선, 규칙 기반 fallback)
-    interviewer_guide = await _llm_generate_interviewer_tips(questions, document_analysis, jd_analysis)
+    interviewer_guide = await _llm_generate_interviewer_tips(questions, document_analysis, jd_analysis, output_language)
     if interviewer_guide is None:
         interviewer_guide = _build_interviewer_tips(questions, document_analysis, jd_analysis)
     activity.heartbeat()

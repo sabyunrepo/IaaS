@@ -123,6 +123,7 @@ class InterviewGenerationWorkflow:
             # Phase 2: Parallel Analysis
             self._update_status(JobStatus.ANALYZING, "Phase 2: Analysis", 25)
             raw_input = enriched.get("raw_input", {})
+            output_language = raw_input.get("language_config", {}).get("output_language", "ko")
             phases = {p["name"]: p["enabled"] for p in execution_plan.get("phases", [])}
 
             analysis_tasks = []
@@ -131,7 +132,7 @@ class InterviewGenerationWorkflow:
             analysis_tasks.append(
                 workflow.execute_activity(
                     analyze_jd,
-                    args=[raw_input.get("jd_text", ""), job_id],
+                    args=[raw_input.get("jd_text", ""), job_id, output_language],
                     start_to_close_timeout=timedelta(minutes=5),
                     heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=LLM_RETRY,
@@ -288,7 +289,7 @@ class InterviewGenerationWorkflow:
             # 4a. 품질 검토
             review = await workflow.execute_activity(
                 review_questions,
-                questions,
+                args=[questions, output_language],
                 start_to_close_timeout=timedelta(minutes=3),
                 retry_policy=LLM_RETRY,
             )
@@ -315,7 +316,7 @@ class InterviewGenerationWorkflow:
                 )
                 review = await workflow.execute_activity(
                     review_questions,
-                    questions,
+                    args=[questions, output_language],
                     start_to_close_timeout=timedelta(minutes=3),
                     retry_policy=LLM_RETRY,
                 )
@@ -356,6 +357,7 @@ class InterviewGenerationWorkflow:
                         linkedin_profile,
                         jd_text,
                         job_id,
+                        output_language,
                     ],
                     start_to_close_timeout=timedelta(minutes=2),
                     heartbeat_timeout=timedelta(seconds=60),
@@ -368,6 +370,7 @@ class InterviewGenerationWorkflow:
                         code_analysis_data,
                         document_analysis,
                         job_id,
+                        output_language,
                     ],
                     start_to_close_timeout=timedelta(minutes=2),
                     heartbeat_timeout=timedelta(seconds=60),
@@ -381,6 +384,7 @@ class InterviewGenerationWorkflow:
                         jd_analysis_data,
                         document_analysis,
                         job_id,
+                        output_language,
                     ],
                     start_to_close_timeout=timedelta(minutes=2),
                     heartbeat_timeout=timedelta(seconds=60),

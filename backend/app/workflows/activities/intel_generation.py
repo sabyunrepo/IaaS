@@ -21,6 +21,7 @@ async def _llm_match_competencies(
     jd_analysis: dict,
     document_analysis: dict,
     code_analysis: dict | None,
+    output_language: str = "ko",
 ) -> list[CompetencyMatch] | None:
     """LLM 기반 시맨틱 역량 매칭 (실패 시 None 반환)"""
     try:
@@ -47,6 +48,7 @@ async def _llm_match_competencies(
             jd_requirements=json.dumps(jd_requirements[:6], ensure_ascii=False, default=str),
             candidate_skills=json.dumps(candidate_skills[:20], ensure_ascii=False, default=str),
             code_skills=json.dumps(code_skills[:20], ensure_ascii=False, default=str),
+            output_language=output_language,
         )
 
         llm = CachedLLMService(activity_name="intel_competency_matching")
@@ -232,6 +234,7 @@ async def generate_intel_brief(
     linkedin_profile: dict | None,
     jd_text: str | None = None,
     job_id: str | None = None,
+    output_language: str = "ko",
 ) -> dict:
     """Intel Brief 생성
 
@@ -254,7 +257,7 @@ async def generate_intel_brief(
     activity.heartbeat()
 
     # 2. 역량 매칭 분석 (LLM 우선, 규칙 기반 fallback)
-    competencies = await _llm_match_competencies(jd_analysis, document_analysis, code_analysis)
+    competencies = await _llm_match_competencies(jd_analysis, document_analysis, code_analysis, output_language)
     if competencies is None:
         competencies = _match_competencies(jd_analysis, document_analysis, code_analysis)
     activity.heartbeat()

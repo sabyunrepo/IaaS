@@ -187,6 +187,15 @@ async def analyze_code(
         except Exception as e:
             logger.warning(f"KG extraction failed (non-fatal): {e}")
 
+    # Store code vectors for semantic search (non-blocking)
+    if job_id:
+        try:
+            from app.services.vector_store import get_vector_store
+            vs = get_vector_store(job_id)
+            await vs.store_code(code_analysis_result)
+        except Exception as e:
+            logger.warning(f"vector_store_code_failed: {e}", exc_info=False)
+
     # Log final result
     if alog:
         await alog.result("Code analysis completed", {

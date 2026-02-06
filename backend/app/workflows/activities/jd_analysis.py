@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 
 @activity.defn
 @observe_activity(name="analyze_jd", phase="analysis")
-async def analyze_jd(jd_text: str, job_id: str | None = None) -> dict:
+async def analyze_jd(jd_text: str, job_id: str | None = None, output_language: str = "ko") -> dict:
     """
     채용공고(JD) 분석
 
@@ -35,7 +35,7 @@ async def analyze_jd(jd_text: str, job_id: str | None = None) -> dict:
     llm = CachedLLMService()
 
     from app.prompts import get_prompt
-    prompt = get_prompt("jd_analysis.yaml", "analyze", jd_text=jd_text)
+    prompt = get_prompt("jd_analysis.yaml", "analyze", jd_text=jd_text, output_language=output_language)
 
     activity.heartbeat("Starting JD analysis LLM call...")
 

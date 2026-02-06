@@ -89,6 +89,9 @@ class Settings(BaseSettings):
     INTERNAL_API_URL: str = "http://backend:8000"
     INTERNAL_API_TOKEN: str = "dev-internal-token"  # Worker↔Backend 내부 인증 토큰
 
+    # LLM Output
+    LLM_MAX_OUTPUT_TOKENS: int = 8192  # LLM 최대 출력 토큰 수
+
     # LLM Cache
     LLM_CACHE_ENABLED: bool = True  # False면 LLM 응답 캐싱 비활성화
 

@@ -2,6 +2,7 @@
  * DecisionTab - JD Competency Achievement + Hiring Recommendation
  */
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DecisionSupport, Candidate, CategoryWeights, RiskFlag } from '../../types/interview'
 
 interface DecisionTabProps {
@@ -21,6 +22,7 @@ export function DecisionTab({
   maxScore = 100,
   riskFlags
 }: DecisionTabProps) {
+  const { t } = useTranslation()
   const { summary, interviewer_guide, jd_competency_map } = decision
   const scorePercent = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
 
@@ -46,7 +48,7 @@ export function DecisionTab({
       } rounded-xl p-6 text-white shadow-lg`}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium opacity-90">채용 추천</h3>
+            <h3 className="text-lg font-medium opacity-90">{t('decision_recommendation')}</h3>
             <p className="text-2xl sm:text-4xl font-bold mt-1">{recommendation.icon} {recommendation.label}</p>
             {candidate && (
               <p className="text-sm opacity-80 mt-2">{candidate.name} · {candidate.role || candidate.current_title}</p>
@@ -54,7 +56,7 @@ export function DecisionTab({
           </div>
           <div className="text-right">
             <div className="text-3xl sm:text-5xl font-bold">{scorePercent}%</div>
-            <div className="text-sm opacity-80">{totalScore} / {maxScore} 점</div>
+            <div className="text-sm opacity-80">{t('decision_points', { score: totalScore, max: maxScore })}</div>
           </div>
         </div>
       </div>
@@ -65,20 +67,20 @@ export function DecisionTab({
           <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          후보자 요약
+          {t('decision_candidate_summary')}
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-500">경력</div>
+            <div className="text-sm text-gray-500">{t('decision_experience')}</div>
             <div className="font-semibold text-gray-900">{summary.experience}</div>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-500">JD 매칭</div>
+            <div className="text-sm text-gray-500">{t('decision_jd_match')}</div>
             <div className="font-semibold text-gray-900">{summary.jd_match}</div>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-500">레벨</div>
+            <div className="text-sm text-gray-500">{t('decision_level')}</div>
             <div className="font-semibold text-gray-900">{summary.level}</div>
           </div>
         </div>
@@ -87,7 +89,7 @@ export function DecisionTab({
           {/* Strengths */}
           <div className="card-hover p-4 bg-emerald-50 rounded-xl border border-emerald-200">
             <h4 className="font-semibold text-emerald-900 mb-3 flex items-center gap-2">
-              <span>✅</span> 강점
+              <span>✅</span> {t('decision_strengths')}
             </h4>
             <ul className="space-y-2">
               {summary.strengths.map((strength, i) => (
@@ -102,7 +104,7 @@ export function DecisionTab({
           {/* Concerns */}
           <div className="card-hover p-4 bg-amber-50 rounded-xl border border-amber-200">
             <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
-              <span>⚠️</span> 우려 사항
+              <span>⚠️</span> {t('decision_concerns')}
             </h4>
             <ul className="space-y-2">
               {summary.concerns.map((concern, i) => (
@@ -123,7 +125,7 @@ export function DecisionTab({
             <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            위험 평가
+            {t('decision_risk_assessment')}
           </h3>
           <div className="space-y-3">
             {riskFlags.map((flag, i) => (
@@ -150,7 +152,7 @@ export function DecisionTab({
             <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            JD 역량 달성도
+            {t('decision_jd_competency')}
           </h3>
 
           <div className="space-y-4">
@@ -159,7 +161,7 @@ export function DecisionTab({
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-gray-900">{comp.competency}</span>
                   <span className="text-sm text-indigo-600 font-semibold">
-                    가중치: {Math.round(comp.weight * 100)}%
+                    {t('decision_weight', { value: Math.round(comp.weight * 100) })}
                   </span>
                 </div>
                 <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
@@ -170,7 +172,7 @@ export function DecisionTab({
                 </div>
                 {comp.related_questions.length > 0 && (
                   <p className="text-xs text-gray-500">
-                    관련 질문: Q{comp.related_questions.join(', Q')}
+                    {t('decision_related_questions', { questions: comp.related_questions.join(', Q') })}
                   </p>
                 )}
               </div>
@@ -182,7 +184,7 @@ export function DecisionTab({
       {/* Category Weights (if provided separately) */}
       {categoryWeights && Object.keys(categoryWeights).length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">카테고리별 가중치</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('decision_category_weights')}</h3>
           <div className="space-y-3">
             {Object.entries(categoryWeights).map(([cat, weight]) => (
               <div key={cat} className="flex items-center gap-4">
@@ -212,7 +214,7 @@ export function DecisionTab({
             <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            면접관 가이드
+            {t('decision_interviewer_guide')}
           </h3>
           <svg className={`w-5 h-5 text-gray-400 transition-transform ${guideExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -224,7 +226,7 @@ export function DecisionTab({
         {/* Interview Flow */}
         {interviewer_guide.interview_flow && (
           <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-            <h4 className="text-sm font-semibold text-indigo-900 mb-2">면접 진행</h4>
+            <h4 className="text-sm font-semibold text-indigo-900 mb-2">{t('decision_interview_flow')}</h4>
             <p className="text-sm text-indigo-800">{interviewer_guide.interview_flow}</p>
           </div>
         )}
@@ -232,7 +234,7 @@ export function DecisionTab({
         {/* Time Allocation */}
         {interviewer_guide.time_allocation && Object.keys(interviewer_guide.time_allocation).length > 0 && (
           <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">시간 배분</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('decision_time_allocation')}</h4>
             <div className="flex flex-wrap gap-2">
               {Object.entries(interviewer_guide.time_allocation).map(([phase, time]) => (
                 <span key={phase} className="px-3 py-1 bg-gray-100 rounded-full text-sm">
@@ -246,7 +248,7 @@ export function DecisionTab({
         {/* Resume Tips */}
         {interviewer_guide.resume_based_tips && interviewer_guide.resume_based_tips.length > 0 && (
           <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">이력서 기반 팁</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('decision_resume_tips')}</h4>
             <div className="space-y-2">
               {interviewer_guide.resume_based_tips.map((tip, i) => (
                 <div key={i} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -264,7 +266,7 @@ export function DecisionTab({
         {/* Cover Letter Insights */}
         {interviewer_guide.cover_letter_insights && interviewer_guide.cover_letter_insights.length > 0 && (
           <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">자기소개서 인사이트</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('decision_cover_letter_insights')}</h4>
             <div className="space-y-2">
               {interviewer_guide.cover_letter_insights.map((insight, i) => (
                 <div key={i} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -283,7 +285,7 @@ export function DecisionTab({
         <div className="grid sm:grid-cols-2 gap-4">
           {interviewer_guide.positive_signals && interviewer_guide.positive_signals.length > 0 && (
             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-              <h4 className="text-sm font-semibold text-green-900 mb-2">✅ 긍정 신호</h4>
+              <h4 className="text-sm font-semibold text-green-900 mb-2">✅ {t('decision_positive_signals')}</h4>
               <ul className="space-y-1">
                 {interviewer_guide.positive_signals.map((signal, i) => (
                   <li key={i} className="text-sm text-green-800 flex items-start gap-2">
@@ -297,7 +299,7 @@ export function DecisionTab({
 
           {interviewer_guide.red_flags_to_watch && interviewer_guide.red_flags_to_watch.length > 0 && (
             <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-              <h4 className="text-sm font-semibold text-red-900 mb-2">🚩 주의 사항</h4>
+              <h4 className="text-sm font-semibold text-red-900 mb-2">🚩 {t('decision_red_flags')}</h4>
               <ul className="space-y-1">
                 {interviewer_guide.red_flags_to_watch.map((flag, i) => (
                   <li key={i} className="text-sm text-red-800 flex items-start gap-2">

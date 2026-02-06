@@ -2,6 +2,7 @@
  * LiveInterviewTab - Question Selection → Interactive Scoring → Follow-up Branching
  */
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import type {
   InterviewQuestion,
   ScenarioLevelType,
@@ -15,6 +16,8 @@ interface LiveInterviewTabProps {
 }
 
 export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTabProps) {
+  const { t } = useTranslation()
+
   // Deduplicate questions by ID — backend generates UUID-based IDs,
   // but this safety net prevents selection bugs if duplicates slip through
   const uniqueQuestions = useMemo(() => {
@@ -99,7 +102,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
   if (phase === 'select') {
     // Group questions by category
     const questionsByCategory = uniqueQuestions.reduce((acc, q) => {
-      const cat = q.category || '기타'
+      const cat = q.category || t('live_other')
       if (!acc[cat]) acc[cat] = []
       acc[cat].push(q)
       return acc
@@ -111,9 +114,9 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">질문 선택</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('live_select_questions')}</h3>
               <p className="text-sm text-gray-500 mt-1">
-                면접에서 사용할 질문을 선택하세요. 선택된 질문: {selectedQuestions.size}개
+                {t('live_select_desc', { count: selectedQuestions.size })}
               </p>
             </div>
             <div className="flex gap-2">
@@ -121,14 +124,14 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
                 onClick={selectAll}
                 className="px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
               >
-                전체 선택
+                {t('live_select_all')}
               </button>
               <button
                 onClick={startInterview}
                 disabled={selectedQuestions.size === 0}
                 className="px-4 py-1.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 rounded-lg transition-colors"
               >
-                면접 시작 →
+                {t('live_start_interview')}
               </button>
             </div>
           </div>
@@ -182,7 +185,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
                         <span className="font-semibold text-gray-900">{q.title}</span>
                       )}
                       {q.is_risk && (
-                        <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded">위험</span>
+                        <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded">{t('live_risk')}</span>
                       )}
                       <span className={`px-1.5 py-0.5 text-xs rounded ${
                         q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
@@ -210,12 +213,12 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
   if (!currentQuestion) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">선택된 질문이 없습니다.</p>
+        <p className="text-gray-500">{t('live_no_questions')}</p>
         <button
           onClick={() => setPhase('select')}
           className="mt-4 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"
         >
-          질문 선택으로 돌아가기
+          {t('live_back_to_select')}
         </button>
       </div>
     )
@@ -231,15 +234,15 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
               onClick={() => setPhase('select')}
               className="text-sm text-gray-500 hover:text-gray-700"
             >
-              ← 질문 선택
+              {t('live_go_select')}
             </button>
             <span className="text-gray-300">|</span>
             <span className="text-sm font-medium text-gray-900">
-              질문 {currentIndex + 1} / {interviewQuestions.length}
+              {t('live_question_progress', { current: currentIndex + 1, total: interviewQuestions.length })}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">총점:</span>
+            <span className="text-sm text-gray-500">{t('live_total_score')}</span>
             <span className="text-lg font-bold text-indigo-600">{totalScore}</span>
             {maxScore > 0 && (
               <span className="text-sm text-gray-400">/ {maxScore}</span>
@@ -266,7 +269,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
               <span className="font-semibold text-gray-900">{currentQuestion.title}</span>
             )}
             {currentQuestion.is_risk && (
-              <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">위험 검증</span>
+              <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">{t('live_risk_verify')}</span>
             )}
           </div>
           <p className="text-lg text-gray-900">{currentQuestion.question_text}</p>
@@ -276,13 +279,13 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
         <div className="grid sm:grid-cols-2 gap-4 mb-6">
           {currentQuestion.why_matters && (
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <h5 className="text-xs font-semibold text-blue-700 uppercase mb-1">왜 중요한가</h5>
+              <h5 className="text-xs font-semibold text-blue-700 uppercase mb-1">{t('live_why_matters')}</h5>
               <p className="text-sm text-blue-800">{currentQuestion.why_matters}</p>
             </div>
           )}
           {currentQuestion.listen_for && (
             <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-              <h5 className="text-xs font-semibold text-green-700 uppercase mb-1">들어볼 것</h5>
+              <h5 className="text-xs font-semibold text-green-700 uppercase mb-1">{t('live_listen_for')}</h5>
               <p className="text-sm text-green-800">{currentQuestion.listen_for}</p>
             </div>
           )}
@@ -291,7 +294,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
         {/* Answer Keywords */}
         {currentQuestion.answer_keywords && currentQuestion.answer_keywords.length > 0 && (
           <div className="mb-6">
-            <h5 className="text-sm font-semibold text-gray-700 mb-2">핵심 키워드</h5>
+            <h5 className="text-sm font-semibold text-gray-700 mb-2">{t('live_keywords')}</h5>
             <div className="flex flex-wrap gap-2">
               {currentQuestion.answer_keywords.map((kw, i) => (
                 <span
@@ -313,7 +316,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
 
         {/* Scenario Selection */}
         <div className="mb-6">
-          <h5 className="text-sm font-semibold text-gray-700 mb-3">답변 수준 평가</h5>
+          <h5 className="text-sm font-semibold text-gray-700 mb-3">{t('live_scenario_eval')}</h5>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {currentQuestion.scenarios.map((scenario) => (
               <button
@@ -334,7 +337,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
                     {scenario.level === 'Expert' ? '🌟 Expert' :
                      scenario.level === 'Mid' ? '📊 Mid' : '📉 Low'}
                   </span>
-                  <span className="text-lg font-bold text-indigo-600">{scenario.score}점</span>
+                  <span className="text-lg font-bold text-indigo-600">{t('live_points', { score: scenario.score })}</span>
                 </div>
                 <p className="text-sm text-gray-600 mb-2">{scenario.text}</p>
                 <p className="text-xs text-gray-500">{scenario.depth_expectations}</p>
@@ -346,7 +349,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
         {/* Follow-up Questions (shown after scenario selection) */}
         {currentScore?.selectedLevel && currentQuestion.follow_ups && currentQuestion.follow_ups.length > 0 && (
           <div className="border-t border-gray-200 pt-6">
-            <h5 className="text-sm font-semibold text-gray-700 mb-3">꼬리 질문</h5>
+            <h5 className="text-sm font-semibold text-gray-700 mb-3">{t('live_follow_ups')}</h5>
             <div className="space-y-4">
               {currentQuestion.follow_ups
                 .filter(fu => fu.trigger === 'any' || fu.trigger === currentScore.selectedLevel)
@@ -355,11 +358,11 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
                     <p className="font-medium text-gray-900 mb-2">{followUp.question_text}</p>
                     <div className="grid sm:grid-cols-2 gap-3 mb-3">
                       <div className="p-2 bg-green-50 rounded-lg border border-green-200">
-                        <span className="text-xs font-semibold text-green-700">Good ({followUp.good.score}점)</span>
+                        <span className="text-xs font-semibold text-green-700">Good ({followUp.good.score}pts)</span>
                         <p className="text-sm text-green-800 mt-1">{followUp.good.text}</p>
                       </div>
                       <div className="p-2 bg-red-50 rounded-lg border border-red-200">
-                        <span className="text-xs font-semibold text-red-700">Poor ({followUp.poor.score}점)</span>
+                        <span className="text-xs font-semibold text-red-700">Poor ({followUp.poor.score}pts)</span>
                         <p className="text-sm text-red-800 mt-1">{followUp.poor.text}</p>
                       </div>
                     </div>
@@ -394,20 +397,20 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
         {/* Interviewer Note */}
         {currentQuestion.interviewer_note && (
           <div className="mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
-            <h5 className="text-xs font-semibold text-indigo-700 uppercase mb-2">면접관 노트</h5>
+            <h5 className="text-xs font-semibold text-indigo-700 uppercase mb-2">{t('live_interviewer_note')}</h5>
             {currentQuestion.interviewer_note.business_interpretation && (
               <p className="text-sm text-indigo-800 mb-2">
-                <strong>비즈니스 해석:</strong> {currentQuestion.interviewer_note.business_interpretation}
+                <strong>{t('live_business_interpretation')}</strong> {currentQuestion.interviewer_note.business_interpretation}
               </p>
             )}
             {currentQuestion.interviewer_note.daily_analogy && (
               <p className="text-sm text-indigo-800 mb-2">
-                <strong>일상 비유:</strong> {currentQuestion.interviewer_note.daily_analogy}
+                <strong>{t('live_daily_analogy')}</strong> {currentQuestion.interviewer_note.daily_analogy}
               </p>
             )}
             {currentQuestion.interviewer_note.level_expectation && (
               <p className="text-sm text-indigo-800">
-                <strong>레벨 기대치:</strong> {currentQuestion.interviewer_note.level_expectation}
+                <strong>{t('live_level_expectation')}</strong> {currentQuestion.interviewer_note.level_expectation}
               </p>
             )}
           </div>
@@ -421,14 +424,14 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
           disabled={currentIndex === 0}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          ← 이전 질문
+          {t('live_prev_question')}
         </button>
         <button
           onClick={() => setCurrentIndex(Math.min(interviewQuestions.length - 1, currentIndex + 1))}
           disabled={currentIndex === interviewQuestions.length - 1}
           className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          다음 질문 →
+          {t('live_next_question')}
         </button>
       </div>
     </div>

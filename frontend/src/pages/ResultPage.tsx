@@ -122,7 +122,7 @@ export function ResultPage() {
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span>#{jobId?.slice(0, 8)}</span>
               <span>·</span>
-              <span>{questions.length}개 질문</span>
+              <span>{t('result_question_count', { count: questions.length })}</span>
               {script.metadata?.experience_level && (
                 <>
                   <span>·</span>
@@ -155,7 +155,7 @@ export function ResultPage() {
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              분석 로그
+              {t('result_analysis_logs')}
             </Link>
             <button
               onClick={() => downloadJSON(script, `interview-${jobId?.slice(0, 8)}.json`)}
@@ -237,7 +237,7 @@ export function ResultPage() {
               activeTab === 'questions' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            질문 목록 ({questions.length})
+            {t('result_tab_questions')} ({questions.length})
           </button>
           <button
             onClick={() => setActiveTab('summary')}
@@ -245,7 +245,7 @@ export function ResultPage() {
               activeTab === 'summary' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            후보자 분석
+            {t('result_tab_summary')}
           </button>
           <button
             onClick={() => setActiveTab('guide')}
@@ -253,7 +253,7 @@ export function ResultPage() {
               activeTab === 'guide' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            면접관 가이드
+            {t('result_tab_guide')}
           </button>
         </div>
       )}
@@ -300,7 +300,7 @@ export function ResultPage() {
                   <svg className="h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <p className="mt-3 text-sm text-gray-500">생성된 질문이 없습니다</p>
+                  <p className="mt-3 text-sm text-gray-500">{t('result_no_questions')}</p>
                 </div>
               ) : (
                 questions.map((q, i) => (
@@ -325,30 +325,30 @@ export function ResultPage() {
                     <svg className="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    후보자 개요
+                    {t('result_candidate_overview')}
                   </h2>
                   <div className="grid gap-4 sm:grid-cols-2">
                     {summary.candidate_overview.name && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500">이름</dt>
+                        <dt className="text-sm font-medium text-gray-500">{t('result_name')}</dt>
                         <dd className="mt-1 text-lg font-semibold text-gray-900">{summary.candidate_overview.name}</dd>
                       </div>
                     )}
                     {summary.candidate_overview.current_position && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500">현재 직책</dt>
+                        <dt className="text-sm font-medium text-gray-500">{t('result_current_position')}</dt>
                         <dd className="mt-1 text-gray-900">{summary.candidate_overview.current_position}</dd>
                       </div>
                     )}
                     {summary.candidate_overview.primary_domain && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500">주요 도메인</dt>
+                        <dt className="text-sm font-medium text-gray-500">{t('result_primary_domain')}</dt>
                         <dd className="mt-1 text-gray-900">{summary.candidate_overview.primary_domain}</dd>
                       </div>
                     )}
                     {summary.candidate_overview.experience_years && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500">경력</dt>
+                        <dt className="text-sm font-medium text-gray-500">{t('result_v1_experience')}</dt>
                         <dd className="mt-1 text-gray-900">{summary.candidate_overview.experience_years}</dd>
                       </div>
                     )}
@@ -363,18 +363,18 @@ export function ResultPage() {
                     <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    주요 강점
+                    {t('result_key_strengths')}
                   </h2>
                   <div className="space-y-3">
                     {summary.key_strengths.map((item, i) => (
                       <div key={i} className="bg-white rounded-lg p-4 border border-green-200">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium text-green-900">{item.strength}</span>
-                          <span className="text-sm text-green-600">신뢰도: {Math.round(item.confidence * 100)}%</span>
+                          <span className="text-sm text-green-600">{t('result_confidence', { value: Math.round(item.confidence * 100) })}</span>
                         </div>
                         {item.evidence && (
                           <div className="text-sm text-green-700 space-y-1">
-                            {item.evidence.resume && <p>📄 이력서: {item.evidence.resume}</p>}
+                            {item.evidence.resume && <p>📄 {t('result_source_resume')}: {item.evidence.resume}</p>}
                             {item.evidence.linkedin && <p>💼 LinkedIn: {item.evidence.linkedin}</p>}
                             {item.evidence.github && <p>🔗 GitHub: {item.evidence.github}</p>}
                           </div>
@@ -392,7 +392,7 @@ export function ResultPage() {
                     <svg className="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    위험 요소
+                    {t('result_risk_factors')}
                   </h2>
                   <div className="space-y-3">
                     {summary.risk_flags.map((item, i) => (
@@ -410,7 +410,7 @@ export function ResultPage() {
                         {item.evidence && <p className="text-sm text-red-700 mb-2">{item.evidence}</p>}
                         {item.mitigation_question && (
                           <p className="text-sm text-red-800 bg-red-100 p-2 rounded">
-                            💡 확인 질문: {item.mitigation_question}
+                            💡 {t('result_verify_question')}: {item.mitigation_question}
                           </p>
                         )}
                       </div>
@@ -426,12 +426,12 @@ export function ResultPage() {
                     <svg className="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
-                    기술 역량
+                    {t('result_technical_expertise')}
                   </h2>
                   <div className="space-y-4">
                     {summary.technical_expertise.languages && summary.technical_expertise.languages.length > 0 && (
                       <div>
-                        <h3 className="text-sm font-medium text-gray-500 mb-2">프로그래밍 언어</h3>
+                        <h3 className="text-sm font-medium text-gray-500 mb-2">{t('result_languages')}</h3>
                         <div className="flex flex-wrap gap-2">
                           {summary.technical_expertise.languages.map((lang, i) => (
                             <span key={i} className="px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-sm">
@@ -443,7 +443,7 @@ export function ResultPage() {
                     )}
                     {summary.technical_expertise.frameworks && summary.technical_expertise.frameworks.length > 0 && (
                       <div>
-                        <h3 className="text-sm font-medium text-gray-500 mb-2">프레임워크</h3>
+                        <h3 className="text-sm font-medium text-gray-500 mb-2">{t('result_frameworks')}</h3>
                         <div className="flex flex-wrap gap-2">
                           {summary.technical_expertise.frameworks.map((fw, i) => (
                             <span key={i} className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm">
@@ -455,7 +455,7 @@ export function ResultPage() {
                     )}
                     {summary.technical_expertise.tools && summary.technical_expertise.tools.length > 0 && (
                       <div>
-                        <h3 className="text-sm font-medium text-gray-500 mb-2">도구</h3>
+                        <h3 className="text-sm font-medium text-gray-500 mb-2">{t('result_tools')}</h3>
                         <div className="flex flex-wrap gap-2">
                           {summary.technical_expertise.tools.map((tool, i) => (
                             <span key={i} className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm">
@@ -472,19 +472,19 @@ export function ResultPage() {
               {/* Data Quality Assessment */}
               {summary.data_quality_assessment && (
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">데이터 품질 평가</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_data_quality')}</h2>
                   <div className="grid gap-4 sm:grid-cols-4">
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-indigo-600">
                         {Math.round(summary.data_quality_assessment.overall_confidence * 100)}%
                       </div>
-                      <div className="text-sm text-gray-500">전체 신뢰도</div>
+                      <div className="text-sm text-gray-500">{t('result_overall_confidence')}</div>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">
                         {Math.round(summary.data_quality_assessment.document_quality * 100)}%
                       </div>
-                      <div className="text-sm text-gray-500">문서 품질</div>
+                      <div className="text-sm text-gray-500">{t('result_document_quality')}</div>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">
@@ -510,31 +510,31 @@ export function ResultPage() {
               {/* Interview Overview */}
               {guide.interview_overview && (
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">면접 개요</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_interview_overview')}</h2>
                   <div className="grid gap-4 sm:grid-cols-4">
                     <div className="text-center p-3 bg-indigo-50 rounded-lg">
                       <div className="text-2xl font-bold text-indigo-600">
-                        {guide.interview_overview.total_duration_minutes}분
+                        {t('result_duration', { min: guide.interview_overview.total_duration_minutes })}
                       </div>
-                      <div className="text-sm text-gray-500">총 소요시간</div>
+                      <div className="text-sm text-gray-500">{t('result_total_duration')}</div>
                     </div>
                     <div className="text-center p-3 bg-indigo-50 rounded-lg">
                       <div className="text-2xl font-bold text-indigo-600">
-                        {guide.interview_overview.question_count}개
+                        {t('result_count_unit', { count: guide.interview_overview.question_count })}
                       </div>
-                      <div className="text-sm text-gray-500">질문 수</div>
+                      <div className="text-sm text-gray-500">{t('result_question_count_label')}</div>
                     </div>
                     <div className="text-center p-3 bg-indigo-50 rounded-lg">
                       <div className="text-lg font-bold text-indigo-600">
                         {guide.interview_overview.experience_level}
                       </div>
-                      <div className="text-sm text-gray-500">경력 수준</div>
+                      <div className="text-sm text-gray-500">{t('result_experience_level_label')}</div>
                     </div>
                     <div className="text-center p-3 bg-indigo-50 rounded-lg">
                       <div className="text-lg font-bold text-indigo-600">
                         {guide.interview_overview.interview_style}
                       </div>
-                      <div className="text-sm text-gray-500">면접 스타일</div>
+                      <div className="text-sm text-gray-500">{t('result_interview_style')}</div>
                     </div>
                   </div>
                 </div>
@@ -543,25 +543,25 @@ export function ResultPage() {
               {/* Interview Flow */}
               {guide.interview_flow && (
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">면접 진행 순서</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_interview_flow_order')}</h2>
                   <div className="space-y-4">
                     {guide.interview_flow.opening && (
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <h3 className="font-medium text-green-900 mb-2">
-                          🎬 오프닝 ({guide.interview_flow.opening.duration_minutes}분)
+                          🎬 {t('result_opening')} ({t('result_duration', { min: guide.interview_flow.opening.duration_minutes })})
                         </h3>
                         <p className="text-sm text-green-800">{guide.interview_flow.opening.script}</p>
                       </div>
                     )}
                     {guide.interview_flow.main_body && (
                       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <h3 className="font-medium text-blue-900 mb-2">📋 본 면접</h3>
+                        <h3 className="font-medium text-blue-900 mb-2">📋 {t('result_main_interview')}</h3>
                         <p className="text-sm text-blue-800 mb-2">
-                          진행 순서: {guide.interview_flow.main_body.recommended_order?.join(' → ')}
+                          {t('result_flow_order')}: {guide.interview_flow.main_body.recommended_order?.join(' → ')}
                         </p>
                         {guide.interview_flow.main_body.transition_phrases && (
                           <div className="text-sm text-blue-700">
-                            <p className="font-medium mb-1">전환 문구:</p>
+                            <p className="font-medium mb-1">{t('result_transition_phrases')}:</p>
                             <ul className="list-disc list-inside">
                               {guide.interview_flow.main_body.transition_phrases.map((phrase, i) => (
                                 <li key={i}>{phrase}</li>
@@ -574,7 +574,7 @@ export function ResultPage() {
                     {guide.interview_flow.closing && (
                       <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
                         <h3 className="font-medium text-amber-900 mb-2">
-                          🏁 클로징 ({guide.interview_flow.closing.duration_minutes}분)
+                          🏁 {t('result_closing')} ({t('result_duration', { min: guide.interview_flow.closing.duration_minutes })})
                         </h3>
                         <p className="text-sm text-amber-800">{guide.interview_flow.closing.script}</p>
                       </div>
@@ -586,19 +586,19 @@ export function ResultPage() {
               {/* Evaluation Matrix */}
               {guide.evaluation_matrix && (
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">평가 기준</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_evaluation_criteria')}</h2>
                   <div className="grid gap-4 sm:grid-cols-3 mb-4">
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                       <div className="text-lg font-bold text-gray-900">
                         {guide.evaluation_matrix.scoring_scale}
                       </div>
-                      <div className="text-sm text-gray-500">점수 범위</div>
+                      <div className="text-sm text-gray-500">{t('result_scoring_scale')}</div>
                     </div>
                     <div className="text-center p-3 bg-green-50 rounded-lg">
                       <div className="text-lg font-bold text-green-600">
                         ≥ {guide.evaluation_matrix.passing_threshold}
                       </div>
-                      <div className="text-sm text-gray-500">합격 기준</div>
+                      <div className="text-sm text-gray-500">{t('result_passing_threshold')}</div>
                     </div>
                     <div className="text-center p-3 bg-indigo-50 rounded-lg">
                       <div className="text-lg font-bold text-indigo-600">
@@ -609,7 +609,7 @@ export function ResultPage() {
                   </div>
                   {guide.evaluation_matrix.category_weights && (
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500 mb-2">카테고리별 가중치</h3>
+                      <h3 className="text-sm font-medium text-gray-500 mb-2">{t('result_v1_category_weights')}</h3>
                       <div className="flex flex-wrap gap-2">
                         {Object.entries(guide.evaluation_matrix.category_weights).map(([cat, weight]) => (
                           <span key={cat} className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm">
@@ -665,7 +665,7 @@ export function ResultPage() {
             </svg>
             <h2 className="text-lg font-semibold text-gray-900">{t('glossary')}</h2>
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-              {script.full_glossary.length}개 용어
+              {t('result_terms_count', { count: script.full_glossary.length })}
             </span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -690,7 +690,7 @@ export function ResultPage() {
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          목록으로 돌아가기
+          {t('result_back_to_list')}
         </Link>
       </div>
     </div>

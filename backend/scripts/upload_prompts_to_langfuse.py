@@ -48,6 +48,21 @@ import yaml
 GLM_CHAT_MODEL = "zai/glm-4.5-flash"  # 무료 모델
 GLM_CODER_MODEL = "zai/glm-4.7"  # 코드 분석용 플래그십
 
+# 모델별 기본 max_output_tokens (llm_config.py MODEL_MAX_OUTPUT_TOKENS와 동기화)
+def _default_max_tokens(model: str) -> int:
+    """모델별 기본 max_output_tokens 반환"""
+    if model.startswith("moonshot/"):
+        return 16384
+    if model == "zai/glm-4.5-flash":
+        return 4096
+    if model.startswith("zai/"):
+        return 8192
+    if model.startswith("openai"):
+        return 16384
+    if model.startswith("anthropic"):
+        return 8192
+    return 8192
+
 ACTIVITY_MODEL_CONFIG = {
     # Phase 0: Input Enrichment - 빠른 처리, GLM으로 비용 절감
     "enrich_input": {"model": GLM_CHAT_MODEL, "temperature": 0.3},
@@ -139,6 +154,10 @@ def load_yaml_prompts(prompts_dir: Path, filename: str | None = None) -> dict:
                 "model": "openai:gpt-4o",
                 "temperature": 0.5,
             })
+
+            # max_output_tokens 자동 추가 (모델 기반)
+            if "max_output_tokens" not in config:
+                config["max_output_tokens"] = _default_max_tokens(config.get("model", "openai:gpt-4o"))
 
             # YAML 템플릿이 이미 Mustache 문법 사용 - 변환 불필요
             prompts[langfuse_name] = {

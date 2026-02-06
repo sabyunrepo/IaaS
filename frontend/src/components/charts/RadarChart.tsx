@@ -3,6 +3,7 @@
  *
  * Uses pure SVG for rendering without external dependencies.
  */
+import { useTranslation } from 'react-i18next'
 
 interface RadarChartProps {
   /** Candidate scores (5 values, 0-100) */
@@ -15,20 +16,20 @@ interface RadarChartProps {
   size?: number
 }
 
-const DEFAULT_LABELS = [
-  '역할 적합도',
-  '기술 역량',
-  '실행력',
-  '커뮤니케이션',
-  '코드 품질'
-]
-
 export function RadarChart({
   candidateData,
   requiredData,
-  labels = DEFAULT_LABELS,
+  labels,
   size = 300
 }: RadarChartProps) {
+  const { t } = useTranslation()
+  const resolvedLabels = labels ?? [
+    t('deep_role_fit'),
+    t('deep_technical'),
+    t('deep_execution'),
+    t('deep_communication'),
+    t('deep_code_quality'),
+  ]
   const center = size / 2
   const maxRadius = size * 0.4
   const numAxes = 5
@@ -129,7 +130,7 @@ export function RadarChart({
                 fill="transparent"
                 style={{ cursor: 'pointer' }}
               >
-                <title>{labels[i]}: {value} (요구: {requiredData[i]})</title>
+                <title>{resolvedLabels[i]}: {value} ({t('radar_required')}: {requiredData[i]})</title>
               </circle>
               <circle
                 cx={point.x}
@@ -141,14 +142,14 @@ export function RadarChart({
                 style={{ transition: 'r 0.2s ease' }}
                 className="hover:r-6"
               >
-                <title>{labels[i]}: {value} (요구: {requiredData[i]})</title>
+                <title>{resolvedLabels[i]}: {value} ({t('radar_required')}: {requiredData[i]})</title>
               </circle>
             </g>
           )
         })}
 
         {/* Labels */}
-        {labels.map((label, i) => {
+        {resolvedLabels.map((label, i) => {
           const angle = startAngle + i * angleStep
           const labelRadius = maxRadius + 25
           const x = center + labelRadius * Math.cos(angle)
@@ -178,11 +179,11 @@ export function RadarChart({
       <div className="flex justify-center gap-6 mt-4">
         <div className="flex items-center gap-2">
           <div className="w-4 h-0.5 bg-emerald-500"></div>
-          <span className="text-xs text-gray-600">후보자</span>
+          <span className="text-xs text-gray-600">{t('radar_candidate_legend')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-0.5 bg-indigo-500" style={{ borderStyle: 'dashed' }}></div>
-          <span className="text-xs text-gray-600">요구 수준</span>
+          <span className="text-xs text-gray-600">{t('radar_required_legend')}</span>
         </div>
       </div>
     </div>

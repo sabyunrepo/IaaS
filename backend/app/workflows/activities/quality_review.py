@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 @activity.defn
 @observe_activity(name="review_questions", phase="quality_review")
-async def review_questions(questions: list[dict]) -> dict:
+async def review_questions(questions: list[dict], output_language: str = "ko") -> dict:
     """
     질문 품질 검토
 
@@ -67,7 +67,7 @@ async def review_questions(questions: list[dict]) -> dict:
         question_texts = [q.get("question_text", "") for q in questions[:25]]
         from app.prompts import get_prompt
         formatted_questions = "\n".join(f"{i+1}. {t}" for i, t in enumerate(question_texts))
-        prompt = get_prompt("quality_review.yaml", "review", questions=formatted_questions)
+        prompt = get_prompt("quality_review.yaml", "review", questions=formatted_questions, output_language=output_language)
         # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
         review_result = await run_llm_with_heartbeat(llm, prompt, "quality_review", interval=30.0)
         if isinstance(review_result, dict):

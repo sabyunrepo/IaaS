@@ -1,6 +1,7 @@
 /**
  * DeepAnalysisTab - Radar Chart + Engineering DNA + Skill Matching Table
  */
+import { useTranslation } from 'react-i18next'
 import type { DeepAnalysis } from '../../types/interview'
 import { RadarChart, ProgressBarGroup } from '../charts'
 
@@ -9,7 +10,16 @@ interface DeepAnalysisTabProps {
 }
 
 export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
+  const { t } = useTranslation()
   const { radar_candidate, radar_required, engineering_dna, risk_flags, skill_table, overall_match } = analysis
+
+  const radarLabels = [
+    t('deep_role_fit'),
+    t('deep_technical'),
+    t('deep_execution'),
+    t('deep_communication'),
+    t('deep_code_quality')
+  ]
 
   return (
     <div className="space-y-6">
@@ -18,7 +28,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium text-indigo-100">전체 매칭 점수</h3>
+              <h3 className="text-lg font-medium text-indigo-100">{t('deep_overall_match')}</h3>
               <p className="text-2xl sm:text-4xl font-bold mt-1">{overall_match}%</p>
             </div>
             <div className="text-6xl opacity-20">📊</div>
@@ -33,7 +43,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
           </svg>
-          역량 레이더
+          {t('deep_radar')}
         </h3>
 
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
@@ -45,7 +55,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
 
           {/* Score breakdown */}
           <div className="space-y-3 w-full lg:w-auto">
-            {['역할 적합도', '기술 역량', '실행력', '커뮤니케이션', '코드 품질'].map((label, i) => {
+            {radarLabels.map((label, i) => {
               const candidate = radar_candidate[i]
               const required = radar_required[i]
               const diff = candidate - required
@@ -93,7 +103,7 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
             <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            위험 신호
+            {t('deep_risk_flags')}
           </h3>
           <div className="space-y-3">
             {risk_flags.map((flag, i) => (
@@ -113,18 +123,18 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
             <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            스킬 매칭 상세
+            {t('deep_skill_matching')}
           </h3>
 
           <div className="overflow-x-auto -mx-6">
             <table className="w-full min-w-[500px]">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">JD 요구 스킬</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">후보자 스킬</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">매칭</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">증거</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">신뢰도</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_jd_skill')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_candidate_skill')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_match_type')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_evidence')}</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_confidence')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -139,9 +149,9 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
                         row.type === 'partial' ? 'bg-amber-100 text-amber-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {row.type === 'exact' ? '정확 매칭' :
-                         row.type === 'similar' ? '유사' :
-                         row.type === 'partial' ? '부분' : '미매칭'}
+                        {row.type === 'exact' ? t('deep_match_exact') :
+                         row.type === 'similar' ? t('deep_match_similar') :
+                         row.type === 'partial' ? t('deep_match_partial') : t('deep_match_none')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">{row.evidence}</td>

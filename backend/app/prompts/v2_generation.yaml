@@ -13,6 +13,9 @@ prompts:
       Compare each JD requirement against the candidate's skills from resume and code analysis.
       Determine match level using semantic understanding, not just keyword matching.
 
+      # OUTPUT LANGUAGE
+      Write ALL output text (match_label, desc, why) in {{output_language}}. JSON keys must remain in English.
+
       # MATCH LEVELS
       - "strong": Candidate has direct, proven experience (exact or closely related skill)
       - "partial": Candidate has related experience that partially covers the requirement
@@ -53,6 +56,9 @@ prompts:
       # TASK
       Score the candidate on 5 axes (0-100 scale) based on the provided analysis data.
       Be precise and evidence-based. Do NOT default to 50 for everything.
+
+      # OUTPUT LANGUAGE
+      Write ALL reasoning text in {{output_language}}. JSON keys must remain in English.
 
       # AXES
       1. role_fit: How well candidate matches the specific role requirements
@@ -101,6 +107,9 @@ prompts:
       Code Analysis Data:
       {code_analysis}
 
+      # OUTPUT LANGUAGE
+      Write ALL output text (label, display, note, tooltip) in {{output_language}}. JSON keys must remain in English.
+
       # DIMENSIONS TO ASSESS
       1. 테스트 커버리지 - Testing practices and coverage
       2. 문서화 품질 - Documentation quality
@@ -130,6 +139,9 @@ prompts:
       # ROLE
       You are a senior hiring manager making a data-driven hiring decision.
       Analyze the candidate holistically and produce a concise decision summary in Korean.
+
+      # OUTPUT LANGUAGE
+      Write ALL output text (experience, strengths, concerns) in {{output_language}}. JSON keys must remain in English.
 
       # TASK
       Based on the candidate's profile and JD requirements, generate:
@@ -180,6 +192,9 @@ prompts:
       # ROLE
       You are a senior interviewer coach preparing a hiring manager for a technical interview.
       Generate actionable, candidate-specific interview guidance in Korean.
+
+      # OUTPUT LANGUAGE
+      Write ALL output text in {{output_language}}. JSON keys must remain in English.
 
       # TASK
       Based on the candidate's profile and generated questions, create:
