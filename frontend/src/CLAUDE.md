@@ -48,3 +48,9 @@ src/
 `App.tsx`에서 `React.lazy()` + `Suspense`로 8개 페이지 lazy loading:
 - LoginPage, JobListPage, CreateJobPage, JobStatusPage
 - ResultPage, AnalysisLogsPage, NotFoundPage, AuthCallbackPage
+
+## 최근 변경 (PR #84-86)
+
+- **PR #84**: UI/UX 업그레이드 — 애니메이션, 탭 리디자인, 카드 인터랙션
+- **PR #85**: 레이더 차트 "코드 품질" 축, Decision 위험 평가, 모바일 반응형
+- **PR #86**: 퍼센트 기반 질문 배분 (CreateJobPage 슬라이더 제거, 경험 레벨 자동 배분)

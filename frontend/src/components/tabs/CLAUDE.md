@@ -12,3 +12,25 @@
 | #2625 | 5:35 AM | 🔵 | DeepAnalysisTab Renders 5-Axis Radar with Score Breakdown | ~699 |
 | #2618 | 5:32 AM | 🔵 | IntelBriefTab Component Implements Comprehensive Candidate Overview | ~651 |
 </claude-mem-context>
+
+# frontend/src/components/tabs/
+
+ResultPage 4탭 컴포넌트.
+
+## 탭 목록
+
+| 파일 | 역할 |
+|------|------|
+| `IntelBriefTab.tsx` | 후보자 인텔 브리핑 (JD 요약, 역량 매칭) |
+| `DeepAnalysisTab.tsx` | 심층 분석 (레이더 차트, Engineering DNA, 스킬 매칭) |
+| `LiveInterviewTab.tsx` | 면접 질문 선택/진행 (카테고리별 배분, 실시간 채점) |
+| `DecisionTab.tsx` | 채용 결정 (추천, 가중치, 위험 평가, 면접관 가이드) |
+
+## PR #85 변경사항
+- **DeepAnalysisTab**: 레이더 축 라벨 "코드 품질", 반응형 폰트
+- **DecisionTab**: 위험 평가(risk_flags) 섹션 추가, 반응형 폰트/그리드
+- **IntelBriefTab**: 후보자 이름 반응형 폰트
+- **LiveInterviewTab**: 선택 헤더/시나리오 그리드 반응형
+
+## PR #86 변경사항
+- **LiveInterviewTab**: 카테고리별 질문 수 배분 표시 (경험 레벨 기반)

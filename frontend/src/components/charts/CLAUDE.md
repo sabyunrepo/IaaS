@@ -10,3 +10,19 @@
 | #2628 | 5:36 AM | 🔵 | RadarChart Implemented with Pure SVG Without External Dependencies | ~655 |
 | #2623 | 5:34 AM | 🔵 | Chart Components Export ProgressBarGroup for Grouped Display | ~410 |
 </claude-mem-context>
+
+# frontend/src/components/charts/
+
+시각화 차트 컴포넌트.
+
+## 차트 목록
+
+| 파일 | 역할 |
+|------|------|
+| `RadarChart.tsx` | 5축 레이더 차트 (역할적합도, 기술역량, 실행력, 커뮤니케이션, 코드품질) |
+| `ContributionChart.tsx` | GitHub 기여도 시각화 |
+
+## PR #85 변경사항
+- **RadarChart**: 5번 축 라벨 "위험 요소" → "코드 품질"
+- **RadarChart**: SVG viewBox 반응형 (`w-full h-auto`)
+- **ContributionChart**: SVG viewBox 반응형

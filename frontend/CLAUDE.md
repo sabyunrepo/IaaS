@@ -55,3 +55,17 @@ AnalysisLogsPage.js     9KB
 JobListPage.js          8KB
 LoginPage.js            5KB
 ```
+
+## UI/UX 업그레이드 (PR #84-86)
+
+| PR | 내용 |
+|----|------|
+| #84 | 데모 기반 애니메이션, 탭 리디자인, 카드 인터랙션, 색상 통합 |
+| #85 | 레이더 차트 "코드 품질" 축 교체, Decision 위험 평가 섹션, 모바일 반응형 |
+| #86 | CreateJobPage 슬라이더 제거, 경험 레벨별 자동 질문 수 결정 |
+
+### 모바일 반응형 (PR #85)
+- `RadarChart.tsx`, `ContributionChart.tsx`: SVG viewBox 반응형
+- `ResultPage.tsx`: 탭 네비게이션 `overflow-x-auto scrollbar-hide`
+- `DecisionTab.tsx`, `DeepAnalysisTab.tsx`: 반응형 폰트 크기 (`text-2xl sm:text-4xl`)
+- `index.css`: `.scrollbar-hide` 유틸리티 추가

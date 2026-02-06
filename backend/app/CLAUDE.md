@@ -41,3 +41,9 @@ FastAPI 애플리케이션 패키지.
 ## worker.py
 
 32개 Activity 함수 등록. 새 Activity 추가 시 반드시 여기에 등록.
+
+## 최근 변경 (PR #85-87)
+
+- **PR #85**: `analysis_generation.py` — 레이더 5번 축 risk → code_quality 계산 로직 변경
+- **PR #86**: `interview_workflow.py` — 퍼센트 기반 질문 배분, `question_generation.py` — UUID 질문 ID
+- **PR #87**: `interview_workflow.py` — 카테고리 가중치 `input_data` 접근 버그 수정

@@ -45,8 +45,17 @@
 | `LoginPage.tsx` | `/login` | OAuth 로그인 (Google, GitHub) |
 | `AuthCallbackPage.tsx` | `/auth/callback` | OAuth 콜백 처리 |
 | `JobListPage.tsx` | `/jobs` | Job 목록 + 상태 배지 + 페이지네이션 |
-| `CreateJobPage.tsx` | `/jobs/new` | 새 Job 생성 폼 (JD, 이력서, 포트폴리오) |
+| `CreateJobPage.tsx` | `/jobs/new` | 새 Job 생성 폼 (JD, 이력서, 포트폴리오, 경험 레벨) |
 | `JobStatusPage.tsx` | `/jobs/:jobId` | Job 실시간 진행률 표시 |
 | `ResultPage.tsx` | `/jobs/:jobId/result` | 면접 스크립트 결과 (v1/v2 4탭 뷰) |
 | `AnalysisLogsPage.tsx` | `/jobs/:jobId/logs` | 분석 로그 조회 |
 | `NotFoundPage.tsx` | `*` | 404 페이지 |
+
+## 최근 변경
+
+### PR #85: 모바일 반응형
+- `ResultPage.tsx`: 탭 네비게이션 가로 스크롤 (`overflow-x-auto scrollbar-hide`), riskFlags prop 전달
+
+### PR #86: 질문 배분 시스템
+- `CreateJobPage.tsx`: `max_questions` 슬라이더 제거, 경험 레벨별 자동 배분
+- `ResultPage.tsx`: `question_distribution` 데이터 탭에 전달

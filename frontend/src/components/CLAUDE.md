@@ -37,5 +37,10 @@
 | `Layout.tsx` | 전체 레이아웃 (Navbar + Outlet) |
 | `ErrorBoundary.tsx` | React 에러 바운더리 |
 | `QuestionCard.tsx` | 면접 질문 카드 (v1/v2 dual schema, 리비전 추적, 신뢰도 점수) |
-| `charts/` | 레이더 차트 등 시각화 |
-| `tabs/` | ResultPage 탭 컴포넌트 |
+| `charts/` | 레이더 차트 (코드 품질 축), ContributionChart — SVG 반응형 (PR #85) |
+| `tabs/` | ResultPage 4탭: IntelBrief, DeepAnalysis, LiveInterview, Decision |
+
+## 최근 변경
+
+- **PR #85**: 레이더 차트 5번 축 "코드 품질", Decision 탭 위험 평가 카드, 모바일 반응형
+- **PR #86**: LiveInterviewTab 카테고리별 질문 배분 표시

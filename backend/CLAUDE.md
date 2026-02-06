@@ -52,6 +52,14 @@ INTERNAL_API_TOKEN=...        # Worker↔Backend 내부 인증
 REDIS_PASSWORD=...            # Redis 인증
 ```
 
+## 최근 변경 (PR #85-87)
+
+| PR | 내용 |
+|----|------|
+| #85 | 레이더 차트 5번 축 변경 (risk → code_quality), Decision 위험 평가 추가, 모바일 반응형 |
+| #86 | 경험 레벨별 퍼센트 기반 질문 배분 시스템 (`max_questions` 제거, `question_distribution` 도입) |
+| #87 | 카테고리 가중치 경험 레벨 미적용 버그 수정 (`input_data` flat dict 접근 오류) |
+
 ## 테스트
 
 ```bash

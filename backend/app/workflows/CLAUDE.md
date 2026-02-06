@@ -48,3 +48,23 @@ Phase 0: JD 분석 + 문서 파싱 → Phase 1: 코드/LinkedIn 분석 (병렬)
 - `run()`: 글로벌 캐시 (`llm_cache:activity_name:hash`)
 - `run_for_job()`: 잡 스코프 캐시 (`llm_cache:job:id:activity_name:hash`)
 - `LLM_CACHE_ENABLED=false` 시 캐시 완전 바이패스
+
+## 질문 배분 시스템 (PR #86)
+
+경험 레벨별 퍼센트 기반 질문 배분:
+- `question_distribution` dict로 카테고리별 비율 정의
+- `max_questions` → 레벨별 기본값 (신입 12, 주니어 15, 미들 18, 시니어 20, CTO 22)
+- UUID 기반 질문 ID 생성 (`uuid.uuid5`)
+
+## 카테고리 가중치 (PR #86-87)
+
+`interview_workflow.py` line 402: 경험 레벨별 가중치 적용
+- `input_data.get("experience_level", "미들")` — flat dict 직접 접근
+- 시니어: role_fit 15%, technical 20%, execution 25%, communication 20%, risk 20%
+- 미들: role_fit 25%, technical 20%, execution 20%, communication 20%, risk 15%
+
+## 레이더 차트 축 변경 (PR #85)
+
+`analysis_generation.py`: 5번 축 risk → code_quality
+- 코드 품질 점수: test_coverage(40%) + documentation(30%) + complexity(30%)
+- `_extract_risk_flags()`는 유지 — DeepAnalysis.risk_flags에 계속 저장
