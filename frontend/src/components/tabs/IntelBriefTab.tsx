@@ -18,7 +18,19 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
       {candidate && (
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-2xl font-bold">
+            {candidate.avatar_url ? (
+              <img
+                src={candidate.avatar_url}
+                alt={candidate.name}
+                className="h-16 w-16 rounded-full object-cover border-2 border-white/30"
+                onError={(e) => {
+                  const target = e.currentTarget
+                  target.style.display = 'none'
+                  target.nextElementSibling?.classList.remove('hidden')
+                }}
+              />
+            ) : null}
+            <div className={`flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-2xl font-bold ${candidate.avatar_url ? 'hidden' : ''}`}>
               {candidate.initials || candidate.name?.charAt(0) || '?'}
             </div>
             <div>
@@ -72,26 +84,33 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
         {/* Requirements */}
         <div className="mb-4">
           <h5 className="text-sm font-semibold text-gray-700 mb-2">요구 사항</h5>
-          <div className="space-y-2">
-            {jd_summary.requirements.map((req, i) => (
-              <div
-                key={i}
-                className={`flex items-start gap-3 p-3 rounded-lg ${
-                  req.matched ? 'bg-emerald-50 border border-emerald-200' : 'bg-gray-50 border border-gray-200'
-                }`}
-              >
-                <span className={req.matched ? 'text-emerald-600' : 'text-gray-400'}>
-                  {req.matched ? '✓' : '○'}
-                </span>
-                <div>
-                  <span className={`font-medium ${req.matched ? 'text-emerald-900' : 'text-gray-700'}`}>
-                    {req.text}
+          {jd_summary.requirements.length > 0 ? (
+            <div className="space-y-2">
+              {jd_summary.requirements.map((req, i) => (
+                <div
+                  key={i}
+                  className={`flex items-start gap-3 p-3 rounded-lg ${
+                    req.matched ? 'bg-emerald-50 border border-emerald-200' : 'bg-gray-50 border border-gray-200'
+                  }`}
+                >
+                  <span className={req.matched ? 'text-emerald-600' : 'text-gray-400'}>
+                    {req.matched ? '✓' : '○'}
                   </span>
-                  <p className="text-sm text-gray-500 mt-0.5">{req.desc}</p>
+                  <div>
+                    <span className={`font-medium ${req.matched ? 'text-emerald-900' : 'text-gray-700'}`}>
+                      {req.text}
+                    </span>
+                    <p className="text-sm text-gray-500 mt-0.5">{req.desc}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+              <p className="text-sm text-gray-500">JD에서 구체적인 요구 사항을 추출하지 못했습니다.</p>
+              <p className="text-xs text-gray-400 mt-1">JD에 기술 스택이나 역할 요구사항을 명시하면 더 정확한 분석이 가능합니다.</p>
+            </div>
+          )}
         </div>
 
         {/* Success Metrics */}
@@ -119,46 +138,53 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
           역량 매칭 분석
         </h3>
 
-        <div className="space-y-4">
-          {competencies.map((comp, i) => (
-            <div
-              key={i}
-              className={`card-hover p-4 rounded-lg border ${
-                comp.color === 'emerald' ? 'bg-emerald-50 border-emerald-200' :
-                comp.color === 'amber' ? 'bg-amber-50 border-amber-200' :
-                comp.color === 'red' ? 'bg-red-50 border-red-200' :
-                comp.color === 'slate' ? 'bg-slate-50 border-slate-200' :
-                'bg-gray-50 border-gray-200'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{comp.icon}</span>
-                  <span className="font-semibold text-gray-900">{comp.name}</span>
+        {competencies.length > 0 ? (
+          <div className="space-y-4">
+            {competencies.map((comp, i) => (
+              <div
+                key={i}
+                className={`card-hover p-4 rounded-lg border ${
+                  comp.color === 'emerald' ? 'bg-emerald-50 border-emerald-200' :
+                  comp.color === 'amber' ? 'bg-amber-50 border-amber-200' :
+                  comp.color === 'red' ? 'bg-red-50 border-red-200' :
+                  comp.color === 'slate' ? 'bg-slate-50 border-slate-200' :
+                  'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{comp.icon}</span>
+                    <span className="font-semibold text-gray-900">{comp.name}</span>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    comp.color === 'emerald' ? 'bg-emerald-200 text-emerald-800' :
+                    comp.color === 'amber' ? 'bg-amber-200 text-amber-800' :
+                    comp.color === 'red' ? 'bg-red-200 text-red-800' :
+                    comp.color === 'slate' ? 'bg-slate-200 text-slate-800' :
+                    'bg-gray-200 text-gray-800'
+                  }`}>
+                    {comp.match_label}
+                  </span>
                 </div>
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  comp.color === 'emerald' ? 'bg-emerald-200 text-emerald-800' :
-                  comp.color === 'amber' ? 'bg-amber-200 text-amber-800' :
-                  comp.color === 'red' ? 'bg-red-200 text-red-800' :
-                  comp.color === 'slate' ? 'bg-slate-200 text-slate-800' :
-                  'bg-gray-200 text-gray-800'
+                <p className="text-sm text-gray-600 mb-2">{comp.desc}</p>
+                <p className={`text-sm font-medium ${
+                  comp.color === 'emerald' ? 'text-emerald-700' :
+                  comp.color === 'amber' ? 'text-amber-700' :
+                  comp.color === 'red' ? 'text-red-700' :
+                  comp.color === 'slate' ? 'text-slate-700' :
+                  'text-gray-700'
                 }`}>
-                  {comp.match_label}
-                </span>
+                  💡 {comp.why}
+                </p>
               </div>
-              <p className="text-sm text-gray-600 mb-2">{comp.desc}</p>
-              <p className={`text-sm font-medium ${
-                comp.color === 'emerald' ? 'text-emerald-700' :
-                comp.color === 'amber' ? 'text-amber-700' :
-                comp.color === 'red' ? 'text-red-700' :
-                comp.color === 'slate' ? 'text-slate-700' :
-                'text-gray-700'
-              }`}>
-                💡 {comp.why}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+            <p className="text-sm text-gray-500">JD 요구 사항이 부족하여 역량 매칭을 수행하지 못했습니다.</p>
+            <p className="text-xs text-gray-400 mt-1">JD에 구체적인 기술/역량 요구사항이 포함되면 자동으로 매칭됩니다.</p>
+          </div>
+        )}
       </div>
 
       {/* GitHub Summary */}
@@ -171,54 +197,63 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
             GitHub 활동
           </h3>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-indigo-600">{github.contributions}</div>
-              <div className="text-sm text-gray-500">기여 수</div>
+          {github.contributions === 0 && github.repos === 0 && github.main_languages === 'N/A' ? (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+              <p className="text-sm text-gray-500">코드 분석에서 유의미한 기여 데이터를 찾지 못했습니다.</p>
+              <p className="text-xs text-gray-400 mt-1">JD 기술 스택과 매칭되는 저장소가 없거나 코드 분석이 실패했을 수 있습니다.</p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-indigo-600">{github.repos}</div>
-              <div className="text-sm text-gray-500">저장소</div>
-            </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-sm font-semibold text-gray-900">{github.main_languages}</div>
-              <div className="text-sm text-gray-500">주요 언어</div>
-            </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-sm font-semibold text-gray-900">{github.tenure_pattern}</div>
-              <div className="text-sm text-gray-500">평균 재직</div>
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-indigo-600">{github.contributions}</div>
+                  <div className="text-sm text-gray-500">기여 수</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-indigo-600">{github.repos}</div>
+                  <div className="text-sm text-gray-500">저장소</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm font-semibold text-gray-900">{github.main_languages}</div>
+                  <div className="text-sm text-gray-500">주요 언어</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm font-semibold text-gray-900">{github.tenure_pattern}</div>
+                  <div className="text-sm text-gray-500">평균 재직</div>
+                </div>
+              </div>
 
-          {/* Tech Match */}
-          <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-indigo-900">기술 매칭: {github.tech_match}</span>
-              {github.tech_match_note && (
-                <span className="text-sm text-amber-600">⚠️ {github.tech_match_note}</span>
+              {/* Tech Match */}
+              <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-indigo-900">기술 매칭: {github.tech_match}</span>
+                  {github.tech_match_note && (
+                    <span className="text-sm text-amber-600">⚠️ {github.tech_match_note}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Contribution Chart */}
+              {github.chart_data && github.chart_data.some(v => v > 0) && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">월별 기여도</h4>
+                  <ContributionChart data={github.chart_data} />
+                </div>
               )}
-            </div>
-          </div>
 
-          {/* Contribution Chart */}
-          {github.chart_data && github.chart_data.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">월별 기여도</h4>
-              <ContributionChart data={github.chart_data} />
-            </div>
-          )}
-
-          {/* Activity Gap Warning */}
-          {github.activity_gap && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <span className="text-amber-800">⚠️ 활동 공백: {github.activity_gap}</span>
-            </div>
+              {/* Activity Gap Warning */}
+              {github.activity_gap && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <span className="text-amber-800">⚠️ 활동 공백: {github.activity_gap}</span>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
 
       {/* LinkedIn Timeline */}
-      {linkedin && linkedin.length > 0 && (
+      {linkedin && linkedin.length > 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <svg className="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
@@ -250,6 +285,19 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
               <span className="text-amber-800">⚠️ {linkedin_warning}</span>
             </div>
           )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+            </svg>
+            LinkedIn 경력
+          </h3>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+            <p className="text-sm text-gray-500">LinkedIn 경력 정보를 가져오지 못했습니다.</p>
+            <p className="text-xs text-gray-400 mt-1">LinkedIn 프로필이 비공개이거나 경력 데이터가 불완전할 수 있습니다.</p>
+          </div>
         </div>
       )}
     </div>
