@@ -24,10 +24,10 @@ T = TypeVar('T', bound=BaseModel)
 # Activity별 최적 LLM 모델 설정 (Langfuse upload_prompts_to_langfuse.py와 동기화)
 # =============================================================================
 # 모델 선택 기준:
-# - 복잡한 추론/정확성 필요: GPT-4o, Claude Sonnet
-# - 단순 작업/비용 최적화: Z.AI GLM (glm-4.5-flash: 무료!)
-# - 코드 분석 최적화: Z.AI GLM-4.7 (플래그십)
-# - 창의적 작업: Claude Sonnet
+# - 전체 Activity: Kimi K2.5 (256K context, $0.06/$0.18 per 1M, 병렬 안정)
+# - 코드 분석 최적화: Kimi K2.5 (CODER 모드)
+# - Fallback: GPT-4o → Claude Sonnet (settings.LLM_FALLBACK_MODEL)
+# - GLM 무료 모델: 동시 요청 1개 제한으로 병렬 Activity 타임아웃 발생 → 전면 제거
 # =============================================================================
 
 # Z.AI GLM 모델 (Zhipu AI)
@@ -50,45 +50,45 @@ KIMI_CODER_MODEL = KIMI_K2_5_MODEL  # 코드 분석용
 CODE_ANALYSIS_GLM_MODEL = GLM_CODER_MODEL
 
 ACTIVITY_MODEL_CONFIG: dict[str, str] = {
-    # Phase 0: Input Enrichment - 빠른 처리, GLM으로 비용 절감
-    "enrich_input": GLM_CHAT_MODEL,
+    # Phase 0: Input Enrichment
+    "enrich_input": KIMI_CHAT_MODEL,
 
     # Phase 1: Planning
-    "select_topics": KIMI_CHAT_MODEL,  # Kimi로 교체 (토픽 선정)
+    "select_topics": KIMI_CHAT_MODEL,
 
-    # Phase 2: Analysis - Kimi K2.5 (128K/256K context, 문서/코드 분석 강점)
-    "analyze_documents": KIMI_CHAT_MODEL,  # 문서 분석 → Kimi
-    "analyze_code": KIMI_CODER_MODEL,  # 코드 분석 Manager → Kimi
-    "analyze_jd": KIMI_CHAT_MODEL,  # JD 분석 → Kimi
+    # Phase 2: Analysis - Kimi K2.5 (256K context, 문서/코드 분석 강점)
+    "analyze_documents": KIMI_CHAT_MODEL,
+    "analyze_code": KIMI_CODER_MODEL,
+    "analyze_jd": KIMI_CHAT_MODEL,
 
     # Phase 2: HYBRID 3-Stage 코드 분석 (Kimi Coder 모델)
     "code_overview_analysis": KIMI_CODER_MODEL,      # Stage 1: Overview Agent
     "code_deep_analysis": KIMI_CODER_MODEL,          # Stage 2: Deep Analysis (prefix match)
     "code_synthesis_analysis": KIMI_CODER_MODEL,     # Stage 3: Synthesis Agent
 
-    # Phase 3: Question Generation - Kimi로 교체 (테스트 후 품질 확인)
-    "craft_question": KIMI_CHAT_MODEL,  # 핵심 질문 생성 → Kimi
-    "enhance_terminology": GLM_CHAT_MODEL,  # 용어 설명 추가 (GLM 유지)
-    "craft_evaluation_scenarios": KIMI_CHAT_MODEL,  # 평가 시나리오 → Kimi
-    "design_follow_ups": GLM_CHAT_MODEL,  # 후속 질문 설계 (GLM 유지)
-    "generate_interviewer_notes": GLM_CHAT_MODEL,  # 면접관 노트 (GLM 유지)
-    "generate_decision_guide": KIMI_CHAT_MODEL,  # 채용 의사결정 가이드 → Kimi
-    "revise_questions": GLM_CHAT_MODEL,  # 질문 수정 (GLM 유지)
+    # Phase 3: Question Generation - 전체 Kimi K2.5
+    "craft_question": KIMI_CHAT_MODEL,               # 핵심 질문 생성
+    "enhance_terminology": KIMI_CHAT_MODEL,           # 용어 설명
+    "craft_evaluation_scenarios": KIMI_CHAT_MODEL,    # 평가 시나리오
+    "design_follow_ups": KIMI_CHAT_MODEL,             # 후속 질문 설계
+    "generate_interviewer_notes": KIMI_CHAT_MODEL,    # 면접관 노트
+    "generate_decision_guide": KIMI_CHAT_MODEL,       # 채용 의사결정 가이드
+    "revise_questions": KIMI_CHAT_MODEL,              # 질문 수정
 
     # Legacy activity names (backward compatibility)
-    "enhance_question": GLM_CHAT_MODEL,  # 질문 개선 (GLM 유지)
-    "generate_expected_answer": KIMI_CHAT_MODEL,  # 예상 답변 → Kimi
-    "generate_follow_ups": GLM_CHAT_MODEL,  # 후속 질문 (GLM 유지)
-    "generate_evaluation_rubric": GLM_CHAT_MODEL,  # 평가 기준 (GLM 유지)
-    "generate_interviewer_note": GLM_CHAT_MODEL,  # 인터뷰어 노트 (GLM 유지)
-    "generate_terminology": GLM_CHAT_MODEL,  # 용어 설명 (GLM 유지)
-    "generate_depth_markers": GLM_CHAT_MODEL,  # 깊이 마커 (GLM 유지)
+    "enhance_question": KIMI_CHAT_MODEL,
+    "generate_expected_answer": KIMI_CHAT_MODEL,
+    "generate_follow_ups": KIMI_CHAT_MODEL,
+    "generate_evaluation_rubric": KIMI_CHAT_MODEL,
+    "generate_interviewer_note": KIMI_CHAT_MODEL,
+    "generate_terminology": KIMI_CHAT_MODEL,
+    "generate_depth_markers": KIMI_CHAT_MODEL,
 
-    # Phase 4: Review & Finalization - Kimi로 교체
-    "quality_review": KIMI_CHAT_MODEL,  # 품질 검토 → Kimi
-    "finalize_candidate_summary": KIMI_CHAT_MODEL,  # 후보자 요약 → Kimi
-    "finalize_interviewer_guide": GLM_CHAT_MODEL,  # 면접관 가이드 (GLM 유지)
-    "finalize_output": GLM_CHAT_MODEL,  # 최종 요약 (GLM 유지)
+    # Phase 4: Review & Finalization - 전체 Kimi K2.5
+    "quality_review": KIMI_CHAT_MODEL,
+    "finalize_candidate_summary": KIMI_CHAT_MODEL,
+    "finalize_interviewer_guide": KIMI_CHAT_MODEL,
+    "finalize_output": KIMI_CHAT_MODEL,
 }
 
 
