@@ -88,10 +88,20 @@ def _log_llm_generation(
             except Exception:
                 pass
 
-        # Langfuse SDK v3: start_generation으로 LLM 호출 기록
-        # 현재 trace 컨텍스트 내에서 자동으로 연결됨
+        # Active trace 여부 확인 — trace 없으면 독립 generation으로 기록
+        has_active_trace = False
+        try:
+            try:
+                from langfuse import langfuse_context
+            except ImportError:
+                from langfuse.decorators import langfuse_context
+            current_trace = langfuse_context.get_current_trace_id()
+            has_active_trace = current_trace is not None
+        except Exception:
+            pass
+
         output_str = str(output)[:5000] if output else None
-        generation = client.start_generation(
+        gen_kwargs = dict(
             name=activity_name or "llm_call",
             model=model_name,
             input=prompt[:5000] if isinstance(prompt, str) else str(prompt)[:5000],
@@ -101,9 +111,18 @@ def _log_llm_generation(
                 "configured_model": model,
             },
         )
-        # Langfuse 3.x: output은 update()로 설정 후 end() 호출 (end()에 output 파라미터 없음)
-        generation.update(output=output_str)
-        generation.end()
+
+        if has_active_trace:
+            # trace 컨텍스트 내에서 span으로 연결
+            generation = client.start_generation(**gen_kwargs)
+            generation.update(output=output_str)
+            generation.end()
+        else:
+            # trace 없으면 독립 generation으로 기록 (경고 방지)
+            client.generation(
+                **gen_kwargs,
+                output=output_str,
+            )
 
         logger.info(
             f"Logged Langfuse generation: {activity_name}, "

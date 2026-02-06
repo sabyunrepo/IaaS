@@ -320,8 +320,13 @@ def _prompt_key_to_activity_name(filename: str, key: str) -> str:
         ("document_analysis.yaml", "extract_profile"): "analyze_documents",
         ("jd_analysis.yaml", "analyze"): "analyze_jd",
         ("quality_review.yaml", "review"): "quality_review",
+        ("quality_review.yaml", "check_duplicates"): "check_duplicates",
         ("finalization.yaml", "candidate_summary"): "finalize_candidate_summary",
         ("finalization.yaml", "interviewer_guide"): "finalize_interviewer_guide",
+        ("finalization.yaml", "final_synthesis"): "finalize_output",
+        ("finalization.yaml", "generate_intel_brief"): "generate_intel_brief",
+        ("finalization.yaml", "generate_deep_analysis"): "generate_deep_analysis",
+        ("finalization.yaml", "generate_decision_support"): "generate_decision_support",
         ("v2_generation.yaml", "competency_matching"): "intel_competency_matching",
         ("v2_generation.yaml", "radar_analysis"): "radar_analysis",
         ("v2_generation.yaml", "engineering_dna"): "engineering_dna",
@@ -337,8 +342,18 @@ def _prompt_key_to_activity_name(filename: str, key: str) -> str:
     return key
 
 
+def clear_langfuse_prompt_cache():
+    """Langfuse 프롬프트 캐시만 초기화 (스크립트/테스트용).
+
+    프롬프트 재업로드 후 워커가 새 버전을 가져오도록 할 때 사용.
+    YAML 캐시는 유지됩니다.
+    """
+    _langfuse_prompt_cache.clear()
+    logger.info("Langfuse prompt cache cleared")
+
+
 def clear_prompt_cache():
-    """Clear the Langfuse prompt cache (useful for testing or hot-reload)."""
+    """Clear the Langfuse prompt cache and YAML cache (useful for testing or hot-reload)."""
     _langfuse_prompt_cache.clear()
     _load_yaml.cache_clear()
     logger.info("Prompt cache cleared")

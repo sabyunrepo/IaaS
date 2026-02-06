@@ -86,9 +86,13 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
 
     # Phase 4: Review & Finalization - 전체 Kimi K2.5
     "quality_review": KIMI_CHAT_MODEL,
+    "check_duplicates": KIMI_CHAT_MODEL,              # 중복 체크
     "finalize_candidate_summary": KIMI_CHAT_MODEL,
     "finalize_interviewer_guide": KIMI_CHAT_MODEL,
     "finalize_output": KIMI_CHAT_MODEL,
+    "generate_intel_brief": KIMI_CHAT_MODEL,           # v2 Intel Brief 생성
+    "generate_deep_analysis": KIMI_CHAT_MODEL,         # v2 Deep Analysis 생성
+    "generate_decision_support": KIMI_CHAT_MODEL,      # v2 Decision Support 생성
 
     # Phase 4: v2 Generation (Intel/Analysis/Decision) - Kimi K2.5
     "intel_competency_matching": KIMI_CHAT_MODEL,

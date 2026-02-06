@@ -11,16 +11,12 @@ import asyncio
 
 from temporalio import activity
 
-from app.core.config import settings
 from app.core.observability import observe_activity
 from app.core.logging import get_logger, JobContextMiddleware
 from app.services.activity_logger import ActivityLogger
+from app.services.llm_config import KIMI_CODER_MODEL
 
 logger = get_logger(__name__)
-
-# GLM 모델 (비용 최적화)
-# settings.GLM_CODER_MODEL 사용 (기본값: zai/glm-4.7)
-GLM_MODEL = settings.GLM_CODER_MODEL
 
 
 @activity.defn
@@ -256,7 +252,7 @@ async def analyze_single_repo(
     Stage 2: Deep Analysis Agents - 선별 파일별 심층 분석 [PARALLEL]
     Stage 3: Synthesis Agent - 분석 결과 종합
 
-    모든 LLM 호출은 GLM 모델 사용 (비용 최적화)
+    모든 LLM 호출은 Kimi K2.5 모델 사용 (비용 최적화)
 
     Args:
         repo_info: 레포지토리 정보 (url, name, languages 등)
@@ -320,7 +316,7 @@ async def analyze_single_repo(
     ast_result = await analyzer.analyze_ast(files=top_files, primary_language=primary_lang)
 
     # ================================================================
-    # Phase 4: HYBRID 3-Stage LLM 분석 (GLM 모델 사용)
+    # Phase 4: HYBRID 3-Stage LLM 분석 (Kimi Coder 모델 사용)
     # ================================================================
 
     # ---- Stage 1: Overview Agent ----
@@ -328,7 +324,7 @@ async def analyze_single_repo(
     if alog:
         await alog.progress(f"Stage 1: Overview Agent for {repo_name}", {
             "stage": 1,
-            "model": GLM_MODEL,
+            "model": KIMI_CODER_MODEL,
         })
 
     overview_result = await analyzer.llm_overview_analysis(
@@ -336,7 +332,7 @@ async def analyze_single_repo(
         commit_diffs=driller_result.get("commit_diffs", []),
         ast_summary=ast_result,
         jd_tech_stack=jd_tech_stack,
-        model=GLM_MODEL,
+        model=KIMI_CODER_MODEL,
     )
 
     # 핵심 파일 추출 (최대 10개)
@@ -375,7 +371,7 @@ async def analyze_single_repo(
             file_info=enriched_file_info,
             commit_history=commit_history,
             jd_tech_stack=jd_tech_stack,
-            model=GLM_MODEL,
+            model=KIMI_CODER_MODEL,
         )
         deep_analysis_tasks.append(task)
 
@@ -404,7 +400,7 @@ async def analyze_single_repo(
         deep_analyses=successful_analyses,
         repo_info=repo_info,
         jd_tech_stack=jd_tech_stack,
-        model=GLM_MODEL,
+        model=KIMI_CODER_MODEL,
     )
 
     # ================================================================
@@ -425,7 +421,7 @@ async def analyze_single_repo(
             "key_files_count": len(key_files),
             "deep_analyses_count": len(successful_analyses),
             "failed_analyses_count": failed_count,
-            "model_used": GLM_MODEL,
+            "model_used": KIMI_CODER_MODEL,
         },
     }
 
@@ -497,7 +493,7 @@ async def validate_code_analysis(
     hybrid_meta = repo_result.get("hybrid_metadata", {})
     if hybrid_meta.get("deep_analyses_count", 0) == 0 and hybrid_meta.get("key_files_count", 0) > 0:
         issues.append("Deep Analysis 전체 실패")
-        suggestions.append("GLM 모델 연결 확인 필요")
+        suggestions.append("Kimi 모델 연결 확인 필요")
 
     # 6. 품질 점수 검증
     quality_score = analysis.get("quality_score", 0)
