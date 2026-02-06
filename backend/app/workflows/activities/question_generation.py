@@ -312,19 +312,36 @@ async def craft_question(
             logger.debug(f"KG evidence fetch failed for {topic.get('topic')}: {e}")
 
     from app.prompts import get_prompt
-    prompt = get_prompt(
-        "question_generation.yaml", "craft_question",
-        output_language=output_language,
-        experience_level=experience_level,
-        topic=topic.get("topic"),
-        category=topic.get("category"),
-        difficulty=topic.get("difficulty"),
-        evidence_context=evidence_context if evidence_context else "",
-        recommended_probe=recommended_probe if recommended_probe else "",
-    )
+    # 카테고리별 특화 프롬프트 선택 (fallback → 범용 craft_question)
+    category = topic.get("category", "technical_depth")
+    category_prompt_key = f"craft_question_{category}"
+    try:
+        prompt = get_prompt(
+            "question_generation.yaml", category_prompt_key,
+            output_language=output_language,
+            experience_level=experience_level,
+            topic=topic.get("topic"),
+            category=category,
+            difficulty=topic.get("difficulty"),
+            evidence_context=evidence_context if evidence_context else "",
+            recommended_probe=recommended_probe if recommended_probe else "",
+        )
+        logger.info(f"Using category-specific prompt: {category_prompt_key}")
+    except (KeyError, Exception) as e:
+        logger.warning(f"Category prompt '{category_prompt_key}' not found, falling back to generic: {e}")
+        prompt = get_prompt(
+            "question_generation.yaml", "craft_question",
+            output_language=output_language,
+            experience_level=experience_level,
+            topic=topic.get("topic"),
+            category=category,
+            difficulty=topic.get("difficulty"),
+            evidence_context=evidence_context if evidence_context else "",
+            recommended_probe=recommended_probe if recommended_probe else "",
+        )
 
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_heartbeat(llm, prompt, "craft_question", interval=30.0)
+    result = await run_llm_with_heartbeat(llm, prompt, category_prompt_key, interval=30.0)
 
     question = result if isinstance(result, dict) else {}
     # 고유 ID 강제 할당 — LLM이 중복 ID를 생성하는 문제 방지
