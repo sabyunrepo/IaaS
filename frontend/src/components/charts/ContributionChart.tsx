@@ -54,7 +54,7 @@ export function ContributionChart({
   const yTicks = [0, Math.round(maxValue / 2), maxValue]
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
       {/* Grid lines */}
       {yTicks.map((tick) => {
         const y = padding.top + chartHeight - (tick / maxValue) * chartHeight

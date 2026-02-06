@@ -182,10 +182,10 @@ export function ResultPage() {
       {/* Tab Navigation */}
       {hasV2Data ? (
         // v2 4-tab navigation (underline style)
-        <div className="flex border-b border-gray-200 no-print">
+        <div className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setActiveTab('intel')}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'intel' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -196,7 +196,7 @@ export function ResultPage() {
           </button>
           <button
             onClick={() => setActiveTab('analysis')}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'analysis' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -207,7 +207,7 @@ export function ResultPage() {
           </button>
           <button
             onClick={() => setActiveTab('interview')}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'interview' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -218,7 +218,7 @@ export function ResultPage() {
           </button>
           <button
             onClick={() => setActiveTab('decision')}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'decision' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -230,10 +230,10 @@ export function ResultPage() {
         </div>
       ) : (
         // v1 3-tab navigation (underline style)
-        <div className="flex border-b border-gray-200 no-print">
+        <div className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setActiveTab('questions')}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'questions' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -241,7 +241,7 @@ export function ResultPage() {
           </button>
           <button
             onClick={() => setActiveTab('summary')}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'summary' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -249,7 +249,7 @@ export function ResultPage() {
           </button>
           <button
             onClick={() => setActiveTab('guide')}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
+            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'guide' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -283,6 +283,7 @@ export function ResultPage() {
               categoryWeights={script.category_weights}
               totalScore={totalScore}
               maxScore={maxScore || 100}
+              riskFlags={script.analysis?.risk_flags}
             />
           )}
         </div>

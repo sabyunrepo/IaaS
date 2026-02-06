@@ -22,7 +22,7 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
               {candidate.initials || candidate.name?.charAt(0) || '?'}
             </div>
             <div>
-              <h2 className="text-2xl font-bold">{candidate.name}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold">{candidate.name}</h2>
               <p className="text-indigo-100">{candidate.role || candidate.current_title}</p>
             </div>
           </div>

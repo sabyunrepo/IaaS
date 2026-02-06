@@ -98,7 +98,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">질문 선택</h3>
               <p className="text-sm text-gray-500 mt-1">
@@ -303,7 +303,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
         {/* Scenario Selection */}
         <div className="mb-6">
           <h5 className="text-sm font-semibold text-gray-700 mb-3">답변 수준 평가</h5>
-          <div className="grid sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {currentQuestion.scenarios.map((scenario) => (
               <button
                 key={scenario.level}

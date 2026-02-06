@@ -2,7 +2,7 @@
  * DecisionTab - JD Competency Achievement + Hiring Recommendation
  */
 import { useState } from 'react'
-import type { DecisionSupport, Candidate, CategoryWeights } from '../../types/interview'
+import type { DecisionSupport, Candidate, CategoryWeights, RiskFlag } from '../../types/interview'
 
 interface DecisionTabProps {
   decision: DecisionSupport
@@ -10,6 +10,7 @@ interface DecisionTabProps {
   categoryWeights?: CategoryWeights
   totalScore?: number
   maxScore?: number
+  riskFlags?: RiskFlag[]
 }
 
 export function DecisionTab({
@@ -17,7 +18,8 @@ export function DecisionTab({
   candidate,
   categoryWeights,
   totalScore = 0,
-  maxScore = 100
+  maxScore = 100,
+  riskFlags
 }: DecisionTabProps) {
   const { summary, interviewer_guide, jd_competency_map } = decision
   const scorePercent = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
@@ -45,13 +47,13 @@ export function DecisionTab({
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-medium opacity-90">채용 추천</h3>
-            <p className="text-4xl font-bold mt-1">{recommendation.icon} {recommendation.label}</p>
+            <p className="text-2xl sm:text-4xl font-bold mt-1">{recommendation.icon} {recommendation.label}</p>
             {candidate && (
               <p className="text-sm opacity-80 mt-2">{candidate.name} · {candidate.role || candidate.current_title}</p>
             )}
           </div>
           <div className="text-right">
-            <div className="text-5xl font-bold">{scorePercent}%</div>
+            <div className="text-3xl sm:text-5xl font-bold">{scorePercent}%</div>
             <div className="text-sm opacity-80">{totalScore} / {maxScore} 점</div>
           </div>
         </div>
@@ -66,7 +68,7 @@ export function DecisionTab({
           후보자 요약
         </h3>
 
-        <div className="grid sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="p-4 bg-gray-50 rounded-lg">
             <div className="text-sm text-gray-500">경력</div>
             <div className="font-semibold text-gray-900">{summary.experience}</div>
@@ -113,6 +115,33 @@ export function DecisionTab({
           </div>
         </div>
       </div>
+
+      {/* Risk Assessment */}
+      {riskFlags && riskFlags.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            위험 평가
+          </h3>
+          <div className="space-y-3">
+            {riskFlags.map((flag, i) => (
+              <div key={i} className="card-hover p-4 bg-red-50 rounded-lg border border-red-200">
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-sm font-bold">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <div className="font-medium text-red-900">{flag.label}</div>
+                    <div className="text-sm text-red-700 mt-1">{flag.detail}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* JD Competency Map */}
       {jd_competency_map && jd_competency_map.length > 0 && (

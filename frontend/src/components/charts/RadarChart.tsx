@@ -20,7 +20,7 @@ const DEFAULT_LABELS = [
   '기술 역량',
   '실행력',
   '커뮤니케이션',
-  '위험 요소'
+  '코드 품질'
 ]
 
 export function RadarChart({
@@ -59,8 +59,8 @@ export function RadarChart({
   const gridLevels = [20, 40, 60, 80, 100]
 
   return (
-    <div className="relative">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <div className="relative w-full max-w-[320px] mx-auto">
+      <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-auto">
         {/* Background grid circles */}
         {gridLevels.map((level) => {
           const radius = (level / 100) * maxRadius
