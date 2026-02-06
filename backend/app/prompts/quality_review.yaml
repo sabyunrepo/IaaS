@@ -157,6 +157,10 @@ prompts:
       }
       ```
 
+      # OUTPUT LANGUAGE
+      Write ALL output text (field values, descriptions, assessments, improvements) in {{output_language}}.
+      JSON keys must remain in English.
+
       # EVALUATION CRITERIA FOR VERDICT
       - **pass**: evidence_score >= 70 AND average quality >= 7 AND no critical issues
       - **revise**: evidence_score 40-69 OR average quality 5-7 OR minor issues

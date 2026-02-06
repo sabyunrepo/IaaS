@@ -154,6 +154,11 @@ prompts:
       }
       ```
 
+      # OUTPUT LANGUAGE
+      Write ALL output text (field values, descriptions, source_quote) in {{output_language}}.
+      If the JD is in a different language, translate extracted information to {{output_language}}.
+      JSON keys must remain in English.
+
       # LIMITATIONS
       - NEVER change "우대" to "필수" or vice versa
       - NEVER add technologies not mentioned in the JD

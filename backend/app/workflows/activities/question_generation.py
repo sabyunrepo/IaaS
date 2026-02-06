@@ -167,6 +167,51 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
         except Exception as e:
             logger.warning(f"[{job_id}] KG query failed (using fallback): {e}")
 
+    # pgvector 시맨틱 검색 기반 후보 (JD 요구사항으로 프로필/코드 벡터 검색)
+    if job_id:
+        activity.heartbeat("Searching vector store for semantic matches...")
+        try:
+            from app.services.vector_store import get_vector_store
+            vs = get_vector_store(job_id)
+
+            # JD 핵심 요구사항으로 시맨틱 검색
+            jd_analysis = analysis.get("jd_analysis", {})
+            jd_requirements = jd_analysis.get("requirements", [])
+            search_queries = []
+            for req in jd_requirements[:5]:  # 상위 5개 요구사항
+                skill = req.get("skill", "") if isinstance(req, dict) else str(req)
+                if skill:
+                    search_queries.append(skill)
+
+            # 프로필 + 코드 벡터 검색
+            for query in search_queries:
+                for kind, search_fn in [("profile", vs.search_profile), ("code", vs.search_code)]:
+                    try:
+                        results = await search_fn(query, limit=3)
+                        for r in results:
+                            if r["similarity"] < 0.5:  # 유사도 임계값
+                                continue
+                            # 중복 방지
+                            topic_key = f"{query} ({r['content_key']})"
+                            if any(c["topic"] == topic_key for c in candidates):
+                                continue
+                            candidates.append({
+                                "source": f"vector_{kind}",
+                                "topic": topic_key,
+                                "evidence": {
+                                    "content_key": r["content_key"],
+                                    "content_text": r["content_text"][:200],
+                                    "similarity": r["similarity"],
+                                },
+                                "score": round(r["similarity"] * 0.8, 2),  # 시맨틱 점수 (0.8 스케일)
+                            })
+                    except Exception as e:
+                        logger.debug(f"Vector search failed for {kind}/{query}: {e}")
+
+            logger.info(f"[{job_id}] Added vector search candidates (total candidates: {len(candidates)})")
+        except Exception as e:
+            logger.warning(f"[{job_id}] Vector search failed (using fallback): {e}")
+
     # 코드 기반 후보
     code_analysis = analysis.get("code_analysis", {})
     for impl in code_analysis.get("top_question_candidates", []):
@@ -310,6 +355,23 @@ async def craft_question(
                         evidence_context += f"- {item['entity_type']}: {item.get('name', 'N/A')}\n"
         except Exception as e:
             logger.debug(f"KG evidence fetch failed for {topic.get('topic')}: {e}")
+
+    # pgvector 시맨틱 검색으로 추가 컨텍스트 수집
+    if job_id:
+        try:
+            from app.services.vector_store import get_vector_store
+            vs = get_vector_store(job_id)
+            topic_text = topic.get("topic", "")
+            if topic_text:
+                vector_results = await vs.search_profile(topic_text, limit=3)
+                code_results = await vs.search_code(topic_text, limit=2)
+                relevant = [r for r in (vector_results + code_results) if r["similarity"] >= 0.5]
+                if relevant:
+                    evidence_context += "\n\nSemantic matches (vector search):\n"
+                    for r in relevant[:4]:
+                        evidence_context += f"- [{r['content_key']}] {r['content_text'][:150]} (similarity: {r['similarity']:.2f})\n"
+        except Exception as e:
+            logger.debug(f"Vector search failed for craft_question: {e}")
 
     from app.prompts import get_prompt
     # 카테고리별 특화 프롬프트 선택 (fallback → 범용 craft_question)

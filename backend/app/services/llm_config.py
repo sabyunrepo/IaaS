@@ -92,6 +92,45 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
 }
 
 
+# =============================================================================
+# 모델별 최대 출력 토큰 수
+# =============================================================================
+# Kimi K2.5: 256K context, 대용량 출력 가능 → 16384
+# Kimi K2:   128K context → 12288
+# GLM-4.7:   플래그십 → 8192
+# GLM-4.5-flash: 무료, 제한적 → 4096
+# GPT-4o:    문서상 max_output_tokens=16384
+# Claude:    안정적 출력 → 8192
+MODEL_MAX_OUTPUT_TOKENS: dict[str, int] = {
+    # Kimi (Moonshot AI)
+    "moonshot/": 16384,
+    # Z.AI (Zhipu) GLM
+    "zai/glm-4.5-flash": 4096,
+    "zai/": 8192,
+    # OpenAI
+    "openai:": 16384,
+    "openai/": 16384,
+    # Anthropic
+    "anthropic:": 8192,
+    "anthropic/": 8192,
+    # Gemini
+    "gemini:": 8192,
+    "gemini/": 8192,
+}
+
+
+def get_max_output_tokens(model: str) -> int:
+    """모델별 최적 max_output_tokens 반환 (exact → prefix → global fallback)"""
+    # Exact match
+    if model in MODEL_MAX_OUTPUT_TOKENS:
+        return MODEL_MAX_OUTPUT_TOKENS[model]
+    # Prefix match
+    for prefix, tokens in MODEL_MAX_OUTPUT_TOKENS.items():
+        if model.startswith(prefix):
+            return tokens
+    return settings.LLM_MAX_OUTPUT_TOKENS
+
+
 def get_model_for_activity(activity_name: str) -> str:
     """Activity 이름에 따른 최적 LLM 모델 반환
 

@@ -85,7 +85,8 @@ async def analyze_documents(input_data: dict) -> dict:
         })
 
     from app.prompts import get_prompt
-    prompt = get_prompt("document_analysis.yaml", "extract_profile", documents="\n---\n".join(documents))
+    output_language = input_data.get("language_config", {}).get("output_language", "ko")
+    prompt = get_prompt("document_analysis.yaml", "extract_profile", documents="\n---\n".join(documents), output_language=output_language)
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     profile = await run_llm_with_heartbeat(llm, prompt, "analyze_documents", interval=30.0)
 

@@ -188,6 +188,24 @@ class CachedLLMService:
     async def _get_redis(self):
         return await _get_shared_redis()
 
+    @staticmethod
+    def _model_settings(model: str | None = None, override_max_tokens: int | None = None):
+        """모델별 최적 ModelSettings 반환 (max_tokens 등)
+
+        Args:
+            model: LLM 모델명
+            override_max_tokens: Langfuse config 등에서 지정한 max_tokens (모델 기본값보다 우선)
+        """
+        from pydantic_ai import ModelSettings
+        from app.services.llm_config import get_max_output_tokens
+        if override_max_tokens:
+            max_tokens = override_max_tokens
+        elif model:
+            max_tokens = get_max_output_tokens(model)
+        else:
+            max_tokens = settings.LLM_MAX_OUTPUT_TOKENS
+        return ModelSettings(max_tokens=max_tokens)
+
     def _cache_key(self, prompt: str, model: str, activity_name: str | None = None) -> str:
         """Activity 컨텍스트를 포함한 캐시 키 생성
 
@@ -239,9 +257,10 @@ class CachedLLMService:
         # LLM 호출 (폴백 체인: primary → fallback)
         # asyncio.shield로 감싸서 Temporal Activity 취소로 인한 CancelledError 방지
         from app.services.llm_config import get_llm_agent
+        ms = self._model_settings(model)
         try:
             agent = get_llm_agent(result_type=result_type, model=model)
-            run_result = await asyncio.shield(agent.run(prompt))
+            run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
         except asyncio.CancelledError:
             logger.warning(f"LLM call cancelled for model {model}")
             raise
@@ -251,7 +270,7 @@ class CachedLLMService:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
                 self._log_fallback_event(model, fallback_model, trace_meta)
                 agent = get_llm_agent(result_type=result_type, model=fallback_model)
-                run_result = await asyncio.shield(agent.run(prompt))
+                run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
             else:
                 raise
 
@@ -391,10 +410,15 @@ class CachedLLMService:
 
         # LLM 호출
         from app.services.llm_config import get_llm_agent
+        # Langfuse config에서 max_output_tokens 추출 (있으면 모델 기본값보다 우선)
+        config_max_tokens = None
+        if prompt_config.config:
+            config_max_tokens = prompt_config.config.get("max_output_tokens")
+        ms = self._model_settings(model, override_max_tokens=config_max_tokens)
         try:
             # temperature가 있으면 agent에 전달
             agent = get_llm_agent(result_type=result_type, model=model)
-            run_result = await agent.run(prompt)
+            run_result = await agent.run(prompt, model_settings=ms)
 
             logger.info(
                 f"LLM call: {prompt_config.name} (source={prompt_config.source}, "
@@ -406,7 +430,7 @@ class CachedLLMService:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
                 self._log_fallback_event(model, fallback_model, trace_meta)
                 agent = get_llm_agent(result_type=result_type, model=fallback_model)
-                run_result = await agent.run(prompt)
+                run_result = await agent.run(prompt, model_settings=ms)
             else:
                 raise
 
@@ -481,9 +505,10 @@ class CachedLLMService:
         # LLM 호출 (폴백 체인: primary → fallback)
         # asyncio.shield로 감싸서 Temporal Activity 취소로 인한 CancelledError 방지
         from app.services.llm_config import get_llm_agent
+        ms = self._model_settings(model)
         try:
             agent = get_llm_agent(result_type=result_type, model=model)
-            run_result = await asyncio.shield(agent.run(prompt))
+            run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
         except asyncio.CancelledError:
             logger.warning(f"LLM call cancelled for model {model}")
             raise
@@ -493,7 +518,7 @@ class CachedLLMService:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
                 self._log_fallback_event(model, fallback_model, trace_meta)
                 agent = get_llm_agent(result_type=result_type, model=fallback_model)
-                run_result = await asyncio.shield(agent.run(prompt))
+                run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
             else:
                 raise
 

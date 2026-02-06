@@ -20,6 +20,7 @@ async def _llm_calculate_radar_scores(
     jd_analysis: dict,
     code_analysis: dict | None,
     document_analysis: dict,
+    output_language: str = "ko",
 ) -> tuple[list[int], list[int]] | None:
     """LLM 기반 레이더 점수 계산 (실패 시 None 반환)"""
     try:
@@ -44,7 +45,7 @@ async def _llm_calculate_radar_scores(
             }, ensure_ascii=False, default=str)
 
         doc_summary = json.dumps({
-            "skills": document_analysis.get("profile", {}).get("skills", [])[:10],
+            "skills": (lambda s: list(s.keys())[:10] if isinstance(s, dict) else list(s)[:10] if s else [])(document_analysis.get("profile", {}).get("skills", [])),
             "experience_count": len(document_analysis.get("profile", {}).get("experiences", [])),
             "jd_match_score": document_analysis.get("jd_match_score", 0),
         }, ensure_ascii=False, default=str)
@@ -59,9 +60,10 @@ async def _llm_calculate_radar_scores(
             jd_analysis=jd_summary,
             code_analysis_summary=code_summary,
             document_analysis_summary=doc_summary,
+            output_language=output_language,
         )
 
-        llm = CachedLLMService(activity_name="radar_analysis")
+        llm = CachedLLMService()
         result = await run_llm_with_heartbeat(llm, prompt, "radar_analysis", interval=30.0)
 
         if not isinstance(result, dict) or "candidate_scores" not in result:
@@ -83,7 +85,7 @@ async def _llm_calculate_radar_scores(
         return None
 
 
-async def _llm_analyze_engineering_dna(code_analysis: dict | None) -> list[EngineeringDNAItem] | None:
+async def _llm_analyze_engineering_dna(code_analysis: dict | None, output_language: str = "ko") -> list[EngineeringDNAItem] | None:
     """LLM 기반 Engineering DNA 분석 (실패 시 None 반환)"""
     if not code_analysis:
         return None
@@ -106,9 +108,9 @@ async def _llm_analyze_engineering_dna(code_analysis: dict | None) -> list[Engin
             "risk_flags": code_analysis.get("risk_flags", [])[:5],
         }, ensure_ascii=False, default=str)
 
-        prompt = template.format(code_analysis=code_data)
+        prompt = template.format(code_analysis=code_data, output_language=output_language)
 
-        llm = CachedLLMService(activity_name="engineering_dna")
+        llm = CachedLLMService()
         result = await run_llm_with_heartbeat(llm, prompt, "engineering_dna", interval=30.0)
 
         if not isinstance(result, list):
@@ -368,6 +370,7 @@ async def generate_deep_analysis(
     code_analysis: dict | None,
     document_analysis: dict,
     job_id: str | None = None,
+    output_language: str = "ko",
 ) -> dict:
     """Deep Analysis 생성
 
@@ -384,7 +387,7 @@ async def generate_deep_analysis(
     activity.heartbeat()
 
     # 1. 5축 레이더 점수 계산 (LLM 우선, 규칙 기반 fallback)
-    llm_radar = await _llm_calculate_radar_scores(jd_analysis, code_analysis, document_analysis)
+    llm_radar = await _llm_calculate_radar_scores(jd_analysis, code_analysis, document_analysis, output_language)
     if llm_radar:
         radar_candidate, radar_required = llm_radar
     else:
@@ -394,7 +397,7 @@ async def generate_deep_analysis(
     activity.heartbeat()
 
     # 2. Engineering DNA 분석 (LLM 우선, 규칙 기반 fallback)
-    engineering_dna = await _llm_analyze_engineering_dna(code_analysis)
+    engineering_dna = await _llm_analyze_engineering_dna(code_analysis, output_language)
     if engineering_dna is None:
         engineering_dna = _analyze_engineering_dna(code_analysis)
     activity.heartbeat()

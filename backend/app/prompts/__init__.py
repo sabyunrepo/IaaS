@@ -51,6 +51,13 @@ class PromptWithConfig:
     temperature: float | None = None
     config: dict | None = None  # Full config from Langfuse
 
+    @property
+    def max_output_tokens(self) -> int | None:
+        """Langfuse config에서 max_output_tokens 추출"""
+        if self.config:
+            return self.config.get("max_output_tokens")
+        return None
+
 
 @lru_cache(maxsize=32)
 def _load_yaml(filename: str) -> dict:
