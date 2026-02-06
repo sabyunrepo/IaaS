@@ -139,7 +139,6 @@ export function CreateJobPage() {
   // 선택 필드
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [gitUrl, setGitUrl] = useState('')
-  const [maxQuestions, setMaxQuestions] = useState(25)
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -208,7 +207,6 @@ export function CreateJobPage() {
       const inputData: Record<string, unknown> = {
         jd_text: jdText,
         experience_level: experienceLevel,
-        max_questions: maxQuestions,
         language_config: {
           output_language: outputLanguage,
           terminology_languages: ['ko', 'en'],
@@ -405,31 +403,6 @@ export function CreateJobPage() {
               placeholder="https://github.com/username"
               className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
-          </div>
-        </SectionCard>
-
-        {/* Options */}
-        <SectionCard title={t('options')}>
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700">{t('max_questions')}</label>
-              <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-sm font-semibold text-indigo-700">
-                {maxQuestions}개
-              </span>
-            </div>
-            <input
-              type="range"
-              min={5}
-              max={25}
-              value={maxQuestions}
-              onChange={(e) => setMaxQuestions(Number(e.target.value))}
-              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-indigo-600"
-            />
-            <div className="mt-1 flex justify-between text-xs text-gray-400">
-              <span>5</span>
-              <span>15</span>
-              <span>25</span>
-            </div>
           </div>
         </SectionCard>
 

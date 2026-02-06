@@ -3,6 +3,7 @@ backend/app/workflows/activities/question_generation.py
 질문 생성 Activities (토픽 선정 + 개별 질문 생성)
 """
 import logging
+import uuid
 
 from temporalio import activity
 
@@ -12,18 +13,95 @@ from app.workflows.utils import run_llm_with_heartbeat
 
 logger = logging.getLogger(__name__)
 
+# ── 경험 레벨별 퍼센트 기반 카테고리 배분 ──
+# 각 레벨에서 중요한 질문 유형에 더 높은 비율 할당
+TOTAL_QUESTIONS = 20
+
+CATEGORY_DISTRIBUTION: dict[str, dict[str, dict]] = {
+    # 신입: 기초 기술력 + 성장 가능성 + 커뮤니케이션 중심
+    "신입": {
+        "role_fit":             {"count": 6, "difficulty": ["Easy", "Easy", "Easy", "Medium", "Medium", "Hard"]},
+        "technical_depth":      {"count": 5, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"]},
+        "execution_ownership":  {"count": 3, "difficulty": ["Easy", "Medium", "Hard"]},
+        "communication":        {"count": 4, "difficulty": ["Easy", "Easy", "Medium", "Hard"]},
+        "risk_flags":           {"count": 2, "difficulty": ["Easy", "Medium"]},
+    },
+    # 주니어: 성장 가능성 + 기초 기술력 중심
+    "주니어": {
+        "role_fit":             {"count": 6, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Medium", "Hard"]},
+        "technical_depth":      {"count": 5, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"]},
+        "execution_ownership":  {"count": 3, "difficulty": ["Easy", "Medium", "Hard"]},
+        "communication":        {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
+        "risk_flags":           {"count": 2, "difficulty": ["Easy", "Medium"]},
+    },
+    # 미들: 균형 잡힌 배분
+    "미들": {
+        "role_fit":             {"count": 5, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"]},
+        "technical_depth":      {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
+        "execution_ownership":  {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
+        "communication":        {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
+        "risk_flags":           {"count": 3, "difficulty": ["Easy", "Medium", "Hard"]},
+    },
+    # 시니어: 실행력 + 리스크 + 기술 깊이 중심
+    "시니어": {
+        "role_fit":             {"count": 3, "difficulty": ["Medium", "Medium", "Hard"]},
+        "technical_depth":      {"count": 4, "difficulty": ["Medium", "Medium", "Hard", "Hard"]},
+        "execution_ownership":  {"count": 5, "difficulty": ["Easy", "Medium", "Medium", "Hard", "Hard"]},
+        "communication":        {"count": 4, "difficulty": ["Medium", "Medium", "Hard", "Hard"]},
+        "risk_flags":           {"count": 4, "difficulty": ["Easy", "Medium", "Hard", "Hard"]},
+    },
+    # CTO/VP: 리더십 + 전략적 실행력 + 리스크 관리 중심
+    "CTO/VP": {
+        "role_fit":             {"count": 3, "difficulty": ["Medium", "Hard", "Hard"]},
+        "technical_depth":      {"count": 3, "difficulty": ["Medium", "Hard", "Hard"]},
+        "execution_ownership":  {"count": 5, "difficulty": ["Medium", "Medium", "Hard", "Hard", "Hard"]},
+        "communication":        {"count": 4, "difficulty": ["Medium", "Medium", "Hard", "Hard"]},
+        "risk_flags":           {"count": 5, "difficulty": ["Medium", "Medium", "Hard", "Hard", "Hard"]},
+    },
+}
+
+
+def _get_distribution(experience_level: str) -> dict[str, dict]:
+    """경험 레벨에 맞는 카테고리 배분 반환 (fallback: 미들)"""
+    return CATEGORY_DISTRIBUTION.get(experience_level, CATEGORY_DISTRIBUTION["미들"])
+
+
+def _format_distribution_for_prompt(dist: dict[str, dict]) -> tuple[str, str]:
+    """프롬프트용 카테고리 배분 + 난이도 배분 텍스트 생성"""
+    cat_lines = []
+    diff_lines = []
+    for cat, info in dist.items():
+        count = info["count"]
+        pct = round(count / TOTAL_QUESTIONS * 100)
+        cat_desc = {
+            "role_fit": "Culture fit, motivation, career goals, growth potential",
+            "technical_depth": "Technical skills, problem-solving, architecture",
+            "execution_ownership": "Project delivery, ownership, impact, leadership",
+            "communication": "Collaboration, explanation ability, conflict resolution",
+            "risk_flags": "Gaps, concerns, areas needing clarification",
+        }
+        cat_lines.append(f"- **{cat}** ({pct}%): {count} topics — {cat_desc.get(cat, '')}")
+
+        # 난이도 카운트
+        from collections import Counter
+        diff_count = Counter(info["difficulty"])
+        diff_str = ", ".join(f"{d}:{c}" for d, c in sorted(diff_count.items(), key=lambda x: ["Easy", "Medium", "Hard"].index(x[0])))
+        diff_lines.append(f"- **{cat}** ({count} topics): {diff_str}")
+
+    return "\n      ".join(cat_lines), "\n      ".join(diff_lines)
+
 
 @activity.defn
 @observe_activity(name="select_topics", phase="question_generation")
 async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None = None) -> list[dict]:
     """
-    25개 질문 토픽 선정 (5카테고리 × 5)
+    20개 질문 토픽 선정 — 경험 레벨별 퍼센트 기반 카테고리 배분
 
     선정 기준:
     1. Knowledge Graph 기반 후보 (skill_depth, gap_probe, conflict_probe, implementation_review)
     2. 코드에서 발견된 주목할 만한 구현
     3. JD 요구사항과의 매칭
-    4. 경험 레벨에 맞는 난이도
+    4. 경험 레벨에 맞는 카테고리 비율 + 난이도
     """
     from app.services.cached_llm import CachedLLMService
 
@@ -33,12 +111,14 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
     llm = CachedLLMService()
     raw_input = enriched_input.get("raw_input", {})
     experience_level = raw_input.get("experience_level", "미들")
-    max_questions = raw_input.get("max_questions", 25)
+    max_questions = TOTAL_QUESTIONS  # 고정 20개 (퍼센트 기반)
+    dist = _get_distribution(experience_level)
 
     if alog:
         await alog.start("Selecting question topics", {
             "experience_level": experience_level,
             "max_questions": max_questions,
+            "distribution": {cat: info["count"] for cat, info in dist.items()},
         })
 
     # 질문 후보 수집
@@ -118,12 +198,16 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
 
     activity.heartbeat(f"Selecting {max_questions} topics from {len(candidates)} candidates...")
 
+    cat_dist_text, diff_dist_text = _format_distribution_for_prompt(dist)
+
     from app.prompts import get_prompt
     prompt = get_prompt(
         "question_generation.yaml", "select_topics",
         max_questions=max_questions,
         experience_level=experience_level,
         candidates=_format_candidates(candidates),
+        category_distribution=cat_dist_text,
+        difficulty_distribution=diff_dist_text,
     )
 
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
@@ -134,31 +218,31 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
                 "topics_count": len(result[:max_questions]),
                 "candidates_considered": len(candidates),
             })
-        return result[:max_questions]
+        return result[:TOTAL_QUESTIONS]
 
-    # Fallback: generate placeholder topics from candidates
+    # Fallback: 경험 레벨별 배분에 따라 placeholder 토픽 생성
     topics = []
-    categories = ["role_fit", "technical_depth", "execution_ownership", "communication", "risk_flags"]
-    for i, cat in enumerate(categories):
-        for j in range(5):
-            idx = i * 5 + j
-            if idx < len(candidates):
+    candidate_idx = 0
+    for cat, info in dist.items():
+        for j in range(info["count"]):
+            if candidate_idx < len(candidates):
                 topics.append({
                     "category": cat,
-                    "topic": candidates[idx]["topic"],
-                    "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"][j],
-                    "source": candidates[idx]["source"],
+                    "topic": candidates[candidate_idx]["topic"],
+                    "difficulty": info["difficulty"][j] if j < len(info["difficulty"]) else "Medium",
+                    "source": candidates[candidate_idx]["source"],
                 })
+                candidate_idx += 1
             else:
                 topics.append({
                     "category": cat,
                     "topic": f"{cat}_topic_{j+1}",
-                    "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"][j],
+                    "difficulty": info["difficulty"][j] if j < len(info["difficulty"]) else "Medium",
                     "source": "generated",
                 })
     if alog:
         await alog.result("Topics selected (fallback)", {
-            "topics_count": len(topics[:max_questions]),
+            "topics_count": len(topics),
             "candidates_considered": len(candidates),
         })
     return topics[:max_questions]
@@ -243,6 +327,8 @@ async def craft_question(
     result = await run_llm_with_heartbeat(llm, prompt, "craft_question", interval=30.0)
 
     question = result if isinstance(result, dict) else {}
+    # 고유 ID 강제 할당 — LLM이 중복 ID를 생성하는 문제 방지
+    question["id"] = f"q-{topic.get('category', 'x')[:4]}-{uuid.uuid4().hex[:8]}"
     question.setdefault("question_text", f"[{topic.get('topic')}] 관련 질문")
     question.setdefault("category", topic.get("category", "technical_depth"))
     question.setdefault("difficulty", topic.get("difficulty", "Medium"))

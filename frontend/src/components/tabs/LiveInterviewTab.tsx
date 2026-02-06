@@ -1,7 +1,7 @@
 /**
  * LiveInterviewTab - Question Selection → Interactive Scoring → Follow-up Branching
  */
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import type {
   InterviewQuestion,
   ScenarioLevelType,
@@ -15,13 +15,24 @@ interface LiveInterviewTabProps {
 }
 
 export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTabProps) {
+  // Deduplicate questions by ID — backend generates UUID-based IDs,
+  // but this safety net prevents selection bugs if duplicates slip through
+  const uniqueQuestions = useMemo(() => {
+    const seen = new Set<string>()
+    return questions.filter(q => {
+      if (seen.has(q.id)) return false
+      seen.add(q.id)
+      return true
+    })
+  }, [questions])
+
   const [phase, setPhase] = useState<'select' | 'interview'>('select')
   const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set())
   const [currentIndex, setCurrentIndex] = useState(0)
   const [scores, setScores] = useState<ScoresState>({})
 
   // Get selected questions in order
-  const interviewQuestions = questions.filter(q => selectedQuestions.has(q.id))
+  const interviewQuestions = uniqueQuestions.filter(q => selectedQuestions.has(q.id))
 
   // Toggle question selection
   const toggleQuestion = (id: string) => {
@@ -36,7 +47,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
 
   // Select all questions
   const selectAll = () => {
-    setSelectedQuestions(new Set(questions.map(q => q.id)))
+    setSelectedQuestions(new Set(uniqueQuestions.map(q => q.id)))
   }
 
   // Start interview
@@ -87,7 +98,7 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
   // Selection Phase
   if (phase === 'select') {
     // Group questions by category
-    const questionsByCategory = questions.reduce((acc, q) => {
+    const questionsByCategory = uniqueQuestions.reduce((acc, q) => {
       const cat = q.category || '기타'
       if (!acc[cat]) acc[cat] = []
       acc[cat].push(q)

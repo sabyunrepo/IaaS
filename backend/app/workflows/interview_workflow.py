@@ -398,14 +398,18 @@ class InterviewGenerationWorkflow:
                 final_script["intel"] = intel_brief
                 final_script["analysis"] = deep_analysis
                 final_script["decision"] = decision_support
-                # Category weights for scoring
-                final_script["category_weights"] = {
-                    "role_fit": 0.25,
-                    "technical_depth": 0.20,
-                    "execution_ownership": 0.20,
-                    "communication": 0.20,
-                    "risk_flags": 0.15,
+                # Category weights for scoring — 경험 레벨별 차등 배분
+                exp_level = input_data.get("input_data", {}).get("experience_level", "미들")
+                CATEGORY_WEIGHTS_BY_LEVEL = {
+                    "신입":   {"role_fit": 0.30, "technical_depth": 0.25, "execution_ownership": 0.15, "communication": 0.20, "risk_flags": 0.10},
+                    "주니어": {"role_fit": 0.30, "technical_depth": 0.25, "execution_ownership": 0.15, "communication": 0.20, "risk_flags": 0.10},
+                    "미들":   {"role_fit": 0.25, "technical_depth": 0.20, "execution_ownership": 0.20, "communication": 0.20, "risk_flags": 0.15},
+                    "시니어": {"role_fit": 0.15, "technical_depth": 0.20, "execution_ownership": 0.25, "communication": 0.20, "risk_flags": 0.20},
+                    "CTO/VP": {"role_fit": 0.15, "technical_depth": 0.15, "execution_ownership": 0.25, "communication": 0.20, "risk_flags": 0.25},
                 }
+                final_script["category_weights"] = CATEGORY_WEIGHTS_BY_LEVEL.get(
+                    exp_level, CATEGORY_WEIGHTS_BY_LEVEL["미들"]
+                )
 
             # DB에 결과 저장
             job_id = input_data.get("job_id")
