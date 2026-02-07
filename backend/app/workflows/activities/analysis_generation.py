@@ -28,6 +28,7 @@ async def _llm_calculate_radar_scores(
         from app.services.cached_llm import CachedLLMService
         from app.prompts import get_prompt_with_config
         from app.workflows.utils import run_llm_with_prompt_config_heartbeat
+        from app.services.i18n_labels import _t
 
         # KG 증거 수집
         kg_context = ""
@@ -49,7 +50,7 @@ async def _llm_calculate_radar_scores(
                 logger.debug(f"KG enrichment failed for radar: {e}")
 
         # 요약 데이터 준비
-        code_summary = "코드 분석 데이터 없음"
+        code_summary = _t("no_code_analysis_data", output_language)
         if code_analysis:
             code_summary = json.dumps({
                 "tech_stack": code_analysis.get("tech_stack", [])[:10],
@@ -353,40 +354,45 @@ def _build_skill_table(
 
         from app.services.i18n_labels import _t
 
-        # 매칭 타입 결정
+        # 매칭 타입 결정 — 양방향 매칭 (길이 가드 적용)
         match_type = "none"
         candidate_skill = "—"
         evidence = _t("no_evidence", lang)
         confidence = 0
 
+        # 1단계: 이력서 스킬에서 매칭
         for cs in candidate_skills:
-            if skill_lower == cs.lower():
-                match_type = "exact"
-                candidate_skill = cs
-                evidence = _t("resume", lang)
-                confidence = 95
+            cs_lower = cs.lower()
+            if skill_lower == cs_lower:
+                match_type, candidate_skill = "exact", cs
+                evidence, confidence = _t("resume", lang), 95
                 break
-            elif skill_lower in cs.lower() or cs.lower() in skill_lower:
-                match_type = "similar"
-                candidate_skill = cs
-                evidence = _t("resume", lang)
-                confidence = 75
+            # 후보자 스킬이 JD 요구사항에 포함 (역방향, e.g. "openai" in "llm api or...")
+            elif len(cs_lower) >= 3 and cs_lower in skill_lower:
+                match_type, candidate_skill = "similar", cs
+                evidence, confidence = _t("resume", lang), 75
+                break
+            # JD 키워드가 후보자 스킬에 포함 (정방향, e.g. "api" in "fastapi")
+            elif len(skill_lower) >= 3 and skill_lower in cs_lower:
+                match_type, candidate_skill = "similar", cs
+                evidence, confidence = _t("resume", lang), 70
                 break
 
-        # 코드 분석에서 확인
+        # 2단계: 코드 분석 tech_stack에서 매칭
         if match_type == "none" and code_analysis:
             for cs in code_skills:
-                if skill_lower == cs.lower():
-                    match_type = "exact"
-                    candidate_skill = cs
-                    evidence = "GitHub"
-                    confidence = 90
+                cs_lower = cs.lower()
+                if skill_lower == cs_lower:
+                    match_type, candidate_skill = "exact", cs
+                    evidence, confidence = "GitHub", 90
                     break
-                elif skill_lower in cs.lower() or cs.lower() in skill_lower:
-                    match_type = "partial"
-                    candidate_skill = cs
-                    evidence = "GitHub"
-                    confidence = 60
+                elif len(cs_lower) >= 3 and cs_lower in skill_lower:
+                    match_type, candidate_skill = "partial", cs
+                    evidence, confidence = "GitHub", 65
+                    break
+                elif len(skill_lower) >= 3 and skill_lower in cs_lower:
+                    match_type, candidate_skill = "partial", cs
+                    evidence, confidence = "GitHub", 60
                     break
 
         rows.append(SkillMatchRow(

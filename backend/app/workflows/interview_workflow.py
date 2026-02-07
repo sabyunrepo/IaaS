@@ -338,9 +338,10 @@ class InterviewGenerationWorkflow:
             self._update_status(JobStatus.REVIEWING, "Phase 4: Intel/Analysis", 92)
 
             # Prepare inputs for intel/analysis generation
-            jd_text = raw_input.get("jd_text", "")
-            document_analysis = analysis.get("document_analysis", {})
             jd_analysis_data = analysis.get("jd_analysis", {})
+            jd_text_raw = raw_input.get("jd_text", "")
+            jd_text = jd_analysis_data.get("translated_jd_text") or jd_text_raw
+            document_analysis = analysis.get("document_analysis", {})
             code_analysis_data = analysis.get("code_analysis")
             linkedin_profile = enriched.get("linkedin_profile")
 

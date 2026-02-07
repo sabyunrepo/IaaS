@@ -50,6 +50,45 @@ _LABELS: dict[str, dict[str, str]] = {
     "jd_low": {"ko": "낮음", "en": "Low"},
     "other": {"ko": "기타", "en": "Other"},
     "multi_source": {"ko": "다중 출처", "en": "Multi-source"},
+    # intel_generation.py -- linkedin warning
+    "no_cto_vp_experience": {"ko": "CTO/VP 타이틀 경험 없음", "en": "No CTO/VP title experience"},
+    # intel_generation.py -- jd summary fallback
+    "software_engineer": {"ko": "소프트웨어 엔지니어", "en": "Software Engineer"},
+    # analysis_generation.py -- code analysis fallback
+    "no_code_analysis_data": {"ko": "코드 분석 데이터 없음", "en": "No code analysis data"},
+    "no_test_coverage_in_quality_metrics": {
+        "ko": "quality_metrics에 테스트 커버리지 정보가 없음",
+        "en": "No test coverage information in quality_metrics",
+    },
+    # decision_generation.py -- experience/time labels
+    "years_n": {"ko": "{n}년", "en": "{n} years"},
+    "years_at_company": {"ko": "{years}년 ({role} @ {company})", "en": "{years} yrs ({role} @ {company})"},
+    "minutes_n": {"ko": "{n}분", "en": "{n} min"},
+    "verify_resume_achievements": {
+        "ko": "해당 경력 관련 구체적 성과와 역할 확인",
+        "en": "Verify specific achievements and role for this career history",
+    },
+    "request_specific_examples": {
+        "ko": "관련 경험 구체적 사례 요청",
+        "en": "Request specific examples of related experience",
+    },
+    "ask_for_supporting_evidence": {
+        "ko": "해당 주장을 뒷받침하는 구체적 사례를 요청하세요",
+        "en": "Ask for specific examples to support these claims",
+    },
+    "positive_quantified_achievements": {
+        "ko": "구체적 수치 기반 성과 설명",
+        "en": "Quantified achievement descriptions",
+    },
+    "positive_failure_learning": {
+        "ko": "실패 경험과 학습 내용 공유",
+        "en": "Sharing failure experiences and lessons learned",
+    },
+    "positive_team_collaboration": {
+        "ko": "팀 협업 사례 구체적 언급",
+        "en": "Specific team collaboration examples",
+    },
+    "competency_n": {"ko": "역량{n}", "en": "Competency {n}"},
 }
 
 

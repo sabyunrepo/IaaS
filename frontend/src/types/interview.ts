@@ -380,6 +380,10 @@ export interface InterviewScriptMetadata {
   total_questions?: number
   experience_level?: string
   has_linkedin_data?: boolean
+  has_code_analysis?: boolean
+  code_analysis_tech_stack?: string[]
+  document_analysis_skills?: string[]
+  terminology_count?: number
 }
 
 /** Complete Interview Script (v2) */

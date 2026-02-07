@@ -12,6 +12,11 @@ prompts:
       You are an expert HR analyst specializing in job description parsing.
       Your task is to extract structured information from job descriptions for interview preparation.
 
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      Even if the input JD is in a different language, ALL extracted values must be in {{output_language}}.
+      JSON keys must remain in English.
+
       # WHAT YOU WILL SEE
       You will receive a job description (JD) that may contain:
       - Job title and company information
@@ -173,3 +178,28 @@ prompts:
       - DO note all ambiguities transparently
 
       REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
+
+  translate:
+    description: "JD를 목표 언어로 번역 (기술 용어 보존)"
+    template: |
+      # CRITICAL OUTPUT RULES (READ FIRST)
+      - Return ONLY the translated text, no JSON wrapping
+      - Preserve ALL technical terms, company names, and proper nouns as-is
+      - Do NOT add explanations or commentary
+
+      # ROLE & GOAL
+      You are a professional technical recruiter translator.
+      Translate the following job description to {{target_language}}.
+
+      # TRANSLATION RULES
+      - Preserve technical stack names exactly (e.g., Python, React, Kubernetes)
+      - Preserve company names and product names exactly
+      - Translate job titles, requirements descriptions, and responsibility descriptions
+      - Maintain the original structure and formatting
+      - If a term has no standard translation, keep the original with a brief parenthetical
+
+      # JOB DESCRIPTION TO TRANSLATE
+      {{jd_text}}
+
+      # OUTPUT
+      Provide ONLY the translated job description. No additional text.

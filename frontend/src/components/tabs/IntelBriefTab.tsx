@@ -8,9 +8,10 @@ import { ContributionChart } from '../charts'
 interface IntelBriefTabProps {
   intel: IntelBrief
   candidate?: Candidate
+  techStack?: string[]
 }
 
-export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
+export function IntelBriefTab({ intel, candidate, techStack }: IntelBriefTabProps) {
   const { t } = useTranslation()
   const { jd_summary, competencies, github, linkedin, linkedin_warning } = intel
 
@@ -234,6 +235,20 @@ export function IntelBriefTab({ intel, candidate }: IntelBriefTabProps) {
                   )}
                 </div>
               </div>
+
+              {/* Tech Stack Tags */}
+              {techStack && techStack.length > 0 && (
+                <div className="mt-3">
+                  <h5 className="text-xs font-medium text-gray-500 mb-2">{t('intel_tech_stack')}</h5>
+                  <div className="flex flex-wrap gap-1.5">
+                    {techStack.map((tech) => (
+                      <span key={tech} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Contribution Chart */}
               {github.chart_data && github.chart_data.some(v => v > 0) && (

@@ -5,12 +5,65 @@ backend/app/workflows/activities/finalization.py
 import json
 import logging
 from datetime import datetime, timezone
+from pathlib import PurePosixPath
 
 from temporalio import activity
 
 from app.core.observability import observe_activity
 
 logger = logging.getLogger(__name__)
+
+
+async def _download_and_store_avatar(avatar_url: str, job_id: str) -> str | None:
+    """LinkedIn avatar를 다운로드하여 S3에 저장, 영구 URL 반환.
+
+    CORS/만료 문제 해결: LinkedIn CDN URL → S3 영구 URL로 교체.
+    실패 시 None 반환 (원본 URL 유지하도록 caller가 처리).
+    """
+    if not avatar_url or not job_id:
+        return None
+
+    try:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:
+            resp = await client.get(avatar_url)
+            resp.raise_for_status()
+
+            # Validate content type
+            content_type = resp.headers.get("content-type", "")
+            if not content_type.startswith("image/"):
+                logger.warning(f"Avatar download: unexpected content-type {content_type}")
+                return None
+
+            # Size guard (1MB max)
+            if len(resp.content) > 1_048_576:
+                logger.warning(f"Avatar too large: {len(resp.content)} bytes")
+                return None
+
+            # Determine extension from content-type
+            ext_map = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif"}
+            ext = ext_map.get(content_type.split(";")[0].strip(), "jpg")
+
+            # Upload to storage
+            from app.services.storage_service import get_storage
+            storage = get_storage()
+            storage_key = f"avatars/{job_id}/avatar.{ext}"
+            storage.upload_file(storage_key, resp.content, content_type)
+
+            # Return public URL if available (R2), otherwise local path
+            public_url = storage.get_public_url(storage_key)
+            if public_url:
+                logger.info(f"Avatar stored to CDN: {public_url}")
+                return public_url
+
+            # Local mode: return a relative path that frontend can serve
+            logger.info(f"Avatar stored locally: {storage_key}")
+            return f"/storage/{storage_key}"
+
+    except Exception as e:
+        logger.warning(f"Avatar download/store failed (non-fatal): {e}")
+        return None
 
 
 def _format_linkedin_summary(profile: dict) -> str:
@@ -190,7 +243,15 @@ async def finalize_output(
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     interviewer_guide = await run_llm_with_prompt_config_heartbeat(llm, guide_config, interval=30.0)
 
-    # 4. 최종 스크립트 조립
+    # 4. Avatar 다운로드 → S3 저장 (CORS/만료 해결)
+    job_id = enriched_input.get("raw_input", {}).get("job_id", "unknown")
+    original_avatar_url = linkedin_profile.get("avatar_url") or linkedin_profile.get("avatar")
+    stored_avatar_url = None
+    if original_avatar_url and job_id != "unknown":
+        activity.heartbeat("Downloading avatar...")
+        stored_avatar_url = await _download_and_store_avatar(original_avatar_url, job_id)
+
+    # 5. 최종 스크립트 조립
     # LLM 응답이 string인 경우 dict로 래핑 (Temporal 직렬화 호환성)
     if isinstance(candidate_summary, str):
         candidate_summary = {"summary_text": candidate_summary}
@@ -213,7 +274,7 @@ async def finalize_output(
             "name": linkedin_profile.get("full_name") or linkedin_profile.get("name"),
             "headline": linkedin_profile.get("headline"),
             "current_company": linkedin_profile.get("current_company"),
-            "avatar_url": linkedin_profile.get("avatar_url") or linkedin_profile.get("avatar"),
+            "avatar_url": stored_avatar_url or linkedin_profile.get("avatar_url") or linkedin_profile.get("avatar"),
             "skills": linkedin_profile.get("skills", []),
             "experiences": linkedin_profile.get("experiences") or linkedin_profile.get("experience", []),
             "education": linkedin_profile.get("education", []),
@@ -224,7 +285,7 @@ async def finalize_output(
             "activity": linkedin_profile.get("activity", []),
             "profile_url": linkedin_profile.get("profile_url") or linkedin_profile.get("linkedin_url"),
         } if linkedin_profile else None,
-        "candidate": _build_candidate(linkedin_profile, analysis, raw_input) if linkedin_profile or analysis else None,
+        "candidate": (lambda c: ({**c, "avatar_url": stored_avatar_url} if stored_avatar_url and c else c))(_build_candidate(linkedin_profile, analysis, raw_input)) if linkedin_profile or analysis else None,
         "metadata": {
             "total_questions": len(questions),
             "language": output_language,
@@ -234,6 +295,7 @@ async def finalize_output(
             "has_code_analysis": bool(analysis.get("code_analysis")),
             "has_document_analysis": bool(analysis.get("document_analysis")),
             "code_analysis_tech_stack": (analysis.get("code_analysis") or {}).get("tech_stack", [])[:10],
+            "chart_data": (analysis.get("code_analysis") or {}).get("monthly_contributions", []),
             "document_analysis_skills": (
                 list((analysis.get("document_analysis") or {}).get("profile", {}).get("skills", {}).keys())[:10]
                 if isinstance((analysis.get("document_analysis") or {}).get("profile", {}).get("skills"), dict)
@@ -246,11 +308,9 @@ async def finalize_output(
 
     activity.heartbeat("Saving output...")
 
-    # 5. 저장 (local 또는 S3)
+    # 6. 저장 (local 또는 S3)
     from app.services.storage_service import get_storage
     storage = get_storage()
-    # job_id는 raw_input 안에 있음 (enrich_input이 raw_input을 포함하여 반환)
-    job_id = enriched_input.get("raw_input", {}).get("job_id", "unknown")
     storage_key = f"outputs/{job_id}/interview_script.json"
     output_path = storage.upload_json(storage_key, final_script)
 

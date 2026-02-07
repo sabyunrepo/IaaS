@@ -194,6 +194,11 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
                       }`}>
                         {q.difficulty}
                       </span>
+                      {q.time_allocation_minutes && (
+                        <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                          {q.time_allocation_minutes}{t('live_minutes')}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-2">{q.question_text}</p>
                   </div>
@@ -270,6 +275,11 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
             )}
             {currentQuestion.is_risk && (
               <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">{t('live_risk_verify')}</span>
+            )}
+            {currentQuestion.time_allocation_minutes && (
+              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                {currentQuestion.time_allocation_minutes}{t('live_minutes')}
+              </span>
             )}
           </div>
           <p className="text-lg text-gray-900">{currentQuestion.question_text}</p>
