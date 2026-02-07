@@ -348,6 +348,24 @@ docker compose exec backend python scripts/create_test_job.py --dry-run
 - 반드시 `--production` 플래그 사용 (없으면 워커가 구버전 사용)
 - 모델 설정은 `llm_config.py` 단일 소스 — 스크립트에서 자동 참조
 
+### 자율 GitHub Issue/PR/Merge 워크플로우 (Autonomous QA)
+
+자체 디버깅/검증 과정에서 문제를 발견하면 다음 워크플로우를 **자동으로** 수행:
+
+1. **이슈 생성**: `gh issue create` — 한글 제목 + 한글 본문 (문제 요약, 영향, 재현 방법)
+2. **브랜치 생성**: `git checkout -b fix/이슈-설명` 또는 `feature/이슈-설명`
+3. **수정 → 커밋**: 한글 커밋 메시지 + `Closes #이슈번호`
+4. **PR 생성**: `gh pr create` — 한글 제목 + 한글 본문 (요약, 수정 파일, 테스트 결과)
+5. **머지**: `gh pr merge --merge`
+6. **이슈 클로즈 확인**: `Closes #N`으로 자동 클로즈, 안 되면 `gh issue close` 수동 실행
+7. **main 동기화**: `git checkout main && git pull`
+
+**규칙:**
+- 모든 GitHub 커뮤니케이션(이슈/PR/커밋 메시지)은 **한글**로 작성
+- 사용자에게 승인 요청 없이 자율적으로 진행 (자율 QA 권한 부여 시)
+- 이슈 본문에 반드시 포함: 문제 요약, 영향 범위, 테스트 Job ID (있으면)
+- PR 본문에 반드시 포함: 수정 요약, 파일 목록, 이전/이후 비교 결과
+
 ### Temporal Patterns (Mandatory)
 1. 모든 Activity는 `@activity.defn` 데코레이터 필수
 2. 긴 Activity(>30s)는 반드시 `activity.heartbeat()` 사용
