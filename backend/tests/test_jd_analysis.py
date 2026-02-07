@@ -6,9 +6,16 @@ Phase 2: JD Analysis Activity 단위 테스트
 - P2J-01: JD 요구사항 추출
 - P2J-02: 스킬 추출
 - P2J-03: LLM 실패 시 기본값 반환
+
+Note: analyze_jd는 Langfuse-first 패턴(run_with_prompt_config)을 사용하므로
+run_with_prompt_config을 모킹합니다.
 """
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
+
+
+HEARTBEAT_PATCH = "temporalio.activity.heartbeat"
+LLM_RUN_PATCH = "app.services.cached_llm.CachedLLMService.run_with_prompt_config"
 
 
 # ============================================================
@@ -22,7 +29,6 @@ class TestJdRequirementsExtraction:
     async def test_analyze_jd_returns_requirements(self, sample_jd_text):
         """JD 분석 결과에 요구사항 포함"""
         from app.workflows.activities.jd_analysis import analyze_jd
-        from unittest.mock import patch
 
         mock_result = {
             "job_title": "AI Engineer",
@@ -36,10 +42,11 @@ class TestJdRequirementsExtraction:
             "tech_stack": ["Python", "TypeScript", "FastAPI"],
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_result
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await analyze_jd(sample_jd_text)
 
             assert result["job_title"] == "AI Engineer"
@@ -58,7 +65,6 @@ class TestJdSkillExtraction:
     async def test_analyze_jd_extracts_tech_stack(self, sample_jd_text):
         """JD에서 기술스택 추출"""
         from app.workflows.activities.jd_analysis import analyze_jd
-        from unittest.mock import patch
 
         mock_result = {
             "job_title": "Backend Developer",
@@ -67,10 +73,11 @@ class TestJdSkillExtraction:
             "responsibilities": [],
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_result
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await analyze_jd(sample_jd_text)
 
             assert "tech_stack" in result
@@ -88,12 +95,12 @@ class TestJdAnalysisErrorHandling:
     async def test_analyze_jd_llm_returns_non_dict(self):
         """LLM이 dict가 아닌 값 반환 시"""
         from app.workflows.activities.jd_analysis import analyze_jd
-        from unittest.mock import patch
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return "Not a dict response"
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await analyze_jd("Test JD")
 
             # 기본값 반환
@@ -118,7 +125,6 @@ class TestJdAnalysisIntegration:
     async def test_output_structure(self, sample_jd_text):
         """출력 구조 검증"""
         from app.workflows.activities.jd_analysis import analyze_jd
-        from unittest.mock import patch
 
         mock_result = {
             "job_title": "Test",
@@ -129,10 +135,11 @@ class TestJdAnalysisIntegration:
             "tech_stack": [],
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_result
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await analyze_jd(sample_jd_text)
 
             # 필수 필드 확인

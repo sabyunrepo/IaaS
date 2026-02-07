@@ -11,6 +11,10 @@ Phase 3: Quality Review Activity 단위 테스트
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
+# Constants for patch targets
+HEARTBEAT_PATCH = "temporalio.activity.heartbeat"
+LLM_RUN_PATCH = "app.services.cached_llm.CachedLLMService.run_with_prompt_config"
+
 
 # ============================================================
 # P3-QR-01: 카테고리 분포 검사 테스트
@@ -32,11 +36,12 @@ class TestCategoryDistribution:
             {"question_text": "Q3", "category": "role_fit", "difficulty": "Hard"},
         ]
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return {"duplicates": []}
 
         with patch("app.workflows.activities.quality_review.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -62,11 +67,12 @@ class TestCategoryDistribution:
                     "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"][i],
                 })
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return {"duplicates": []}
 
         with patch("app.workflows.activities.quality_review.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -99,11 +105,12 @@ class TestDifficultyDistribution:
             for i in range(2)
         ]
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return {"duplicates": []}
 
         with patch("app.workflows.activities.quality_review.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -128,11 +135,12 @@ class TestDifficultyDistribution:
             for i in range(2)
         ]
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return {"duplicates": []}
 
         with patch("app.workflows.activities.quality_review.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -161,11 +169,12 @@ class TestDuplicateDetection:
             {"question_text": "Python 사용 경험에 대해 말씀해주세요.", "category": "technical_depth", "difficulty": "Medium"},
         ]
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return {"duplicates": [(0, 1, "Similar questions about Python experience")]}
 
         with patch("app.workflows.activities.quality_review.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -199,11 +208,12 @@ class TestVerdict:
                     "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"][i],
                 })
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return {"duplicates": []}
 
         with patch("app.workflows.activities.quality_review.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -222,11 +232,12 @@ class TestVerdict:
             {"question_text": "Q1", "category": "role_fit", "difficulty": "Easy"},
         ]
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return {"duplicates": [(0, 0, "Self duplicate")]}
 
         with patch("app.workflows.activities.quality_review.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -256,11 +267,12 @@ class TestQualityReviewIntegration:
 
         questions = []
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return {}
 
         with patch("app.workflows.activities.quality_review.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 

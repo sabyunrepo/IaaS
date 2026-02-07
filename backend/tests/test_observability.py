@@ -45,13 +45,12 @@ class TestObservabilityModule:
         assert observability._initialized is True
 
         import litellm
-        assert "langfuse" in litellm.success_callback
-        assert "langfuse" in litellm.failure_callback
+        # Langfuse 3.x uses litellm.callbacks (not success_callback/failure_callback)
+        assert any("langfuse" in str(cb) for cb in litellm.callbacks)
 
         # Cleanup
         observability._initialized = False
-        litellm.success_callback = []
-        litellm.failure_callback = []
+        litellm.callbacks = []
 
     def test_idempotent(self, monkeypatch):
         """Calling setup twice doesn't fail."""
@@ -67,8 +66,7 @@ class TestObservabilityModule:
         # Cleanup
         observability._initialized = False
         import litellm
-        litellm.success_callback = []
-        litellm.failure_callback = []
+        litellm.callbacks = []
 
     def test_main_calls_setup(self):
         """main.py imports and calls setup_langfuse."""

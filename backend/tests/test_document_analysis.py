@@ -11,6 +11,12 @@ Phase 2: Document Analysis Activity 단위 테스트
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
+# ============================================================
+# 테스트 상수
+# ============================================================
+HEARTBEAT_PATCH = "temporalio.activity.heartbeat"
+LLM_RUN_PATCH = "app.services.cached_llm.CachedLLMService.run_with_prompt_config"
+
 
 # ============================================================
 # P2D-01: 문서 파싱 테스트
@@ -70,12 +76,13 @@ class TestLlmProfileExtraction:
         async def mock_parse_document(path):
             return MockParseResult()
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_profile
 
         with patch("app.workflows.activities.document_analysis.activity") as mock_activity, \
              patch("app.services.document_parser.parse_document", side_effect=mock_parse_document), \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -93,7 +100,9 @@ class TestLlmProfileExtraction:
 
         input_data = {}  # 문서 경로 없음
 
-        with patch("app.workflows.activities.document_analysis.activity") as mock_activity:
+        with patch("app.workflows.activities.document_analysis.activity") as mock_activity, \
+             patch(HEARTBEAT_PATCH):
+
             mock_activity.heartbeat = MagicMock()
 
             result = await analyze_documents(input_data)
@@ -134,12 +143,13 @@ class TestDocumentAnalysisErrorHandling:
                 raise ValueError("Parse failed")
             return MockParseResult()
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return {"name": "Test"}
 
         with patch("app.workflows.activities.document_analysis.activity") as mock_activity, \
              patch("app.services.document_parser.parse_document", side_effect=mock_parse_document), \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -171,7 +181,9 @@ class TestDocumentAnalysisIntegration:
 
         input_data = {}
 
-        with patch("app.workflows.activities.document_analysis.activity") as mock_activity:
+        with patch("app.workflows.activities.document_analysis.activity") as mock_activity, \
+             patch(HEARTBEAT_PATCH):
+
             mock_activity.heartbeat = MagicMock()
 
             result = await analyze_documents(input_data)

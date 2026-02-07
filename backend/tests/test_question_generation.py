@@ -11,9 +11,18 @@ Phase 3-4: Question Generation Activities 단위 테스트
 - P3-06: 면접관 노트 (generate_interviewer_notes)
 - P3-07: 의사결정 가이드 (generate_decision_guide)
 - P3-08: 질문 수정 (revise_questions)
+
+Note: 모든 question_generation activity는 Langfuse-first 패턴
+(run_llm_with_prompt_config_heartbeat → run_with_prompt_config)을 사용하므로
+run_with_prompt_config을 모킹합니다.
 """
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
+
+
+HEARTBEAT_PATCH = "temporalio.activity.heartbeat"
+LLM_RUN_PATCH = "app.services.cached_llm.CachedLLMService.run_with_prompt_config"
+ACTIVITY_MODULE_PATCH = "app.workflows.activities.question_generation.activity"
 
 
 # ============================================================
@@ -27,18 +36,17 @@ class TestSelectTopics:
     async def test_select_topics_basic(self, mock_aggregated_analysis, mock_enriched_input):
         """토픽 선정 기본 테스트"""
         from app.workflows.activities.question_generation import select_topics
-        from unittest.mock import patch
 
         mock_topics = [
             {"category": "role_fit", "topic": "AI Experience", "difficulty": "Medium", "source": "jd_match"},
             {"category": "technical_depth", "topic": "Python", "difficulty": "Hard", "source": "code"},
         ]
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_topics
 
-        with patch("app.workflows.activities.question_generation.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(ACTIVITY_MODULE_PATCH) as mock_activity, \
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -51,13 +59,12 @@ class TestSelectTopics:
     async def test_select_topics_fallback(self, mock_aggregated_analysis, mock_enriched_input):
         """LLM 실패 시 폴백 토픽 생성"""
         from app.workflows.activities.question_generation import select_topics
-        from unittest.mock import patch
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return "Not a list"  # LLM 실패 시뮬레이션
 
-        with patch("app.workflows.activities.question_generation.activity") as mock_activity, \
-             patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(ACTIVITY_MODULE_PATCH) as mock_activity, \
+             patch(LLM_RUN_PATCH, side_effect=mock_llm_run):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -79,7 +86,6 @@ class TestCraftQuestion:
     async def test_craft_question_basic(self, mock_aggregated_analysis, mock_enriched_input):
         """단일 질문 생성"""
         from app.workflows.activities.question_generation import craft_question
-        from unittest.mock import patch
 
         topic = {
             "category": "technical_depth",
@@ -94,10 +100,11 @@ class TestCraftQuestion:
             "expected_answer": {"level_1": "기본 개념", "level_2": "구현 경험", "level_3": "최적화"},
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_question
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await craft_question(topic, mock_aggregated_analysis, mock_enriched_input)
 
             assert "question_text" in result
@@ -107,7 +114,6 @@ class TestCraftQuestion:
     async def test_craft_question_llm_failure(self, mock_aggregated_analysis, mock_enriched_input):
         """LLM 실패 시 기본값 반환"""
         from app.workflows.activities.question_generation import craft_question
-        from unittest.mock import patch
 
         topic = {
             "category": "role_fit",
@@ -115,10 +121,11 @@ class TestCraftQuestion:
             "difficulty": "Easy",
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return "Not a dict"
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await craft_question(topic, mock_aggregated_analysis, mock_enriched_input)
 
             # 기본값 반환
@@ -161,9 +168,9 @@ class TestCraftQuestionCategoryRouting:
 
         captured_prompts = {}
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             # 프롬프트 내용 캡처
-            captured_prompts["prompt"] = prompt
+            captured_prompts["prompt"] = getattr(prompt_config, "prompt", str(prompt_config))
             return {
                 "question_text": "테스트 질문",
                 "category": "role_fit",
@@ -173,9 +180,10 @@ class TestCraftQuestionCategoryRouting:
         categories_to_test = ["role_fit", "technical_depth", "communication"]
         for cat in categories_to_test:
             topic = {"category": cat, "topic": f"{cat} 테스트", "difficulty": "Medium"}
-            with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+            with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+                 patch(HEARTBEAT_PATCH):
                 await craft_question(topic, mock_aggregated_analysis, mock_enriched_input)
-                # 카테고리별 프롬프트가 사용되었는지 확인 (프롬프트 내용에 카테고리 키워드 포함)
+                # 카테고리별 프롬프트가 사용되었는지 확인
                 assert captured_prompts.get("prompt"), f"{cat} 프롬프트가 캡처되지 않음"
 
     @pytest.mark.asyncio
@@ -195,10 +203,11 @@ class TestCraftQuestionCategoryRouting:
             "difficulty": "Medium",
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_question
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await craft_question(topic, mock_aggregated_analysis, mock_enriched_input)
             # fallback이 작동해서 결과가 반환되어야 함
             assert "question_text" in result
@@ -213,14 +222,15 @@ class TestCraftQuestionCategoryRouting:
         for cat in categories:
             topic = {"category": cat, "topic": f"{cat} topic", "difficulty": "Medium"}
 
-            async def mock_llm_run(prompt, **kwargs):
+            async def mock_llm_run(prompt_config, **kwargs):
                 return {
                     "question_text": f"Question for {cat}",
                     "category": cat,
                     "difficulty": "Medium",
                 }
 
-            with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+            with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+                 patch(HEARTBEAT_PATCH):
                 result = await craft_question(topic, mock_aggregated_analysis, mock_enriched_input)
                 assert result["category"] == cat, f"{cat} 카테고리 결과 불일치"
                 assert "id" in result, f"{cat} 질문에 ID 없음"
@@ -237,7 +247,6 @@ class TestEnhanceTerminology:
     async def test_enhance_terminology(self, mock_enriched_input):
         """용어 설명 추가"""
         from app.workflows.activities.question_generation import enhance_terminology
-        from unittest.mock import patch
 
         questions = [
             {"question_text": "FastAPI의 dependency injection을 설명해주세요."},
@@ -251,10 +260,11 @@ class TestEnhanceTerminology:
             }
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_result
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await enhance_terminology(questions, mock_enriched_input)
 
             assert isinstance(result, dict)
@@ -271,7 +281,6 @@ class TestCraftEvaluationScenarios:
     async def test_craft_evaluation_scenarios(self, mock_enriched_input):
         """평가 시나리오 생성"""
         from app.workflows.activities.question_generation import craft_evaluation_scenarios
-        from unittest.mock import patch
 
         questions = [
             {"question_text": "Python 경험을 설명해주세요.", "category": "technical_depth"},
@@ -287,10 +296,11 @@ class TestCraftEvaluationScenarios:
             }
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_result
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await craft_evaluation_scenarios(questions, mock_enriched_input)
 
             assert isinstance(result, dict)
@@ -307,7 +317,6 @@ class TestDesignFollowUps:
     async def test_design_follow_ups(self, mock_enriched_input):
         """후속질문 설계"""
         from app.workflows.activities.question_generation import design_follow_ups
-        from unittest.mock import patch
 
         questions = [
             {"question_text": "팀 협업 경험을 설명해주세요.", "category": "communication"},
@@ -322,10 +331,11 @@ class TestDesignFollowUps:
             }
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_result
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await design_follow_ups(questions, mock_enriched_input)
 
             assert isinstance(result, dict)
@@ -342,7 +352,6 @@ class TestGenerateInterviewerNotes:
     async def test_generate_interviewer_notes(self, mock_enriched_input):
         """면접관 노트 생성"""
         from app.workflows.activities.question_generation import generate_interviewer_notes
-        from unittest.mock import patch
 
         questions = [
             {"question_text": "프로젝트 경험을 설명해주세요.", "category": "execution_ownership"},
@@ -354,10 +363,11 @@ class TestGenerateInterviewerNotes:
             }
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_result
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await generate_interviewer_notes(questions, mock_enriched_input)
 
             assert isinstance(result, dict)
@@ -374,7 +384,6 @@ class TestGenerateDecisionGuide:
     async def test_generate_decision_guide(self, mock_aggregated_analysis, mock_enriched_input):
         """의사결정 가이드 생성"""
         from app.workflows.activities.question_generation import generate_decision_guide
-        from unittest.mock import patch
 
         mock_result = {
             "key_decision_factors": ["기술 깊이", "문제 해결 능력"],
@@ -382,10 +391,11 @@ class TestGenerateDecisionGuide:
             "red_flags": ["팀워크 부족", "코드 품질 낮음"],
         }
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_result
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await generate_decision_guide(mock_aggregated_analysis, mock_enriched_input)
 
             assert isinstance(result, dict)
@@ -402,7 +412,6 @@ class TestReviseQuestions:
     async def test_revise_questions(self, mock_enriched_input):
         """피드백 기반 질문 수정"""
         from app.workflows.activities.question_generation import revise_questions
-        from unittest.mock import patch
 
         questions = [
             {"question_text": "Python 경험을 설명해주세요.", "category": "technical_depth"},
@@ -416,10 +425,11 @@ class TestReviseQuestions:
             {"question_text": "Python으로 해결한 가장 복잡한 문제는 무엇인가요?", "category": "technical_depth"},
         ]
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return mock_revised
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await revise_questions(questions, review_feedback, mock_enriched_input)
 
             assert isinstance(result, list)
@@ -429,16 +439,16 @@ class TestReviseQuestions:
     async def test_revise_questions_llm_failure(self, mock_enriched_input):
         """LLM 실패 시 원본 반환"""
         from app.workflows.activities.question_generation import revise_questions
-        from unittest.mock import patch
 
         original_questions = [
             {"question_text": "Original question", "category": "technical_depth"},
         ]
 
-        async def mock_llm_run(prompt, **kwargs):
+        async def mock_llm_run(prompt_config, **kwargs):
             return "Not a list"
 
-        with patch("app.services.cached_llm.CachedLLMService.run", side_effect=mock_llm_run):
+        with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
+             patch(HEARTBEAT_PATCH):
             result = await revise_questions(original_questions, {}, mock_enriched_input)
 
             # 원본 반환
