@@ -353,8 +353,8 @@ export function ResultPage() {
               decision={script.decision}
               candidate={script.candidate}
               categoryWeights={script.category_weights}
-              totalScore={totalScore}
-              maxScore={maxScore || 100}
+              totalScore={hasV2Data && script?.analysis?.overall_match != null ? script.analysis.overall_match : totalScore}
+              maxScore={hasV2Data && script?.analysis?.overall_match != null ? 100 : (maxScore || 100)}
               riskFlags={script.analysis?.risk_flags}
             />
           )}

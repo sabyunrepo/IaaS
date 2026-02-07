@@ -193,13 +193,30 @@ def _extract_decision_summary(
     jd_analysis: dict,
     document_analysis: dict,
     lang: str = "ko",
+    experience_level: str = "미들",
 ) -> DecisionSummary:
     """후보자 요약에서 Decision Summary 추출"""
+    from app.services.i18n_labels import _t
+
     profile = document_analysis.get("profile", {})
 
-    # 경력 요약
+    # 경력 요약 — profile 우선, 없으면 candidate_summary에서 추출
     experiences = profile.get("experiences", [])
-    experience_years = profile.get("experience_years", 0)
+    experience_years = profile.get("experience_years")
+
+    # candidate_summary fallback for experience
+    if not experiences and isinstance(candidate_summary, dict):
+        co = candidate_summary.get("candidate_overview", {})
+        if isinstance(co, dict):
+            if experience_years is None:
+                experience_years = co.get("experience_years", 0)
+            cs_position = co.get("current_position", "")
+            if cs_position:
+                experiences = [{"company": "", "role": cs_position}]
+
+    if experience_years is None:
+        experience_years = 0
+
     experience_str = _t("years_n", lang, n=experience_years)
     if experiences:
         latest_exp = experiences[0] if experiences else {}
@@ -207,8 +224,6 @@ def _extract_decision_summary(
         role = latest_exp.get("role", latest_exp.get("title", ""))
         if company and role:
             experience_str = _t("years_at_company", lang, years=experience_years, role=role, company=company)
-
-    from app.services.i18n_labels import _t
 
     # JD 매칭 레벨
     jd_match_score = document_analysis.get("jd_match_score", 0.5)
@@ -219,26 +234,45 @@ def _extract_decision_summary(
     else:
         jd_match = _t("jd_low", lang)
 
-    # 레벨 추정 (높은 경력부터 체크 - 순서 중요)
-    level = "Mid"
-    if experience_years >= 10:
-        level = "Lead"
-    elif experience_years >= 7:
-        level = "Senior"
-    elif experience_years <= 2:
-        level = "Junior"
+    # 레벨: experience_level 파라미터 우선 사용, 없으면 경력 기반 추정
+    LEVEL_MAP = {
+        "CTO/VP": "Lead", "시니어": "Senior", "미들": "Mid",
+        "주니어": "Junior", "신입": "Entry",
+    }
+    level = LEVEL_MAP.get(experience_level)
+    if not level:
+        # 경력 기반 fallback
+        level = "Mid"
+        if experience_years >= 10:
+            level = "Lead"
+        elif experience_years >= 7:
+            level = "Senior"
+        elif experience_years <= 2:
+            level = "Junior"
 
-    # 강점 추출
+    # 강점 추출 — profile.skills 우선, 없으면 candidate_summary.technical_expertise
     strengths = []
     raw_skills = profile.get("skills", [])
-    # skills가 dict인 경우 키만 추출 (list/dict 모두 지원)
     skill_list = (
         list(raw_skills.keys()) if isinstance(raw_skills, dict)
         else list(raw_skills) if raw_skills else []
     )
+
+    # candidate_summary fallback for skills
+    if not skill_list and isinstance(candidate_summary, dict):
+        tech = candidate_summary.get("technical_expertise", {})
+        if isinstance(tech, dict):
+            for key in ["languages", "frameworks", "tools"]:
+                for item in tech.get(key, [])[:3]:
+                    if isinstance(item, dict):
+                        skill_list.append(item.get("skill", item.get("tool", "")))
+                    elif isinstance(item, str):
+                        skill_list.append(item)
+
     key_skills = skill_list[:3]
     for skill in key_skills:
-        strengths.append(f"{skill} ({_t('resume', lang)})")
+        if skill:
+            strengths.append(f"{skill} ({_t('resume', lang)})")
 
     # Code analysis에서 추가 강점
     if isinstance(candidate_summary, dict):
@@ -416,6 +450,7 @@ async def generate_decision_support(
     document_analysis: dict,
     job_id: str | None = None,
     output_language: str = "ko",
+    experience_level: str = "미들",
 ) -> dict:
     """Decision Support 생성
 
@@ -435,7 +470,7 @@ async def generate_decision_support(
     # 1. 후보자 요약 생성 (LLM 우선, 규칙 기반 fallback)
     summary = await _llm_generate_decision_summary(candidate_summary, jd_analysis, document_analysis, output_language, job_id=job_id)
     if summary is None:
-        summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis, lang=output_language)
+        summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis, lang=output_language, experience_level=experience_level)
     activity.heartbeat()
 
     # 2. 면접관 가이드 팁 생성 (LLM 우선, 규칙 기반 fallback)

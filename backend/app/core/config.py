@@ -104,7 +104,7 @@ class Settings(BaseSettings):
 
     # 기타
     LOG_LEVEL: str = "INFO"
-    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost", "http://localhost:80"]
 
     @property
     def is_local(self) -> bool:
