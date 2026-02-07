@@ -103,7 +103,7 @@ async def analyze_code(
             repo_url=repo_url,
             job_id="",
             author=candidate_username,
-            since_years=3,
+            since_years=settings.GITHUB_ANALYSIS_YEARS,
             file_types=file_types,
         )
 
