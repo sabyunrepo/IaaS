@@ -9,8 +9,6 @@ services:
       dockerfile: Dockerfile
     container_name: iaas-frontend
     restart: unless-stopped
-    environment:
-      - VITE_BACKEND_URL=${FRONTEND_BACKEND_URL:-http://localhost:8000}
     depends_on:
       - backend
     healthcheck:

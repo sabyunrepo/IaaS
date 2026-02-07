@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
 import { getToken } from '../lib/api'
 
-const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 // 지원 언어 목록
 const SUPPORTED_LANGUAGES = [
@@ -156,7 +155,7 @@ export function CreateJobPage() {
       formData.append('file', file)
 
       const token = getToken()
-      const response = await fetch(`${BACKEND}/api/v1/upload/${fileType}`, {
+      const response = await fetch(`/api/v1/upload/${fileType}`, {
         method: 'POST',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

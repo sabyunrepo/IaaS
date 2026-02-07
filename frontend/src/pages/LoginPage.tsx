@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { setToken } from '../lib/api'
 
-const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
-
 // Google Icon SVG
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -44,7 +42,7 @@ export function LoginPage() {
   const handleDevLogin = async () => {
     setDevLoading(true)
     try {
-      const res = await fetch(`${BACKEND}/auth/dev-login`, { method: 'POST' })
+      const res = await fetch(`/auth/dev-login`, { method: 'POST' })
       if (!res.ok) throw new Error('Dev login failed')
       const data = await res.json()
       setToken(data.token)
@@ -84,7 +82,7 @@ export function LoginPage() {
           {/* OAuth Buttons */}
           <div className="space-y-3">
             <a
-              href={`${BACKEND}/auth/google/login`}
+              href={`/auth/google/login`}
               className="group flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               <GoogleIcon className="h-5 w-5" />
@@ -92,7 +90,7 @@ export function LoginPage() {
             </a>
 
             <a
-              href={`${BACKEND}/auth/github/login`}
+              href={`/auth/github/login`}
               className="group flex w-full items-center justify-center gap-3 rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-gray-800 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
             >
               <GitHubIcon className="h-5 w-5" />
