@@ -1,6 +1,7 @@
 /**
  * DeepAnalysisTab - Radar Chart + Engineering DNA + Skill Matching Table
  */
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DeepAnalysis } from '../../types/interview'
 import { RadarChart, ProgressBarGroup } from '../charts'
@@ -9,7 +10,7 @@ interface DeepAnalysisTabProps {
   analysis: DeepAnalysis
 }
 
-export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
+export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
   const { t } = useTranslation()
   const { radar_candidate, radar_required, engineering_dna, risk_flags, skill_table, overall_match } = analysis
 
@@ -180,4 +181,4 @@ export function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
       )}
     </div>
   )
-}
+})
