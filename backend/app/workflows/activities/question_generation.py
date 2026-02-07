@@ -379,6 +379,12 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
 
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
+
+    # LLM이 {"topics": [...]} 형태로 반환할 경우 배열 추출
+    if isinstance(result, dict) and "topics" in result and isinstance(result["topics"], list):
+        logger.info("select_topics: extracted list from wrapped dict")
+        result = result["topics"]
+
     if isinstance(result, list):
         if alog:
             await alog.result("Topics selected", {
@@ -531,6 +537,9 @@ async def craft_question(
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
     question = result if isinstance(result, dict) else {}
+    if not isinstance(result, dict):
+        logger.warning(f"craft_question LLM returned non-dict: {type(result)}, using empty dict fallback")
+
     # 고유 ID 강제 할당 — LLM이 중복 ID를 생성하는 문제 방지
     question["id"] = f"q-{topic.get('category', 'x')[:4]}-{uuid.uuid4().hex[:8]}"
     question.setdefault("question_text", f"[{topic.get('topic')}] 관련 질문")
@@ -538,6 +547,18 @@ async def craft_question(
     question.setdefault("difficulty", topic.get("difficulty", "Medium"))
     question.setdefault("language", output_language)
     question.setdefault("topic", topic.get("topic"))
+
+    # 필수 필드 검증 — LLM이 빈 질문 텍스트를 반환하는 경우 방지
+    if not question.get("question_text") or question["question_text"].startswith("["):
+        question["_quality_flag"] = "low_quality_text"
+        logger.warning(f"craft_question produced low quality text: {question.get('question_text', '')[:50]}")
+
+    # 평가 시나리오 기본값 보장
+    question.setdefault("evaluation_scenarios", {
+        "excellent": "",
+        "acceptable": "",
+        "poor": "",
+    })
 
     # Add KG provenance metadata
     if topic.get("source", "").startswith("kg_"):
