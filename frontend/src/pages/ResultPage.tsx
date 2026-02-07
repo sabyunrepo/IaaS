@@ -167,6 +167,24 @@ export function ResultPage() {
     setScores((prev) => ({ ...prev, [index]: score }))
   }
 
+  // Tab keyboard navigation (WCAG 2.1)
+  const v2TabIds = ['intel', 'analysis', 'interview', 'decision'] as const
+  const v1TabIds = ['questions', 'summary', 'guide'] as const
+
+  const handleTabKeyDown = useCallback((e: React.KeyboardEvent, tabs: readonly string[]) => {
+    const currentIndex = tabs.indexOf(activeTab)
+    if (currentIndex === -1) return
+    let newIndex = currentIndex
+    if (e.key === 'ArrowRight') newIndex = (currentIndex + 1) % tabs.length
+    else if (e.key === 'ArrowLeft') newIndex = (currentIndex - 1 + tabs.length) % tabs.length
+    else if (e.key === 'Home') newIndex = 0
+    else if (e.key === 'End') newIndex = tabs.length - 1
+    else return
+    e.preventDefault()
+    setActiveTab(tabs[newIndex] as typeof activeTab)
+    document.getElementById(`tab-${tabs[newIndex]}`)?.focus()
+  }, [activeTab])
+
   const totalScore = Object.values(scores).reduce((sum, s) => sum + s, 0)
   const maxScore = Object.keys(scores).length * 5
   const scorePercent = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
@@ -250,9 +268,15 @@ export function ResultPage() {
       {/* Tab Navigation */}
       {hasV2Data ? (
         // v2 4-tab navigation (underline style)
-        <div className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
+        <div role="tablist" aria-label={t('interview_script')} className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
           <button
+            role="tab"
+            id="tab-intel"
+            aria-selected={activeTab === 'intel'}
+            aria-controls="tabpanel-intel"
+            tabIndex={activeTab === 'intel' ? 0 : -1}
             onClick={() => setActiveTab('intel')}
+            onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'intel' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -263,7 +287,13 @@ export function ResultPage() {
             Intel Brief
           </button>
           <button
+            role="tab"
+            id="tab-analysis"
+            aria-selected={activeTab === 'analysis'}
+            aria-controls="tabpanel-analysis"
+            tabIndex={activeTab === 'analysis' ? 0 : -1}
             onClick={() => setActiveTab('analysis')}
+            onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'analysis' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -274,7 +304,13 @@ export function ResultPage() {
             Deep Analysis
           </button>
           <button
+            role="tab"
+            id="tab-interview"
+            aria-selected={activeTab === 'interview'}
+            aria-controls="tabpanel-interview"
+            tabIndex={activeTab === 'interview' ? 0 : -1}
             onClick={() => setActiveTab('interview')}
+            onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'interview' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -285,7 +321,13 @@ export function ResultPage() {
             Live Interview ({questions.length})
           </button>
           <button
+            role="tab"
+            id="tab-decision"
+            aria-selected={activeTab === 'decision'}
+            aria-controls="tabpanel-decision"
+            tabIndex={activeTab === 'decision' ? 0 : -1}
             onClick={() => setActiveTab('decision')}
+            onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'decision' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -298,9 +340,15 @@ export function ResultPage() {
         </div>
       ) : (
         // v1 3-tab navigation (underline style)
-        <div className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
+        <div role="tablist" aria-label={t('interview_script')} className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
           <button
+            role="tab"
+            id="tab-questions"
+            aria-selected={activeTab === 'questions'}
+            aria-controls="tabpanel-questions"
+            tabIndex={activeTab === 'questions' ? 0 : -1}
             onClick={() => setActiveTab('questions')}
+            onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'questions' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -308,7 +356,13 @@ export function ResultPage() {
             {t('result_tab_questions')} ({questions.length})
           </button>
           <button
+            role="tab"
+            id="tab-summary"
+            aria-selected={activeTab === 'summary'}
+            aria-controls="tabpanel-summary"
+            tabIndex={activeTab === 'summary' ? 0 : -1}
             onClick={() => setActiveTab('summary')}
+            onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'summary' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -316,7 +370,13 @@ export function ResultPage() {
             {t('result_tab_summary')}
           </button>
           <button
+            role="tab"
+            id="tab-guide"
+            aria-selected={activeTab === 'guide'}
+            aria-controls="tabpanel-guide"
+            tabIndex={activeTab === 'guide' ? 0 : -1}
             onClick={() => setActiveTab('guide')}
+            onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'guide' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -328,7 +388,7 @@ export function ResultPage() {
 
       {/* V2 Tabs */}
       {hasV2Data && (
-        <div key={activeTab} className="animate-fadeIn">
+        <div key={activeTab} id={`tabpanel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="animate-fadeIn">
           {activeTab === 'intel' && script.intel && (
             <IntelBriefTab
               intel={script.intel}
