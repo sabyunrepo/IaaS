@@ -29,6 +29,7 @@ async def _llm_generate_decision_summary(
         from app.services.cached_llm import CachedLLMService
         from app.prompts import get_prompt_with_config
         from app.workflows.utils import run_llm_with_prompt_config_heartbeat
+        from app.services.i18n_labels import _t
 
         # KG 증거 수집 — conflicts → concerns, gaps → 주의 영역
         kg_context = ""
@@ -78,7 +79,7 @@ async def _llm_generate_decision_summary(
 
         summary = DecisionSummary(
             experience=result.get("experience", ""),
-            jd_match=result.get("jd_match", "중간"),
+            jd_match=result.get("jd_match", _t("jd_medium", output_language)),
             level=result.get("level", "Mid"),
             strengths=result.get("strengths", [])[:5],
             concerns=result.get("concerns", [])[:3],
@@ -199,13 +200,13 @@ def _extract_decision_summary(
     # 경력 요약
     experiences = profile.get("experiences", [])
     experience_years = profile.get("experience_years", 0)
-    experience_str = f"{experience_years}년"
+    experience_str = _t("years_n", lang, n=experience_years)
     if experiences:
         latest_exp = experiences[0] if experiences else {}
         company = latest_exp.get("company", "")
         role = latest_exp.get("role", latest_exp.get("title", ""))
         if company and role:
-            experience_str = f"{experience_years}년 ({role} @ {company})"
+            experience_str = _t("years_at_company", lang, years=experience_years, role=role, company=company)
 
     from app.services.i18n_labels import _t
 
@@ -290,13 +291,13 @@ def _build_interviewer_tips(
     time_allocation = {}
     for cat, count in category_counts.items():
         cat_time = int((count / len(questions)) * total_time) if questions else 10
-        time_allocation[cat] = f"{cat_time}분"
+        time_allocation[cat] = _t("minutes_n", lang, n=cat_time)
 
     # 면접 진행 순서
     category_order = ["role_fit", "technical_depth", "execution_ownership", "communication", "risk_flags"]
     existing_cats = [c for c in category_order if c in category_counts]
     interview_flow = " → ".join(
-        f"{cat}({time_allocation.get(cat, '10분')})" for cat in existing_cats
+        f"{cat}({time_allocation.get(cat, _t('minutes_n', lang, n=10))})" for cat in existing_cats
     )
 
     # 이력서 기반 팁
@@ -317,7 +318,7 @@ def _build_interviewer_tips(
 
             resume_tips.append(ResumeTip(
                 section=f"{role} @ {company}",
-                insight="해당 경력 관련 구체적 성과와 역할 확인",
+                insight=_t("verify_resume_achievements", lang),
                 question_link=f"Q{',Q'.join(str(q) for q in related_q_ids)}" if related_q_ids else None,
             ))
 
@@ -330,8 +331,8 @@ def _build_interviewer_tips(
             if isinstance(m, str):
                 cover_letter_insights.append(CoverLetterInsight(
                     highlight=m,
-                    interpretation="관련 경험 구체적 사례 요청",
-                    follow_up_opportunity="해당 주장을 뒷받침하는 구체적 사례를 요청하세요",
+                    interpretation=_t("request_specific_examples", lang),
+                    follow_up_opportunity=_t("ask_for_supporting_evidence", lang),
                 ))
 
     # Red flags
@@ -345,9 +346,9 @@ def _build_interviewer_tips(
 
     # Positive signals
     positive_signals = [
-        "구체적 수치 기반 성과 설명",
-        "실패 경험과 학습 내용 공유",
-        "팀 협업 사례 구체적 언급",
+        _t("positive_quantified_achievements", lang),
+        _t("positive_failure_learning", lang),
+        _t("positive_team_collaboration", lang),
     ]
 
     return InterviewerGuideTips(
@@ -373,7 +374,7 @@ def _map_jd_competencies(
     base_weight = 1.0 / total_weight if total_weight > 0 else 0.2
 
     for i, req in enumerate(jd_requirements[:5]):
-        skill = req.get("skill", req.get("text", f"역량{i+1}"))
+        skill = req.get("skill", req.get("text", f"Competency {i+1}"))
         skill_lower = skill.lower()
 
         # 관련 질문 찾기

@@ -35,7 +35,36 @@ async def analyze_jd(jd_text: str, job_id: str | None = None, output_language: s
     llm = CachedLLMService()
 
     from app.prompts import get_prompt_with_config
-    prompt_config = get_prompt_with_config("jd_analysis.yaml", "analyze", jd_text=jd_text, output_language=output_language)
+
+    # JD 번역 (output_language가 한국어가 아닐 때만)
+    translated_jd = jd_text
+    if output_language != "ko" and jd_text.strip():
+        activity.heartbeat("Translating JD to target language...")
+        if alog:
+            await alog.progress("Translating JD text", {"target_language": output_language})
+        try:
+            translate_config = get_prompt_with_config(
+                "jd_analysis.yaml", "translate",
+                jd_text=jd_text,
+                target_language=output_language,
+            )
+            translated_jd = await run_llm_with_prompt_config_heartbeat(
+                llm, translate_config, interval=30.0
+            )
+            # LLM이 dict를 반환하면 원문 사용
+            if not isinstance(translated_jd, str) or not translated_jd.strip():
+                translated_jd = jd_text
+                logger.warning("JD translation returned non-string, using original")
+        except Exception as e:
+            logger.warning(f"JD translation failed, using original: {e}")
+            translated_jd = jd_text
+
+    # 번역본으로 분석 진행
+    prompt_config = get_prompt_with_config(
+        "jd_analysis.yaml", "analyze",
+        jd_text=translated_jd,
+        output_language=output_language,
+    )
 
     activity.heartbeat("Starting JD analysis LLM call...")
 
@@ -62,6 +91,7 @@ async def analyze_jd(jd_text: str, job_id: str | None = None, output_language: s
             "overall_match_score": 0,
             "gaps": [],
             "strengths": [],
+            "translated_jd_text": translated_jd if translated_jd != jd_text else None,
         }
     else:
         jd_result = {
@@ -75,6 +105,7 @@ async def analyze_jd(jd_text: str, job_id: str | None = None, output_language: s
             "overall_match_score": 0,
             "gaps": [],
             "strengths": [],
+            "translated_jd_text": translated_jd if translated_jd != jd_text else None,
         }
 
     # Extract and store KG entities (non-blocking)

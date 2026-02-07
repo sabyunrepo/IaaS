@@ -11,6 +11,7 @@ import asyncio
 
 from temporalio import activity
 
+from app.core.config import settings
 from app.core.observability import observe_activity
 from app.core.logging import get_logger, JobContextMiddleware
 from app.services.activity_logger import ActivityLogger
@@ -138,13 +139,16 @@ async def analyze_code(
         )
         analysis = await analyzer.llm_analyze_code(ranked_files, ast_context=ast_result)
 
+        total_commits = driller_result["stats"]["total_commits"]
         repositories.append({
             "repo_url": repo_url,
             "repo_name": repo_name,
             "language": primary_lang,
-            "candidate_commits": driller_result["stats"]["total_commits"],
+            "candidate_commits": total_commits,
+            "commit_count": total_commits,  # alias for intel_generation compatibility
             "candidate_additions": driller_result["stats"]["total_additions"],
             "avg_complexity": driller_result["stats"]["avg_complexity"],
+            "monthly_contributions": driller_result.get("monthly_contributions", []),
             "ast_analysis": ast_result,
             "analysis": analysis,
             "notable_implementations": analysis.get("notable_implementations", []),
@@ -155,17 +159,27 @@ async def analyze_code(
     for repo in repositories:
         all_notables.extend(repo.get("notable_implementations", []))
 
+    # Aggregate monthly contributions across all repos
+    aggregated_monthly = [0] * 12
+    for repo in repositories:
+        repo_monthly = repo.get("monthly_contributions", [])
+        for idx, count in enumerate(repo_monthly[:12]):
+            aggregated_monthly[idx] += count
+
     # Build code analysis result
     # target_repos 포함: 워크플로우에서 병렬 처리 활성화 기반
+    combined_tech = list(set(tech for repo in repositories for tech in repo.get("analysis", {}).get("tech_stack", [])))
     code_analysis_result = {
         "repositories": repositories,
         "target_repos": target_repos,  # Step 2 병렬 처리용
         "jd_tech_stack": jd_tech_stack,
         "candidate_username": candidate_username,
-        "combined_tech_stack": list(set(tech for repo in repositories for tech in repo.get("analysis", {}).get("tech_stack", []))),
+        "combined_tech_stack": combined_tech,
+        "tech_stack": combined_tech,  # alias for intel/analysis_generation compatibility
         "total_patterns": sum(len(repo.get("analysis", {}).get("patterns", [])) for repo in repositories),
         "total_notable_implementations": len(all_notables),
         "top_question_candidates": all_notables[:20],
+        "monthly_contributions": aggregated_monthly,
     }
 
     # Extract and store KG entities (non-blocking)
@@ -413,6 +427,7 @@ async def analyze_single_repo(
         "candidate_commits": driller_result["stats"]["total_commits"],
         "candidate_additions": driller_result["stats"]["total_additions"],
         "avg_complexity": driller_result["stats"]["avg_complexity"],
+        "monthly_contributions": driller_result.get("monthly_contributions", []),
         "ast_analysis": ast_result,
         "analysis": synthesis_result,
         "notable_implementations": synthesis_result.get("notable_implementations", []),

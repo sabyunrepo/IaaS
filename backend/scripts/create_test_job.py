@@ -132,6 +132,7 @@ async def create_job(args):
             input_data=input_data,
             db=db,
         )
+        await db.commit()
 
         print(f"\n✓ Job created: {job.id}")
         print(f"  Status: {job.status}")

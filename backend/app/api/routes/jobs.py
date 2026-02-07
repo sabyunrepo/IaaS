@@ -5,6 +5,7 @@ Job CRUD API 엔드포인트
 import logging
 
 from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -101,7 +102,9 @@ async def get_job(
 
 
 @router.get("/{job_id}/result")
+@limiter.limit("50/minute")
 async def get_job_result(
+    request: Request,
     job_id: str,
     version: str = Query("v2", regex="^v[12]$", description="API response format version"),
     user: UserDB = Depends(get_current_user_or_api_key),
@@ -125,7 +128,17 @@ async def get_job_result(
 
     # Transform to requested format
     script = ensure_compatible_format(job.final_output, version)
-    return script
+
+    # Filter internal metadata from response
+    metadata = script.get("metadata")
+    if isinstance(metadata, dict):
+        for internal_key in ("model_used", "llm_provider", "trace_id", "langfuse_url"):
+            metadata.pop(internal_key, None)
+
+    # Cache-Control: completed jobs are immutable
+    response = JSONResponse(content=script)
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return response
 
 
 WORKFLOW_STEPS = [

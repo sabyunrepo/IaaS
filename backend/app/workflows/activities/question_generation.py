@@ -91,6 +91,126 @@ def _format_distribution_for_prompt(dist: dict[str, dict]) -> tuple[str, str]:
     return "\n      ".join(cat_lines), "\n      ".join(diff_lines)
 
 
+def _build_candidate_context(analysis: dict, enriched_input: dict) -> str:
+    """
+    후보자 정보를 LLM 프롬프트용 요약 텍스트로 조합.
+    document_analysis, code_analysis, linkedin_profile, jd_analysis에서 핵심 정보 추출.
+    각 섹션은 graceful degradation (데이터 없으면 스킵).
+    """
+    sections = []
+
+    # 1. 이력서/포트폴리오 프로필
+    doc = analysis.get("document_analysis", {})
+    profile = doc.get("profile", {})
+    if profile:
+        parts = []
+        if profile.get("name"):
+            parts.append(f"Name: {profile['name']}")
+        if profile.get("summary"):
+            parts.append(f"Summary: {profile['summary'][:200]}")
+        skills = profile.get("skills", [])
+        if skills:
+            parts.append(f"Skills: {', '.join(skills[:15])}")
+        experience = profile.get("work_experience") or profile.get("experience", [])
+        if experience and isinstance(experience, list):
+            exp_lines = []
+            for exp in experience[:3]:
+                if isinstance(exp, dict):
+                    role = exp.get("title") or exp.get("role", "")
+                    company = exp.get("company", "")
+                    if role or company:
+                        exp_lines.append(f"  - {role} @ {company}")
+                elif isinstance(exp, str):
+                    exp_lines.append(f"  - {exp[:100]}")
+            if exp_lines:
+                parts.append("Work Experience:\n" + "\n".join(exp_lines))
+        projects = profile.get("projects", [])
+        if projects and isinstance(projects, list):
+            proj_lines = []
+            for proj in projects[:3]:
+                if isinstance(proj, dict):
+                    proj_lines.append(f"  - {proj.get('name', proj.get('title', ''))}: {proj.get('description', '')[:80]}")
+                elif isinstance(proj, str):
+                    proj_lines.append(f"  - {proj[:100]}")
+            if proj_lines:
+                parts.append("Projects:\n" + "\n".join(proj_lines))
+        if parts:
+            sections.append("## Resume/Portfolio\n" + "\n".join(parts))
+
+    # 2. LinkedIn 프로필
+    raw_input = enriched_input.get("raw_input", {})
+    linkedin = raw_input.get("linkedin_profile") or enriched_input.get("linkedin_profile", {})
+    if linkedin and isinstance(linkedin, dict):
+        parts = []
+        name = linkedin.get("full_name") or linkedin.get("name", "")
+        headline = linkedin.get("headline", "")
+        if name:
+            parts.append(f"Name: {name}")
+        if headline:
+            parts.append(f"Headline: {headline}")
+        experiences = linkedin.get("experiences") or linkedin.get("experience", [])
+        if experiences and isinstance(experiences, list):
+            for exp in experiences[:3]:
+                if isinstance(exp, dict):
+                    title = exp.get("title", "")
+                    company = exp.get("company_name") or exp.get("company", "")
+                    if title or company:
+                        parts.append(f"  - {title} @ {company}")
+        li_skills = linkedin.get("skills", [])
+        if li_skills and isinstance(li_skills, list):
+            skill_names = []
+            for s in li_skills[:10]:
+                skill_names.append(s.get("name", str(s)) if isinstance(s, dict) else str(s))
+            parts.append(f"Skills: {', '.join(skill_names)}")
+        if parts:
+            sections.append("## LinkedIn Profile\n" + "\n".join(parts))
+
+    # 3. 코드 분석
+    code = analysis.get("code_analysis", {})
+    if code:
+        parts = []
+        langs = code.get("languages") or code.get("tech_stack", [])
+        if langs:
+            if isinstance(langs, dict):
+                parts.append(f"Languages: {', '.join(list(langs.keys())[:10])}")
+            elif isinstance(langs, list):
+                parts.append(f"Tech Stack: {', '.join(str(l) for l in langs[:10])}")
+        repo_summary = code.get("summary") or code.get("repo_summary", "")
+        if repo_summary and isinstance(repo_summary, str):
+            parts.append(f"Summary: {repo_summary[:200]}")
+        top_candidates = code.get("top_question_candidates", [])
+        if top_candidates:
+            cand_lines = [f"  - {c.get('title', '')}" for c in top_candidates[:5] if isinstance(c, dict)]
+            if cand_lines:
+                parts.append("Notable Implementations:\n" + "\n".join(cand_lines))
+        if parts:
+            sections.append("## Code Analysis (GitHub)\n" + "\n".join(parts))
+
+    # 4. JD 매칭 요약
+    jd = analysis.get("jd_analysis", {})
+    if jd:
+        parts = []
+        title = jd.get("job_title", "")
+        if title:
+            parts.append(f"Target Role: {title}")
+        reqs = jd.get("requirements", [])
+        if reqs:
+            req_skills = []
+            for r in reqs[:8]:
+                if isinstance(r, dict):
+                    req_skills.append(r.get("skill", str(r)))
+                else:
+                    req_skills.append(str(r))
+            parts.append(f"Key Requirements: {', '.join(req_skills)}")
+        if parts:
+            sections.append("## JD Requirements\n" + "\n".join(parts))
+
+    if not sections:
+        return ""
+
+    return "\n\n".join(sections)
+
+
 @activity.defn
 @observe_activity(name="select_topics", phase="question_generation")
 async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None = None) -> list[dict]:
@@ -244,6 +364,7 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
     activity.heartbeat(f"Selecting {max_questions} topics from {len(candidates)} candidates...")
 
     cat_dist_text, diff_dist_text = _format_distribution_for_prompt(dist)
+    candidate_context = _build_candidate_context(analysis, enriched_input)
 
     from app.prompts import get_prompt_with_config
     prompt_config = get_prompt_with_config(
@@ -253,6 +374,7 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
         candidates=_format_candidates(candidates),
         category_distribution=cat_dist_text,
         difficulty_distribution=diff_dist_text,
+        candidate_context=candidate_context,
     )
 
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
@@ -377,6 +499,7 @@ async def craft_question(
     # 카테고리별 특화 프롬프트 선택 (fallback → 범용 craft_question)
     category = topic.get("category", "technical_depth")
     category_prompt_key = f"craft_question_{category}"
+    candidate_context = _build_candidate_context(analysis, enriched_input)
     try:
         prompt_config = get_prompt_with_config(
             "question_generation.yaml", category_prompt_key,
@@ -387,6 +510,7 @@ async def craft_question(
             difficulty=topic.get("difficulty"),
             evidence_context=evidence_context if evidence_context else "",
             recommended_probe=recommended_probe if recommended_probe else "",
+            candidate_context=candidate_context,
         )
         logger.info(f"Using category-specific prompt: {category_prompt_key}")
     except (KeyError, Exception) as e:
@@ -400,6 +524,7 @@ async def craft_question(
             difficulty=topic.get("difficulty"),
             evidence_context=evidence_context if evidence_context else "",
             recommended_probe=recommended_probe if recommended_probe else "",
+            candidate_context=candidate_context,
         )
 
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)

@@ -107,8 +107,9 @@ async def _llm_match_competencies(
         return None
 
 
-def _extract_jd_summary(jd_analysis: dict) -> JDSummary:
+def _extract_jd_summary(jd_analysis: dict, lang: str = "ko") -> JDSummary:
     """JD 분석에서 요약 정보 추출"""
+    from app.services.i18n_labels import _t
     requirements = jd_analysis.get("requirements") or []
     req_matches = []
     for req in requirements[:5]:  # 상위 5개 요구사항
@@ -121,7 +122,7 @@ def _extract_jd_summary(jd_analysis: dict) -> JDSummary:
     # job_title: 프롬프트에서 추론하도록 수정됨, 방어적 폴백 추가
     # company_name: null 허용 (subtitle은 빈 문자열로 처리)
     return JDSummary(
-        title=jd_analysis.get("job_title") or jd_analysis.get("title") or "소프트웨어 엔지니어",
+        title=jd_analysis.get("job_title") or jd_analysis.get("title") or _t("software_engineer", lang),
         subtitle=jd_analysis.get("company_context") or jd_analysis.get("company_name") or "",
         requirements=req_matches,
         success_metrics=jd_analysis.get("success_metrics", []),
@@ -273,7 +274,7 @@ async def generate_intel_brief(
     activity.heartbeat()
 
     # 1. JD 요약 생성
-    jd_summary = _extract_jd_summary(jd_analysis)
+    jd_summary = _extract_jd_summary(jd_analysis, lang=output_language)
     activity.heartbeat()
 
     # 2. 역량 매칭 분석 (LLM 우선, 규칙 기반 fallback)
@@ -295,7 +296,8 @@ async def generate_intel_brief(
         warnings = []
         experiences = linkedin_profile.get("experiences") or linkedin_profile.get("experience") or []
         if not any("CTO" in e.get("title", "") or "VP" in e.get("title", "") for e in experiences):
-            warnings.append("CTO/VP 타이틀 경험 없음")
+            from app.services.i18n_labels import _t
+            warnings.append(_t("no_cto_vp_experience", output_language))
         if warnings:
             linkedin_warning = " · ".join(warnings)
 

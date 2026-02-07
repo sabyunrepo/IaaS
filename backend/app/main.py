@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -22,6 +23,7 @@ from app.api.routes.ws import router as ws_router
 from app.api.routes.upload import router as upload_router
 from app.api.routes.analysis_logs import router as analysis_logs_router
 from app.api.routes.internal import router as internal_router
+from app.api.routes.storage import router as storage_router
 
 # Phoenix evals (optional - requires arize-phoenix package)
 try:
@@ -102,11 +104,14 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- Middleware ---
 
+# GZip compression (60-70% reduction for large JSON responses)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -143,6 +148,7 @@ app.include_router(ws_router)
 app.include_router(upload_router)
 app.include_router(analysis_logs_router)
 app.include_router(internal_router)
+app.include_router(storage_router)
 
 # Phoenix evals (optional)
 if EVALS_AVAILABLE and evals_router:

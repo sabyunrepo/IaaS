@@ -172,6 +172,11 @@ def _strip_markdown_json(text: str) -> str:
 def _parse_llm_json_response(data: Any) -> Any:
     """Parse LLM response, handling markdown-wrapped JSON.
 
+    Tries multiple extraction strategies:
+    1. Direct JSON parse (after stripping markdown blocks)
+    2. Extract first JSON object from mixed text (e.g., "Here is the result: {...}")
+    3. Return original data if all strategies fail
+
     Args:
         data: Raw LLM response (string or dict)
 
@@ -185,17 +190,60 @@ def _parse_llm_json_response(data: Any) -> Any:
 
     # If string, try to parse as JSON
     if isinstance(data, str):
-        # First strip any markdown code blocks
+        if not data.strip():
+            logger.warning("LLM returned empty string response")
+            return data
+
+        # Strategy 1: Strip markdown blocks and parse directly
         cleaned = _strip_markdown_json(data)
         try:
             parsed = json.loads(cleaned)
             if isinstance(parsed, (dict, list)):
                 logger.debug("Successfully parsed JSON from string LLM response")
                 return parsed
-        except json.JSONDecodeError as e:
-            logger.warning(f"Failed to parse LLM response as JSON: {e}")
-            # Return original string if parsing fails
+        except json.JSONDecodeError:
             pass
+
+        # Strategy 2: Extract first JSON object from mixed text
+        # Handles cases like "Here is the analysis:\n{...}\nLet me know..."
+        brace_start = cleaned.find('{')
+        if brace_start >= 0:
+            # Find matching closing brace by counting nesting
+            depth = 0
+            in_string = False
+            escape_next = False
+            for i in range(brace_start, len(cleaned)):
+                ch = cleaned[i]
+                if escape_next:
+                    escape_next = False
+                    continue
+                if ch == '\\':
+                    escape_next = True
+                    continue
+                if ch == '"' and not escape_next:
+                    in_string = not in_string
+                    continue
+                if in_string:
+                    continue
+                if ch == '{':
+                    depth += 1
+                elif ch == '}':
+                    depth -= 1
+                    if depth == 0:
+                        json_candidate = cleaned[brace_start:i + 1]
+                        try:
+                            parsed = json.loads(json_candidate)
+                            if isinstance(parsed, dict):
+                                logger.debug("Extracted JSON object from mixed LLM response text")
+                                return parsed
+                        except json.JSONDecodeError:
+                            pass
+                        break
+
+        logger.warning(
+            f"Failed to parse LLM response as JSON "
+            f"(length={len(data)}, preview={data[:150]!r})"
+        )
 
     return data
 

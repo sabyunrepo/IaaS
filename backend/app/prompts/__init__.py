@@ -319,6 +319,7 @@ def _prompt_key_to_activity_name(filename: str, key: str) -> str:
     special_mappings = {
         ("document_analysis.yaml", "extract_profile"): "analyze_documents",
         ("jd_analysis.yaml", "analyze"): "analyze_jd",
+        ("jd_analysis.yaml", "translate"): "analyze_jd",
         ("quality_review.yaml", "review"): "quality_review",
         ("quality_review.yaml", "check_duplicates"): "check_duplicates",
         ("finalization.yaml", "candidate_summary"): "finalize_candidate_summary",

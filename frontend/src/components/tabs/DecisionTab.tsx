@@ -39,7 +39,7 @@ export function DecisionTab({
 
   return (
     <div className="space-y-6">
-      {/* Score Summary Card */}
+      {/* Score Summary Card with Candidate Avatar */}
       <div className={`bg-gradient-to-r ${
         recommendation.color === 'emerald' ? 'from-emerald-500 to-teal-600' :
         recommendation.color === 'green' ? 'from-green-500 to-emerald-600' :
@@ -47,12 +47,33 @@ export function DecisionTab({
         'from-red-500 to-rose-600'
       } rounded-xl p-6 text-white shadow-lg`}>
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium opacity-90">{t('decision_recommendation')}</h3>
-            <p className="text-2xl sm:text-4xl font-bold mt-1">{recommendation.icon} {recommendation.label}</p>
+          <div className="flex items-center gap-4">
             {candidate && (
-              <p className="text-sm opacity-80 mt-2">{candidate.name} · {candidate.role || candidate.current_title}</p>
+              <>
+                {candidate.avatar_url ? (
+                  <img
+                    src={candidate.avatar_url}
+                    alt={candidate.name}
+                    className="h-14 w-14 rounded-full object-cover border-2 border-white/30 hidden sm:block"
+                    onError={(e) => {
+                      const target = e.currentTarget
+                      target.style.display = 'none'
+                      target.nextElementSibling?.classList.remove('hidden')
+                    }}
+                  />
+                ) : null}
+                <div className={`hidden sm:flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-xl font-bold ${candidate.avatar_url ? 'hidden' : ''}`}>
+                  {candidate.initials || candidate.name?.charAt(0) || '?'}
+                </div>
+              </>
             )}
+            <div>
+              <h3 className="text-lg font-medium opacity-90">{t('decision_recommendation')}</h3>
+              <p className="text-2xl sm:text-4xl font-bold mt-1">{recommendation.icon} {recommendation.label}</p>
+              {candidate && (
+                <p className="text-sm opacity-80 mt-2">{candidate.name} · {candidate.role || candidate.current_title}</p>
+              )}
+            </div>
           </div>
           <div className="text-right">
             <div className="text-3xl sm:text-5xl font-bold">{scorePercent}%</div>

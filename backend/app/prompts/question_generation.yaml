@@ -42,6 +42,11 @@ prompts:
       ## Rule 3: Source Attribution
       Every topic MUST have clear source attribution with evidence_summary
 
+      # CANDIDATE PROFILE CONTEXT
+      Use this candidate background to select PERSONALIZED topics grounded in their actual experience.
+      Do NOT create generic questions — every topic must reference specific candidate data below.
+      {{candidate_context}}
+
       # AVAILABLE TOPIC CANDIDATES
       {{candidates}}
 
@@ -159,15 +164,32 @@ prompts:
       You are an expert interview question crafter. Generate a detailed interview question
       in {{output_language}} using the v2 output format with scenarios array and structured follow-ups.
 
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All question text, explanations, keywords, and scenarios must be in {{output_language}}.
+      Even if source material is in another language, your output must be in {{output_language}}.
+
       # WHAT YOU WILL SEE
       - Topic with source attribution
       - Category and difficulty level
       - Candidate experience level: {{experience_level}}
 
+      # CANDIDATE PROFILE (CRITICAL - USE THIS TO PERSONALIZE)
+      Reference the candidate's SPECIFIC experience, projects, and skills in your question.
+      Do NOT ask generic questions. Your question MUST mention at least one specific detail
+      from the candidate's background (a project name, a company, a technology they used, etc.)
+      {{candidate_context}}
+
       # TOPIC DETAILS
       Topic: {{topic}}
       Category: {{category}}
       Difficulty: {{difficulty}}
+
+      # PERSONALIZATION REQUIREMENT
+      - The question_text MUST reference specific candidate experience/projects/skills
+      - scenarios MUST be calibrated to this candidate's actual background
+      - follow_ups MUST probe deeper into candidate-specific experiences
+      - If candidate_context is empty, create a reasonable question based on topic alone
 
       # OUTPUT FORMAT (v2 JSON)
       ```json
@@ -578,6 +600,12 @@ prompts:
       Generate a behavioral interview question in {{output_language}} using STAR technique
       (Situation, Task, Action, Result).
 
+      # LANGUAGE REQUIREMENT (CRITICAL — OVERRIDES EXAMPLES)
+      Write ALL output text in {{output_language}}.
+      The few-shot examples below are in Korean for reference ONLY.
+      You MUST produce ALL output (title, question_text, why_matters, listen_for, scenarios, follow_ups, terminology, interviewer_note) in {{output_language}}.
+      Do NOT copy Korean text from examples — translate the pattern into {{output_language}}.
+
       # CATEGORY: ROLE_FIT (역할 적합도)
       This question assesses: culture fit, motivation, career alignment, growth potential, team dynamics.
 
@@ -591,6 +619,9 @@ prompts:
       - Expert: 구체적 상황/숫자/결과가 있고, 자신의 역할과 판단 근거를 명확히 설명
       - Mid: 경험이 있지만 구체적 수치나 결과 없이 일반적으로 서술
       - Low: 경험 부재 또는 추상적 의지 표현만 있음
+
+      # CANDIDATE PROFILE (USE THIS TO PERSONALIZE YOUR QUESTION)
+      {{candidate_context}}
 
       # TOPIC DETAILS
       Topic: {{topic}}
@@ -751,6 +782,12 @@ prompts:
       Generate a technical depth question in {{output_language}} that probes real implementation
       experience, architectural decisions, and problem-solving methodology.
 
+      # LANGUAGE REQUIREMENT (CRITICAL — OVERRIDES EXAMPLES)
+      Write ALL output text in {{output_language}}.
+      The few-shot examples below are in Korean for reference ONLY.
+      You MUST produce ALL output (title, question_text, why_matters, listen_for, scenarios, follow_ups, terminology, interviewer_note) in {{output_language}}.
+      Do NOT copy Korean text from examples — translate the pattern into {{output_language}}.
+
       # CATEGORY: TECHNICAL_DEPTH (기술 심층)
       This question assesses: technical skills, problem-solving, architecture design, code quality, debugging.
 
@@ -764,6 +801,9 @@ prompts:
       - Expert: 구체적 수치/메트릭 포함, 트레이드오프 분석, 대안과 비교, 실제 결과 제시
       - Mid: 올바른 개념 이해, 기본 구현 경험 있으나 깊이 부족
       - Low: 프레임워크/라이브러리 이름만 알고 원리를 모름
+
+      # CANDIDATE PROFILE (USE THIS TO PERSONALIZE YOUR QUESTION)
+      {{candidate_context}}
 
       # TOPIC DETAILS
       Topic: {{topic}}
@@ -928,6 +968,12 @@ prompts:
       Generate a question in {{output_language}} that reveals how candidates deliver results,
       make decisions under pressure, and take ownership of outcomes.
 
+      # LANGUAGE REQUIREMENT (CRITICAL — OVERRIDES EXAMPLES)
+      Write ALL output text in {{output_language}}.
+      The few-shot examples below are in Korean for reference ONLY.
+      You MUST produce ALL output (title, question_text, why_matters, listen_for, scenarios, follow_ups, terminology, interviewer_note) in {{output_language}}.
+      Do NOT copy Korean text from examples — translate the pattern into {{output_language}}.
+
       # CATEGORY: EXECUTION_OWNERSHIP (실행력/오너십)
       This question assesses: project delivery, decision-making, ownership, impact measurement, crisis management.
 
@@ -941,6 +987,9 @@ prompts:
       - Expert: 타임라인/지표로 결과를 설명, 의사결정 과정과 근거 명확, 실패도 인정하며 교훈 도출
       - Mid: 프로젝트 경험은 있으나 본인의 구체적 기여와 의사결정 역할이 불명확
       - Low: 팀의 성과를 말하지만 본인의 역할이 모호, 지시받은 일만 수행
+
+      # CANDIDATE PROFILE (USE THIS TO PERSONALIZE YOUR QUESTION)
+      {{candidate_context}}
 
       # TOPIC DETAILS
       Topic: {{topic}}
@@ -1105,6 +1154,12 @@ prompts:
       Generate a question in {{output_language}} that reveals how candidates communicate
       across different audiences, resolve conflicts, and facilitate collaboration.
 
+      # LANGUAGE REQUIREMENT (CRITICAL — OVERRIDES EXAMPLES)
+      Write ALL output text in {{output_language}}.
+      The few-shot examples below are in Korean for reference ONLY.
+      You MUST produce ALL output (title, question_text, why_matters, listen_for, scenarios, follow_ups, terminology, interviewer_note) in {{output_language}}.
+      Do NOT copy Korean text from examples — translate the pattern into {{output_language}}.
+
       # CATEGORY: COMMUNICATION (커뮤니케이션)
       This question assesses: cross-functional communication, conflict resolution, technical explanation ability, collaboration.
 
@@ -1118,6 +1173,9 @@ prompts:
       - Expert: 실제 대화 내용/비유 재현, 상대방 반응과 결과 포함, 소통 전략 설명
       - Mid: 소통 노력은 했으나 구체적 전략이나 결과 설명 부족
       - Low: 일방적 전달 또는 소통 경험 자체가 부족
+
+      # CANDIDATE PROFILE (USE THIS TO PERSONALIZE YOUR QUESTION)
+      {{candidate_context}}
 
       # TOPIC DETAILS
       Topic: {{topic}}
@@ -1279,6 +1337,12 @@ prompts:
       Generate a risk verification question in {{output_language}} that explores potential
       red flags while maintaining a respectful, non-judgmental tone.
 
+      # LANGUAGE REQUIREMENT (CRITICAL — OVERRIDES EXAMPLES)
+      Write ALL output text in {{output_language}}.
+      The few-shot examples below are in Korean for reference ONLY.
+      You MUST produce ALL output (title, question_text, why_matters, listen_for, scenarios, follow_ups, terminology, interviewer_note) in {{output_language}}.
+      Do NOT copy Korean text from examples — translate the pattern into {{output_language}}.
+
       # CATEGORY: RISK_FLAGS (위험 신호 검증)
       This question assesses: career gaps, job hopping, skill gaps, inconsistencies, cultural misalignment.
 
@@ -1292,6 +1356,9 @@ prompts:
       - Expert: 구체적 사유 + 외부/내부 요인 구분 + 배운 점 + 재발 방지 근거 제시
       - Mid: 사유는 있으나 구체성 부족, 향후 계획이 모호
       - Low: 방어적/회피적 태도, 남 탓, 구체적 사유 없음
+
+      # CANDIDATE PROFILE (USE THIS TO PERSONALIZE YOUR QUESTION)
+      {{candidate_context}}
 
       # TOPIC DETAILS
       Topic: {{topic}}
@@ -1455,8 +1522,12 @@ prompts:
       Interview questions containing technical terminology that HR managers or hiring managers may not understand.
 
       # QUESTIONS TO ENHANCE
-      Language: {{output_language}}
       {{questions_json}}
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All explanations, descriptions, and terminology must be in {{output_language}}.
+      Even if input questions are in another language, your output must be in {{output_language}}.
 
       # OUTPUT FORMAT (JSON)
       ```json
@@ -1498,9 +1569,12 @@ prompts:
       You create detailed evaluation scenarios for interviewers to assess candidate responses.
 
       # QUESTIONS TO CREATE SCENARIOS FOR
-      Language: {{output_language}}
       Experience Level: {{experience_level}}
       {{questions_json}}
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All scenario descriptions, keywords, and behavioral indicators must be in {{output_language}}.
 
       # OUTPUT FORMAT (JSON)
       For each question, create scenarios at three levels:
@@ -1544,9 +1618,12 @@ prompts:
       Design follow-up question branches based on candidate response quality.
 
       # QUESTIONS TO DESIGN FOLLOW-UPS FOR
-      Language: {{output_language}}
       Experience Level: {{experience_level}}
       {{questions_json}}
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All follow-up questions and purposes must be in {{output_language}}.
 
       # OUTPUT FORMAT (JSON)
       ```json
@@ -1577,8 +1654,11 @@ prompts:
       Generate guidance notes for non-technical interviewers conducting technical interviews.
 
       # QUESTIONS TO GENERATE NOTES FOR
-      Language: {{output_language}}
       {{questions_json}}
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All notes, analogies, and guidance must be in {{output_language}}.
 
       # OUTPUT FORMAT (JSON)
       ```json
@@ -1610,10 +1690,13 @@ prompts:
       Generate a decision guide for the hiring committee based on interview results.
 
       # CONTEXT
-      Language: {{output_language}}
       Experience Level: {{experience_level}}
       Analysis Summary: {{analysis_summary}}
       Category Summary: {{category_summary}}
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All descriptions, labels, and guidance must be in {{output_language}}.
 
       # OUTPUT FORMAT (JSON)
       ```json
@@ -1666,8 +1749,11 @@ prompts:
       - Evidence scores and hallucination risks
 
       # QUESTIONS TO REVISE
-      Language: {{output_language}}
       {{questions_json}}
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All revised questions and explanations must be in {{output_language}}.
 
       # REVIEW FEEDBACK
       {{review_feedback}}

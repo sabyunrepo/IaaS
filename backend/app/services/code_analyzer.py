@@ -69,6 +69,10 @@ class CodeAnalyzer:
         total_additions = 0
         total_deletions = 0
 
+        # Monthly contribution tracking (last 12 months)
+        from collections import defaultdict
+        monthly_counts = defaultdict(int)
+
         try:
             # Heartbeat helper (Activity 컨텍스트에서만 동작)
             def _heartbeat(msg: str):
@@ -96,6 +100,10 @@ class CodeAnalyzer:
                     "date": commit.committer_date.isoformat(),
                     "files_changed": len(commit.modified_files),
                 })
+
+                # Track monthly contributions
+                month_key = commit.committer_date.strftime("%Y-%m")
+                monthly_counts[month_key] += 1
 
                 for mod in commit.modified_files:
                     # diff 기반 추출 (토큰 효율적)
@@ -164,10 +172,24 @@ class CodeAnalyzer:
             reverse=True
         )
 
+        # Build monthly_contributions array (last 12 months, oldest → newest)
+        now = datetime.now(timezone.utc)
+        monthly_contributions = []
+        for i in range(11, -1, -1):
+            # Calculate month offset
+            target_month = now.month - i
+            target_year = now.year
+            while target_month <= 0:
+                target_month += 12
+                target_year -= 1
+            month_key = f"{target_year}-{target_month:02d}"
+            monthly_contributions.append(monthly_counts.get(month_key, 0))
+
         return {
             "commits": commits[:100],
             "files": file_list,
             "commit_diffs": commit_diffs[:200],  # 상위 200개 diff
+            "monthly_contributions": monthly_contributions,
             "stats": {
                 "total_commits": len(commits),
                 "total_additions": total_additions,
@@ -365,8 +387,8 @@ class CodeAnalyzer:
         selected = []
         total_tokens = 0
         for f in top:
-            source = f.get("source", "")
-            est_tokens = len(source) // 4  # rough estimate
+            content = f.get("source", "") or f.get("diff", "")
+            est_tokens = len(content) // 4  # rough estimate
             if total_tokens + est_tokens > token_budget:
                 break
             selected.append(f)
@@ -386,8 +408,9 @@ class CodeAnalyzer:
             ast_context: AST 분석 결과
             commit_diffs: diff 기반 커밋 데이터 (선택)
         """
+        empty_result = {"notable_implementations": [], "patterns": [], "tech_stack": [], "quality_assessment": "N/A"}
         if not ranked_files and not commit_diffs:
-            return {"notable_implementations": [], "patterns": [], "quality_assessment": "N/A"}
+            return empty_result
 
         from app.services.cached_llm import CachedLLMService
         llm = CachedLLMService()
@@ -412,20 +435,41 @@ class CodeAnalyzer:
 
         # AST 컨텍스트 추가
         if ast_context:
-            context_parts.append(
-                f"\n## Code Structure Summary\n"
-                f"Functions: {len(ast_context.get('functions', []))}\n"
-                f"Classes: {len(ast_context.get('classes', []))}\n"
-                f"Parser: {ast_context.get('parser_used', 'N/A')}"
-            )
+            ast_funcs = ast_context.get("functions", [])
+            ast_classes = ast_context.get("classes", [])
+            ast_detail = f"Functions: {len(ast_funcs)}, Classes: {len(ast_classes)}, Parser: {ast_context.get('parser_used', 'N/A')}"
+            if ast_funcs:
+                func_names = ", ".join(f.get("name", "") for f in ast_funcs[:20])
+                ast_detail += f"\nKey functions: {func_names}"
+            if ast_classes:
+                class_names = ", ".join(c.get("name", "") for c in ast_classes[:10])
+                ast_detail += f"\nKey classes: {class_names}"
+            context_parts.append(f"\n## Code Structure Summary\n{ast_detail}")
 
-        prompt = (
-            "Analyze the following code changes and files to identify:\n"
-            "1. Notable implementations (design patterns, algorithms)\n"
-            "2. Code quality assessment\n"
-            "3. Top question candidates for technical interview\n\n"
-            + "\n\n".join(context_parts)
-        )
+        code_context = "\n\n".join(context_parts)
+
+        prompt = f"""Analyze the following code changes and files for a technical interview preparation.
+
+{code_context}
+
+Based on the code above, respond ONLY with a valid JSON object (no markdown, no extra text):
+{{
+    "notable_implementations": [
+        {{
+            "title": "Brief title of the implementation",
+            "description": "What it does and why it's notable",
+            "file_path": "path/to/file",
+            "why_notable": "Why this is interesting for interview",
+            "question_potential": 0.8
+        }}
+    ],
+    "patterns": ["Design patterns found, e.g. Singleton, Repository, Factory"],
+    "tech_stack": ["Technologies and frameworks detected"],
+    "quality_assessment": "Brief overall code quality assessment",
+    "quality_score": 0.7,
+    "candidate_strengths": ["Strength 1", "Strength 2"],
+    "top_interview_questions": ["Question 1", "Question 2"]
+}}"""
 
         # Heartbeat before LLM call (long-running operation)
         try:
@@ -434,10 +478,39 @@ class CodeAnalyzer:
         except Exception:
             pass
 
-        result = await llm.run(prompt, activity_name="analyze_code")
-        if isinstance(result, dict):
-            return result
-        return {"notable_implementations": [], "patterns": [], "quality_assessment": str(result)}
+        # Retry up to 2 times on empty/unparseable response
+        max_retries = 2
+        for attempt in range(max_retries + 1):
+            try:
+                result = await llm.run(prompt, activity_name="analyze_code")
+                if isinstance(result, dict) and result:
+                    return result
+                # Non-dict or empty dict — retry if attempts remain
+                if attempt < max_retries:
+                    logger.warning(
+                        f"llm_analyze_code: attempt {attempt + 1} returned non-dict "
+                        f"(type={type(result).__name__}, preview={str(result)[:200]}), retrying..."
+                    )
+                    try:
+                        from temporalio import activity
+                        activity.heartbeat(f"LLM analyze_code retry {attempt + 2}...")
+                    except Exception:
+                        pass
+                    continue
+                # Final attempt — use fallback
+                logger.warning(
+                    f"llm_analyze_code: all {max_retries + 1} attempts returned non-dict "
+                    f"(type={type(result).__name__}, preview={str(result)[:200]})"
+                )
+                return {**empty_result, "quality_assessment": str(result)[:500] if result else "N/A"}
+            except Exception as e:
+                if attempt < max_retries:
+                    logger.warning(f"llm_analyze_code: attempt {attempt + 1} failed: {e}, retrying...")
+                    continue
+                logger.warning(f"llm_analyze_code: all attempts failed: {e}")
+                return {**empty_result, "quality_assessment": f"Analysis failed: {e}"}
+
+        return empty_result
 
     # =========================================================================
     # HYBRID 3-Stage Multi-Agent 분석 메서드

@@ -45,6 +45,7 @@ from app.services.llm_config import (
 YAML_TO_ACTIVITY = {
     ("document_analysis.yaml", "extract_profile"): "analyze_documents",
     ("jd_analysis.yaml", "analyze"): "analyze_jd",
+    ("jd_analysis.yaml", "translate"): "analyze_jd",
     ("quality_review.yaml", "review"): "quality_review",
     ("quality_review.yaml", "check_duplicates"): "check_duplicates",
     ("finalization.yaml", "candidate_summary"): "finalize_candidate_summary",
