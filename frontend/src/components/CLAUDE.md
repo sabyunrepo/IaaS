@@ -24,6 +24,13 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #2607 | 5:29 AM | 🔵 | QuestionCard Implements Revision Tracking and Confidence Scoring | ~704 |
+
+### Feb 8, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4057 | 7:48 AM | 🔵 | QuestionCard Component - Dual Structure Support | ~570 |
+| #4049 | 6:20 AM | 🔵 | Frontend Performance Audit - IaaS Application Complete | ~698 |
 </claude-mem-context>
 
 # frontend/src/components/
@@ -37,10 +44,13 @@
 | `Layout.tsx` | 전체 레이아웃 (Navbar + Outlet) |
 | `ErrorBoundary.tsx` | React 에러 바운더리 |
 | `QuestionCard.tsx` | 면접 질문 카드 (v1/v2 dual schema, 리비전 추적, 신뢰도 점수) |
-| `charts/` | 레이더 차트 (코드 품질 축), ContributionChart — SVG 반응형 (PR #85) |
+| `GlossarySection.tsx` | 용어 설명 아코디언 — ResultPage에서 분리, React.memo (PR #106) |
+| `charts/` | 레이더 차트 (코드 품질 축), ContributionChart — SVG 반응형, React.memo (PR #85, #106) |
 | `tabs/` | ResultPage 4탭: IntelBrief, DeepAnalysis, LiveInterview, Decision |
 
 ## 최근 변경
 
 - **PR #85**: 레이더 차트 5번 축 "코드 품질", Decision 탭 위험 평가 카드, 모바일 반응형
 - **PR #86**: LiveInterviewTab 카테고리별 질문 배분 표시
+- **PR #105**: WCAG 탭 접근성 + 하드코딩 한국어 i18n 전환
+- **PR #106**: GlossarySection 컴포넌트 분리, 차트 React.memo, i18n 21개 키 추가

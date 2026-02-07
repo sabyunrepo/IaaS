@@ -11,6 +11,12 @@
 | #2629 | 5:36 AM | 🔵 | LiveInterviewTab Implements Two-Phase Workflow with Stateful Scoring | ~857 |
 | #2625 | 5:35 AM | 🔵 | DeepAnalysisTab Renders 5-Axis Radar with Score Breakdown | ~699 |
 | #2618 | 5:32 AM | 🔵 | IntelBriefTab Component Implements Comprehensive Candidate Overview | ~651 |
+
+### Feb 8, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4049 | 6:20 AM | 🔵 | Frontend Performance Audit - IaaS Application Complete | ~698 |
 </claude-mem-context>
 
 # frontend/src/components/tabs/
@@ -34,3 +40,9 @@ ResultPage 4탭 컴포넌트.
 
 ## PR #86 변경사항
 - **LiveInterviewTab**: 카테고리별 질문 수 배분 표시 (경험 레벨 기반)
+
+## PR #105-106 변경사항
+- **DecisionTab**: 추천 라벨 i18n (`rec_strong_hire`, `rec_hire`, `rec_leaning_no`, `rec_no_hire`)
+- **LiveInterviewTab**: 시나리오 레벨 라벨 i18n (`scenario_expert`, `scenario_mid`, `scenario_low`)
+- **DeepAnalysisTab**: "Engineering DNA" 제목 i18n (`engineering_dna`)
+- 모든 탭: `React.memo` 적용 완료 (PR #105), WCAG 탭 접근성

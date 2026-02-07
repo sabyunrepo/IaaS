@@ -32,6 +32,12 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #2608 | 5:29 AM | 🔵 | ResultPage Implements Adaptive v1/v2 Tab Navigation | ~810 |
+
+### Feb 8, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4049 | 6:20 AM | 🔵 | Frontend Performance Audit - IaaS Application Complete | ~698 |
 </claude-mem-context>
 
 # frontend/src/pages/
@@ -59,3 +65,7 @@
 ### PR #86: 질문 배분 시스템
 - `CreateJobPage.tsx`: `max_questions` 슬라이더 제거, 경험 레벨별 자동 배분
 - `ResultPage.tsx`: `question_distribution` 데이터 탭에 전달
+
+### PR #105-106: i18n + 성능
+- `CreateJobPage.tsx`: 5개 하드코딩 한국어 문자열 i18n 전환
+- `ResultPage.tsx`: GlossarySection 컴포넌트 분리 → `components/GlossarySection.tsx`

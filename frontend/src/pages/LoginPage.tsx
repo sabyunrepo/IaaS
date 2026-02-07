@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { setToken } from '../lib/api'
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
@@ -37,6 +39,20 @@ function GitHubIcon({ className }: { className?: string }) {
 
 export function LoginPage() {
   const { t } = useTranslation()
+  const [devLoading, setDevLoading] = useState(false)
+
+  const handleDevLogin = async () => {
+    setDevLoading(true)
+    try {
+      const res = await fetch(`${BACKEND}/auth/dev-login`, { method: 'POST' })
+      if (!res.ok) throw new Error('Dev login failed')
+      const data = await res.json()
+      setToken(data.token)
+      window.location.href = '/jobs'
+    } catch {
+      setDevLoading(false)
+    }
+  }
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
@@ -83,6 +99,18 @@ export function LoginPage() {
               <span>{t('login_with_github')}</span>
             </a>
           </div>
+
+          {/* Dev Login Button - only in development */}
+          {import.meta.env.DEV && (
+            <button
+              onClick={handleDevLogin}
+              disabled={devLoading}
+              className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-dashed border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700 transition-all hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50"
+            >
+              <span>🔧</span>
+              <span>{devLoading ? t('loading') : t('dev_login')}</span>
+            </button>
+          )}
 
           {/* Divider */}
           <div className="relative my-6">

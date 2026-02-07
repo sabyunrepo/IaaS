@@ -21,6 +21,12 @@
 |----|------|---|-------|------|
 | #2619 | 5:33 AM | 🔵 | Vite Configuration Enables Development API Proxy | ~494 |
 | #2611 | 5:31 AM | 🔵 | Frontend Stack Uses Modern React 19 with Vite and Playwright E2E Testing | ~633 |
+
+### Feb 8, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4049 | 6:20 AM | 🔵 | Frontend Performance Audit - IaaS Application Complete | ~698 |
 </claude-mem-context>
 
 # Frontend
@@ -69,3 +75,18 @@ LoginPage.js            5KB
 - `ResultPage.tsx`: 탭 네비게이션 `overflow-x-auto scrollbar-hide`
 - `DecisionTab.tsx`, `DeepAnalysisTab.tsx`: 반응형 폰트 크기 (`text-2xl sm:text-4xl`)
 - `index.css`: `.scrollbar-hide` 유틸리티 추가
+
+### 개선 사이클 2 (PR #102-106)
+
+| PR | 내용 |
+|----|------|
+| #102 | 워크플로우 병렬화 + 프론트엔드 렌더링 최적화 |
+| #103 | OWASP 기반 보안 강화 |
+| #104 | LLM 출력 품질 강화 |
+| #105 | WCAG 탭 접근성 + 하드코딩 한국어 i18n 전환 |
+| #106 | 보안·검증·i18n·성능·DRY 5가지 개선 |
+
+### PR #106 주요 변경
+- **i18n**: 21개 키 추가 (QuestionCard, DecisionTab, LiveInterviewTab, DeepAnalysisTab, CreateJobPage)
+- **성능**: RadarChart/ContributionChart React.memo, GlossarySection 컴포넌트 분리
+- **보안**: HSTS 헤더 (nginx)

@@ -61,3 +61,8 @@ pool_recycle=3600                     # 1시간마다 커넥션 재생성
 ## rate_limit.py
 
 - `storage_uri=settings.REDIS_URL` → Redis 기반 분산 Rate Limiting (멀티 인스턴스 지원)
+
+## 보안 헤더 (PR #103, #106)
+
+- `main.py`: `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Strict-Transport-Security` (HSTS)
+- `nginx.conf`: CSP, Referrer-Policy, Permissions-Policy, HSTS 추가

@@ -291,6 +291,8 @@ const resources = {
       scenario_low: '📉 Low',
       // DeepAnalysisTab
       engineering_dna: 'Engineering DNA',
+      // Dev login
+      dev_login: '테스트 로그인 (개발 전용)',
     },
   },
   en: {
@@ -582,6 +584,8 @@ const resources = {
       scenario_low: '📉 Low',
       // DeepAnalysisTab
       engineering_dna: 'Engineering DNA',
+      // Dev login
+      dev_login: 'Dev Login (Development Only)',
     },
   },
 }

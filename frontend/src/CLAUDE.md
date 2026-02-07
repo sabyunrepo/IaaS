@@ -16,6 +16,12 @@
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
 | #1057 | 1:27 AM | 🟣 | CreateJobPage Enhanced with Comprehensive Candidate Input Fields | ~692 |
+
+### Feb 8, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4049 | 6:20 AM | 🔵 | Frontend Performance Audit - IaaS Application Complete | ~698 |
 </claude-mem-context>
 
 # frontend/src/
@@ -49,8 +55,10 @@ src/
 - LoginPage, JobListPage, CreateJobPage, JobStatusPage
 - ResultPage, AnalysisLogsPage, NotFoundPage, AuthCallbackPage
 
-## 최근 변경 (PR #84-86)
+## 최근 변경 (PR #84-86, #102-106)
 
 - **PR #84**: UI/UX 업그레이드 — 애니메이션, 탭 리디자인, 카드 인터랙션
 - **PR #85**: 레이더 차트 "코드 품질" 축, Decision 위험 평가, 모바일 반응형
 - **PR #86**: 퍼센트 기반 질문 배분 (CreateJobPage 슬라이더 제거, 경험 레벨 자동 배분)
+- **PR #105**: WCAG 탭 접근성 + 하드코딩 한국어 i18n 전환
+- **PR #106**: i18n 21개 키 추가, React.memo 차트, GlossarySection 분리
