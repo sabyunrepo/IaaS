@@ -372,3 +372,189 @@ docker compose exec backend python scripts/create_test_job.py --dry-run
 3. LLM 호출 Activity는 `CachedLLMService` 사용 (Redis 캐시)
 4. 각 Phase 완료 시 checkpoint 저장
 5. `worker.py`에 새 Activity 등록 필수
+
+---
+
+## 🔄 Continuous Improvement Engine (지속적 개선 엔진)
+
+> **핵심 원칙**: 한 번의 개선으로 끝나지 않는다. 매 사이클마다 측정 → 분석 → 개선 → 검증을 반복하여 프로젝트 품질을 지속적으로 향상시킨다.
+
+### 개선 사이클 구조
+
+```
+┌─────────────────────────────────────────────┐
+│         CONTINUOUS IMPROVEMENT LOOP          │
+│                                             │
+│  ┌─────────┐    ┌─────────┐    ┌─────────┐ │
+│  │ MEASURE │ →  │ ANALYZE │ →  │ IMPROVE │ │
+│  │ (측정)  │    │ (분석)  │    │ (개선)  │ │
+│  └────↑────┘    └─────────┘    └────│────┘ │
+│       │                              │      │
+│  ┌────│────┐                   ┌────↓────┐ │
+│  │ REPORT │ ←──────────────── │ VERIFY  │ │
+│  │ (보고) │                   │ (검증)  │ │
+│  └─────────┘                   └─────────┘ │
+└─────────────────────────────────────────────┘
+```
+
+### 6대 개선 영역 (매 사이클 반복)
+
+#### 1. 성능 최적화 (`/improve --perf`)
+
+**백엔드:**
+- DB 쿼리: N+1 쿼리 탐지, 인덱스 활용도, 커넥션 풀 사용량
+- Redis 캐시: 히트율 측정, TTL 최적화, 메모리 사용량
+- API 응답: 엔드포인트별 p50/p95 응답시간 기록
+- LLM 호출: 토큰 사용량, 캐시 히트율, 모델별 비용 추적
+- Temporal: Activity 실행 시간, heartbeat 간격, 재시도 빈도
+
+**프론트엔드:**
+- 번들 사이즈: chunk별 크기 추적 (목표: 초기 <300KB)
+- 렌더링 성능: 불필요한 re-render 탐지, React.memo/useMemo 적용
+- 네트워크: API 호출 워터폴 분석, 캐싱 전략
+- Core Web Vitals: LCP <2.5s, FID <100ms, CLS <0.1
+
+**측정 명령:**
+```bash
+# 백엔드 API 응답시간
+docker compose exec backend python -c "from app.core.config import settings; print(settings)"
+# 프론트엔드 번들 분석
+cd frontend && npx vite-bundle-visualizer
+```
+
+#### 2. 보안 향상 (`/analyze --focus security`)
+
+**체크리스트 (OWASP Top 10 기반):**
+- [ ] A01 접근 제어: 모든 API 엔드포인트에 인증/인가 확인
+- [ ] A02 암호화: JWT 시크릿 강도, 비밀번호 해싱, HTTPS 강제
+- [ ] A03 주입: SQL injection, Command injection, YAML injection 방지
+- [ ] A04 설계: Rate limiting, 입력 크기 제한, 파일 업로드 유효성
+- [ ] A05 설정: 디버그 모드 비활성화, 기본 계정 제거, 헤더 보안
+- [ ] A06 취약 컴포넌트: 의존성 CVE 스캔 (`pip audit`, `npm audit`)
+- [ ] A07 인증: 세션 관리, 토큰 만료, OAuth PKCE
+- [ ] A08 무결성: Docker 이미지 검증, 의존성 잠금
+- [ ] A09 로깅: 보안 이벤트 로깅, 민감 데이터 마스킹
+- [ ] A10 SSRF: 외부 URL 검증 (GitHub/LinkedIn API 호출)
+
+**자동 스캔:**
+```bash
+docker compose exec backend pip audit --format json
+cd frontend && npm audit --json
+```
+
+#### 3. 에이전트 아웃풋 품질 향상
+
+**코드 분석 파이프라인 (`code_analyzer.py` + `code_analysis.py`):**
+- AST 분석: Python `ast`, JS/TS `tree-sitter` — 의미있는 메트릭 추출 확인
+- 기여도 분석: `PyDriller` — 커밋 빈도, 코드 변경량, 핫스팟 파일
+- 기술 스택: `requirements.txt`, `package.json`, `Dockerfile` 등에서 정확한 추출
+- 코드 품질: 복잡도 (cyclomatic), 테스트 커버리지 유무, 문서화 수준
+
+**레포 분석 데이터 품질 검증:**
+- [ ] tech_stack이 실제 사용 기술을 반영하는지
+- [ ] contributions가 의미있는 기여 패턴을 보여주는지
+- [ ] complexity_metrics가 코드 복잡도를 정확히 측정하는지
+- [ ] 분석 실패 시 fallback이 유의미한 데이터를 제공하는지
+
+**스킬 매칭 검증:**
+- [ ] JD 요구사항 ↔ 후보자 스킬 매칭 정확도
+- [ ] 매칭 confidence 값의 현실성
+- [ ] evidence 출처의 추적 가능성
+
+#### 4. UI/UX 프론트엔드 향상 + Playwright 테스트
+
+**UI/UX 점검:**
+- 디자인 일관성: 색상, 타이포그래피, 간격, 버튼 스타일 통일
+- 반응형: 모바일(375px), 태블릿(768px), 데스크탑(1280px) 검증
+- 접근성: WCAG 2.1 AA — 키보드 네비게이션, 스크린 리더, 색상 대비
+- 로딩 상태: 스켈레톤 UI, 에러 바운더리, 빈 상태 처리
+- i18n: 모든 사용자 대면 텍스트 번역 키 사용
+
+**Playwright 자동 테스트 플로우:**
+```
+1. OAuth 우회 로그인 → 토큰 직접 주입
+2. Job 목록 페이지 → Job 존재 확인
+3. Result 페이지 → 4탭 순회:
+   - Intel Brief: 후보자 정보 렌더링
+   - Deep Analysis: 레이더 차트 + 스킬 매칭
+   - Live Interview: 질문 카드 + 카테고리 배분
+   - Decision: 점수 + 추천 + 위험 평가
+4. 콘솔 에러 수집 → 0개 확인
+5. 스크린샷 캡처 → 이전 버전과 비교
+```
+
+#### 5. 아키텍처 최적화
+
+**디자인 패턴 적용:**
+- Strategy Pattern: LLM 모델 선택 (현재 if/else → 전략 패턴)
+- Factory Pattern: Activity 생성 (보일러플레이트 표준화)
+- Observer Pattern: 워크플로우 상태 변경 알림
+- Repository Pattern: 데이터 접근 계층 분리
+
+**하드코딩 제거:**
+- 매직 넘버 → 상수 파일 (`constants.py`) 또는 환경변수
+- 한국어 문자열 → `i18n_labels.py` `_t()` 함수
+- URL/경로 → 설정 파일 (`config.py`)
+- 모델명/온도 → `llm_config.py` 단일 소스
+
+**코드 구조:**
+- 300줄 초과 파일 분리 (SRP 적용)
+- 공통 로직 추출 → 유틸리티 모듈
+- 타입 힌트 100% 적용 (Python 함수 시그니처)
+- docstring 표준화 (Google style)
+
+#### 6. 선택적 캐시 무효화 전략
+
+**목표**: 문제되는 에이전트 로직만 캐시 초기화, 나머지는 기존 캐시 유지 → 토큰 절약
+
+**메커니즘:**
+```python
+# 캐시 키 구조: {activity_name}:{input_hash}
+# 예: "generate_intel_brief:a1b2c3d4"
+
+# 특정 Activity만 캐시 무효화
+async def invalidate_activity_cache(activity_name: str, job_id: str):
+    pattern = f"llm_cache:{activity_name}:*"
+    keys = await redis.keys(pattern)
+    await redis.delete(*keys)
+
+# 전체 Job의 특정 Phase만 재실행
+async def rerun_from_phase(job_id: str, phase: int):
+    # phase 이전 결과는 캐시 유지
+    # phase 이후만 캐시 삭제 + 재실행
+```
+
+**테스트 시 캐시 전략:**
+- 동일 입력값 → 기존 캐시 재사용 (토큰 0)
+- 로직 변경된 Activity → 해당 Activity + 하위 의존 Activity만 캐시 삭제
+- 프롬프트 변경 → Langfuse 프롬프트 버전 올리면 자동으로 새 캐시 생성
+
+### Git 워크플로우 (매 개선건마다)
+
+```
+1. gh issue create --title "개선: [영역] [구체적 설명]"
+2. git checkout -b improve/[영역]-[설명]
+3. 코드 수정 + 테스트
+4. git commit -m "improve: [설명] Closes #N"
+5. gh pr create + gh pr merge --merge
+6. git checkout main && git pull
+```
+
+### 개선 사이클 보고서 형식
+
+매 사이클 완료 시 다음 형식으로 보고:
+
+```markdown
+## 개선 사이클 #N 보고서
+
+### 측정 결과
+| 영역 | 이전 | 이후 | 변화 |
+|------|------|------|------|
+
+### 수정 내역
+| Issue | PR | 영역 | 설명 |
+|-------|-----|------|------|
+
+### 다음 사이클 목표
+- [ ] ...
+```

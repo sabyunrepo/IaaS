@@ -14,6 +14,12 @@ from app.core.observability import get_current_trace_metadata, is_langfuse_enabl
 
 logger = logging.getLogger(__name__)
 
+# ─── 상수 ───────────────────────────────────────────────
+CACHE_TTL_SECONDS = 86400  # 24시간
+REDIS_MAX_CONNECTIONS = 20
+PROMPT_TRUNCATE_LIMIT = 5000  # Langfuse 로깅 시 프롬프트/출력 최대 길이
+OUTPUT_TRUNCATE_LIMIT = 5000
+
 # 모듈 레벨 Redis 연결 풀 싱글톤
 _redis_pool = None
 
@@ -25,7 +31,7 @@ async def _get_shared_redis():
         import redis.asyncio as aioredis
         _redis_pool = aioredis.from_url(
             settings.REDIS_URL,
-            max_connections=20,
+            max_connections=REDIS_MAX_CONNECTIONS,
             decode_responses=False,
         )
     return _redis_pool
@@ -100,11 +106,11 @@ def _log_llm_generation(
         except Exception:
             pass
 
-        output_str = str(output)[:5000] if output else None
+        output_str = str(output)[:OUTPUT_TRUNCATE_LIMIT] if output else None
         gen_kwargs = dict(
             name=activity_name or "llm_call",
             model=model_name,
-            input=prompt[:5000] if isinstance(prompt, str) else str(prompt)[:5000],
+            input=prompt[:PROMPT_TRUNCATE_LIMIT] if isinstance(prompt, str) else str(prompt)[:PROMPT_TRUNCATE_LIMIT],
             usage_details=usage_details,
             metadata={
                 **trace_meta,
@@ -249,9 +255,13 @@ def _parse_llm_json_response(data: Any) -> Any:
 
 
 class CachedLLMService:
-    """LLM 호출 결과를 Redis에 캐싱하는 래퍼"""
+    """LLM 호출 결과를 Redis에 캐싱하는 래퍼
 
-    def __init__(self, ttl: int = 86400):
+    DRY 패턴: 모든 run 메서드는 _execute_with_cache()를 통해 동작.
+    캐시 조회 → LLM 호출(폴백) → JSON 파싱 → Langfuse 로깅 → 캐시 저장
+    """
+
+    def __init__(self, ttl: int = CACHE_TTL_SECONDS):
         self.ttl = ttl
 
     async def _get_redis(self):
@@ -259,12 +269,7 @@ class CachedLLMService:
 
     @staticmethod
     def _model_settings(model: str | None = None, override_max_tokens: int | None = None):
-        """모델별 최적 ModelSettings 반환 (max_tokens 등)
-
-        Args:
-            model: LLM 모델명
-            override_max_tokens: Langfuse config 등에서 지정한 max_tokens (모델 기본값보다 우선)
-        """
+        """모델별 최적 ModelSettings 반환"""
         from pydantic_ai import ModelSettings
         from app.services.llm_config import get_max_output_tokens
         if override_max_tokens:
@@ -275,58 +280,66 @@ class CachedLLMService:
             max_tokens = settings.LLM_MAX_OUTPUT_TOKENS
         return ModelSettings(max_tokens=max_tokens)
 
-    def _cache_key(self, prompt: str, model: str, activity_name: str | None = None) -> str:
-        """Activity 컨텍스트를 포함한 캐시 키 생성
+    @staticmethod
+    def _make_cache_key(prompt: str, model: str, activity_name: str | None = None, job_id: str | None = None) -> str:
+        """캐시 키 생성 (Activity + Job 스코프 통합)
 
-        기존: llm_cache:SHA256(model:prompt)
-        개선: llm_cache:activity_name:SHA256(model:prompt)
+        키 형식:
+          글로벌:   llm_cache:{activity}:{hash}
+          잡스코프: llm_cache:job:{job_id}:{activity}:{hash}
         """
         content = f"{model}:{prompt}"
         hash_part = hashlib.sha256(content.encode()).hexdigest()
+        parts = ["llm_cache"]
+        if job_id:
+            parts.extend(["job", job_id])
         if activity_name:
-            return f"llm_cache:{activity_name}:{hash_part}"
-        return f"llm_cache:{hash_part}"
+            parts.append(activity_name)
+        parts.append(hash_part)
+        return ":".join(parts)
 
-    async def run(
+    # ─── 캐시 I/O (공통) ─────────────────────────────────
+
+    async def _cache_get(self, key: str, trace_meta: dict) -> Any | None:
+        """캐시에서 읽기. 히트 시 파싱된 데이터 반환, 미스 시 None."""
+        if not settings.LLM_CACHE_ENABLED:
+            return None
+        try:
+            redis = await self._get_redis()
+            cached = await redis.get(key)
+            if cached:
+                logger.debug(f"LLM cache hit: {key[:30]}...")
+                self._log_cache_event("hit", trace_meta)
+                return json.loads(cached)
+        except Exception as e:
+            logger.warning(f"Redis cache read failed: {e}")
+        self._log_cache_event("miss", trace_meta)
+        return None
+
+    async def _cache_set(self, key: str, data: Any) -> None:
+        """캐시에 저장."""
+        if not settings.LLM_CACHE_ENABLED:
+            return
+        try:
+            redis = await self._get_redis()
+            await redis.setex(key, self.ttl, json.dumps(data, default=str))
+        except Exception as e:
+            logger.warning(f"Redis cache write failed: {e}")
+
+    # ─── LLM 호출 (공통 — DRY 핵심) ─────────────────────
+
+    async def _call_llm_with_fallback(
         self,
         prompt: str,
-        model: str | None = None,
-        result_type: Any = None,
-        activity_name: str | None = None,
-    ) -> Any:
-        """LLM 호출 (캐시 우선) + Langfuse 추적
-
-        Args:
-            prompt: LLM 프롬프트
-            model: 명시적 모델명 (지정하면 activity_name보다 우선)
-            result_type: Pydantic 모델 (구조화 출력용)
-            activity_name: Activity 이름 (자동 모델 선택용)
-        """
-        if model is None and activity_name:
-            from app.services.llm_config import get_model_for_activity
-            model = get_model_for_activity(activity_name)
-        model = model or settings.LLM_MODEL
-        key = self._cache_key(prompt, model, activity_name)
-        trace_meta = get_current_trace_metadata()
-
-        # 캐시 조회 (LLM_CACHE_ENABLED일 때만)
-        if settings.LLM_CACHE_ENABLED:
-            try:
-                redis = await self._get_redis()
-                cached = await redis.get(key)
-                if cached:
-                    logger.debug(f"LLM cache hit: {key[:20]}...")
-                    self._log_cache_event("hit", trace_meta)
-                    return json.loads(cached)
-            except Exception as e:
-                logger.warning(f"Redis cache read failed: {e}")
-
-        self._log_cache_event("miss", trace_meta)
-
-        # LLM 호출 (폴백 체인: primary → fallback)
-        # asyncio.shield로 감싸서 Temporal Activity 취소로 인한 CancelledError 방지
+        model: str,
+        result_type: Any,
+        override_max_tokens: int | None = None,
+        trace_meta: dict | None = None,
+    ) -> tuple[Any, Any]:
+        """LLM 호출 + 폴백 + 결과 정규화. (data, run_result) 반환."""
         from app.services.llm_config import get_llm_agent
-        ms = self._model_settings(model)
+
+        ms = self._model_settings(model, override_max_tokens)
         try:
             agent = get_llm_agent(result_type=result_type, model=model)
             run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
@@ -337,7 +350,8 @@ class CachedLLMService:
             fallback_model = settings.LLM_FALLBACK_MODEL
             if fallback_model and fallback_model != model:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
-                self._log_fallback_event(model, fallback_model, trace_meta)
+                if trace_meta:
+                    self._log_fallback_event(model, fallback_model, trace_meta)
                 agent = get_llm_agent(result_type=result_type, model=fallback_model)
                 run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
             else:
@@ -350,28 +364,119 @@ class CachedLLMService:
         if hasattr(data, "model_dump"):
             data = data.model_dump()
 
-        # Parse JSON from string responses (handles markdown-wrapped JSON)
         data = _parse_llm_json_response(data)
+        return data, run_result
 
-        # Langfuse에 generation 기록 (비용 추적)
+    async def _execute_with_cache(
+        self,
+        prompt: str,
+        model: str,
+        cache_key: str,
+        trace_meta: dict,
+        result_type: Any = None,
+        activity_name: str | None = None,
+        override_max_tokens: int | None = None,
+    ) -> Any:
+        """캐시 조회 → LLM 호출 → Langfuse 로깅 → 캐시 저장 (공통 파이프라인)"""
+        # 1. 캐시 조회
+        cached = await self._cache_get(cache_key, trace_meta)
+        if cached is not None:
+            return cached
+
+        # 2. LLM 호출 + 폴백
+        data, run_result = await self._call_llm_with_fallback(
+            prompt, model, result_type, override_max_tokens, trace_meta,
+        )
+
+        # 3. Langfuse 로깅
         _log_llm_generation(
-            model=model,
-            prompt=prompt,
-            output=data,
-            run_result=run_result,
-            trace_meta=trace_meta,
+            model=model, prompt=prompt, output=data,
+            run_result=run_result, trace_meta=trace_meta,
             activity_name=activity_name,
         )
 
-        # 캐시 저장 (LLM_CACHE_ENABLED일 때만)
-        if settings.LLM_CACHE_ENABLED:
-            try:
-                redis = await self._get_redis()
-                await redis.setex(key, self.ttl, json.dumps(data, default=str))
-            except Exception as e:
-                logger.warning(f"Redis cache write failed: {e}")
-
+        # 4. 캐시 저장
+        await self._cache_set(cache_key, data)
         return data
+
+    # ─── 공개 API ────────────────────────────────────────
+
+    async def run(
+        self,
+        prompt: str,
+        model: str | None = None,
+        result_type: Any = None,
+        activity_name: str | None = None,
+    ) -> Any:
+        """LLM 호출 (캐시 우선) + Langfuse 추적"""
+        if model is None and activity_name:
+            from app.services.llm_config import get_model_for_activity
+            model = get_model_for_activity(activity_name)
+        model = model or settings.LLM_MODEL
+
+        return await self._execute_with_cache(
+            prompt=prompt,
+            model=model,
+            cache_key=self._make_cache_key(prompt, model, activity_name),
+            trace_meta=get_current_trace_metadata(),
+            result_type=result_type,
+            activity_name=activity_name,
+        )
+
+    async def run_for_job(
+        self,
+        job_id: str,
+        prompt: str,
+        model: str | None = None,
+        result_type: Any = None,
+        activity_name: str | None = None,
+    ) -> Any:
+        """Job 단위 캐시를 사용하는 LLM 호출 + Langfuse 추적"""
+        if model is None and activity_name:
+            from app.services.llm_config import get_model_for_activity
+            model = get_model_for_activity(activity_name)
+        model = model or settings.LLM_MODEL
+
+        return await self._execute_with_cache(
+            prompt=prompt,
+            model=model,
+            cache_key=self._make_cache_key(prompt, model, activity_name, job_id=job_id),
+            trace_meta={**get_current_trace_metadata(), "job_id": job_id},
+            result_type=result_type,
+            activity_name=activity_name,
+        )
+
+    async def run_with_prompt_config(
+        self,
+        prompt_config: Any,  # PromptWithConfig from app.prompts
+        result_type: Any = None,
+    ) -> Any:
+        """Langfuse PromptWithConfig를 사용하는 LLM 호출"""
+        prompt = prompt_config.prompt
+        model = prompt_config.model or settings.LLM_MODEL
+        prompt_name = prompt_config.name if prompt_config else None
+
+        trace_meta = get_current_trace_metadata()
+        trace_meta["prompt_source"] = prompt_config.source
+        trace_meta["prompt_name"] = prompt_config.name
+        if prompt_config.version:
+            trace_meta["prompt_version"] = prompt_config.version
+
+        config_max_tokens = None
+        if prompt_config.config:
+            config_max_tokens = prompt_config.config.get("max_output_tokens")
+
+        return await self._execute_with_cache(
+            prompt=prompt,
+            model=model,
+            cache_key=self._make_cache_key(prompt, model, prompt_name),
+            trace_meta=trace_meta,
+            result_type=result_type,
+            activity_name=prompt_name,
+            override_max_tokens=config_max_tokens,
+        )
+
+    # ─── Langfuse 이벤트 로깅 ────────────────────────────
 
     def _log_cache_event(self, event_type: str, metadata: dict):
         """Langfuse에 캐시 이벤트 기록"""
@@ -381,13 +486,10 @@ class CachedLLMService:
             client = get_langfuse_client()
             if client:
                 client.update_current_span(
-                    metadata={
-                        **metadata,
-                        "cache_event": event_type,
-                    }
+                    metadata={**metadata, "cache_event": event_type}
                 )
         except Exception:
-            pass  # 캐시 이벤트 로깅 실패는 무시
+            pass
 
     def _log_fallback_event(self, primary_model: str, fallback_model: str, metadata: dict):
         """Langfuse에 폴백 이벤트 기록"""
@@ -405,221 +507,35 @@ class CachedLLMService:
                     }
                 )
         except Exception:
-            pass  # 폴백 이벤트 로깅 실패는 무시
+            pass
+
+    # ─── 캐시 무효화 ────────────────────────────────────
 
     async def invalidate_for_job(self, job_id: str) -> int:
-        """특정 Job 관련 캐시 무효화 (Job 재시도 시 사용)
+        """특정 Job 관련 캐시 전체 무효화"""
+        return await self._invalidate_by_pattern(f"llm_cache:job:{job_id}:*")
 
-        Returns:
-            삭제된 키 수
+    async def invalidate_activity_cache(self, activity_name: str) -> int:
+        """특정 Activity의 글로벌 캐시 무효화 (선택적 재실행용)
+
+        예: 분석 로직을 수정한 후 해당 Activity만 캐시 삭제
         """
+        return await self._invalidate_by_pattern(f"llm_cache:{activity_name}:*")
+
+    async def invalidate_activity_for_job(self, job_id: str, activity_name: str) -> int:
+        """특정 Job의 특정 Activity 캐시만 무효화 (최소 범위 재실행)"""
+        return await self._invalidate_by_pattern(f"llm_cache:job:{job_id}:{activity_name}:*")
+
+    async def _invalidate_by_pattern(self, pattern: str) -> int:
+        """패턴 기반 캐시 삭제 (공통)"""
         try:
             redis = await self._get_redis()
-            # Job별 캐시 키 패턴 삭제
-            pattern = f"llm_cache:job:{job_id}:*"
             deleted = 0
             async for key in redis.scan_iter(match=pattern):
                 await redis.delete(key)
                 deleted += 1
-            logger.info(f"Invalidated {deleted} cache entries for job {job_id}")
+            logger.info(f"Invalidated {deleted} cache entries matching '{pattern}'")
             return deleted
         except Exception as e:
-            logger.warning(f"Cache invalidation failed for job {job_id}: {e}")
+            logger.warning(f"Cache invalidation failed for pattern '{pattern}': {e}")
             return 0
-
-    def _job_cache_key(self, job_id: str, prompt: str, model: str, activity_name: str | None = None) -> str:
-        """Job 단위 캐시 키 생성 (무효화 가능)"""
-        content = f"{model}:{prompt}"
-        hash_part = hashlib.sha256(content.encode()).hexdigest()
-        if activity_name:
-            return f"llm_cache:job:{job_id}:{activity_name}:{hash_part}"
-        return f"llm_cache:job:{job_id}:{hash_part}"
-
-    async def run_with_prompt_config(
-        self,
-        prompt_config: Any,  # PromptWithConfig from app.prompts
-        result_type: Any = None,
-    ) -> Any:
-        """Langfuse PromptWithConfig를 사용하는 LLM 호출
-
-        Langfuse에서 가져온 프롬프트의 config에 있는 model, temperature를 사용합니다.
-
-        Args:
-            prompt_config: PromptWithConfig 객체 (get_prompt_with_config 결과)
-            result_type: Pydantic 모델 (구조화 출력용)
-        """
-        prompt = prompt_config.prompt
-        # Langfuse config의 model 사용, 없으면 fallback
-        model = prompt_config.model or settings.LLM_MODEL
-        temperature = prompt_config.temperature
-        prompt_name = prompt_config.name if prompt_config else None
-
-        key = self._cache_key(prompt, model, prompt_name)
-        trace_meta = get_current_trace_metadata()
-
-        # Langfuse 프롬프트 소스 정보 추가
-        trace_meta["prompt_source"] = prompt_config.source
-        trace_meta["prompt_name"] = prompt_config.name
-        if prompt_config.version:
-            trace_meta["prompt_version"] = prompt_config.version
-
-        # 캐시 조회 (LLM_CACHE_ENABLED일 때만)
-        if settings.LLM_CACHE_ENABLED:
-            try:
-                redis = await self._get_redis()
-                cached = await redis.get(key)
-                if cached:
-                    logger.debug(f"LLM cache hit: {key[:20]}... (prompt: {prompt_config.name})")
-                    self._log_cache_event("hit", trace_meta)
-                    return json.loads(cached)
-            except Exception as e:
-                logger.warning(f"Redis cache read failed: {e}")
-
-        self._log_cache_event("miss", trace_meta)
-
-        # LLM 호출
-        from app.services.llm_config import get_llm_agent
-        # Langfuse config에서 max_output_tokens 추출 (있으면 모델 기본값보다 우선)
-        config_max_tokens = None
-        if prompt_config.config:
-            config_max_tokens = prompt_config.config.get("max_output_tokens")
-        ms = self._model_settings(model, override_max_tokens=config_max_tokens)
-        try:
-            # temperature가 있으면 agent에 전달
-            agent = get_llm_agent(result_type=result_type, model=model)
-            run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
-
-            logger.info(
-                f"LLM call: {prompt_config.name} (source={prompt_config.source}, "
-                f"model={model})"
-            )
-        except asyncio.CancelledError:
-            logger.warning(f"LLM call cancelled for model {model}")
-            raise
-        except Exception as primary_err:
-            fallback_model = settings.LLM_FALLBACK_MODEL
-            if fallback_model and fallback_model != model:
-                logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
-                self._log_fallback_event(model, fallback_model, trace_meta)
-                agent = get_llm_agent(result_type=result_type, model=fallback_model)
-                run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
-            else:
-                raise
-
-        # Pydantic AI v1.x uses .output, older versions use .data
-        data = getattr(run_result, 'output', None) or getattr(run_result, 'data', None)
-        if data is None:
-            raise ValueError(f"AgentRunResult has neither 'output' nor 'data' attribute: {type(run_result)}")
-        if hasattr(data, "model_dump"):
-            data = data.model_dump()
-
-        # Parse JSON from string responses (handles markdown-wrapped JSON)
-        data = _parse_llm_json_response(data)
-
-        # Langfuse에 generation 기록 (비용 추적)
-        _log_llm_generation(
-            model=model,
-            prompt=prompt,
-            output=data,
-            run_result=run_result,
-            trace_meta=trace_meta,
-            activity_name=prompt_name,
-        )
-
-        # 캐시 저장 (LLM_CACHE_ENABLED일 때만)
-        if settings.LLM_CACHE_ENABLED:
-            try:
-                redis = await self._get_redis()
-                await redis.setex(key, self.ttl, json.dumps(data, default=str))
-            except Exception as e:
-                logger.warning(f"Redis cache write failed: {e}")
-
-        return data
-
-    async def run_for_job(
-        self,
-        job_id: str,
-        prompt: str,
-        model: str | None = None,
-        result_type: Any = None,
-        activity_name: str | None = None,
-    ) -> Any:
-        """Job 단위 캐시를 사용하는 LLM 호출 + Langfuse 추적
-
-        Args:
-            job_id: Job ID
-            prompt: LLM 프롬프트
-            model: 명시적 모델명 (지정하면 activity_name보다 우선)
-            result_type: Pydantic 모델 (구조화 출력용)
-            activity_name: Activity 이름 (자동 모델 선택용)
-        """
-        if model is None and activity_name:
-            from app.services.llm_config import get_model_for_activity
-            model = get_model_for_activity(activity_name)
-        model = model or settings.LLM_MODEL
-        key = self._job_cache_key(job_id, prompt, model, activity_name)
-        trace_meta = {**get_current_trace_metadata(), "job_id": job_id}
-
-        # 캐시 조회 (LLM_CACHE_ENABLED일 때만)
-        if settings.LLM_CACHE_ENABLED:
-            try:
-                redis = await self._get_redis()
-                cached = await redis.get(key)
-                if cached:
-                    logger.debug(f"LLM job cache hit: {key[:30]}...")
-                    self._log_cache_event("hit", trace_meta)
-                    return json.loads(cached)
-            except Exception as e:
-                logger.warning(f"Redis cache read failed: {e}")
-
-        self._log_cache_event("miss", trace_meta)
-
-        # LLM 호출 (폴백 체인: primary → fallback)
-        # asyncio.shield로 감싸서 Temporal Activity 취소로 인한 CancelledError 방지
-        from app.services.llm_config import get_llm_agent
-        ms = self._model_settings(model)
-        try:
-            agent = get_llm_agent(result_type=result_type, model=model)
-            run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
-        except asyncio.CancelledError:
-            logger.warning(f"LLM call cancelled for model {model}")
-            raise
-        except Exception as primary_err:
-            fallback_model = settings.LLM_FALLBACK_MODEL
-            if fallback_model and fallback_model != model:
-                logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
-                self._log_fallback_event(model, fallback_model, trace_meta)
-                agent = get_llm_agent(result_type=result_type, model=fallback_model)
-                run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
-            else:
-                raise
-
-        # Pydantic AI v1.x uses .output, older versions use .data
-        data = getattr(run_result, 'output', None) or getattr(run_result, 'data', None)
-        if data is None:
-            raise ValueError(f"AgentRunResult has neither 'output' nor 'data' attribute: {type(run_result)}")
-        if hasattr(data, "model_dump"):
-            data = data.model_dump()
-
-        # Parse JSON from string responses (handles markdown-wrapped JSON)
-        data = _parse_llm_json_response(data)
-
-        # Langfuse에 generation 기록 (비용 추적)
-        _log_llm_generation(
-            model=model,
-            prompt=prompt,
-            output=data,
-            run_result=run_result,
-            trace_meta=trace_meta,
-            activity_name=activity_name,
-        )
-
-        # 캐시 저장 (LLM_CACHE_ENABLED일 때만)
-        if settings.LLM_CACHE_ENABLED:
-            try:
-                redis = await self._get_redis()
-                await redis.setex(key, self.ttl, json.dumps(data, default=str))
-            except Exception as e:
-                logger.warning(f"Redis cache write failed: {e}")
-
-        return data
