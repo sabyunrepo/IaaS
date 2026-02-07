@@ -14,20 +14,56 @@ from app.core.observability import observe_activity
 logger = logging.getLogger(__name__)
 
 
+_AVATAR_ALLOWED_DOMAINS = frozenset({
+    "media.licdn.com",
+    "media-exp1.licdn.com",
+    "media-exp2.licdn.com",
+    "static.licdn.com",
+    "platform-lookaside.fbsbx.com",
+    "gravatar.com",
+    "www.gravatar.com",
+    "avatars.githubusercontent.com",
+})
+
+
+def _is_avatar_url_allowed(url: str) -> bool:
+    """SSRF 방어: avatar URL 도메인을 allowlist로 검증."""
+    from urllib.parse import urlparse
+    try:
+        parsed = urlparse(url)
+        hostname = (parsed.hostname or "").lower()
+        return hostname in _AVATAR_ALLOWED_DOMAINS
+    except Exception:
+        return False
+
+
 async def _download_and_store_avatar(avatar_url: str, job_id: str) -> str | None:
     """LinkedIn avatar를 다운로드하여 S3에 저장, 영구 URL 반환.
 
     CORS/만료 문제 해결: LinkedIn CDN URL → S3 영구 URL로 교체.
+    SSRF 방어: 허용된 도메인만 다운로드 허용.
     실패 시 None 반환 (원본 URL 유지하도록 caller가 처리).
     """
     if not avatar_url or not job_id:
         return None
 
+    if not _is_avatar_url_allowed(avatar_url):
+        logger.warning(f"Avatar download blocked: domain not in allowlist ({avatar_url[:80]})")
+        return None
+
     try:
         import httpx
 
-        async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
             resp = await client.get(avatar_url)
+
+            # 리다이렉트 시 대상 도메인 재검증
+            if resp.is_redirect:
+                redirect_url = str(resp.headers.get("location", ""))
+                if not _is_avatar_url_allowed(redirect_url):
+                    logger.warning(f"Avatar redirect blocked: {redirect_url[:80]}")
+                    return None
+                resp = await client.get(redirect_url)
             resp.raise_for_status()
 
             # Validate content type

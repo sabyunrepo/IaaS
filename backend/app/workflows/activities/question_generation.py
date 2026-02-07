@@ -536,9 +536,12 @@ async def craft_question(
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
-    question = result if isinstance(result, dict) else {}
-    if not isinstance(result, dict):
-        logger.warning(f"craft_question LLM returned non-dict: {type(result)}, using empty dict fallback")
+    from app.services.cached_llm import validate_llm_output
+    question = validate_llm_output(
+        result,
+        required_fields=["question_text", "follow_ups", "evaluation_criteria"],
+        activity_name="craft_question",
+    )
 
     # 고유 ID 강제 할당 — LLM이 중복 ID를 생성하는 문제 방지
     question["id"] = f"q-{topic.get('category', 'x')[:4]}-{uuid.uuid4().hex[:8]}"
@@ -601,7 +604,8 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    return result if isinstance(result, dict) else {}
+    from app.services.cached_llm import validate_llm_output
+    return validate_llm_output(result, activity_name="enhance_terminology")
 
 
 @activity.defn
@@ -625,7 +629,8 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    return result if isinstance(result, dict) else {}
+    from app.services.cached_llm import validate_llm_output
+    return validate_llm_output(result, activity_name="craft_evaluation_scenarios")
 
 
 @activity.defn
@@ -649,7 +654,8 @@ async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    return result if isinstance(result, dict) else {}
+    from app.services.cached_llm import validate_llm_output
+    return validate_llm_output(result, activity_name="design_follow_ups")
 
 
 @activity.defn
@@ -671,7 +677,8 @@ async def generate_interviewer_notes(questions: list[dict], enriched_input: dict
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    return result if isinstance(result, dict) else {}
+    from app.services.cached_llm import validate_llm_output
+    return validate_llm_output(result, activity_name="generate_interviewer_notes")
 
 
 @activity.defn
@@ -705,7 +712,8 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    return result if isinstance(result, dict) else {}
+    from app.services.cached_llm import validate_llm_output
+    return validate_llm_output(result, activity_name="generate_decision_guide")
 
 
 @activity.defn

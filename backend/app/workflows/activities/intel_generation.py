@@ -72,21 +72,14 @@ async def _llm_match_competencies(
         if not isinstance(result, list):
             return None
 
-        # 색상 및 아이콘 매핑
-        match_config = {
-            "strong": ("emerald", "✅"),
-            "match": ("emerald", "✅"),
-            "partial": ("amber", "⚠️"),
-            "unknown": ("amber", "⚠️"),
-            "none": ("red", "❌"),
-        }
+        from app.services.match_config import get_match_color_icon
 
         competencies = []
         for item in result[:6]:
             if not isinstance(item, dict):
                 continue
             match_level = item.get("match", "none")
-            color, icon = match_config.get(match_level, ("slate", "❓"))
+            color, icon = get_match_color_icon(match_level)
             competencies.append(CompetencyMatch(
                 name=item.get("name", ""),
                 match=match_level,

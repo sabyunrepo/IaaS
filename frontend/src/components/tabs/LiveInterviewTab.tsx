@@ -344,8 +344,8 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, cate
                     scenario.level === 'Mid' ? 'text-amber-700' :
                     'text-red-700'
                   }`}>
-                    {scenario.level === 'Expert' ? '🌟 Expert' :
-                     scenario.level === 'Mid' ? '📊 Mid' : '📉 Low'}
+                    {scenario.level === 'Expert' ? `🌟 ${t('scenario_expert')}` :
+                     scenario.level === 'Mid' ? `📊 ${t('scenario_mid')}` : `📉 ${t('scenario_low')}`}
                   </span>
                   <span className="text-lg font-bold text-indigo-600">{t('live_points', { score: scenario.score })}</span>
                 </div>

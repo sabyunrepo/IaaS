@@ -3,7 +3,7 @@
  *
  * Uses pure SVG for rendering without external dependencies.
  */
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface RadarChartProps {
@@ -17,7 +17,7 @@ interface RadarChartProps {
   size?: number
 }
 
-export function RadarChart({
+export const RadarChart = memo(function RadarChart({
   candidateData,
   requiredData,
   labels,
@@ -203,4 +203,4 @@ export function RadarChart({
       </div>
     </div>
   )
-}
+})

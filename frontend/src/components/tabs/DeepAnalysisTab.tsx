@@ -85,7 +85,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
       {/* Engineering DNA */}
       {engineering_dna && engineering_dna.length > 0 && (
         <ProgressBarGroup
-          title="Engineering DNA"
+          title={t('engineering_dna')}
           items={engineering_dna.map(item => ({
             label: item.label,
             value: item.value,
