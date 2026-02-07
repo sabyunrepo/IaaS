@@ -256,6 +256,15 @@ const resources = {
       result_scoring_scale: '점수 범위',
       result_passing_threshold: '합격 기준',
       result_v1_category_weights: '카테고리별 가중치',
+      // JobStatusPage
+      status_title: '면접 스크립트 #{{id}}',
+      progress_label: '진행률',
+      view_analysis_logs: '분석 로그 보기',
+      processing_steps: '처리 단계',
+      script_generated_desc: '면접 스크립트가 성공적으로 생성되었습니다',
+      create_new_script: '새 스크립트 생성하기',
+      // JobListPage
+      script_count: '{{count}}개의 스크립트',
     },
   },
   en: {
@@ -512,6 +521,15 @@ const resources = {
       result_scoring_scale: 'Scoring Scale',
       result_passing_threshold: 'Passing Threshold',
       result_v1_category_weights: 'Category Weights',
+      // JobStatusPage
+      status_title: 'Interview Script #{{id}}',
+      progress_label: 'Progress',
+      view_analysis_logs: 'View Analysis Logs',
+      processing_steps: 'Processing Steps',
+      script_generated_desc: 'Interview script generated successfully',
+      create_new_script: 'Create New Script',
+      // JobListPage
+      script_count: '{{count}} scripts',
     },
   },
 }

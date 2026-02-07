@@ -138,7 +138,7 @@ export function JobListPage() {
           <h1 className="text-2xl font-bold text-gray-900">{t('script_list_title')}</h1>
           {jobs.length > 0 && (
             <p className="mt-1 text-sm text-gray-500">
-              {jobs.length}개의 스크립트
+              {t('script_count', { count: jobs.length })}
             </p>
           )}
         </div>
@@ -197,7 +197,7 @@ export function JobListPage() {
                     <Link
                       to={`/jobs/${job.job_id}/logs`}
                       className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                      title="분석 로그"
+                      title={t('result_analysis_logs')}
                     >
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -213,7 +213,7 @@ export function JobListPage() {
                     )}
                     <button
                       onClick={() => handleDelete(job.job_id)}
-                      className="rounded-lg p-2 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+                      className="rounded-lg p-2 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
                       aria-label={t('delete')}
                     >
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

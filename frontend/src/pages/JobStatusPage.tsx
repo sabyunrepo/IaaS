@@ -213,7 +213,7 @@ export function JobStatusPage() {
               <PhaseIcon phase={status} className={`h-7 w-7 ${config.color}`} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">면접 스크립트 #{jobId?.slice(0, 8)}</h1>
+              <h1 className="text-xl font-bold text-gray-900">{t('status_title', { id: jobId?.slice(0, 8) })}</h1>
               <div className="mt-1 flex items-center gap-2">
                 <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${config.bgColor} ${config.color}`}>
                   {!isTerminal && (
@@ -238,7 +238,7 @@ export function JobStatusPage() {
         {/* Progress bar */}
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="font-medium text-gray-700">진행률</span>
+            <span className="font-medium text-gray-700">{t('progress_label')}</span>
             <span className={`font-semibold ${config.color}`}>{progressPercent}%</span>
           </div>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
@@ -261,7 +261,7 @@ export function JobStatusPage() {
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          분석 로그 보기
+          {t('view_analysis_logs')}
           {!isTerminal && connected && (
             <span className="ml-1 h-2 w-2 animate-pulse rounded-full bg-green-500" />
           )}
@@ -270,7 +270,7 @@ export function JobStatusPage() {
 
       {/* Timeline */}
       <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-sm font-semibold text-gray-900">처리 단계</h2>
+        <h2 className="mb-4 text-sm font-semibold text-gray-900">{t('processing_steps')}</h2>
         <div className="space-y-4">
           {phases.map((phase, index) => {
             const isActive = phase === status
@@ -310,7 +310,7 @@ export function JobStatusPage() {
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-green-800">{t('script_complete')}</h3>
-              <p className="text-sm text-green-600">면접 스크립트가 성공적으로 생성되었습니다</p>
+              <p className="text-sm text-green-600">{t('script_generated_desc')}</p>
             </div>
             <Link
               to={`/jobs/${jobId}/result`}
@@ -346,7 +346,7 @@ export function JobStatusPage() {
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                새 스크립트 생성하기
+                {t('create_new_script')}
               </Link>
             </div>
           </div>
