@@ -210,15 +210,17 @@ def _parse_llm_json_response(data: Any) -> Any:
         except json.JSONDecodeError:
             pass
 
-        # Strategy 2: Extract first JSON object from mixed text
+        # Strategy 2: Extract first JSON object or array from mixed text
         # Handles cases like "Here is the analysis:\n{...}\nLet me know..."
-        brace_start = cleaned.find('{')
-        if brace_start >= 0:
-            # Find matching closing brace by counting nesting
+        # or "Here are the topics:\n[...]\nI hope this helps"
+        for open_ch, close_ch, type_name in [('{', '}', 'object'), ('[', ']', 'array')]:
+            start_pos = cleaned.find(open_ch)
+            if start_pos < 0:
+                continue
             depth = 0
             in_string = False
             escape_next = False
-            for i in range(brace_start, len(cleaned)):
+            for i in range(start_pos, len(cleaned)):
                 ch = cleaned[i]
                 if escape_next:
                     escape_next = False
@@ -231,16 +233,16 @@ def _parse_llm_json_response(data: Any) -> Any:
                     continue
                 if in_string:
                     continue
-                if ch == '{':
+                if ch == open_ch:
                     depth += 1
-                elif ch == '}':
+                elif ch == close_ch:
                     depth -= 1
                     if depth == 0:
-                        json_candidate = cleaned[brace_start:i + 1]
+                        json_candidate = cleaned[start_pos:i + 1]
                         try:
                             parsed = json.loads(json_candidate)
-                            if isinstance(parsed, dict):
-                                logger.debug("Extracted JSON object from mixed LLM response text")
+                            if isinstance(parsed, (dict, list)):
+                                logger.debug(f"Extracted JSON {type_name} from mixed LLM response text")
                                 return parsed
                         except json.JSONDecodeError:
                             pass

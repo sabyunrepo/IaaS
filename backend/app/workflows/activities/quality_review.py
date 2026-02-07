@@ -73,8 +73,22 @@ async def review_questions(questions: list[dict], output_language: str = "ko") -
         if isinstance(review_result, dict):
             if review_result.get("duplicates"):
                 issues.append({"type": "duplicates", "details": review_result["duplicates"]})
+            # LLM이 식별한 개별 질문 문제
+            for qr in review_result.get("question_reviews", []):
+                if isinstance(qr, dict) and qr.get("issue"):
+                    questions_to_revise.append(qr)
+            # 환각 위험 질문 검출
+            for hr in review_result.get("hallucination_risks", []):
+                if isinstance(hr, dict):
+                    issues.append({"type": "hallucination_risk", "details": hr})
 
-    verdict = "APPROVED" if len(questions_to_revise) == 0 and len(issues) < 3 else "NEEDS_REVISION"
+    # 심각도 기반 판정: 중복/환각은 HIGH, 분포 불균형은 LOW
+    high_severity_count = sum(
+        1 for i in issues if i.get("type") in ("duplicates", "hallucination_risk")
+    )
+    verdict = "NEEDS_REVISION" if high_severity_count > 0 or len(questions_to_revise) > 0 else (
+        "APPROVED" if len(issues) < 3 else "NEEDS_REVISION"
+    )
 
     return {
         "verdict": verdict,
