@@ -9,6 +9,13 @@
 |----|------|---|-------|------|
 | #2628 | 5:36 AM | 🔵 | RadarChart Implemented with Pure SVG Without External Dependencies | ~655 |
 | #2623 | 5:34 AM | 🔵 | Chart Components Export ProgressBarGroup for Grouped Display | ~410 |
+
+### Feb 8, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4065 | 7:49 AM | 🔵 | RadarChart Component - Optimized SVG Geometry Calculations | ~581 |
+| #4049 | 6:20 AM | 🔵 | Frontend Performance Audit - IaaS Application Complete | ~698 |
 </claude-mem-context>
 
 # frontend/src/components/charts/
@@ -26,3 +33,7 @@
 - **RadarChart**: 5번 축 라벨 "위험 요소" → "코드 품질"
 - **RadarChart**: SVG viewBox 반응형 (`w-full h-auto`)
 - **ContributionChart**: SVG viewBox 반응형
+
+## PR #106 변경사항 (성능 최적화)
+- **RadarChart**: `React.memo` 래퍼 추가 — 불필요한 re-render 방지
+- **ContributionChart**: `React.memo` + `useMemo` — 포인트/경로 계산 메모이제이션

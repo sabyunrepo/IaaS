@@ -28,6 +28,12 @@
 |----|------|---|-------|------|
 | #2606 | 5:29 AM | 🔵 | Question Generation Prioritizes Knowledge Graph Candidates | ~663 |
 | #2594 | 5:26 AM | 🔵 | Finalization Activity Assembles Interview Script | ~602 |
+
+### Feb 8, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4050 | 6:20 AM | 🔵 | Backend Performance Audit Completed for IaaS Application | ~552 |
 </claude-mem-context>
 
 # backend/app/workflows/activities/
@@ -55,3 +61,6 @@ Temporal Activity 함수 (16개). 모두 `@activity.defn` 데코레이터 사용
 - Phase 4 v2 Activity: KG/VectorStore 시맨틱 컨텍스트를 `kg_context` 프롬프트 변수로 주입
 - `worker.py`에 새 Activity 등록 필수
 - Rule-based fallback 한국어 라벨: `from app.services.i18n_labels import _t` 사용 (lang 파라미터 전달)
+- DRY 설정: `from app.services.match_config import get_match_color_icon, sanitize_color` (PR #106)
+- SSRF 방어: `finalization.py` 아바타 다운로드에 도메인 allowlist 적용 (PR #106)
+- LLM 검증: `question_generation.py` craft_question에 `validate_llm_output()` 적용 (PR #106)

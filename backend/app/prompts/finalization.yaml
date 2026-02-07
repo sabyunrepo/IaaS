@@ -380,6 +380,10 @@ prompts:
       - Start your response with { and end with }
       - No explanatory text before or after the JSON
 
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All labels, descriptions, and free-text fields must be in {{output_language}}.
+
       # ROLE & GOAL
       Generate an Intel Brief for non-technical interviewers. This provides a clear overview
       of the candidate's fit with the JD requirements, GitHub activity, and LinkedIn history.
@@ -531,6 +535,10 @@ prompts:
       - Start your response with { and end with }
       - No explanatory text before or after the JSON
 
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All labels, descriptions, and free-text fields must be in {{output_language}}.
+
       # ROLE & GOAL
       Generate a Deep Analysis with radar chart scores, engineering DNA metrics,
       and skill matching table. All scores MUST be evidence-based.
@@ -667,6 +675,10 @@ prompts:
       - Do NOT wrap output in ```json or ``` code blocks
       - Start your response with { and end with }
       - No explanatory text before or after the JSON
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All labels, descriptions, and free-text fields must be in {{output_language}}.
 
       # ROLE & GOAL
       Generate decision support data for hiring committee. Summarize candidate strengths,

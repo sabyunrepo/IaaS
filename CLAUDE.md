@@ -373,6 +373,20 @@ docker compose exec backend python scripts/create_test_job.py --dry-run
 4. 각 Phase 완료 시 checkpoint 저장
 5. `worker.py`에 새 Activity 등록 필수
 
+### 고아 서브에이전트 프로세스 관리 (Mandatory)
+
+Task 도구로 생성된 서브에이전트가 작업 완료 후에도 종료되지 않아 메모리 누수 발생 가능.
+
+**규칙:**
+1. 작업 완료 후 고아 프로세스 확인: `ps aux | grep '[c]laude' | grep -v grep | wc -l`
+2. 불필요한 서브에이전트 정리: `ps aux | grep '[/]Users/sabyun/.local/bin/claude' | awk '{print $2}' | xargs kill 2>/dev/null`
+3. 메인 세션(interactive tty) 프로세스는 유지
+4. 세션 종료 시 반드시 고아 프로세스 확인 + 정리
+
+**경고 기준:**
+- claude 프로세스 5개 초과 시 정리 필요
+- macOS PhysMem unused < 2GB 시 즉시 정리
+
 ---
 
 ## 🔄 Continuous Improvement Engine (지속적 개선 엔진)

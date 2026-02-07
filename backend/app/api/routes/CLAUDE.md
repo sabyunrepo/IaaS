@@ -31,3 +31,8 @@ REST API 엔드포인트.
 - `verify_internal_token` 의존성: `X-Internal-Token` 헤더 검증
 - 로컬 환경에서는 인증 스킵 (`settings.is_local`)
 - Worker의 `activity_logger.py`가 이 토큰을 자동으로 전송
+
+## Rate Limiting 보완 (PR #106)
+
+- POST `/jobs/{id}/retry`: `@limiter.limit("5/minute")`
+- DELETE `/jobs/{id}`: `@limiter.limit("10/minute")`

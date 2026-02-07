@@ -215,3 +215,34 @@ async def get_me(user: UserDB = Depends(get_current_user)):
         "image": user.image,
         "plan": user.plan,
     }
+
+
+# --- Dev Login (로컬 환경 전용) ---
+
+@router.post("/dev-login")
+async def dev_login(db: AsyncSession = Depends(get_db)):
+    """개발/테스트용 로그인 — 로컬 환경에서만 활성화"""
+    if not settings.is_local:
+        raise AuthenticationError("Dev login is only available in local environment")
+
+    test_email = "dev@vantict.local"
+    result = await db.execute(select(UserDB).where(UserDB.email == test_email))
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        user = UserDB(
+            id=uuid.uuid4(),
+            email=test_email,
+            name="Dev User",
+            image=None,
+        )
+        db.add(user)
+        await db.flush()
+
+    jwt_token = create_jwt({
+        "sub": str(user.id),
+        "email": user.email,
+        "plan": user.plan,
+    })
+
+    return {"token": jwt_token}
