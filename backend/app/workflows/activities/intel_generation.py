@@ -132,6 +132,7 @@ def _match_competencies(
     jd_analysis: dict,
     document_analysis: dict,
     code_analysis: dict | None,
+    lang: str = "ko",
 ) -> list[CompetencyMatch]:
     """JD 역량과 후보자 매칭 분석"""
     competencies = []
@@ -160,20 +161,22 @@ def _match_competencies(
         candidate_skills_lower = [s.lower() for s in candidate_skills]
         code_skills_lower = [s.lower() for s in code_skills]
 
+        from app.services.i18n_labels import _t
+
         match_level = "none"
-        match_label = "후보자: 증거 없음"
+        match_label = _t("candidate_no_evidence", lang)
 
         # 정확 매칭 확인
         if any(skill_lower in cs for cs in candidate_skills_lower + code_skills_lower):
             match_level = "strong"
-            match_label = "후보자: 강한 매칭"
+            match_label = _t("candidate_strong_match", lang)
         # 부분 매칭 확인
         elif any(
             any(word in cs for word in skill_lower.split())
             for cs in candidate_skills_lower + code_skills_lower
         ):
             match_level = "partial"
-            match_label = "후보자: 부분 매칭"
+            match_label = _t("candidate_partial_match", lang)
 
         color, icon = match_config.get(match_level, ("slate", "❓"))
 
@@ -190,8 +193,10 @@ def _match_competencies(
     return competencies
 
 
-def _extract_github_summary(code_analysis: dict | None) -> GitHubSummary | None:
+def _extract_github_summary(code_analysis: dict | None, lang: str = "ko") -> GitHubSummary | None:
     """코드 분석에서 GitHub 요약 추출"""
+    from app.services.i18n_labels import _t
+
     if not code_analysis:
         return None
 
@@ -208,9 +213,9 @@ def _extract_github_summary(code_analysis: dict | None) -> GitHubSummary | None:
         contributions=total_commits,
         repos=len(repos),
         main_languages=", ".join(tech_stack[:3]) if tech_stack else "N/A",
-        tech_match="높음" if tech_stack else "미확인",
-        tech_match_note=f"{len(tech_stack)}개 기술 스택 확인" if tech_stack else "코드 분석 데이터 없음",
-        tenure_pattern=code_analysis.get("tenure_pattern", "미확인"),
+        tech_match=_t("high", lang) if tech_stack else _t("unconfirmed", lang),
+        tech_match_note=_t("tech_stack_confirmed", lang, n=len(tech_stack)) if tech_stack else _t("no_code_data", lang),
+        tenure_pattern=code_analysis.get("tenure_pattern", _t("unconfirmed", lang)),
         tenure_note=code_analysis.get("tenure_note", ""),
         activity_gap=code_analysis.get("activity_gap"),
         chart_data=chart_data[:12],
@@ -274,11 +279,11 @@ async def generate_intel_brief(
     # 2. 역량 매칭 분석 (LLM 우선, 규칙 기반 fallback)
     competencies = await _llm_match_competencies(jd_analysis, document_analysis, code_analysis, output_language, job_id=job_id)
     if competencies is None:
-        competencies = _match_competencies(jd_analysis, document_analysis, code_analysis)
+        competencies = _match_competencies(jd_analysis, document_analysis, code_analysis, lang=output_language)
     activity.heartbeat()
 
     # 3. GitHub 기여도 데이터 포맷
-    github_summary = _extract_github_summary(code_analysis)
+    github_summary = _extract_github_summary(code_analysis, lang=output_language)
     activity.heartbeat()
 
     # 4. LinkedIn 타임라인 구성
