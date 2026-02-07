@@ -98,6 +98,7 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     "intel_competency_matching": KIMI_CHAT_MODEL,
     "radar_analysis": KIMI_CHAT_MODEL,
     "engineering_dna": KIMI_CHAT_MODEL,
+    "skill_matching": KIMI_CHAT_MODEL,
     "decision_summary": KIMI_CHAT_MODEL,
     "interviewer_tips": KIMI_CHAT_MODEL,
 }
@@ -122,6 +123,7 @@ MODEL_MAX_OUTPUT_TOKENS: dict[str, int] = {
     "openai:": 16384,
     "openai/": 16384,
     # Anthropic
+    "claude-3-haiku": 4096,       # Haiku 실제 제한
     "anthropic:": 8192,
     "anthropic/": 8192,
     # Gemini
