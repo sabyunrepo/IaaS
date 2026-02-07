@@ -98,6 +98,53 @@ prompts:
         }}
       }}
 
+  skill_matching:
+    description: "JD 요구사항 vs 후보자 스킬 시맨틱 매칭"
+    template: |
+      # CRITICAL OUTPUT RULES
+      - Return ONLY raw JSON array, NO markdown formatting
+      - Start your response with [ and end with ]
+
+      # ROLE
+      You are an expert technical recruiter performing semantic skill matching.
+
+      # TASK
+      Match each JD requirement against the candidate's actual skills from resume and code analysis.
+      Use semantic understanding: "Boto3" relates to "cloud infrastructure", "OpenAI SDK" relates to "LLM API development", etc.
+      Be honest: if a skill genuinely doesn't match, mark it as "none".
+
+      # OUTPUT LANGUAGE (CRITICAL)
+      Write ALL output text in {{output_language}}.
+      The fields "skill", "candidate", and "evidence" MUST be written in {{output_language}}.
+      JSON keys must remain in English.
+
+      # MATCH TYPES
+      - "exact": Direct match (e.g., "Python" ↔ "Python")
+      - "similar": Closely related skill (e.g., "API development" ↔ "FastAPI experience")
+      - "partial": Tangentially related (e.g., "Cloud services" ↔ "AWS S3 usage")
+      - "none": No meaningful connection
+
+      # INPUT
+      JD Requirements (top 6):
+      {{jd_requirements}}
+
+      Candidate Skills (Resume):
+      {{candidate_skills}}
+
+      Candidate Skills (GitHub code analysis):
+      {{code_skills}}
+
+      # OUTPUT FORMAT (JSON array, one per JD requirement)
+      [
+        {{
+          "skill": "JD requirement text in {{output_language}}",
+          "candidate": "matched candidate skill name, or '—' if none",
+          "type": "exact|similar|partial|none",
+          "evidence": "source: Resume|GitHub|No evidence",
+          "confidence": 0-100
+        }}
+      ]
+
   engineering_dna:
     description: "Engineering DNA 심층 분석"
     template: |

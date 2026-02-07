@@ -323,13 +323,88 @@ def _extract_risk_flags(
     return flags[:5]  # 최대 5개
 
 
+async def _llm_build_skill_table(
+    jd_analysis: dict,
+    code_analysis: dict | None,
+    document_analysis: dict,
+    output_language: str = "ko",
+    job_id: str | None = None,
+) -> list[SkillMatchRow] | None:
+    """LLM 기반 시맨틱 스킬 매칭 (실패 시 None 반환)"""
+    try:
+        from app.services.cached_llm import CachedLLMService
+        from app.prompts import get_prompt_with_config
+        from app.workflows.utils import run_llm_with_prompt_config_heartbeat
+
+        jd_requirements = jd_analysis.get("requirements", [])
+        if not jd_requirements:
+            return None
+
+        raw_candidate_skills = document_analysis.get("profile", {}).get("skills", [])
+        candidate_skills = (
+            list(raw_candidate_skills.keys()) if isinstance(raw_candidate_skills, dict)
+            else list(raw_candidate_skills) if raw_candidate_skills else []
+        )
+        code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
+
+        jd_text = json.dumps(
+            [r.get("skill", r.get("text", "")) for r in jd_requirements[:6]],
+            ensure_ascii=False,
+        )
+        candidate_text = json.dumps(candidate_skills[:15], ensure_ascii=False) if candidate_skills else "[]"
+        code_text = json.dumps(list(code_skills)[:15], ensure_ascii=False) if code_skills else "[]"
+
+        prompt_config = get_prompt_with_config(
+            "v2_generation.yaml", "skill_matching",
+            jd_requirements=jd_text,
+            candidate_skills=candidate_text,
+            code_skills=code_text,
+            output_language=output_language,
+        )
+
+        # Langfuse 모델 오버라이드 방지 — Kimi 모델 강제 사용
+        from app.services.llm_config import KIMI_CHAT_MODEL
+        prompt_config.model = KIMI_CHAT_MODEL
+
+        llm = CachedLLMService()
+        result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
+
+        if not isinstance(result, list):
+            return None
+
+        valid_types = {"exact", "similar", "partial", "none"}
+        rows = []
+        for item in result[:6]:
+            if not isinstance(item, dict):
+                continue
+            match_type = item.get("type", "none")
+            if match_type not in valid_types:
+                match_type = "none"
+            rows.append(SkillMatchRow(
+                skill=item.get("skill", ""),
+                candidate=item.get("candidate", "—"),
+                type=match_type,
+                evidence=item.get("evidence", "No evidence"),
+                confidence=max(0, min(100, int(item.get("confidence", 0)))),
+            ))
+
+        if rows:
+            logger.info(f"LLM skill matching: {len(rows)} rows, avg confidence={sum(r.confidence for r in rows)//len(rows)}%")
+            return rows
+        return None
+
+    except Exception as e:
+        logger.warning(f"LLM skill matching failed, using fallback: {e}")
+        return None
+
+
 def _build_skill_table(
     jd_analysis: dict,
     code_analysis: dict | None,
     document_analysis: dict,
     lang: str = "ko",
 ) -> list[SkillMatchRow]:
-    """스킬 매칭 테이블 생성"""
+    """스킬 매칭 테이블 생성 (규칙 기반 fallback)"""
     rows = []
 
     jd_requirements = jd_analysis.get("requirements", [])
@@ -449,8 +524,14 @@ async def generate_deep_analysis(
     risk_flags = _extract_risk_flags(code_analysis, document_analysis, lang=output_language)
     activity.heartbeat()
 
-    # 4. 스킬 매칭 테이블 생성
-    skill_table = _build_skill_table(jd_analysis, code_analysis, document_analysis, lang=output_language)
+    # 4. 스킬 매칭 테이블 생성 (LLM 우선, 규칙 기반 fallback)
+    skill_table = await _llm_build_skill_table(
+        jd_analysis, code_analysis, document_analysis,
+        output_language=output_language, job_id=job_id,
+    )
+    if skill_table is None:
+        skill_table = _build_skill_table(jd_analysis, code_analysis, document_analysis, lang=output_language)
+    activity.heartbeat()
 
     # 전체 매칭 점수 계산
     if skill_table:
