@@ -249,7 +249,7 @@ memory_recall:
 | Database | PostgreSQL 16 + pgvector |
 | Cache | Redis 7 |
 | Storage | LocalStack S3 → AWS S3 |
-| LLM | OpenAI GPT-4o / Anthropic Claude |
+| LLM | Kimi K2.5 (moonshot-v1-auto) — Langfuse-first, fallback: GPT-4o / Claude |
 | Container | Docker Compose |
 | Git Analysis | PyGithub (API), PyDriller (로컬 분석), ast (Python), tree-sitter (JS/TS) |
 | LinkedIn | Proxycurl API (프로필 수집) |
@@ -323,6 +323,30 @@ frontend/public/locales/           → i18n 번역 파일
 - 시나리오 데이터(`scenario-*.js`)는 후보자별 개별 파일로 관리
 - 데모 UI의 앱 로직은 `app.js`, HTML 구조는 `index.html`에 분리 유지
 - 새 파일 생성 시 기존 파일과 책임이 겹치지 않도록 역할을 명확히 구분
+
+### Utility Scripts (`backend/scripts/`)
+
+| 스크립트 | 용도 | 사용법 |
+|----------|------|--------|
+| `create_test_job.py` | 테스트 Job 생성 (프론트엔드 확인용) | `docker compose exec backend python scripts/create_test_job.py` |
+| `upload_prompts_to_langfuse.py` | Langfuse 프롬프트 업로드 | `docker compose exec backend python scripts/upload_prompts_to_langfuse.py --production` |
+
+**테스트 Job 생성 예시:**
+```bash
+# 기본 (hoone0802@gmail.com, CTO/VP, en, 20문제, LinkedIn+GitHub)
+docker compose exec backend python scripts/create_test_job.py
+
+# 커스텀
+docker compose exec backend python scripts/create_test_job.py \
+    --email hoone0802@gmail.com --level 시니어 --lang ko --questions 15
+
+# 미리보기
+docker compose exec backend python scripts/create_test_job.py --dry-run
+```
+
+**Langfuse 프롬프트 업로드 주의사항:**
+- 반드시 `--production` 플래그 사용 (없으면 워커가 구버전 사용)
+- 모델 설정은 `llm_config.py` 단일 소스 — 스크립트에서 자동 참조
 
 ### Temporal Patterns (Mandatory)
 1. 모든 Activity는 `@activity.defn` 데코레이터 필수
