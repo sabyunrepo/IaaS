@@ -23,6 +23,14 @@ ALLOWED_EXTENSIONS = {
     "cover_letter": [".pdf", ".docx"],
 }
 
+# 허용된 MIME 타입 (확장자-MIME 이중 검증)
+ALLOWED_MIME_TYPES = {
+    ".pdf": ["application/pdf"],
+    ".docx": [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ],
+}
+
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 
@@ -53,6 +61,14 @@ async def upload_file(
         raise HTTPException(
             status_code=400,
             detail=f"Invalid file extension for {file_type}. Allowed: {ALLOWED_EXTENSIONS[file_type]}",
+        )
+
+    # MIME 타입 검증 (확장자-MIME 이중 검증)
+    allowed_mimes = ALLOWED_MIME_TYPES.get(file_ext, [])
+    if file.content_type and file.content_type not in allowed_mimes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"MIME type mismatch. Expected {allowed_mimes} for {file_ext}, got {file.content_type}",
         )
 
     # 파일 크기 검증

@@ -2,6 +2,7 @@
 backend/app/api/routes/internal.py
 Internal API - Activity에서 사용하는 내부 엔드포인트
 """
+import hmac
 import logging
 from typing import Optional
 
@@ -21,7 +22,9 @@ async def verify_internal_token(
 ) -> None:
     """Worker → Backend 내부 API 인증"""
     if not settings.is_local:
-        if not x_internal_token or x_internal_token != settings.INTERNAL_API_TOKEN:
+        if not x_internal_token or not hmac.compare_digest(
+            x_internal_token, settings.INTERNAL_API_TOKEN
+        ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Invalid internal API token",
