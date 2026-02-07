@@ -28,10 +28,10 @@ export const DecisionTab = memo(function DecisionTab({
 
   // Determine recommendation based on score
   const getRecommendation = () => {
-    if (scorePercent >= 80) return { label: 'Strong Hire', color: 'emerald', icon: '🌟' }
-    if (scorePercent >= 60) return { label: 'Hire', color: 'green', icon: '✅' }
-    if (scorePercent >= 40) return { label: 'Leaning No', color: 'amber', icon: '⚠️' }
-    return { label: 'No Hire', color: 'red', icon: '❌' }
+    if (scorePercent >= 80) return { label: t('rec_strong_hire'), color: 'emerald', icon: '🌟' }
+    if (scorePercent >= 60) return { label: t('rec_hire'), color: 'green', icon: '✅' }
+    if (scorePercent >= 40) return { label: t('rec_leaning_no'), color: 'amber', icon: '⚠️' }
+    return { label: t('rec_no_hire'), color: 'red', icon: '❌' }
   }
 
   const recommendation = getRecommendation()

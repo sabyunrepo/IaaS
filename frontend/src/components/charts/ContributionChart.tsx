@@ -3,6 +3,7 @@
  *
  * Shows 12-month contribution history with area fill.
  */
+import { memo, useMemo } from 'react'
 
 interface ContributionChartProps {
   /** Monthly contribution counts (12 values) */
@@ -22,7 +23,7 @@ const DEFAULT_LABELS = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ]
 
-export function ContributionChart({
+export const ContributionChart = memo(function ContributionChart({
   data,
   labels = DEFAULT_LABELS,
   width = 400,
@@ -33,25 +34,29 @@ export function ContributionChart({
   const chartWidth = width - padding.left - padding.right
   const chartHeight = height - padding.top - padding.bottom
 
-  const maxValue = Math.max(...data, 10)
-  const minValue = 0
+  const { points, linePath, areaPath, yTicks, maxValue } = useMemo(() => {
+    const max = Math.max(...data, 10)
+    const min = 0
 
-  // Calculate point positions
-  const points = data.map((value, index) => ({
-    x: padding.left + (index / (data.length - 1)) * chartWidth,
-    y: padding.top + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight
-  }))
+    const pts = data.map((value, index) => ({
+      x: padding.left + (index / (data.length - 1)) * chartWidth,
+      y: padding.top + chartHeight - ((value - min) / (max - min)) * chartHeight
+    }))
 
-  // Generate path for line
-  const linePath = points
-    .map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`))
-    .join(' ')
+    const line = pts
+      .map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`))
+      .join(' ')
 
-  // Generate path for area fill
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${padding.top + chartHeight} L ${points[0].x} ${padding.top + chartHeight} Z`
+    const area = `${line} L ${pts[pts.length - 1].x} ${padding.top + chartHeight} L ${pts[0].x} ${padding.top + chartHeight} Z`
 
-  // Y-axis ticks
-  const yTicks = [0, Math.round(maxValue / 2), maxValue]
+    return {
+      points: pts,
+      linePath: line,
+      areaPath: area,
+      yTicks: [0, Math.round(max / 2), max],
+      maxValue: max,
+    }
+  }, [data, padding.left, padding.top, chartWidth, chartHeight])
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
@@ -131,4 +136,4 @@ export function ContributionChart({
       })}
     </svg>
   )
-}
+})

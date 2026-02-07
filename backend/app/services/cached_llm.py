@@ -256,6 +256,40 @@ def _parse_llm_json_response(data: Any) -> Any:
     return data
 
 
+def validate_llm_output(
+    parsed: Any,
+    required_fields: list[str] | None = None,
+    activity_name: str = "unknown",
+) -> dict:
+    """LLM 출력 필수 필드 검증 + 기본값 보장.
+
+    Args:
+        parsed: LLM 파싱 결과 (dict 기대)
+        required_fields: 존재해야 할 필드 이름 목록
+        activity_name: 로깅용 Activity 이름
+
+    Returns:
+        검증된 dict (누락 필드는 빈 기본값으로 채움)
+    """
+    if not isinstance(parsed, dict):
+        logger.warning(
+            f"[{activity_name}] LLM returned {type(parsed).__name__} instead of dict, "
+            f"using empty dict fallback"
+        )
+        return {}
+
+    if not required_fields:
+        return parsed
+
+    for field in required_fields:
+        if field not in parsed or parsed[field] is None:
+            logger.warning(f"[{activity_name}] Missing required field '{field}' in LLM output")
+            # 타입 기반 기본값: list면 [], str이면 ""
+            parsed.setdefault(field, "")
+
+    return parsed
+
+
 class CachedLLMService:
     """LLM 호출 결과를 Redis에 캐싱하는 래퍼
 

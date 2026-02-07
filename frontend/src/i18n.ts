@@ -265,6 +265,32 @@ const resources = {
       create_new_script: '새 스크립트 생성하기',
       // JobListPage
       script_count: '{{count}}개의 스크립트',
+      // CreateJobPage - 추가 번역
+      create_subtitle: '채용공고와 후보자 정보를 입력하여 맞춤형 면접 스크립트를 생성하세요',
+      jd_section_desc: '채용 포지션에 대한 상세한 직무 설명을 입력해주세요',
+      jd_length_ok: '충분한 길이입니다',
+      file_select: '파일을 선택하세요',
+      // QuestionCard - revision badges
+      badge_duplicate_merge: '중복 병합',
+      badge_clarity_fix: '명확성 개선',
+      badge_hallucination_fix: '환각 수정',
+      badge_evidence_improvement: '근거 강화',
+      badge_scope_adjustment: '범위 조정',
+      // QuestionCard - section headers
+      qcard_original_question: '원본 질문',
+      qcard_revision_rationale: '수정 이유',
+      qcard_evidence_reference: '근거',
+      // DecisionTab - recommendation labels
+      rec_strong_hire: 'Strong Hire',
+      rec_hire: 'Hire',
+      rec_leaning_no: 'Leaning No',
+      rec_no_hire: 'No Hire',
+      // LiveInterviewTab - scenario level labels
+      scenario_expert: '🌟 Expert',
+      scenario_mid: '📊 Mid',
+      scenario_low: '📉 Low',
+      // DeepAnalysisTab
+      engineering_dna: 'Engineering DNA',
     },
   },
   en: {
@@ -530,6 +556,32 @@ const resources = {
       create_new_script: 'Create New Script',
       // JobListPage
       script_count: '{{count}} scripts',
+      // CreateJobPage - additional
+      create_subtitle: 'Enter job description and candidate info to generate a custom interview script',
+      jd_section_desc: 'Enter a detailed job description for the hiring position',
+      jd_length_ok: 'Sufficient length',
+      file_select: 'Select a file',
+      // QuestionCard - revision badges
+      badge_duplicate_merge: 'Merged',
+      badge_clarity_fix: 'Clarity Fix',
+      badge_hallucination_fix: 'Hallucination Fix',
+      badge_evidence_improvement: 'Evidence+',
+      badge_scope_adjustment: 'Scope Adj.',
+      // QuestionCard - section headers
+      qcard_original_question: 'Original Question',
+      qcard_revision_rationale: 'Revision Rationale',
+      qcard_evidence_reference: 'Evidence',
+      // DecisionTab - recommendation labels
+      rec_strong_hire: 'Strong Hire',
+      rec_hire: 'Hire',
+      rec_leaning_no: 'Leaning No',
+      rec_no_hire: 'No Hire',
+      // LiveInterviewTab - scenario level labels
+      scenario_expert: '🌟 Expert',
+      scenario_mid: '📊 Mid',
+      scenario_low: '📉 Low',
+      // DeepAnalysisTab
+      engineering_dna: 'Engineering DNA',
     },
   },
 }

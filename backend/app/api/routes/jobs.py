@@ -161,7 +161,9 @@ class RetryRequest(BaseModel):
 
 
 @router.post("/{job_id}/retry")
+@limiter.limit("5/minute")
 async def retry_job(
+    request: Request,
     job_id: str,
     body: RetryRequest = RetryRequest(),
     user: UserDB = Depends(get_current_user_or_api_key),
@@ -274,7 +276,9 @@ async def get_checkpoints(
 
 
 @router.delete("/{job_id}", status_code=204)
+@limiter.limit("10/minute")
 async def delete_job(
+    request: Request,
     job_id: str,
     user: UserDB = Depends(get_current_user_or_api_key),
     db: AsyncSession = Depends(get_db),

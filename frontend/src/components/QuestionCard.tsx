@@ -48,16 +48,18 @@ function getConfidenceLabel(confidence?: number): string {
   return 'Very Low'
 }
 
-function getRevisionTypeBadge(type?: string): { color: string; label: string } | null {
+function getRevisionTypeBadge(type: string | undefined, t: (key: string) => string): { color: string; label: string } | null {
   if (!type) return null
-  const badges: Record<string, { color: string; label: string }> = {
-    'duplicate_merge': { color: 'bg-purple-100 text-purple-700', label: '중복 병합' },
-    'clarity_fix': { color: 'bg-blue-100 text-blue-700', label: '명확성 개선' },
-    'hallucination_fix': { color: 'bg-red-100 text-red-700', label: '환각 수정' },
-    'evidence_improvement': { color: 'bg-green-100 text-green-700', label: '근거 강화' },
-    'scope_adjustment': { color: 'bg-amber-100 text-amber-700', label: '범위 조정' },
+  const badges: Record<string, { color: string; labelKey: string }> = {
+    'duplicate_merge': { color: 'bg-purple-100 text-purple-700', labelKey: 'badge_duplicate_merge' },
+    'clarity_fix': { color: 'bg-blue-100 text-blue-700', labelKey: 'badge_clarity_fix' },
+    'hallucination_fix': { color: 'bg-red-100 text-red-700', labelKey: 'badge_hallucination_fix' },
+    'evidence_improvement': { color: 'bg-green-100 text-green-700', labelKey: 'badge_evidence_improvement' },
+    'scope_adjustment': { color: 'bg-amber-100 text-amber-700', labelKey: 'badge_scope_adjustment' },
   }
-  return badges[type] || { color: 'bg-gray-100 text-gray-700', label: type }
+  const badge = badges[type]
+  if (!badge) return { color: 'bg-gray-100 text-gray-700', label: type }
+  return { color: badge.color, label: t(badge.labelKey) }
 }
 
 export function QuestionCard({ question, index, onScoreChange }: QuestionCardProps) {
@@ -70,7 +72,7 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
   const confidence = question.new_confidence_score
   const confidenceColor = getConfidenceColor(confidence)
   const confidenceLabel = getConfidenceLabel(confidence)
-  const revisionBadge = getRevisionTypeBadge(question.revision_type)
+  const revisionBadge = getRevisionTypeBadge(question.revision_type, t)
 
   // Legacy difficulty support
   const difficultyColor =
@@ -142,7 +144,7 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
           {/* Original question (if revised) */}
           {question.original_question && question.original_question !== questionText && (
             <div className="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">원본 질문</h4>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('qcard_original_question')}</h4>
               <p className="text-sm text-gray-600">{question.original_question}</p>
             </div>
           )}
@@ -150,7 +152,7 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
           {/* Revision rationale */}
           {question.revision_rationale && (
             <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-              <h4 className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">수정 이유</h4>
+              <h4 className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">{t('qcard_revision_rationale')}</h4>
               <p className="text-sm text-blue-800">{question.revision_rationale}</p>
             </div>
           )}
@@ -158,7 +160,7 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
           {/* Evidence reference */}
           {question.new_evidence_reference && (
             <div className="p-3 rounded-lg bg-green-50 border border-green-200">
-              <h4 className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">근거</h4>
+              <h4 className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">{t('qcard_evidence_reference')}</h4>
               <p className="text-sm text-green-800">{question.new_evidence_reference}</p>
             </div>
           )}

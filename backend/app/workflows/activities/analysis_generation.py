@@ -146,14 +146,13 @@ async def _llm_analyze_engineering_dna(code_analysis: dict | None, output_langua
         if not isinstance(result, list):
             return None
 
+        from app.services.match_config import sanitize_color
+
         items = []
-        valid_colors = {"emerald", "blue", "amber", "red", "slate"}
         for item in result[:6]:
             if not isinstance(item, dict):
                 continue
-            color = item.get("color", "slate")
-            if color not in valid_colors:
-                color = "slate"
+            color = sanitize_color(item.get("color", "slate"))
             items.append(EngineeringDNAItem(
                 label=item.get("label", ""),
                 value=max(0, min(100, int(item.get("value", 0)))),

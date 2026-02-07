@@ -97,7 +97,7 @@ function FileUploadField({
           <svg className="mb-2 h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <span className="text-sm text-gray-600">{accept} 파일을 선택하세요</span>
+          <span className="text-sm text-gray-600">{accept} {t('file_select')}</span>
           <input
             type="file"
             accept={accept}
@@ -257,7 +257,7 @@ export function CreateJobPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('create_interview_script')}</h1>
-            <p className="mt-0.5 text-sm text-gray-500">채용공고와 후보자 정보를 입력하여 맞춤형 면접 스크립트를 생성하세요</p>
+            <p className="mt-0.5 text-sm text-gray-500">{t('create_subtitle')}</p>
           </div>
         </div>
       </div>
@@ -266,7 +266,7 @@ export function CreateJobPage() {
         {/* JD Text */}
         <SectionCard
           title={t('jd_section_title')}
-          description="채용 포지션에 대한 상세한 직무 설명을 입력해주세요"
+          description={t('jd_section_desc')}
           required
         >
           <textarea
@@ -285,7 +285,7 @@ export function CreateJobPage() {
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  충분한 길이입니다
+                  {t('jd_length_ok')}
                 </span>
               ) : (
                 `${jdText.length}/50 ${t('min_chars')}`
