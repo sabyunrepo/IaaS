@@ -60,7 +60,9 @@ async def create_job(
 
 
 @router.get("")
+@limiter.limit("60/minute")
 async def list_jobs(
+    request: Request,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     user: UserDB = Depends(get_current_user_or_api_key),
@@ -72,7 +74,9 @@ async def list_jobs(
 
 
 @router.get("/{job_id}")
+@limiter.limit("120/minute")
 async def get_job(
+    request: Request,
     job_id: str,
     user: UserDB = Depends(get_current_user_or_api_key),
     db: AsyncSession = Depends(get_db),
@@ -232,7 +236,9 @@ async def retry_job(
 
 
 @router.get("/{job_id}/checkpoints")
+@limiter.limit("60/minute")
 async def get_checkpoints(
+    request: Request,
     job_id: str,
     user: UserDB = Depends(get_current_user_or_api_key),
     db: AsyncSession = Depends(get_db),
