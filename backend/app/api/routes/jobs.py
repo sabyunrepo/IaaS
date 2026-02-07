@@ -2,6 +2,7 @@
 backend/app/api/routes/jobs.py
 Job CRUD API 엔드포인트
 """
+import asyncio
 import logging
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -88,7 +89,9 @@ async def get_job(
             from app.core.temporal import get_temporal_client
             client = await get_temporal_client()
             handle = client.get_workflow_handle(job.temporal_workflow_id)
-            progress = await handle.query("get_progress")
+            progress = await asyncio.wait_for(
+                handle.query("get_progress"), timeout=5.0
+            )
             result["progress"] = progress
 
             # Temporal 상태가 DB와 다르면 DB 동기화

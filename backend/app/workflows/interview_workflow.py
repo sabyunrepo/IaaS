@@ -152,16 +152,24 @@ class InterviewGenerationWorkflow:
                 )
 
             # Code Analysis (조건부) - HYBRID 병렬 처리
-            code_analysis_result = None
+            # JD/Doc 분석과 코드 분석을 동시에 실행하여 총 소요시간 단축
+            code_analysis_coro = None
             if phases.get("code_analysis"):
-                code_analysis_result = await self._run_parallel_code_analysis(
+                code_analysis_coro = self._run_parallel_code_analysis(
                     enriched=enriched,
                     raw_input=raw_input,
                     execution_plan=execution_plan,
                     job_id=job_id,
                 )
 
-            analysis_results = await asyncio.gather(*analysis_tasks)
+            # 모든 분석을 병렬 실행 (JD + Doc + Code)
+            if code_analysis_coro:
+                all_results = await asyncio.gather(*analysis_tasks, code_analysis_coro)
+                analysis_results = list(all_results[:-1])
+                code_analysis_result = all_results[-1]
+            else:
+                analysis_results = await asyncio.gather(*analysis_tasks)
+                code_analysis_result = None
 
             # Aggregate results
             analysis = {"jd_analysis": analysis_results[0]}

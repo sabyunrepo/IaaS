@@ -1,7 +1,7 @@
 /**
  * LiveInterviewTab - Question Selection → Interactive Scoring → Follow-up Branching
  */
-import { useState, useMemo } from 'react'
+import { memo, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type {
   InterviewQuestion,
@@ -15,7 +15,7 @@ interface LiveInterviewTabProps {
   categoryWeights?: CategoryWeights
 }
 
-export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTabProps) {
+export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTabProps) {
   const { t } = useTranslation()
 
   // Deduplicate questions by ID — backend generates UUID-based IDs,
@@ -446,4 +446,4 @@ export function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTa
       </div>
     </div>
   )
-}
+})

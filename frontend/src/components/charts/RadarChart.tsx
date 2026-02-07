@@ -3,6 +3,7 @@
  *
  * Uses pure SVG for rendering without external dependencies.
  */
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface RadarChartProps {
@@ -36,71 +37,101 @@ export function RadarChart({
   const angleStep = (2 * Math.PI) / numAxes
   const startAngle = -Math.PI / 2 // Start from top
 
-  // Calculate point position on radar
-  const getPoint = (value: number, axisIndex: number): { x: number; y: number } => {
-    const angle = startAngle + axisIndex * angleStep
-    const radius = (value / 100) * maxRadius
-    return {
-      x: center + radius * Math.cos(angle),
-      y: center + radius * Math.sin(angle)
+  // Memoize expensive geometry calculations
+  const geometry = useMemo(() => {
+    const getPoint = (value: number, axisIndex: number) => {
+      const angle = startAngle + axisIndex * angleStep
+      const radius = (value / 100) * maxRadius
+      return {
+        x: center + radius * Math.cos(angle),
+        y: center + radius * Math.sin(angle)
+      }
     }
-  }
 
-  // Generate polygon points string
-  const getPolygonPoints = (data: number[]): string => {
-    return data
-      .map((value, i) => {
+    const getPolygonPoints = (data: number[]): string =>
+      data.map((value, i) => {
         const point = getPoint(value, i)
         return `${point.x},${point.y}`
-      })
-      .join(' ')
-  }
+      }).join(' ')
 
-  // Generate grid lines
-  const gridLevels = [20, 40, 60, 80, 100]
+    const gridLevels = [20, 40, 60, 80, 100]
+    const gridPolygons = gridLevels.map((level) => {
+      const radius = (level / 100) * maxRadius
+      const points = Array.from({ length: numAxes }, (_, i) => {
+        const angle = startAngle + i * angleStep
+        return `${center + radius * Math.cos(angle)},${center + radius * Math.sin(angle)}`
+      }).join(' ')
+      return { level, points }
+    })
+
+    const axisLines = Array.from({ length: numAxes }, (_, i) => {
+      const angle = startAngle + i * angleStep
+      return {
+        index: i,
+        endX: center + maxRadius * Math.cos(angle),
+        endY: center + maxRadius * Math.sin(angle),
+      }
+    })
+
+    const candidatePoints = candidateData.map((value, i) => ({
+      ...getPoint(value, i),
+      value,
+      index: i,
+    }))
+
+    const labelPositions = Array.from({ length: numAxes }, (_, i) => {
+      const angle = startAngle + i * angleStep
+      const labelRadius = maxRadius + 25
+      let textAnchor: 'start' | 'middle' | 'end' = 'middle'
+      if (Math.cos(angle) > 0.3) textAnchor = 'start'
+      else if (Math.cos(angle) < -0.3) textAnchor = 'end'
+      return {
+        x: center + labelRadius * Math.cos(angle),
+        y: center + labelRadius * Math.sin(angle),
+        textAnchor,
+      }
+    })
+
+    return {
+      gridPolygons,
+      axisLines,
+      requiredPolygon: getPolygonPoints(requiredData),
+      candidatePolygon: getPolygonPoints(candidateData),
+      candidatePoints,
+      labelPositions,
+    }
+  }, [candidateData, requiredData, size, center, maxRadius, angleStep, startAngle])
 
   return (
     <div className="relative w-full max-w-[320px] mx-auto">
       <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-auto">
         {/* Background grid circles */}
-        {gridLevels.map((level) => {
-          const radius = (level / 100) * maxRadius
-          const points = Array.from({ length: numAxes }, (_, i) => {
-            const angle = startAngle + i * angleStep
-            return `${center + radius * Math.cos(angle)},${center + radius * Math.sin(angle)}`
-          }).join(' ')
-          return (
-            <polygon
-              key={level}
-              points={points}
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth={1}
-            />
-          )
-        })}
+        {geometry.gridPolygons.map(({ level, points }) => (
+          <polygon
+            key={level}
+            points={points}
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth={1}
+          />
+        ))}
 
         {/* Axis lines */}
-        {Array.from({ length: numAxes }, (_, i) => {
-          const angle = startAngle + i * angleStep
-          const endX = center + maxRadius * Math.cos(angle)
-          const endY = center + maxRadius * Math.sin(angle)
-          return (
-            <line
-              key={i}
-              x1={center}
-              y1={center}
-              x2={endX}
-              y2={endY}
-              stroke="#d1d5db"
-              strokeWidth={1}
-            />
-          )
-        })}
+        {geometry.axisLines.map(({ index, endX, endY }) => (
+          <line
+            key={index}
+            x1={center}
+            y1={center}
+            x2={endX}
+            y2={endY}
+            stroke="#d1d5db"
+            strokeWidth={1}
+          />
+        ))}
 
         {/* Required polygon (background) */}
         <polygon
-          points={getPolygonPoints(requiredData)}
+          points={geometry.requiredPolygon}
           fill="rgba(99, 102, 241, 0.2)"
           stroke="#6366f1"
           strokeWidth={2}
@@ -110,7 +141,7 @@ export function RadarChart({
 
         {/* Candidate polygon (foreground) */}
         <polygon
-          points={getPolygonPoints(candidateData)}
+          points={geometry.candidatePolygon}
           fill="rgba(16, 185, 129, 0.3)"
           stroke="#10b981"
           strokeWidth={2}
@@ -118,61 +149,45 @@ export function RadarChart({
         />
 
         {/* Data points with hover tooltip */}
-        {candidateData.map((value, i) => {
-          const point = getPoint(value, i)
-          return (
-            <g key={i}>
-              {/* Larger invisible hit area for hover */}
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r={10}
-                fill="transparent"
-                style={{ cursor: 'pointer' }}
-              >
-                <title>{resolvedLabels[i]}: {value} ({t('radar_required')}: {requiredData[i]})</title>
-              </circle>
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r={4}
-                fill="#10b981"
-                stroke="white"
-                strokeWidth={2}
-                style={{ transition: 'r 0.2s ease' }}
-                className="hover:r-6"
-              >
-                <title>{resolvedLabels[i]}: {value} ({t('radar_required')}: {requiredData[i]})</title>
-              </circle>
-            </g>
-          )
-        })}
+        {geometry.candidatePoints.map(({ x, y, value, index: i }) => (
+          <g key={i}>
+            <circle
+              cx={x}
+              cy={y}
+              r={10}
+              fill="transparent"
+              style={{ cursor: 'pointer' }}
+            >
+              <title>{resolvedLabels[i]}: {value} ({t('radar_required')}: {requiredData[i]})</title>
+            </circle>
+            <circle
+              cx={x}
+              cy={y}
+              r={4}
+              fill="#10b981"
+              stroke="white"
+              strokeWidth={2}
+              style={{ transition: 'r 0.2s ease' }}
+              className="hover:r-6"
+            >
+              <title>{resolvedLabels[i]}: {value} ({t('radar_required')}: {requiredData[i]})</title>
+            </circle>
+          </g>
+        ))}
 
         {/* Labels */}
-        {resolvedLabels.map((label, i) => {
-          const angle = startAngle + i * angleStep
-          const labelRadius = maxRadius + 25
-          const x = center + labelRadius * Math.cos(angle)
-          const y = center + labelRadius * Math.sin(angle)
-
-          // Adjust text anchor based on position
-          let textAnchor: 'start' | 'middle' | 'end' = 'middle'
-          if (Math.cos(angle) > 0.3) textAnchor = 'start'
-          else if (Math.cos(angle) < -0.3) textAnchor = 'end'
-
-          return (
-            <text
-              key={i}
-              x={x}
-              y={y}
-              textAnchor={textAnchor}
-              dominantBaseline="middle"
-              className="fill-gray-600 text-xs font-medium"
-            >
-              {label}
-            </text>
-          )
-        })}
+        {resolvedLabels.map((label, i) => (
+          <text
+            key={i}
+            x={geometry.labelPositions[i].x}
+            y={geometry.labelPositions[i].y}
+            textAnchor={geometry.labelPositions[i].textAnchor}
+            dominantBaseline="middle"
+            className="fill-gray-600 text-xs font-medium"
+          >
+            {label}
+          </text>
+        ))}
       </svg>
 
       {/* Legend */}

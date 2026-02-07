@@ -1,7 +1,7 @@
 /**
  * DecisionTab - JD Competency Achievement + Hiring Recommendation
  */
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DecisionSupport, Candidate, CategoryWeights, RiskFlag } from '../../types/interview'
 
@@ -14,7 +14,7 @@ interface DecisionTabProps {
   riskFlags?: RiskFlag[]
 }
 
-export function DecisionTab({
+export const DecisionTab = memo(function DecisionTab({
   decision,
   candidate,
   categoryWeights,
@@ -337,4 +337,4 @@ export function DecisionTab({
       </div>
     </div>
   )
-}
+})

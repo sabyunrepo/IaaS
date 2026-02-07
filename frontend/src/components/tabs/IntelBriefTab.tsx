@@ -1,6 +1,7 @@
 /**
  * IntelBriefTab - JD Analysis + GitHub Chart + LinkedIn Timeline + Competency Matching
  */
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { IntelBrief, Candidate } from '../../types/interview'
 import { ContributionChart } from '../charts'
@@ -11,7 +12,7 @@ interface IntelBriefTabProps {
   techStack?: string[]
 }
 
-export function IntelBriefTab({ intel, candidate, techStack }: IntelBriefTabProps) {
+export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, techStack }: IntelBriefTabProps) {
   const { t } = useTranslation()
   const { jd_summary, competencies, github, linkedin, linkedin_warning } = intel
 
@@ -319,4 +320,4 @@ export function IntelBriefTab({ intel, candidate, techStack }: IntelBriefTabProp
       )}
     </div>
   )
-}
+})
