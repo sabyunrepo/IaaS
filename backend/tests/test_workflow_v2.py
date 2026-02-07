@@ -159,26 +159,32 @@ class TestDecisionLevelEstimation:
     """경력 레벨 추정 로직 검증 (버그 수정 확인)"""
 
     def test_level_junior(self):
+        """경력 1년 → Junior (years-based fallback)"""
         from app.workflows.activities.decision_generation import _extract_decision_summary
         result = _extract_decision_summary(
             {}, {},
             {"profile": {"experience_years": 1, "skills": [], "experiences": []}},
+            experience_level="",
         )
         assert result.level == "Junior"
 
     def test_level_mid(self):
+        """경력 5년 → Mid (years-based fallback)"""
         from app.workflows.activities.decision_generation import _extract_decision_summary
         result = _extract_decision_summary(
             {}, {},
             {"profile": {"experience_years": 5, "skills": [], "experiences": []}},
+            experience_level="",
         )
         assert result.level == "Mid"
 
     def test_level_senior(self):
+        """경력 8년 → Senior (years-based fallback)"""
         from app.workflows.activities.decision_generation import _extract_decision_summary
         result = _extract_decision_summary(
             {}, {},
             {"profile": {"experience_years": 8, "skills": [], "experiences": []}},
+            experience_level="",
         )
         assert result.level == "Senior"
 
@@ -188,6 +194,7 @@ class TestDecisionLevelEstimation:
         result = _extract_decision_summary(
             {}, {},
             {"profile": {"experience_years": 12, "skills": [], "experiences": []}},
+            experience_level="",
         )
         assert result.level == "Lead"
 
@@ -197,8 +204,19 @@ class TestDecisionLevelEstimation:
         result = _extract_decision_summary(
             {}, {},
             {"profile": {"experience_years": 10, "skills": [], "experiences": []}},
+            experience_level="",
         )
         assert result.level == "Lead"
+
+    def test_level_from_experience_level_param(self):
+        """experience_level 파라미터가 LEVEL_MAP에 있으면 그대로 사용"""
+        from app.workflows.activities.decision_generation import _extract_decision_summary
+        result = _extract_decision_summary(
+            {}, {},
+            {"profile": {"experience_years": 1, "skills": [], "experiences": []}},
+            experience_level="시니어",
+        )
+        assert result.level == "Senior"
 
 
 # ============================================================

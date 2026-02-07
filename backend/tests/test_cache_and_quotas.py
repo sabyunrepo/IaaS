@@ -9,29 +9,26 @@ class TestCachedLLMInvalidation:
         assert hasattr(svc, "invalidate_for_job")
         assert callable(svc.invalidate_for_job)
 
-    def test_job_cache_key_method_exists(self):
+    def test_make_cache_key_method_exists(self):
         from app.services.cached_llm import CachedLLMService
-        svc = CachedLLMService()
-        assert hasattr(svc, "_job_cache_key")
+        assert hasattr(CachedLLMService, "_make_cache_key")
+        assert callable(CachedLLMService._make_cache_key)
 
     def test_job_cache_key_format(self):
         from app.services.cached_llm import CachedLLMService
-        svc = CachedLLMService()
-        key = svc._job_cache_key("job-123", "test prompt", "gpt-4o")
+        key = CachedLLMService._make_cache_key("test prompt", "gpt-4o", job_id="job-123")
         assert key.startswith("llm_cache:job:job-123:")
 
     def test_job_cache_key_deterministic(self):
         from app.services.cached_llm import CachedLLMService
-        svc = CachedLLMService()
-        k1 = svc._job_cache_key("j1", "prompt", "model")
-        k2 = svc._job_cache_key("j1", "prompt", "model")
+        k1 = CachedLLMService._make_cache_key("prompt", "model", job_id="j1")
+        k2 = CachedLLMService._make_cache_key("prompt", "model", job_id="j1")
         assert k1 == k2
 
     def test_job_cache_key_differs_by_job(self):
         from app.services.cached_llm import CachedLLMService
-        svc = CachedLLMService()
-        k1 = svc._job_cache_key("j1", "prompt", "model")
-        k2 = svc._job_cache_key("j2", "prompt", "model")
+        k1 = CachedLLMService._make_cache_key("prompt", "model", job_id="j1")
+        k2 = CachedLLMService._make_cache_key("prompt", "model", job_id="j2")
         assert k1 != k2
 
     def test_run_for_job_method_exists(self):
@@ -42,40 +39,35 @@ class TestCachedLLMInvalidation:
 
 
 class TestCacheKeyWithActivityName:
-    """캐시 키에 activity_name 포함 테스트"""
+    """캐시 키에 activity_name 포함 테스트 (_make_cache_key 통합 API)"""
 
     def test_cache_key_includes_activity_name(self):
         from app.services.cached_llm import CachedLLMService
-        svc = CachedLLMService()
-        key = svc._cache_key("prompt", "model", "analyze_jd")
+        key = CachedLLMService._make_cache_key("prompt", "model", "analyze_jd")
         assert "analyze_jd" in key
         assert key.startswith("llm_cache:analyze_jd:")
 
     def test_cache_key_without_activity_name(self):
         from app.services.cached_llm import CachedLLMService
-        svc = CachedLLMService()
-        key = svc._cache_key("prompt", "model")
+        key = CachedLLMService._make_cache_key("prompt", "model")
         assert key.startswith("llm_cache:")
         assert key.count(":") == 1  # llm_cache:hash
 
     def test_different_activities_different_keys(self):
         from app.services.cached_llm import CachedLLMService
-        svc = CachedLLMService()
-        k1 = svc._cache_key("same prompt", "model", "analyze_jd")
-        k2 = svc._cache_key("same prompt", "model", "craft_question")
+        k1 = CachedLLMService._make_cache_key("same prompt", "model", "analyze_jd")
+        k2 = CachedLLMService._make_cache_key("same prompt", "model", "craft_question")
         assert k1 != k2
 
     def test_job_cache_key_includes_activity(self):
         from app.services.cached_llm import CachedLLMService
-        svc = CachedLLMService()
-        key = svc._job_cache_key("job-1", "prompt", "model", "analyze_jd")
+        key = CachedLLMService._make_cache_key("prompt", "model", "analyze_jd", job_id="job-1")
         assert "analyze_jd" in key
         assert key.startswith("llm_cache:job:job-1:analyze_jd:")
 
     def test_job_cache_key_without_activity(self):
         from app.services.cached_llm import CachedLLMService
-        svc = CachedLLMService()
-        key = svc._job_cache_key("job-1", "prompt", "model")
+        key = CachedLLMService._make_cache_key("prompt", "model", job_id="job-1")
         assert key.startswith("llm_cache:job:job-1:")
         assert "None" not in key
 
