@@ -173,6 +173,7 @@ async def finalize_output(
         document_analysis=json.dumps(analysis.get("document_analysis", {}), default=str)[:2000],
         code_analysis=json.dumps(analysis.get("code_analysis", {}), default=str)[:2000],
         linkedin_profile=linkedin_summary,
+        output_language=output_language,
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     candidate_summary = await run_llm_with_prompt_config_heartbeat(llm, summary_config, interval=30.0)
@@ -184,6 +185,7 @@ async def finalize_output(
         experience_level=raw_input.get("experience_level", "미들"),
         total_questions=len(questions),
         categories=list(set(q.get("category", "") for q in questions)),
+        output_language=output_language,
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     interviewer_guide = await run_llm_with_prompt_config_heartbeat(llm, guide_config, interval=30.0)
@@ -208,19 +210,19 @@ async def finalize_output(
         "interviewer_guide": interviewer_guide,
         "full_glossary": all_terms,
         "linkedin_profile": {
-            "name": linkedin_profile.get("full_name"),
+            "name": linkedin_profile.get("full_name") or linkedin_profile.get("name"),
             "headline": linkedin_profile.get("headline"),
             "current_company": linkedin_profile.get("current_company"),
-            "avatar_url": linkedin_profile.get("avatar_url"),
+            "avatar_url": linkedin_profile.get("avatar_url") or linkedin_profile.get("avatar"),
             "skills": linkedin_profile.get("skills", []),
-            "experiences": linkedin_profile.get("experiences", []),
+            "experiences": linkedin_profile.get("experiences") or linkedin_profile.get("experience", []),
             "education": linkedin_profile.get("education", []),
             "languages": linkedin_profile.get("languages", []),
             "certifications": linkedin_profile.get("certifications", []),
             "projects": linkedin_profile.get("projects", []),
             "honors_and_awards": linkedin_profile.get("honors_and_awards", []),
             "activity": linkedin_profile.get("activity", []),
-            "profile_url": linkedin_profile.get("profile_url"),
+            "profile_url": linkedin_profile.get("profile_url") or linkedin_profile.get("linkedin_url"),
         } if linkedin_profile else None,
         "candidate": _build_candidate(linkedin_profile, analysis, raw_input) if linkedin_profile or analysis else None,
         "metadata": {
@@ -229,6 +231,16 @@ async def finalize_output(
             "terminology_count": len(all_terms),
             "experience_level": raw_input.get("experience_level", "미들"),
             "has_linkedin_data": bool(linkedin_profile),
+            "has_code_analysis": bool(analysis.get("code_analysis")),
+            "has_document_analysis": bool(analysis.get("document_analysis")),
+            "code_analysis_tech_stack": (analysis.get("code_analysis") or {}).get("tech_stack", [])[:10],
+            "document_analysis_skills": (
+                list((analysis.get("document_analysis") or {}).get("profile", {}).get("skills", {}).keys())[:10]
+                if isinstance((analysis.get("document_analysis") or {}).get("profile", {}).get("skills"), dict)
+                else list((analysis.get("document_analysis") or {}).get("profile", {}).get("skills", []))[:10]
+                if isinstance((analysis.get("document_analysis") or {}).get("profile", {}).get("skills"), list)
+                else []
+            ),
         },
     }
 

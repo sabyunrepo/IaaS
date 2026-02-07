@@ -229,17 +229,19 @@ def _calculate_radar_scores(
     return candidate_scores, required_scores
 
 
-def _analyze_engineering_dna(code_analysis: dict | None) -> list[EngineeringDNAItem]:
+def _analyze_engineering_dna(code_analysis: dict | None, lang: str = "ko") -> list[EngineeringDNAItem]:
     """Engineering DNA 분석"""
+    from app.services.i18n_labels import _t
+
     items = []
 
     if not code_analysis:
         items.append(EngineeringDNAItem(
-            label="코드 분석",
+            label=_t("code_analysis", lang),
             value=0,
-            display="미확인",
+            display=_t("unconfirmed", lang),
             color="slate",
-            note="GitHub 데이터가 제공되지 않았습니다",
+            note=_t("no_github_data", lang),
         ))
         return items
 
@@ -248,7 +250,7 @@ def _analyze_engineering_dna(code_analysis: dict | None) -> list[EngineeringDNAI
     # 테스트 커버리지
     test_coverage = quality.get("test_coverage", 0)
     items.append(EngineeringDNAItem(
-        label="테스트 커버리지",
+        label=_t("test_coverage", lang),
         value=test_coverage,
         display=f"{test_coverage}%",
         color="emerald" if test_coverage >= 70 else "amber" if test_coverage >= 40 else "red",
@@ -256,9 +258,9 @@ def _analyze_engineering_dna(code_analysis: dict | None) -> list[EngineeringDNAI
 
     # 문서화 품질
     doc_score = quality.get("documentation_score", 0)
-    doc_display = "우수" if doc_score >= 80 else "보통" if doc_score >= 50 else "미흡"
+    doc_display = _t("excellent", lang) if doc_score >= 80 else _t("moderate", lang) if doc_score >= 50 else _t("poor", lang)
     items.append(EngineeringDNAItem(
-        label="문서화 품질",
+        label=_t("doc_quality", lang),
         value=doc_score,
         display=doc_display,
         color="blue" if doc_score >= 80 else "amber" if doc_score >= 50 else "red",
@@ -267,19 +269,19 @@ def _analyze_engineering_dna(code_analysis: dict | None) -> list[EngineeringDNAI
     # IaC 사용 여부
     iac_score = quality.get("iac_score", 0)
     items.append(EngineeringDNAItem(
-        label="IaC",
+        label=_t("iac", lang),
         value=iac_score,
-        display="확인됨" if iac_score >= 50 else "미확인",
+        display=_t("confirmed", lang) if iac_score >= 50 else _t("unconfirmed", lang),
         color="emerald" if iac_score >= 50 else "red",
-        note="Terraform, Ansible 같은 자동화 도구 사용 흔적이 GitHub에서 발견되지 않았습니다" if iac_score < 50 else None,
-        tooltip="서버 환경을 코드 파일로 관리하는 방식",
+        note=_t("iac_not_found", lang) if iac_score < 50 else None,
+        tooltip=_t("iac_tooltip", lang),
     ))
 
     # 코드 복잡도
     complexity = quality.get("complexity_score", 50)
-    complexity_display = "낮음" if complexity <= 30 else "보통" if complexity <= 70 else "높음"
+    complexity_display = _t("low", lang) if complexity <= 30 else _t("moderate", lang) if complexity <= 70 else _t("high", lang)
     items.append(EngineeringDNAItem(
-        label="코드 복잡도",
+        label=_t("code_complexity", lang),
         value=complexity,
         display=complexity_display,
         color="emerald" if complexity <= 30 else "amber" if complexity <= 70 else "red",
@@ -291,8 +293,11 @@ def _analyze_engineering_dna(code_analysis: dict | None) -> list[EngineeringDNAI
 def _extract_risk_flags(
     code_analysis: dict | None,
     document_analysis: dict,
+    lang: str = "ko",
 ) -> list[RiskFlag]:
     """리스크 플래그 추출"""
+    from app.services.i18n_labels import _t
+
     flags = []
 
     # 코드 분석 기반 리스크
@@ -301,18 +306,18 @@ def _extract_risk_flags(
         for risk in code_risks:
             if isinstance(risk, dict):
                 flags.append(RiskFlag(
-                    label=risk.get("label", "리스크"),
+                    label=risk.get("label", _t("risk", lang)),
                     detail=risk.get("detail", risk.get("description", "")),
                 ))
             elif isinstance(risk, str):
-                flags.append(RiskFlag(label="주의", detail=risk))
+                flags.append(RiskFlag(label=_t("caution", lang), detail=risk))
 
     # 문서 분석 기반 리스크
     profile = document_analysis.get("profile", {})
     areas_to_probe = profile.get("areas_to_probe", [])
     for area in areas_to_probe[:3]:  # 상위 3개
         if isinstance(area, str):
-            flags.append(RiskFlag(label="확인 필요", detail=area))
+            flags.append(RiskFlag(label=_t("needs_verification", lang), detail=area))
 
     return flags[:5]  # 최대 5개
 
@@ -321,6 +326,7 @@ def _build_skill_table(
     jd_analysis: dict,
     code_analysis: dict | None,
     document_analysis: dict,
+    lang: str = "ko",
 ) -> list[SkillMatchRow]:
     """스킬 매칭 테이블 생성"""
     rows = []
@@ -345,23 +351,25 @@ def _build_skill_table(
         skill = req.get("skill", req.get("text", ""))
         skill_lower = skill.lower()
 
+        from app.services.i18n_labels import _t
+
         # 매칭 타입 결정
         match_type = "none"
         candidate_skill = "—"
-        evidence = "증거 없음"
+        evidence = _t("no_evidence", lang)
         confidence = 0
 
         for cs in candidate_skills:
             if skill_lower == cs.lower():
                 match_type = "exact"
                 candidate_skill = cs
-                evidence = "이력서"
+                evidence = _t("resume", lang)
                 confidence = 95
                 break
             elif skill_lower in cs.lower() or cs.lower() in skill_lower:
                 match_type = "similar"
                 candidate_skill = cs
-                evidence = "이력서"
+                evidence = _t("resume", lang)
                 confidence = 75
                 break
 
@@ -428,15 +436,15 @@ async def generate_deep_analysis(
     # 2. Engineering DNA 분석 (LLM 우선, 규칙 기반 fallback)
     engineering_dna = await _llm_analyze_engineering_dna(code_analysis, output_language, job_id=job_id)
     if engineering_dna is None:
-        engineering_dna = _analyze_engineering_dna(code_analysis)
+        engineering_dna = _analyze_engineering_dna(code_analysis, lang=output_language)
     activity.heartbeat()
 
     # 3. 리스크 플래그 추출
-    risk_flags = _extract_risk_flags(code_analysis, document_analysis)
+    risk_flags = _extract_risk_flags(code_analysis, document_analysis, lang=output_language)
     activity.heartbeat()
 
     # 4. 스킬 매칭 테이블 생성
-    skill_table = _build_skill_table(jd_analysis, code_analysis, document_analysis)
+    skill_table = _build_skill_table(jd_analysis, code_analysis, document_analysis, lang=output_language)
 
     # 전체 매칭 점수 계산
     if skill_table:

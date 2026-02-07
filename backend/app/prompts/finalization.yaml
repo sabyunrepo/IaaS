@@ -8,6 +8,10 @@ prompts:
       - Start your response with { and end with }
       - No explanatory text before or after the JSON
 
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All labels, descriptions, and free-text fields must be in {{output_language}}.
+
       # ROLE & GOAL
       You are the SYNTHESIZER in a multi-analyzer pipeline. Your task is to create a comprehensive
       candidate summary by combining insights from multiple specialized analyzers.
@@ -223,6 +227,10 @@ prompts:
       - Do NOT wrap output in ```json or ``` code blocks
       - Start your response with { and end with }
       - No explanatory text before or after the JSON
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output text in {{output_language}}.
+      All labels, descriptions, and free-text fields must be in {{output_language}}.
 
       # ROLE & GOAL
       Generate a comprehensive interviewer guide for conducting the interview.

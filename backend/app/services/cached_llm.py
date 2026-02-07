@@ -118,11 +118,13 @@ def _log_llm_generation(
             generation.update(output=output_str)
             generation.end()
         else:
-            # trace 없으면 독립 generation으로 기록 (경고 방지)
-            client.generation(
-                **gen_kwargs,
-                output=output_str,
-            )
+            # trace 없으면 독립 trace 생성 후 generation 기록 (SDK v3 호환)
+            try:
+                trace = client.trace(name=f"standalone-{activity_name}")
+                generation = trace.generation(**gen_kwargs, output=output_str)
+                generation.end()
+            except Exception:
+                logger.debug(f"Langfuse standalone generation skipped: {activity_name}")
 
         logger.info(
             f"Logged Langfuse generation: {activity_name}, "

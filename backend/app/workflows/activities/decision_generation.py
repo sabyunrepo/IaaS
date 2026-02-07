@@ -191,6 +191,7 @@ def _extract_decision_summary(
     candidate_summary: dict,
     jd_analysis: dict,
     document_analysis: dict,
+    lang: str = "ko",
 ) -> DecisionSummary:
     """후보자 요약에서 Decision Summary 추출"""
     profile = document_analysis.get("profile", {})
@@ -206,14 +207,16 @@ def _extract_decision_summary(
         if company and role:
             experience_str = f"{experience_years}년 ({role} @ {company})"
 
+    from app.services.i18n_labels import _t
+
     # JD 매칭 레벨
     jd_match_score = document_analysis.get("jd_match_score", 0.5)
     if jd_match_score >= 0.8:
-        jd_match = "높음"
+        jd_match = _t("jd_high", lang)
     elif jd_match_score >= 0.6:
-        jd_match = "중간"
+        jd_match = _t("jd_medium", lang)
     else:
-        jd_match = "낮음"
+        jd_match = _t("jd_low", lang)
 
     # 레벨 추정 (높은 경력부터 체크 - 순서 중요)
     level = "Mid"
@@ -234,7 +237,7 @@ def _extract_decision_summary(
     )
     key_skills = skill_list[:3]
     for skill in key_skills:
-        strengths.append(f"{skill} (이력서)")
+        strengths.append(f"{skill} ({_t('resume', lang)})")
 
     # Code analysis에서 추가 강점
     if isinstance(candidate_summary, dict):
@@ -244,7 +247,7 @@ def _extract_decision_summary(
                 if isinstance(s, dict):
                     strength_text = s.get("strength", "")
                     evidence = s.get("evidence", {})
-                    source = "Multi-source" if isinstance(evidence, dict) and len(evidence) > 1 else "이력서"
+                    source = _t("multi_source", lang) if isinstance(evidence, dict) and len(evidence) > 1 else _t("resume", lang)
                     if strength_text:
                         strengths.append(f"{strength_text} ({source})")
                 elif isinstance(s, str):
@@ -272,12 +275,15 @@ def _build_interviewer_tips(
     questions: list[dict],
     document_analysis: dict,
     jd_analysis: dict,
+    lang: str = "ko",
 ) -> InterviewerGuideTips:
     """면접관 팁 구성"""
+    from app.services.i18n_labels import _t
+
     # 시간 배분 계산
     category_counts = {}
     for q in questions:
-        cat = q.get("category", "기타")
+        cat = q.get("category", _t("other", lang))
         category_counts[cat] = category_counts.get(cat, 0) + 1
 
     total_time = 60  # 기본 60분
@@ -428,13 +434,13 @@ async def generate_decision_support(
     # 1. 후보자 요약 생성 (LLM 우선, 규칙 기반 fallback)
     summary = await _llm_generate_decision_summary(candidate_summary, jd_analysis, document_analysis, output_language, job_id=job_id)
     if summary is None:
-        summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis)
+        summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis, lang=output_language)
     activity.heartbeat()
 
     # 2. 면접관 가이드 팁 생성 (LLM 우선, 규칙 기반 fallback)
     interviewer_guide = await _llm_generate_interviewer_tips(questions, document_analysis, jd_analysis, output_language, job_id=job_id)
     if interviewer_guide is None:
-        interviewer_guide = _build_interviewer_tips(questions, document_analysis, jd_analysis)
+        interviewer_guide = _build_interviewer_tips(questions, document_analysis, jd_analysis, lang=output_language)
     activity.heartbeat()
 
     # 3. JD 역량 매핑
