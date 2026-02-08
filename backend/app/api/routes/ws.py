@@ -62,6 +62,11 @@ async def job_progress_ws(
             await websocket.close(code=4004)
             return
 
+        if job.user_id != user.id:
+            await websocket.send_json({"error": "Not authorized"})
+            await websocket.close(code=4003)
+            return
+
         # Poll Temporal for progress
         from app.core.temporal import get_temporal_client
         client = await get_temporal_client()
@@ -83,7 +88,7 @@ async def job_progress_ws(
 
             except Exception as e:
                 logger.debug(f"Workflow query failed: {e}")
-                await websocket.send_json({"event": "query_error", "message": str(e)})
+                await websocket.send_json({"event": "query_error", "message": "Workflow query failed"})
                 break
 
             await asyncio.sleep(2)
@@ -206,7 +211,7 @@ async def job_logs_ws(
 
             except Exception as e:
                 logger.debug(f"Log polling error: {e}")
-                await websocket.send_json({"event": "error", "message": str(e)})
+                await websocket.send_json({"event": "error", "message": "Log polling failed"})
                 break
 
             await asyncio.sleep(2)
