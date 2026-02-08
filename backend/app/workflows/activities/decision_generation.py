@@ -11,7 +11,7 @@ from temporalio import activity
 from app.core.observability import observe_activity
 from app.models.decision import (
     DecisionSupport, DecisionSummary, InterviewerGuideTips,
-    JDCompetencyWeight, ResumeTip, CoverLetterInsight,
+    JDCompetencyWeight, ResumeTip, CoverLetterInsight, KGEvidence,
 )
 
 logger = logging.getLogger(__name__)
@@ -468,6 +468,27 @@ async def generate_decision_support(
     logger.info(f"Generating Decision Support for job_id={job_id}")
     activity.heartbeat()
 
+    # 0. KG 근거 사전 수집 (decision_summary와 interviewer_tips에서 중복 호출 방지)
+    kg_evidence = None
+    if job_id:
+        try:
+            from app.services.graph_queries import get_interview_graph_queries
+            queries = get_interview_graph_queries(job_id)
+            conflicts = await queries._get_conflict_candidates()
+            gaps = await queries._get_gap_candidates()
+            conflict_topics = [c.topic for c in (conflicts or [])[:5]]
+            gap_topics = [g.topic for g in (gaps or [])[:5]]
+            if conflict_topics or gap_topics:
+                kg_evidence = KGEvidence(
+                    conflicts=conflict_topics,
+                    gaps=gap_topics,
+                    conflict_count=len(conflicts or []),
+                    gap_count=len(gaps or []),
+                )
+                logger.info(f"KG evidence collected: {len(conflict_topics)} conflicts, {len(gap_topics)} gaps")
+        except Exception as e:
+            logger.debug(f"KG evidence collection failed (non-fatal): {e}")
+
     # 1. 후보자 요약 생성 (LLM 우선, 규칙 기반 fallback)
     summary = await _llm_generate_decision_summary(candidate_summary, jd_analysis, document_analysis, output_language, job_id=job_id)
     if summary is None:
@@ -487,6 +508,7 @@ async def generate_decision_support(
         summary=summary,
         interviewer_guide=interviewer_guide,
         jd_competency_map=jd_competency_map,
+        kg_evidence=kg_evidence,
     )
 
     logger.info(f"Decision Support generated with {len(jd_competency_map)} competencies mapped")
