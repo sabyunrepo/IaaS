@@ -336,9 +336,16 @@ class InterviewGenerationWorkflow:
                 heartbeat_timeout=timedelta(seconds=60),
                 retry_policy=LLM_RETRY,
             )
-            # Attach decision guide to final output
+            # Attach decision guide + quality review metadata to final output
             if isinstance(final_script, dict) and decision_guide:
                 final_script["decision_guide"] = decision_guide
+            if isinstance(final_script, dict):
+                meta = final_script.get("metadata", {})
+                if isinstance(meta, dict):
+                    quality = meta.get("quality", {})
+                    if isinstance(quality, dict):
+                        quality["review_verdict"] = review.get("verdict") if isinstance(review, dict) else None
+                        quality["revision_count"] = revision_count
 
             # Phase 4c: Generate v2 Intel and Analysis (병렬)
             self._update_status(JobStatus.REVIEWING, "Phase 4: Intel/Analysis", 92)
