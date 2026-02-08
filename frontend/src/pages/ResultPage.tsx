@@ -330,6 +330,7 @@ export function ResultPage() {
               intel={script.intel}
               candidate={script.candidate}
               techStack={script.metadata?.code_analysis_tech_stack}
+              linkedinProfile={script.linkedin_profile}
             />
           )}
 
