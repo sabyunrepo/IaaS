@@ -44,6 +44,19 @@ OAUTH_SCOPES = {
 }
 
 
+def _get_public_base_url(request: Request) -> str:
+    """nginx 리버스 프록시 뒤에서 공개 URL 감지.
+
+    X-Forwarded-Proto/Host 헤더가 있으면 사용하고,
+    없으면 settings 값으로 fallback.
+    """
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    host = request.headers.get("host")
+    if forwarded_proto and host:
+        return f"{forwarded_proto}://{host}"
+    return settings.BACKEND_URL
+
+
 # --- Login ---
 
 @router.get("/{provider}/login")
@@ -53,7 +66,7 @@ async def oauth_login(provider: str, request: Request):
         raise ValidationError(f"Unsupported provider: {provider}")
 
     client = OAUTH_CLIENTS[provider]
-    callback_url = f"{settings.BACKEND_URL}/auth/{provider}/callback"
+    callback_url = f"{_get_public_base_url(request)}/auth/{provider}/callback"
     scopes = OAUTH_SCOPES.get(provider, [])
 
     authorization_url = await client.get_authorization_url(
@@ -78,7 +91,7 @@ async def oauth_callback(
         raise ValidationError(f"Unsupported provider: {provider}")
 
     client = OAUTH_CLIENTS[provider]
-    callback_url = f"{settings.BACKEND_URL}/auth/{provider}/callback"
+    callback_url = f"{_get_public_base_url(request)}/auth/{provider}/callback"
 
     # 1. code → access_token
     try:
@@ -171,8 +184,9 @@ async def oauth_callback(
         "plan": user.plan,
     })
 
-    # 6. 프론트엔드로 리다이렉트
-    return RedirectResponse(url=f"{settings.FRONTEND_URL}/auth/callback?token={jwt_token}")
+    # 6. 프론트엔드로 리다이렉트 (같은 도메인 뒤 nginx 프록시)
+    base_url = _get_public_base_url(request)
+    return RedirectResponse(url=f"{base_url}/auth/callback?token={jwt_token}")
 
 
 # --- API Key Management ---
