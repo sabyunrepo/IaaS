@@ -189,6 +189,18 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
 
     activity.heartbeat(f"Selecting {max_questions} topics from {len(candidates)} candidates...")
 
+    # 후보 소스 분포 추적 — 코드/KG 기반 비율이 낮으면 경고
+    from collections import Counter as _Counter
+    source_dist = _Counter(c.get("source", "unknown") for c in candidates)
+    code_based = sum(v for k, v in source_dist.items() if k in ("code", "vector_code") or k.startswith("kg_"))
+    total_cands = len(candidates)
+    if total_cands > 0 and code_based / total_cands < 0.3:
+        logger.warning(
+            f"select_topics: code/KG-based candidates only {code_based}/{total_cands} "
+            f"({code_based * 100 // total_cands}%) — questions may lack code evidence"
+        )
+    logger.info(f"select_topics candidate sources: {dict(source_dist)}")
+
     cat_dist_text, diff_dist_text = format_distribution_for_prompt(dist)
     candidate_context = build_candidate_context(analysis, enriched_input)
 
@@ -445,14 +457,26 @@ async def craft_question(
             question["evidence_source"] = "Portfolio"
         elif source == "github":
             question["evidence_source"] = "GitHub"
+        elif source.startswith("vector_"):
+            question["evidence_source"] = "SemanticSearch"
+        elif source == "jd_match":
+            question["evidence_source"] = "JD"
         else:
             question["evidence_source"] = "General"
-            logger.info(f"craft_question: no evidence_source for topic '{topic.get('topic', '')[:40]}', marked as General")
+            question.setdefault("_quality_flags", [])
+            question["_quality_flags"].append("no_evidence_source")
+            logger.warning(f"craft_question: no evidence_source for topic '{topic.get('topic', '')[:40]}', marked as General — may be generic")
 
     # Add KG provenance metadata
     if topic.get("source", "").startswith("kg_"):
         question["kg_source"] = topic.get("source")
         question["kg_category"] = topic.get("kg_category")
+
+    # 코드 기반 질문인데 code_reference가 없으면 품질 경고
+    if question.get("evidence_source") in ("Code", "GitHub", "KnowledgeGraph") and not code_reference:
+        question.setdefault("_quality_flags", [])
+        question["_quality_flags"].append("code_question_without_reference")
+        logger.warning(f"craft_question: code-based question '{topic.get('topic', '')[:40]}' has no code_reference")
 
     # Add code reference if available (mapped to frontend schema: file, lines, snippet)
     if code_reference:
