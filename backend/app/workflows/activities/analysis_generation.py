@@ -421,6 +421,14 @@ async def _llm_build_skill_table(
             return None
 
         valid_types = {"exact", "similar", "partial", "none"}
+        # confidence ↔ type 유효 범위 (프롬프트 CONSISTENCY RULES와 동기화)
+        _CONFIDENCE_RANGES: dict[str, tuple[int, int]] = {
+            "exact": (70, 100),
+            "similar": (50, 89),
+            "partial": (30, 69),
+            "none": (0, 30),
+        }
+        corrected_count = 0
         rows = []
         for item in result[:6]:
             if not isinstance(item, dict):
@@ -428,14 +436,24 @@ async def _llm_build_skill_table(
             match_type = item.get("type", "none")
             if match_type not in valid_types:
                 match_type = "none"
+            confidence = max(0, min(100, int(item.get("confidence", 0))))
+
+            # confidence ↔ type 불일치 자동 보정
+            lo, hi = _CONFIDENCE_RANGES[match_type]
+            if confidence < lo or confidence > hi:
+                corrected_count += 1
+                confidence = max(lo, min(hi, confidence))
+
             rows.append(SkillMatchRow(
                 skill=item.get("skill", ""),
                 candidate=item.get("candidate", "—"),
                 type=match_type,
                 evidence=item.get("evidence", "No evidence"),
-                confidence=max(0, min(100, int(item.get("confidence", 0)))),
+                confidence=confidence,
             ))
 
+        if corrected_count > 0:
+            logger.warning(f"Skill matching: {corrected_count}/{len(rows)} rows had confidence ↔ type mismatch — auto-corrected")
         if rows:
             logger.info(f"LLM skill matching: {len(rows)} rows, avg confidence={sum(r.confidence for r in rows)//len(rows)}%")
             return rows

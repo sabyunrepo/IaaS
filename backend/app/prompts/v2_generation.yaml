@@ -137,6 +137,12 @@ prompts:
       FORBIDDEN: "후보자는 기술력이 높음", "전반적으로 우수함", "경험이 풍부함" (too vague)
       REQUIRED: "test_coverage 72%, documentation_score 65% (GitHub)" (specific metrics with source)
 
+      # FORBIDDEN PATTERNS (will cause rejection)
+      - Reasoning without numeric data: "기술력이 우수함" ← REJECTED (no metric)
+      - Reasoning without source tag: "코드 품질이 높음" ← REJECTED (no (GitHub)/(Resume))
+      - Score outside ±15 of formula base: formula=60 but score=80 ← REJECTED
+      - EVERY reasoning MUST contain at least one number AND one source tag in parentheses
+
       # OUTPUT FORMAT
       {{
         "candidate_scores": [role_fit, technical, execution, communication, code_quality],
@@ -188,6 +194,13 @@ prompts:
       - If no match found: "No evidence" (do NOT write empty string)
       - NEVER fabricate evidence — if a skill is not in the input data, mark type as "none"
       - FORBIDDEN evidence formats: "Some evidence", "Possibly in", "Appears to be", "관련 있을 수 있음", "경험이 있는 것 같음"
+
+      # CONFIDENCE ↔ TYPE CONSISTENCY RULES (MANDATORY)
+      - type="exact" → confidence MUST be ≥70
+      - type="similar" → confidence MUST be 50-89
+      - type="partial" → confidence MUST be 30-69
+      - type="none" → confidence MUST be ≤30
+      - Violations will be auto-corrected and flagged as quality issues
 
       # INPUT
       JD Requirements (top 6):
