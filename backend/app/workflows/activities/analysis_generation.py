@@ -528,6 +528,7 @@ async def generate_deep_analysis(
         calculate_code_quality_score,
         classify_experience_level,
         calculate_data_confidence,
+        extract_code_stats,
     )
 
     # 스킬 매칭 평균
@@ -535,9 +536,8 @@ async def generate_deep_analysis(
     if skill_table:
         skill_match_avg = sum(row.confidence for row in skill_table) // len(skill_table)
 
-    # 코드 품질 점수
-    quality_metrics = code_analysis.get("quality_metrics", {}) if code_analysis else {}
-    code_stats = code_analysis.get("stats", {}) if code_analysis else {}
+    # 코드 품질 점수 (repositories에서 stats 집계)
+    quality_metrics, code_stats = extract_code_stats(code_analysis)
     cq = calculate_code_quality_score(quality_metrics, code_stats)
 
     # 경험 적합도
