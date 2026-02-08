@@ -93,6 +93,45 @@ export const DecisionTab = memo(function DecisionTab({
         </div>
       </div>
 
+      {/* Score Threshold Guide - shows how score maps to recommendation */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {t('decision_score_guide')}
+        </h4>
+        <div className="relative h-3 rounded-full overflow-hidden flex">
+          <div className="h-full bg-red-400" style={{ width: '40%' }} />
+          <div className="h-full bg-amber-400" style={{ width: '20%' }} />
+          <div className="h-full bg-green-400" style={{ width: '20%' }} />
+          <div className="h-full bg-emerald-400" style={{ width: '20%' }} />
+          {/* Score indicator */}
+          <div
+            className="absolute top-0 h-full w-0.5 bg-gray-900"
+            style={{ left: `${Math.min(scorePercent, 100)}%` }}
+          />
+        </div>
+        <div className="flex text-[10px] text-gray-500 mt-1.5">
+          <div className="w-[40%] text-center">
+            <span className="text-red-600 font-medium">{t('rec_no_hire')}</span>
+            <span className="text-gray-400 ml-1">0-39%</span>
+          </div>
+          <div className="w-[20%] text-center">
+            <span className="text-amber-600 font-medium">{t('rec_leaning_no')}</span>
+            <span className="text-gray-400 ml-1">40-59%</span>
+          </div>
+          <div className="w-[20%] text-center">
+            <span className="text-green-600 font-medium">{t('rec_hire')}</span>
+            <span className="text-gray-400 ml-1">60-79%</span>
+          </div>
+          <div className="w-[20%] text-center">
+            <span className="text-emerald-600 font-medium">{t('rec_strong_hire')}</span>
+            <span className="text-gray-400 ml-1">80%+</span>
+          </div>
+        </div>
+      </div>
+
       {/* Decision Summary */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
