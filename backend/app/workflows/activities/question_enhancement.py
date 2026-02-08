@@ -34,7 +34,27 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     from app.services.cached_llm import validate_llm_output
-    return validate_llm_output(result, activity_name="enhance_terminology")
+    validated = validate_llm_output(result, activity_name="enhance_terminology")
+
+    # 용어 설명 커버리지 검증 — plain_explanation 누락 감지
+    if isinstance(validated, dict):
+        total_terms = 0
+        missing_explanation = 0
+        for q_key, q_data in validated.items():
+            terms = q_data if isinstance(q_data, list) else q_data.get("terminology", []) if isinstance(q_data, dict) else []
+            for term in terms:
+                if isinstance(term, dict):
+                    total_terms += 1
+                    explanation = term.get("plain_explanation", "") or term.get("explanation", "")
+                    if not explanation or len(str(explanation).strip()) < 3:
+                        missing_explanation += 1
+        if total_terms > 0:
+            coverage = round((total_terms - missing_explanation) / total_terms * 100, 1)
+            logger.info(f"enhance_terminology: {total_terms} terms, {coverage}% have explanations")
+            if missing_explanation > 0:
+                logger.warning(f"enhance_terminology: {missing_explanation}/{total_terms} terms missing plain_explanation")
+
+    return validated
 
 
 @activity.defn
@@ -58,7 +78,27 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     from app.services.cached_llm import validate_llm_output
-    return validate_llm_output(result, activity_name="craft_evaluation_scenarios")
+    validated = validate_llm_output(result, activity_name="craft_evaluation_scenarios")
+
+    # 3단계 시나리오 구조 검증 — expert/mid_level/low_level 존재 확인
+    EXPECTED_LEVELS = {"expert", "mid_level", "low_level"}
+    if isinstance(validated, dict):
+        total_questions = 0
+        incomplete_questions = 0
+        for q_key, q_data in validated.items():
+            if not isinstance(q_data, dict):
+                continue
+            total_questions += 1
+            present_levels = set(q_data.keys()) & EXPECTED_LEVELS
+            if present_levels != EXPECTED_LEVELS:
+                incomplete_questions += 1
+                missing = EXPECTED_LEVELS - present_levels
+                logger.warning(f"craft_evaluation_scenarios: {q_key} missing levels: {missing}")
+        if total_questions > 0:
+            coverage = round((total_questions - incomplete_questions) / total_questions * 100, 1)
+            logger.info(f"craft_evaluation_scenarios: {total_questions} questions, {coverage}% have all 3 levels")
+
+    return validated
 
 
 @activity.defn
