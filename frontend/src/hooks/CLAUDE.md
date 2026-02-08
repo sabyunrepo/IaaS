@@ -47,3 +47,7 @@
 - `clearToken()` 함수 사용으로 로그아웃 로직 통일
 - `fetchUser()`: 토큰 있으면 `/auth/me` 호출하여 사용자 정보 로드
 - URL 파라미터에서 토큰 추출 → `setToken()` → URL 정리
+
+## PR #115: 상대 URL 전환
+- `useAuth.ts`: `/auth/me` 호출 시 `BACKEND` 상수 기반 절대 URL 대신 상대 URL 사용
+- Docker/프록시 환경에서 localhost 리다이렉트 실패 방지

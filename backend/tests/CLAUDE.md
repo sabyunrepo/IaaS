@@ -55,7 +55,12 @@ pytest 기반 테스트 스위트.
 | `TestLLMCacheEnabled` | 2 | LLM_CACHE_ENABLED 설정 존재 및 기본값 |
 | `TestRedisConnectionPool` | 2 | 공유 Redis 풀 함수 존재 |
 
+## PR #113: Langfuse-first mock 동기화
+
+7개 테스트 파일에서 mock 대상을 `get_langfuse_prompt` (Langfuse-first 패턴)으로 통일:
+- mock 패치 경로가 실제 서비스 코드의 Langfuse-first 호출 패턴과 일치하도록 수정
+- **결과**: 474 passed, 4 skipped
+
 ## 알려진 이슈
 
-- `slowapi` 미설치 시 `TestRateLimitKeyFunc` 5개 테스트 실패 (로컬 venv)
 - `test_models.py`, `test_workflow.py` 등 일부 모듈은 의존성 부족으로 collection error

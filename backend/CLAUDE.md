@@ -90,11 +90,19 @@ REDIS_PASSWORD=...            # Redis 인증
 - **LLM 검증**: `validate_llm_output()` 헬퍼 (cached_llm.py)
 - **DRY**: `match_config.py` 공유 설정 모듈 (intel/analysis 중복 제거)
 
+## 개선 사이클 3 (PR #113, #115)
+
+| PR | 내용 |
+|----|------|
+| #113 | 테스트 7개 파일 mock 대상 Langfuse-first 패턴 동기화 (474 passed, 4 skipped) |
+| #115 | OAuth 로그인 localhost 리다이렉트 수정 — 상대 URL 전환 |
+
 ## 테스트
 
 ```bash
 .venv/bin/python -m pytest tests/ -x --tb=short
 ```
 
-- 로컬 venv에 `slowapi` 미설치로 rate_limit 관련 5개 테스트 실패 (pre-existing)
+- **474 passed, 4 skipped** (PR #113 이후 기준)
+- PR #113: 7개 테스트 파일에서 mock 대상을 Langfuse-first 패턴(`get_langfuse_prompt`)으로 동기화
 - Docker 환경에서는 전체 통과

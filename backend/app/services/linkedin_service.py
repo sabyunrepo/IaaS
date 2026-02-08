@@ -195,6 +195,8 @@ class LinkedInService:
         raw_exp = data.get("experience") or data.get("experiences") or []
         if raw_exp:
             for exp in raw_exp[:10]:
+                if not isinstance(exp, dict):
+                    continue
                 experiences.append({
                     "title": exp.get("title"),
                     "company": exp.get("company") or exp.get("company_name"),
@@ -209,6 +211,8 @@ class LinkedInService:
         raw_edu = data.get("education") or []
         if raw_edu:
             for edu in raw_edu[:5]:
+                if not isinstance(edu, dict):
+                    continue
                 education.append({
                     "school": edu.get("school") or edu.get("school_name"),
                     "degree": edu.get("degree") or edu.get("degree_name"),
@@ -221,6 +225,8 @@ class LinkedInService:
         projects = []
         raw_projects = data.get("projects") or []
         for proj in raw_projects[:10]:
+            if not isinstance(proj, dict):
+                continue
             projects.append({
                 "title": proj.get("title"),
                 "start_date": proj.get("start_date"),
@@ -233,6 +239,8 @@ class LinkedInService:
         honors = []
         raw_honors = data.get("honors_and_awards") or []
         for honor in raw_honors[:10]:
+            if not isinstance(honor, dict):
+                continue
             honors.append({
                 "title": honor.get("title"),
                 "issuer": honor.get("publication") or honor.get("issuer"),
@@ -244,6 +252,8 @@ class LinkedInService:
         activity = []
         raw_activity = data.get("activity") or []
         for act in raw_activity[:10]:
+            if not isinstance(act, dict):
+                continue
             activity.append({
                 "interaction": act.get("interaction"),
                 "title": act.get("title"),
@@ -254,6 +264,8 @@ class LinkedInService:
         certifications = []
         raw_certs = data.get("certifications") or []
         for cert in raw_certs[:10]:
+            if not isinstance(cert, dict):
+                continue
             certifications.append({
                 "name": cert.get("name"),
                 "authority": cert.get("authority") or cert.get("issuing_organization"),
