@@ -215,6 +215,11 @@ const resources = {
       result_analysis_logs: '분석 로그',
       result_back_to_list: '목록으로 돌아가기',
       result_terms_count: '{{count}}개 용어',
+      // ResultPage - v2 tabs
+      result_tab_intel_brief: '인텔 브리프',
+      result_tab_analysis: '심층 분석',
+      result_tab_interview: '라이브 면접',
+      result_tab_decision: '의사 결정',
       // ResultPage - v1 tabs
       result_tab_questions: '질문 목록',
       result_tab_summary: '후보자 분석',
@@ -256,6 +261,9 @@ const resources = {
       result_scoring_scale: '점수 범위',
       result_passing_threshold: '합격 기준',
       result_v1_category_weights: '카테고리별 가중치',
+      result_strong_hire: 'Strong Hire',
+      result_green_flags: '긍정 신호',
+      result_red_flags: '주의 신호',
       // JobStatusPage
       status_title: '면접 스크립트 #{{id}}',
       progress_label: '진행률',
@@ -508,6 +516,11 @@ const resources = {
       result_analysis_logs: 'Analysis Logs',
       result_back_to_list: 'Back to List',
       result_terms_count: '{{count}} terms',
+      // ResultPage - v2 tabs
+      result_tab_intel_brief: 'Intel Brief',
+      result_tab_analysis: 'Deep Analysis',
+      result_tab_interview: 'Live Interview',
+      result_tab_decision: 'Decision',
       // ResultPage - v1 tabs
       result_tab_questions: 'Questions',
       result_tab_summary: 'Candidate Analysis',
@@ -549,6 +562,9 @@ const resources = {
       result_scoring_scale: 'Scoring Scale',
       result_passing_threshold: 'Passing Threshold',
       result_v1_category_weights: 'Category Weights',
+      result_strong_hire: 'Strong Hire',
+      result_green_flags: 'Green Flags',
+      result_red_flags: 'Red Flags',
       // JobStatusPage
       status_title: 'Interview Script #{{id}}',
       progress_label: 'Progress',
