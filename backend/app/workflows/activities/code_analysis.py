@@ -168,7 +168,13 @@ async def analyze_code(
 
     # Build code analysis result
     # target_repos 포함: 워크플로우에서 병렬 처리 활성화 기반
-    combined_tech = list(set(tech for repo in repositories for tech in repo.get("analysis", {}).get("tech_stack", [])))
+    # LLM tech_stack + 레포 primary_language 합산 (LLM이 누락해도 GitHub API 언어는 보장)
+    combined_tech_set = set(tech for repo in repositories for tech in repo.get("analysis", {}).get("tech_stack", []))
+    for repo in repositories:
+        lang = repo.get("language")
+        if lang and lang not in combined_tech_set:
+            combined_tech_set.add(lang)
+    combined_tech = list(combined_tech_set)
     code_analysis_result = {
         "repositories": repositories,
         "target_repos": target_repos,  # Step 2 병렬 처리용

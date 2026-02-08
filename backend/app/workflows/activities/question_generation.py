@@ -458,7 +458,17 @@ async def craft_question(
         elif source == "github":
             question["evidence_source"] = "GitHub"
         elif source.startswith("vector_"):
-            question["evidence_source"] = "SemanticSearch"
+            # vector_ 하위 소스를 구체적 evidence_source로 매핑
+            if source in ("vector_code", "vector_github"):
+                question["evidence_source"] = "GitHub"
+            elif source in ("vector_profile", "vector_linkedin"):
+                question["evidence_source"] = "LinkedIn"
+            elif source in ("vector_resume", "vector_document"):
+                question["evidence_source"] = "Resume"
+            elif source == "vector_portfolio":
+                question["evidence_source"] = "Portfolio"
+            else:
+                question["evidence_source"] = "SemanticSearch"
         elif source == "jd_match":
             question["evidence_source"] = "JD"
         else:

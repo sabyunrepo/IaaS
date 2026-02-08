@@ -223,7 +223,12 @@ async def _llm_analyze_engineering_dna(code_analysis: dict | None, output_langua
             # === Post-processing 품질 검증 ===
             no_note = sum(1 for i in items if not i.note or len(str(i.note).strip()) < 5)
             no_tooltip = sum(1 for i in items if not i.tooltip or len(str(i.tooltip).strip()) < 10)
-            zero_value = sum(1 for i in items if i.value == 0 and i.note and "not available" not in str(i.note).lower())
+            zero_value = sum(
+                1 for i in items
+                if i.value == 0 and i.note
+                and "not available" not in str(i.note).lower()
+                and "이용할 수 없" not in str(i.note)
+            )
             if no_note > 0:
                 logger.warning(
                     f"Engineering DNA: {no_note}/{len(items)} items have empty/short note — metric citation missing"
