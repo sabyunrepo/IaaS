@@ -80,6 +80,16 @@ async def _llm_match_competencies(
                 continue
             match_level = item.get("match", "none")
             color, icon = get_match_color_icon(match_level)
+            # LLM이 evidence_source를 반환하면 사용, 아니면 match_label에서 추론
+            ev_source = item.get("evidence_source", "")
+            if not ev_source:
+                label = item.get("match_label", "").lower()
+                if "github" in label or "code" in label or "repo" in label:
+                    ev_source = "github"
+                elif "resume" in label or "이력서" in label or "경력" in label:
+                    ev_source = "resume"
+                elif match_level in ("strong", "match", "partial"):
+                    ev_source = "llm"
             competencies.append(CompetencyMatch(
                 name=item.get("name", ""),
                 match=match_level,
@@ -88,6 +98,7 @@ async def _llm_match_competencies(
                 why=item.get("why", ""),
                 color=color,
                 icon=icon,
+                evidence_source=ev_source,
             ))
 
         if competencies:
@@ -159,18 +170,30 @@ def _match_competencies(
 
         match_level = "none"
         match_label = _t("candidate_no_evidence", lang)
+        evidence_source = ""
 
-        # 정확 매칭 확인
-        if any(skill_lower in cs for cs in candidate_skills_lower + code_skills_lower):
+        # 정확 매칭 확인 — 이력서 스킬 우선, 그다음 코드 스킬
+        resume_match = any(skill_lower in cs for cs in candidate_skills_lower)
+        code_match = any(skill_lower in cs for cs in code_skills_lower)
+        if resume_match or code_match:
             match_level = "strong"
             match_label = _t("candidate_strong_match", lang)
+            evidence_source = "resume" if resume_match else "github"
         # 부분 매칭 확인
         elif any(
             any(word in cs for word in skill_lower.split())
-            for cs in candidate_skills_lower + code_skills_lower
+            for cs in candidate_skills_lower
         ):
             match_level = "partial"
             match_label = _t("candidate_partial_match", lang)
+            evidence_source = "resume"
+        elif any(
+            any(word in cs for word in skill_lower.split())
+            for cs in code_skills_lower
+        ):
+            match_level = "partial"
+            match_label = _t("candidate_partial_match", lang)
+            evidence_source = "github"
 
         color, icon = match_config.get(match_level, ("slate", "❓"))
 
@@ -182,6 +205,7 @@ def _match_competencies(
             why=why,
             color=color,
             icon=icon,
+            evidence_source=evidence_source,
         ))
 
     return competencies

@@ -39,6 +39,7 @@ export interface CompetencyMatch {
   why: string
   color: 'emerald' | 'amber' | 'red' | 'gray' | 'slate'
   icon: string
+  evidence_source?: string  // 근거 출처 (resume/github/vector_store/llm)
 }
 
 /** GitHub contribution summary */
