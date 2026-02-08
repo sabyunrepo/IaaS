@@ -296,6 +296,29 @@ async def craft_question(
                 snippet = code_reference['code_snippet'][:300]  # Truncate
                 evidence_context += f"```\n{snippet}\n```\n"
 
+    elif topic.get("source") == "code":
+        evidence = topic.get("evidence", {})
+        file_path = evidence.get("file_path", "")
+        description = evidence.get("description", "")
+        why_notable = evidence.get("why_notable", "")
+        snippet = evidence.get("code_snippet", "")
+
+        evidence_context = f"\n\nCode-based evidence:\n"
+        if file_path:
+            evidence_context += f"- File: {file_path}\n"
+        if description:
+            evidence_context += f"- Description: {description}\n"
+        if why_notable:
+            evidence_context += f"- Why notable: {why_notable}\n"
+        if snippet:
+            evidence_context += f"```\n{snippet[:300]}\n```\n"
+
+        # Build code_reference for frontend display
+        code_reference = {
+            "file_path": file_path,
+            "code_snippet": snippet,
+        }
+
     # Get additional evidence from KG if job_id is available
     if job_id and not evidence_context:
         try:
@@ -394,13 +417,15 @@ async def craft_question(
         question["kg_source"] = topic.get("source")
         question["kg_category"] = topic.get("kg_category")
 
-    # Add code reference if available
+    # Add code reference if available (mapped to frontend schema: file, lines, snippet)
     if code_reference:
+        line_start = code_reference.get("line_start")
+        line_end = code_reference.get("line_end")
+        lines_str = f"{line_start}-{line_end}" if line_start and line_end else (str(line_start) if line_start else None)
         question["code_reference"] = {
-            "file_path": code_reference.get("file_path"),
-            "line_start": code_reference.get("line_start"),
-            "line_end": code_reference.get("line_end"),
-            "repository": code_reference.get("repository"),
+            "file": code_reference.get("file_path") or code_reference.get("file"),
+            "lines": lines_str or code_reference.get("lines"),
+            "snippet": code_reference.get("code_snippet") or code_reference.get("snippet"),
         }
 
     # Use recommended probe if available and question_text is generic

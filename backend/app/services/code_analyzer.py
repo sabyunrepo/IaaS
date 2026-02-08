@@ -310,6 +310,7 @@ Based on the code above, respond ONLY with a valid JSON object (no markdown, no 
             "title": "Brief title of the implementation",
             "description": "What it does and why it's notable",
             "file_path": "path/to/file",
+            "code_snippet": "The most relevant 2-10 lines of actual code from this implementation",
             "why_notable": "Why this is interesting for interview",
             "question_potential": 0.8
         }}
