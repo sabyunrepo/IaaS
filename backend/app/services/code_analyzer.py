@@ -17,6 +17,12 @@ from app.models.analysis import (
     SynthesisAnalysisResult,
 )
 from app.services.llm_config import KIMI_CODER_MODEL
+from app.services.ast_analyzer import analyze_ast as _analyze_ast_standalone
+from app.services.code_analysis_prompts import (
+    build_overview_prompt,
+    build_deep_analysis_prompt,
+    build_synthesis_prompt,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -218,163 +224,8 @@ class CodeAnalyzer:
         files: list[dict],
         primary_language: str | None = None,
     ) -> dict:
-        """AST 구조 분석 (Python: ast, JS/TS: tree-sitter, fallback)
-
-        Note: diff 모드에서는 source 대신 diff 필드 사용 시도
-        """
-        functions = []
-        classes = []
-        imports = []
-        patterns = []
-        parser_used = "fallback"
-
-        if primary_language and primary_language.lower() == "python":
-            parser_used = "ast"
-            import ast as ast_mod
-            for f in files:
-                # diff 모드 호환: source 없으면 diff에서 추출 시도
-                source = f.get("source", "") or f.get("diff", "")
-                if not source:
-                    continue
-                try:
-                    tree = ast_mod.parse(source)
-                    for node in ast_mod.walk(tree):
-                        if isinstance(node, ast_mod.FunctionDef):
-                            functions.append({
-                                "name": node.name,
-                                "params": [a.arg for a in node.args.args],
-                                "decorators": [
-                                    d.id if isinstance(d, ast_mod.Name) else str(d)
-                                    for d in node.decorator_list
-                                ],
-                                "complexity": f.get("complexity", 0),
-                            })
-                        elif isinstance(node, ast_mod.ClassDef):
-                            classes.append({
-                                "name": node.name,
-                                "bases": [
-                                    b.id if isinstance(b, ast_mod.Name) else str(b)
-                                    for b in node.bases
-                                ],
-                                "methods": [
-                                    n.name for n in node.body
-                                    if isinstance(n, ast_mod.FunctionDef)
-                                ],
-                            })
-                        elif isinstance(node, ast_mod.Import):
-                            for alias in node.names:
-                                imports.append({"module": alias.name, "alias": alias.asname})
-                        elif isinstance(node, ast_mod.ImportFrom):
-                            imports.append({"module": node.module, "alias": None})
-                except SyntaxError:
-                    continue
-
-        elif primary_language and primary_language.lower() in ("javascript", "typescript"):
-            try:
-                import tree_sitter_javascript as ts_js
-                import tree_sitter_typescript as ts_ts
-                from tree_sitter import Language, Parser
-
-                if primary_language.lower() == "typescript":
-                    language = Language(ts_ts.language_typescript())
-                else:
-                    language = Language(ts_js.language())
-
-                ts_parser = Parser(language)
-                parser_used = "tree_sitter"
-
-                for f in files:
-                    # diff 모드 호환: source 없으면 diff에서 추출 시도
-                    source = f.get("source", "") or f.get("diff", "")
-                    if not source:
-                        continue
-                    try:
-                        tree = ts_parser.parse(source.encode("utf-8"))
-                        self._walk_ts_node(tree.root_node, functions, classes, imports, f)
-                    except Exception:
-                        continue
-            except ImportError:
-                logger.warning("tree-sitter JS/TS bindings not installed, using fallback")
-
-        return {
-            "functions": functions[:50],
-            "classes": classes[:30],
-            "patterns": patterns,
-            "imports": imports[:50],
-            "parser_used": parser_used,
-        }
-
-    def _walk_ts_node(
-        self,
-        node,
-        functions: list,
-        classes: list,
-        imports: list,
-        file_info: dict,
-    ) -> None:
-        """tree-sitter 노드를 순회하며 함수, 클래스, import 추출"""
-        ntype = node.type
-
-        if ntype in ("function_declaration", "method_definition"):
-            name_node = node.child_by_field_name("name")
-            params_node = node.child_by_field_name("parameters")
-            params = []
-            if params_node:
-                for child in params_node.children:
-                    if child.type in ("identifier", "required_parameter", "optional_parameter"):
-                        params.append(child.text.decode("utf-8"))
-            functions.append({
-                "name": name_node.text.decode("utf-8") if name_node else "<anonymous>",
-                "params": params,
-                "decorators": [],
-                "complexity": file_info.get("complexity", 0),
-            })
-
-        elif ntype == "arrow_function":
-            parent = node.parent
-            name = "<arrow>"
-            if parent and parent.type == "variable_declarator":
-                name_node = parent.child_by_field_name("name")
-                if name_node:
-                    name = name_node.text.decode("utf-8")
-            params_node = node.child_by_field_name("parameters")
-            params = []
-            if params_node:
-                for child in params_node.children:
-                    if child.type in ("identifier", "required_parameter", "optional_parameter"):
-                        params.append(child.text.decode("utf-8"))
-            functions.append({
-                "name": name,
-                "params": params,
-                "decorators": [],
-                "complexity": file_info.get("complexity", 0),
-            })
-
-        elif ntype == "class_declaration":
-            name_node = node.child_by_field_name("name")
-            methods = []
-            body = node.child_by_field_name("body")
-            if body:
-                for child in body.children:
-                    if child.type == "method_definition":
-                        m_name = child.child_by_field_name("name")
-                        if m_name:
-                            methods.append(m_name.text.decode("utf-8"))
-            classes.append({
-                "name": name_node.text.decode("utf-8") if name_node else "<anonymous>",
-                "bases": [],
-                "methods": methods,
-            })
-
-        elif ntype == "import_statement":
-            source_node = node.child_by_field_name("source")
-            imports.append({
-                "module": source_node.text.decode("utf-8").strip("'\"") if source_node else "",
-                "alias": None,
-            })
-
-        for child in node.children:
-            self._walk_ts_node(child, functions, classes, imports, file_info)
+        """AST 구조 분석 — ast_analyzer 모듈에 위임"""
+        return await _analyze_ast_standalone(files, primary_language)
 
     def rank_files_for_llm(
         self,
@@ -514,182 +365,8 @@ Based on the code above, respond ONLY with a valid JSON object (no markdown, no 
 
     # =========================================================================
     # HYBRID 3-Stage Multi-Agent 분석 메서드
+    # — 프롬프트 빌더는 code_analysis_prompts 모듈로 분리됨
     # =========================================================================
-
-    def _build_overview_prompt(
-        self,
-        files: list[dict],
-        commit_diffs: list[dict],
-        ast_summary: dict,
-        jd_tech_stack: list[str],
-    ) -> str:
-        """Stage 1: Overview Agent 프롬프트 생성"""
-        file_summary = "\n".join([
-            f"- {f.get('filename', 'unknown')}: {f.get('added', 0)} additions, complexity={f.get('complexity', 0)}"
-            for f in files[:30]
-        ])
-
-        diff_summary = "\n".join([
-            f"### {d.get('file_path', '')} ({d.get('commit_hash', '')})\n"
-            f"```diff\n{d.get('diff', '')[:800]}\n```"
-            for d in commit_diffs[:10]
-        ])
-
-        ast_info = (
-            f"Functions: {len(ast_summary.get('functions', []))}, "
-            f"Classes: {len(ast_summary.get('classes', []))}, "
-            f"Parser: {ast_summary.get('parser_used', 'N/A')}"
-        )
-
-        return f"""Analyze this repository to identify key files for technical interview preparation.
-
-## Target Tech Stack (from Job Description)
-{', '.join(jd_tech_stack) if jd_tech_stack else 'Not specified'}
-
-## File Summary ({len(files)} files)
-{file_summary}
-
-## Recent Code Changes (Top Diffs)
-{diff_summary}
-
-## AST Summary
-{ast_info}
-
-## Your Task
-1. Select 5-10 key files that best demonstrate the candidate's technical skills matching the JD tech stack
-2. Provide a technical overview of the repository
-3. Identify initial candidate strengths
-
-Respond in JSON format:
-{{
-    "key_files": [
-        {{"path": "...", "relevance_score": 0.0-1.0, "reason": "...", "language": "...", "complexity": 0}}
-    ],
-    "tech_overview": "Brief technical overview of the repository",
-    "candidate_strengths": ["strength1", "strength2"],
-    "primary_languages": ["Python", "JavaScript"],
-    "frameworks_detected": ["FastAPI", "React"]
-}}
-"""
-
-    def _build_deep_analysis_prompt(
-        self,
-        file_info: dict,
-        commit_history: list[dict],
-        jd_tech_stack: list[str],
-    ) -> str:
-        """Stage 2: Deep Analysis Agent 프롬프트 생성"""
-        file_path = file_info.get("path", file_info.get("filename", "unknown"))
-        diff_content = file_info.get("diff", file_info.get("diff_preview", ""))[:2000]
-
-        commit_info = "\n".join([
-            f"- {c.get('commit_hash', '')} ({c.get('date', '')}): {c.get('message', '')[:100]}"
-            for c in commit_history[:5]
-        ])
-
-        return f"""Perform deep analysis on this file for technical interview preparation.
-
-## File: {file_path}
-
-## Target Tech Stack
-{', '.join(jd_tech_stack) if jd_tech_stack else 'Not specified'}
-
-## Code/Diff Content
-```
-{diff_content}
-```
-
-## Commit History
-{commit_info if commit_info else 'No commit history available'}
-
-## Your Task
-1. Identify design patterns used
-2. Identify algorithms implemented
-3. Assess code quality (0.0-1.0 scale)
-4. Generate potential interview questions
-5. Note any remarkable implementation aspects
-
-Respond in JSON format:
-{{
-    "file_path": "{file_path}",
-    "patterns_found": ["Singleton", "Factory"],
-    "algorithms_used": ["Binary Search", "DFS"],
-    "code_quality_score": 0.0-1.0,
-    "quality_notes": "Notes about code quality",
-    "question_candidates": ["How would you optimize...", "Explain your choice of..."],
-    "notable_aspects": ["Efficient caching implementation", "Clean error handling"],
-    "complexity_assessment": "Assessment of code complexity"
-}}
-"""
-
-    def _build_synthesis_prompt(
-        self,
-        overview: dict,
-        deep_analyses: list[dict],
-        repo_info: dict,
-        jd_tech_stack: list[str],
-    ) -> str:
-        """Stage 3: Synthesis Agent 프롬프트 생성"""
-        repo_name = repo_info.get("name", "unknown")
-
-        overview_summary = f"""
-Tech Overview: {overview.get('tech_overview', 'N/A')}
-Primary Languages: {', '.join(overview.get('primary_languages', []))}
-Frameworks: {', '.join(overview.get('frameworks_detected', []))}
-Key Files Analyzed: {len(overview.get('key_files', []))}
-"""
-
-        deep_summaries = []
-        for i, da in enumerate(deep_analyses[:10], 1):
-            deep_summaries.append(f"""
-### File {i}: {da.get('file_path', 'unknown')}
-- Patterns: {', '.join(da.get('patterns_found', [])) or 'None'}
-- Algorithms: {', '.join(da.get('algorithms_used', [])) or 'None'}
-- Quality Score: {da.get('code_quality_score', 'N/A')}
-- Notable: {', '.join(da.get('notable_aspects', [])[:3]) or 'None'}
-- Questions: {len(da.get('question_candidates', []))} candidates
-""")
-
-        return f"""Synthesize all analysis results for repository: {repo_name}
-
-## Target Tech Stack
-{', '.join(jd_tech_stack) if jd_tech_stack else 'Not specified'}
-
-## Overview Analysis
-{overview_summary}
-
-## Deep Analysis Results
-{''.join(deep_summaries) if deep_summaries else 'No deep analysis results'}
-
-## Your Task
-1. Synthesize all findings into a coherent assessment
-2. Rank notable implementations by interview question potential
-3. Deduplicate and prioritize patterns/algorithms
-4. Generate top 10 interview questions
-5. Provide overall quality and candidate assessment
-
-Respond in JSON format:
-{{
-    "notable_implementations": [
-        {{
-            "title": "Implementation title",
-            "description": "What it does",
-            "file_path": "path/to/file.py",
-            "why_notable": "Why this is interesting for interview",
-            "question_potential": 0.0-1.0,
-            "related_patterns": ["Pattern1"],
-            "interview_angles": ["Performance", "Design decisions"]
-        }}
-    ],
-    "tech_stack": ["Python", "FastAPI", "PostgreSQL"],
-    "patterns": ["Singleton", "Factory", "Repository"],
-    "algorithms": ["Binary Search", "BFS"],
-    "quality_score": 0.0-1.0,
-    "quality_summary": "Overall code quality assessment",
-    "candidate_assessment": "Assessment of candidate's technical abilities",
-    "top_interview_questions": ["Question 1", "Question 2"]
-}}
-"""
 
     async def llm_overview_analysis(
         self,
@@ -712,7 +389,7 @@ Respond in JSON format:
             OverviewAnalysisResult 형식의 딕셔너리
         """
         model = model or KIMI_CODER_MODEL
-        prompt = self._build_overview_prompt(files, commit_diffs, ast_summary, jd_tech_stack)
+        prompt = build_overview_prompt(files, commit_diffs, ast_summary, jd_tech_stack)
 
         from app.services.cached_llm import CachedLLMService
         llm = CachedLLMService()
@@ -758,7 +435,7 @@ Respond in JSON format:
             DeepAnalysisResult 형식의 딕셔너리
         """
         model = model or KIMI_CODER_MODEL
-        prompt = self._build_deep_analysis_prompt(file_info, commit_history, jd_tech_stack)
+        prompt = build_deep_analysis_prompt(file_info, commit_history, jd_tech_stack)
 
         from app.services.cached_llm import CachedLLMService
         llm = CachedLLMService()
@@ -820,7 +497,7 @@ Respond in JSON format:
             SynthesisAnalysisResult 형식의 딕셔너리
         """
         model = model or KIMI_CODER_MODEL
-        prompt = self._build_synthesis_prompt(overview, deep_analyses, repo_info, jd_tech_stack)
+        prompt = build_synthesis_prompt(overview, deep_analyses, repo_info, jd_tech_stack)
 
         from app.services.cached_llm import CachedLLMService
         llm = CachedLLMService()
