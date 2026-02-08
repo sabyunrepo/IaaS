@@ -10,6 +10,7 @@ class DecisionSummary(BaseModel):
     experience: str
     jd_match: str
     level: str
+    level_evidence: str = ""  # 레벨 분류 근거 (SFIA/Dreyfus 기준 + 데이터 출처)
     strengths: list[str] = Field(default_factory=list)
     concerns: list[str] = Field(default_factory=list)
 
