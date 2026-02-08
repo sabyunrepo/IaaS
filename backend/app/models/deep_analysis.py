@@ -34,10 +34,14 @@ class SkillMatchRow(BaseModel):
 
 class DeepAnalysis(BaseModel):
     """Deep Analysis 탭 데이터"""
-    # 5축 레이더 차트: [role_fit, technical, execution, communication, risk]
+    # 5축 레이더 차트: [role_fit, technical, execution, communication, code_quality]
     radar_candidate: list[int] = Field(default_factory=list)  # 후보자 점수
     radar_required: list[int] = Field(default_factory=list)  # JD 요구 점수
     engineering_dna: list[EngineeringDNAItem] = Field(default_factory=list)
     risk_flags: list[RiskFlag] = Field(default_factory=list)
     skill_table: list[SkillMatchRow] = Field(default_factory=list)
     overall_match: int = 0  # 전체 매칭 퍼센트
+    # 점수 투명성 메타데이터 (PR #138: Evidence-Based Scoring)
+    score_sources: list[str] = Field(default_factory=list)  # 각 축의 산출 근거
+    data_confidence: str = "medium"  # "high" | "medium" | "low"
+    data_confidence_score: int = 50  # 0-100 데이터 신뢰도 수치

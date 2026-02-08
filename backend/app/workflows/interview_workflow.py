@@ -360,6 +360,7 @@ class InterviewGenerationWorkflow:
                         document_analysis,
                         job_id,
                         output_language,
+                        input_data.get("experience_level", "미들"),
                     ],
                     start_to_close_timeout=timedelta(minutes=2),
                     heartbeat_timeout=timedelta(seconds=60),
