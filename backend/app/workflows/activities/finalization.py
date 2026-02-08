@@ -59,6 +59,82 @@ def _extract_quality_metadata(questions: list[dict]) -> dict:
     }
 
 
+def _validate_finalization_integrity(
+    questions: list[dict],
+    analysis: dict,
+    linkedin_profile: dict | None,
+) -> list[str]:
+    """최종 출력 데이터 무결성 + 교차 일관성 검증. 발견된 문제를 문자열 리스트로 반환."""
+    issues = []
+
+    # 1. 질문 데이터 완전성
+    if not questions:
+        issues.append("CRITICAL: questions list is empty")
+    else:
+        no_text = sum(1 for q in questions if not isinstance(q, dict) or not q.get("question_text"))
+        no_category = sum(1 for q in questions if isinstance(q, dict) and not q.get("category"))
+        if no_text > 0:
+            issues.append(f"questions: {no_text}/{len(questions)} missing question_text")
+        if no_category > 0:
+            issues.append(f"questions: {no_category}/{len(questions)} missing category")
+
+        # 카테고리 배분 확인
+        categories = {}
+        for q in questions:
+            if isinstance(q, dict):
+                cat = q.get("category", "unknown")
+                categories[cat] = categories.get(cat, 0) + 1
+        sparse_cats = [c for c, n in categories.items() if n < 2 and c != "unknown"]
+        if sparse_cats:
+            issues.append(f"questions: sparse categories (< 2 questions): {sparse_cats}")
+
+    # 2. 분석 데이터 존재 확인
+    doc_analysis = analysis.get("document_analysis") or {}
+    code_analysis = analysis.get("code_analysis")
+    jd_analysis = analysis.get("jd_analysis") or {}
+
+    profile = doc_analysis.get("profile") or {}
+    if not profile.get("full_name") and not profile.get("name"):
+        issues.append("document_analysis: candidate name missing from profile")
+    if not profile.get("skills"):
+        issues.append("document_analysis: skills list empty")
+
+    if not jd_analysis.get("requirements"):
+        issues.append("jd_analysis: requirements list empty")
+
+    # 3. LinkedIn ↔ document_analysis 이름 교차 확인
+    if linkedin_profile:
+        li_name = (linkedin_profile.get("full_name") or linkedin_profile.get("name") or "").strip().lower()
+        doc_name = (profile.get("full_name") or profile.get("name") or "").strip().lower()
+        if li_name and doc_name and li_name != doc_name:
+            # 부분 매칭 허용 (성/이름 일부 겹침)
+            li_parts = set(li_name.split())
+            doc_parts = set(doc_name.split())
+            if not li_parts & doc_parts:
+                issues.append(f"name mismatch: LinkedIn='{li_name}' vs Document='{doc_name}'")
+
+    # 4. JD 요구 스킬 ↔ 질문 카테고리 커버리지
+    jd_skills = set()
+    for req in (jd_analysis.get("requirements") or [])[:6]:
+        if isinstance(req, dict):
+            jd_skills.add((req.get("skill") or "").lower())
+    if jd_skills and questions:
+        q_topics = set()
+        for q in questions:
+            if isinstance(q, dict):
+                q_topics.add((q.get("topic") or "").lower())
+                q_topics.add((q.get("question_text") or "")[:50].lower())
+        # 기본 커버리지 — JD 스킬 키워드가 질문에 최소 1번 등장하는지
+        uncovered = []
+        for skill in jd_skills:
+            if skill and not any(skill in t for t in q_topics):
+                uncovered.append(skill)
+        if len(uncovered) > len(jd_skills) // 2:
+            issues.append(f"JD coverage gap: {len(uncovered)}/{len(jd_skills)} JD skills not covered in questions: {uncovered[:3]}")
+
+    return issues
+
+
 async def _download_and_store_avatar(avatar_url: str, job_id: str) -> str | None:
     """LinkedIn avatar를 다운로드하여 S3에 저장, 영구 URL 반환.
 
@@ -379,6 +455,19 @@ async def finalize_output(
             "quality": _extract_quality_metadata(questions),
         },
     }
+
+    # === 데이터 무결성 + 교차 일관성 검증 ===
+    integrity_issues = _validate_finalization_integrity(questions, analysis, linkedin_profile)
+    if integrity_issues:
+        for issue in integrity_issues:
+            logger.warning(f"Finalization integrity: {issue}")
+        final_script["metadata"]["integrity_validation"] = {
+            "has_issues": True,
+            "issue_count": len(integrity_issues),
+            "issues": integrity_issues,
+        }
+    else:
+        final_script["metadata"]["integrity_validation"] = {"has_issues": False}
 
     activity.heartbeat("Saving output...")
 
