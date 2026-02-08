@@ -37,6 +37,28 @@ def _is_avatar_url_allowed(url: str) -> bool:
         return False
 
 
+def _extract_quality_metadata(questions: list[dict]) -> dict:
+    """질문 목록에서 품질 메타데이터 집계 (quality_review에서 병합된 데이터 활용)"""
+    evidence_scores = []
+    quality_counts = {"high": 0, "medium": 0, "low": 0}
+    for q in questions:
+        if not isinstance(q, dict):
+            continue
+        es = q.get("evidence_score")
+        if es is not None and isinstance(es, (int, float)):
+            evidence_scores.append(es)
+        eq = q.get("evidence_quality", "")
+        if eq in quality_counts:
+            quality_counts[eq] += 1
+
+    avg_evidence = round(sum(evidence_scores) / len(evidence_scores), 1) if evidence_scores else None
+    return {
+        "avg_evidence_score": avg_evidence,
+        "evidence_score_count": len(evidence_scores),
+        "evidence_quality_distribution": quality_counts,
+    }
+
+
 async def _download_and_store_avatar(avatar_url: str, job_id: str) -> str | None:
     """LinkedIn avatar를 다운로드하여 S3에 저장, 영구 URL 반환.
 
@@ -257,10 +279,21 @@ async def finalize_output(
     linkedin_summary = _format_linkedin_summary(linkedin_profile)
 
     from app.prompts import get_prompt_with_config
+    # 분석 데이터 직렬화 + 절단 (LLM 컨텍스트 제한)
+    MAX_ANALYSIS_CHARS = 2000
+    doc_json = json.dumps(analysis.get("document_analysis", {}), default=str)
+    code_json = json.dumps(analysis.get("code_analysis", {}), default=str)
+    doc_truncated = len(doc_json) > MAX_ANALYSIS_CHARS
+    code_truncated = len(code_json) > MAX_ANALYSIS_CHARS
+    if doc_truncated:
+        logger.warning(f"document_analysis truncated for summary: {len(doc_json)} → {MAX_ANALYSIS_CHARS} chars")
+    if code_truncated:
+        logger.warning(f"code_analysis truncated for summary: {len(code_json)} → {MAX_ANALYSIS_CHARS} chars")
+
     summary_config = get_prompt_with_config(
         "finalization.yaml", "candidate_summary",
-        document_analysis=json.dumps(analysis.get("document_analysis", {}), default=str)[:2000],
-        code_analysis=json.dumps(analysis.get("code_analysis", {}), default=str)[:2000],
+        document_analysis=doc_json[:MAX_ANALYSIS_CHARS],
+        code_analysis=code_json[:MAX_ANALYSIS_CHARS],
         linkedin_profile=linkedin_summary,
         output_language=output_language,
     )
@@ -339,6 +372,11 @@ async def finalize_output(
                 if isinstance((analysis.get("document_analysis") or {}).get("profile", {}).get("skills"), list)
                 else []
             ),
+            "data_truncation": {
+                "document_analysis": doc_truncated,
+                "code_analysis": code_truncated,
+            },
+            "quality": _extract_quality_metadata(questions),
         },
     }
 
