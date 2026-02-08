@@ -225,30 +225,19 @@ def _extract_decision_summary(
         if company and role:
             experience_str = _t("years_at_company", lang, years=experience_years, role=role, company=company)
 
-    # JD 매칭 레벨
+    # JD 매칭 레벨 (Google re:Work threshold — scoring_formulas.py)
+    from app.services.scoring_formulas import (
+        classify_jd_match, map_experience_level_label, classify_experience_level,
+    )
     jd_match_score = document_analysis.get("jd_match_score", 0.5)
-    if jd_match_score >= 0.8:
-        jd_match = _t("jd_high", lang)
-    elif jd_match_score >= 0.6:
-        jd_match = _t("jd_medium", lang)
-    else:
-        jd_match = _t("jd_low", lang)
+    jd_match_level = classify_jd_match(jd_match_score)  # "High" | "Medium" | "Low"
+    jd_match = _t(f"jd_{jd_match_level.lower()}", lang)
 
-    # 레벨: experience_level 파라미터 우선 사용, 없으면 경력 기반 추정
-    LEVEL_MAP = {
-        "CTO/VP": "Lead", "시니어": "Senior", "미들": "Mid",
-        "주니어": "Junior", "신입": "Entry",
-    }
-    level = LEVEL_MAP.get(experience_level)
-    if not level:
-        # 경력 기반 fallback
-        level = "Mid"
-        if experience_years >= 10:
-            level = "Lead"
-        elif experience_years >= 7:
-            level = "Senior"
-        elif experience_years <= 2:
-            level = "Junior"
+    # 레벨: experience_level 파라미터 우선, SFIA v9 경력 기반 fallback
+    level = map_experience_level_label(experience_level)
+    if experience_level not in ("CTO/VP", "시니어", "미들", "주니어", "신입"):
+        # 미인식 레벨 → SFIA v9 + Dreyfus 경력 기반 분류
+        level, _ = classify_experience_level(experience_years)
 
     # 강점 추출 — profile.skills 우선, 없으면 candidate_summary.technical_expertise
     strengths = []

@@ -92,9 +92,24 @@ async def _llm_calculate_radar_scores(
 
         # 점수 범위 보정 (0-100)
         candidate_scores = [max(0, min(100, int(s))) for s in scores]
-        required_scores = [80, 80, 60, 70, 70]
 
-        logger.info(f"LLM radar scores: {candidate_scores}")
+        # 결정론적 기준 점수와 비교하여 ±15% 범위로 바운딩
+        from app.services.scoring_formulas import (
+            calculate_radar_scores as _formula_radar,
+            get_required_scores,
+        )
+        formula_radar = _formula_radar(jd_analysis, code_analysis or {}, document_analysis)
+        for i in range(5):
+            base = formula_radar.candidate[i]
+            max_delta = max(15, int(base * 0.15))
+            candidate_scores[i] = max(
+                base - max_delta,
+                min(base + max_delta, candidate_scores[i]),
+            )
+
+        required_scores = formula_radar.required
+
+        logger.info(f"LLM radar scores (bounded): {candidate_scores}, formula base: {formula_radar.candidate}")
         return candidate_scores, required_scores
 
     except Exception as e:
@@ -176,57 +191,25 @@ def _calculate_radar_scores(
     jd_analysis: dict,
     code_analysis: dict | None,
     document_analysis: dict,
-) -> tuple[list[int], list[int]]:
-    """5축 레이더 점수 계산
+    experience_level: str = "미들",
+) -> tuple[list[int], list[int], list[str], str]:
+    """5축 레이더 점수 계산 (Evidence-Based Scoring)
 
     축: [role_fit, technical, execution, communication, code_quality]
+
+    산업 표준 기반 결정론적 공식 사용:
+    - McCabe (1976): Cyclomatic Complexity
+    - SFIA v9: Experience level classification
+    - SonarQube SQALE: Code quality composite
+    - Bird et al. (2011): Code ownership & stability
+
+    Returns:
+        (candidate_scores, required_scores, sources, confidence)
     """
-    # JD 요구 점수 (기본값)
-    required_scores = [80, 80, 60, 70, 70]
+    from app.services.scoring_formulas import calculate_radar_scores as _formula_radar
 
-    # 후보자 점수 계산
-    candidate_scores = [50, 50, 50, 50, 50]  # 기본값
-
-    profile = document_analysis.get("profile", {})
-    skills = profile.get("skills", [])
-
-    # Role Fit: JD 매칭 점수 기반
-    jd_match = document_analysis.get("jd_match_score", 0.5)
-    candidate_scores[0] = min(100, int(jd_match * 100 + 20))
-
-    # Technical: 기술 스킬 기반
-    if code_analysis:
-        tech_stack = code_analysis.get("tech_stack", [])
-        tech_score = min(100, 50 + len(tech_stack) * 5)
-        candidate_scores[1] = tech_score
-
-        # 코드 품질 지표 반영
-        quality = code_analysis.get("quality_metrics", {})
-        test_coverage = quality.get("test_coverage", 0)
-        candidate_scores[1] = min(100, (candidate_scores[1] + test_coverage) // 2 + 20)
-
-    # Execution: 경험 기반
-    experiences = profile.get("experiences", [])
-    execution_score = min(100, 40 + len(experiences) * 10)
-    candidate_scores[2] = execution_score
-
-    # Communication: 문서 품질 기반
-    if code_analysis:
-        doc_quality = code_analysis.get("quality_metrics", {}).get("documentation_score", 50)
-        candidate_scores[3] = min(100, doc_quality + 20)
-
-    # Code Quality: 테스트 커버리지, 문서화, 아키텍처 패턴 기반
-    if code_analysis:
-        quality = code_analysis.get("quality_metrics", {})
-        test_cov = quality.get("test_coverage", 0)
-        doc_score = quality.get("documentation_score", 50)
-        complexity = quality.get("complexity_score", 50)
-        raw = (test_cov * 0.4 + doc_score * 0.3 + max(0, 100 - complexity) * 0.3)
-        candidate_scores[4] = max(20, min(100, int(raw)))
-    else:
-        candidate_scores[4] = 50
-
-    return candidate_scores, required_scores
+    radar = _formula_radar(jd_analysis, code_analysis, document_analysis, experience_level)
+    return radar.candidate, radar.required, radar.sources, radar.confidence
 
 
 def _analyze_engineering_dna(code_analysis: dict | None, lang: str = "ko") -> list[EngineeringDNAItem]:
@@ -488,6 +471,7 @@ async def generate_deep_analysis(
     document_analysis: dict,
     job_id: str | None = None,
     output_language: str = "ko",
+    experience_level: str = "미들",
 ) -> dict:
     """Deep Analysis 생성
 
@@ -496,21 +480,27 @@ async def generate_deep_analysis(
         code_analysis: 코드 분석 결과 (optional)
         document_analysis: 문서 분석 결과
         job_id: Job ID (observability용)
+        output_language: 출력 언어
+        experience_level: 경험 레벨 (CTO/VP, 시니어, 미들, 주니어, 신입)
 
     Returns:
-        DeepAnalysis 데이터
+        DeepAnalysis 데이터 (Evidence-Based Scoring 적용)
     """
-    logger.info(f"Generating Deep Analysis for job_id={job_id}")
+    logger.info(f"Generating Deep Analysis for job_id={job_id} (level={experience_level})")
     activity.heartbeat()
 
     # 1. 5축 레이더 점수 계산 (LLM 우선, 규칙 기반 fallback)
+    # LLM 결과도 결정론적 공식 기반 ±15% 범위로 바운딩
+    score_sources = []
     llm_radar = await _llm_calculate_radar_scores(jd_analysis, code_analysis, document_analysis, output_language, job_id=job_id)
     if llm_radar:
         radar_candidate, radar_required = llm_radar
+        score_sources.append("radar: LLM-generated (bounded ±15% from formula base)")
     else:
-        radar_candidate, radar_required = _calculate_radar_scores(
-            jd_analysis, code_analysis, document_analysis
+        radar_candidate, radar_required, axis_sources, confidence = _calculate_radar_scores(
+            jd_analysis, code_analysis, document_analysis, experience_level
         )
+        score_sources.extend(axis_sources)
     activity.heartbeat()
 
     # 2. Engineering DNA 분석 (LLM 우선, 규칙 기반 fallback)
@@ -532,12 +522,46 @@ async def generate_deep_analysis(
         skill_table = _build_skill_table(jd_analysis, code_analysis, document_analysis, lang=output_language)
     activity.heartbeat()
 
-    # 전체 매칭 점수 계산
+    # 5. 전체 매칭 점수 계산 (Evidence-Based Weighted Composite)
+    from app.services.scoring_formulas import (
+        calculate_overall_match,
+        calculate_code_quality_score,
+        classify_experience_level,
+        calculate_data_confidence,
+    )
+
+    # 스킬 매칭 평균
+    skill_match_avg = 0
     if skill_table:
-        avg_confidence = sum(row.confidence for row in skill_table) / len(skill_table)
-        overall_match = int(avg_confidence)
-    else:
-        overall_match = 50
+        skill_match_avg = sum(row.confidence for row in skill_table) // len(skill_table)
+
+    # 코드 품질 점수
+    quality_metrics = code_analysis.get("quality_metrics", {}) if code_analysis else {}
+    code_stats = code_analysis.get("stats", {}) if code_analysis else {}
+    cq = calculate_code_quality_score(quality_metrics, code_stats)
+
+    # 경험 적합도
+    profile = document_analysis.get("profile", {})
+    exp_years = profile.get("experience_years", 0) or 0
+    _, exp_score = classify_experience_level(exp_years)
+
+    # JD 매칭 점수
+    jd_match = document_analysis.get("jd_match_score", 0.5)
+
+    overall_result = calculate_overall_match(skill_match_avg, cq.score, exp_score, jd_match)
+    overall_match = overall_result.score
+    score_sources.append(f"overall_match: {overall_result.source}")
+
+    # 6. 데이터 신뢰도 계산
+    linkedin_positions = 0
+    github_commits = code_stats.get("total_commits", 0) if code_stats else 0
+    data_conf_tier, data_conf_score = calculate_data_confidence(
+        has_github=code_analysis is not None and github_commits > 0,
+        has_linkedin=False,  # LinkedIn 여부는 caller에서 판단
+        has_resume=bool(profile.get("skills")),
+        github_commits=github_commits,
+        linkedin_positions=linkedin_positions,
+    )
 
     deep_analysis = DeepAnalysis(
         radar_candidate=radar_candidate,
@@ -546,7 +570,13 @@ async def generate_deep_analysis(
         risk_flags=risk_flags,
         skill_table=skill_table,
         overall_match=overall_match,
+        score_sources=score_sources,
+        data_confidence=data_conf_tier,
+        data_confidence_score=data_conf_score,
     )
 
-    logger.info(f"Deep Analysis generated: overall_match={overall_match}%")
+    logger.info(
+        f"Deep Analysis generated: overall_match={overall_match}% "
+        f"(confidence={data_conf_tier}/{data_conf_score})"
+    )
     return deep_analysis.model_dump()
