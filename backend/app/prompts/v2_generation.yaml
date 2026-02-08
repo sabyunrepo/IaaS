@@ -281,8 +281,9 @@ prompts:
       1. Experience summary (years + most recent role)
       2. JD match level (High/Medium/Low — translated to {{output_language}})
       3. Estimated level (Junior/Mid/Senior/Lead/Principal)
-      4. Key strengths — each MUST include evidence source in parentheses
-      5. Key concerns — each MUST cite what data is missing or problematic
+      4. Level classification evidence — cite SFIA/Dreyfus criteria + data source
+      5. Key strengths — each MUST include evidence source in parentheses
+      6. Key concerns — each MUST cite what data is missing or problematic
 
       # LEVEL ESTIMATION RULES (SFIA v9 / Dreyfus Model)
       - Junior: 0-2 years experience (SFIA 1-2)
@@ -338,6 +339,7 @@ prompts:
         "experience": "experience summary in {{output_language}} (e.g., '8년 (Senior Backend Engineer @ TechCorp)')",
         "jd_match": "High|Medium|Low (translated to {{output_language}})",
         "level": "Junior|Mid|Senior|Lead|Principal",
+        "level_evidence": "SFIA/Dreyfus classification reason in {{output_language}} — MUST cite data source (e.g., 'SFIA Level 4: 경력 8년 + 아키텍처 의사결정 경험 (Resume + GitHub)')",
         "strengths": ["strength1 (source) in {{output_language}}", "strength2 (source)", ...],
         "concerns": ["concern1 with evidence in {{output_language}}", "concern2 with evidence", ...]
       }}
