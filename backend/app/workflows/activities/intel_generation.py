@@ -322,9 +322,9 @@ def _extract_linkedin_positions(linkedin_profile: dict | None) -> list[LinkedInP
     positions = []
 
     for exp in experiences[:5]:  # 최근 5개
-        company = exp.get("company", exp.get("company_name", "Unknown"))
-        title = exp.get("title", exp.get("position", ""))
-        duration = exp.get("duration", exp.get("tenure", ""))
+        company = exp.get("company") or exp.get("company_name") or "Unknown"
+        title = exp.get("title") or exp.get("position") or ""
+        duration = exp.get("duration") or exp.get("tenure") or ""
 
         # duration이 없으면 starts_at/ends_at에서 계산
         if not duration:
@@ -335,9 +335,9 @@ def _extract_linkedin_positions(linkedin_profile: dict | None) -> list[LinkedInP
 
         positions.append(LinkedInPosition(
             initial=company[0].upper() if company else "?",
-            title=title,
-            company=company,
-            detail=duration,
+            title=str(title) if title else "",
+            company=str(company),
+            detail=str(duration) if duration else "",
         ))
 
     return positions
