@@ -323,6 +323,13 @@ prompts:
       - Inconsistency: "이력서 경력 8년이나 GitHub 활동 2년만 확인"
       NEVER fabricate concerns not supported by input data.
 
+      # FORBIDDEN PATTERNS (will cause rejection)
+      - Strengths WITHOUT source tag: "뛰어난 기술력" ← REJECTED (no source)
+      - Strengths with vague source: "다양한 경험이 풍부함" ← REJECTED (no specific skill cited)
+      - Concerns NOT grounded in data: "의사소통 능력이 부족할 수 있음" ← REJECTED (no evidence)
+      - EVERY strength MUST name a specific skill/achievement + source: "Python 5년, FastAPI 3개 프로젝트 (Resume + GitHub)" ← ACCEPTED
+      - EVERY concern MUST cite the data gap or contradiction: "JD 필수 Kubernetes 경험 없음 (Resume/GitHub 미확인)" ← ACCEPTED
+
       # CROSS-CONSISTENCY CHECK
       - strengths should align with high-scoring areas
       - concerns should align with low-scoring areas or data gaps
@@ -396,6 +403,12 @@ prompts:
 
       # ADDITIONAL CONTEXT (may be empty)
       {{kg_context}}
+
+      # FORBIDDEN PATTERNS (will cause rejection)
+      - Red flags WITHOUT data source: "기술 부족 우려" ← REJECTED (no parenthesized source)
+      - Positive signals WITHOUT data source: "훌륭한 경력" ← REJECTED (no evidence)
+      - EVERY red flag MUST end with (Resume), (GitHub), or (LinkedIn): "경력 갭 2023-2024 (Resume)" ← ACCEPTED
+      - EVERY positive signal MUST end with source: "12개 레포에서 일관된 코드 품질 (GitHub)" ← ACCEPTED
 
       # OUTPUT FORMAT
       {{
