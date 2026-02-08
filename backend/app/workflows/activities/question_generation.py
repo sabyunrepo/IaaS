@@ -535,6 +535,15 @@ async def craft_question(
             "snippet": code_reference.get("code_snippet") or code_reference.get("snippet"),
         }
 
+    # follow_ups good/poor 보강 — LLM이 생략하면 기본 구조 삽입
+    for fu in question.get("follow_ups", []):
+        if not isinstance(fu, dict):
+            continue
+        if "good" not in fu or not isinstance(fu.get("good"), dict):
+            fu["good"] = {"text": fu.get("listen_for", ""), "score": 7}
+        if "poor" not in fu or not isinstance(fu.get("poor"), dict):
+            fu["poor"] = {"text": "", "score": 2}
+
     # Use recommended probe if available and question_text is generic
     if recommended_probe and question.get("question_text", "").startswith("["):
         question["alternative_phrasing"] = question.get("alternative_phrasing", [])
