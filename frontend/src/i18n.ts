@@ -532,7 +532,7 @@ const resources = {
       live_select_all: 'Select All',
       live_start_interview: 'Start Interview →',
       live_risk: 'Risk',
-      live_minutes: ' min',
+      live_minutes: 'min',
       live_no_questions: 'No questions selected.',
       live_back_to_select: 'Back to Question Selection',
       live_go_select: '← Questions',

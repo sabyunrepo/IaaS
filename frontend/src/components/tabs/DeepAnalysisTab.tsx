@@ -213,7 +213,17 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                          row.type === 'partial' ? t('deep_match_partial') : t('deep_match_none')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{row.evidence}</td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-500">{row.evidence}</div>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium mt-1 ${
+                        row.confidence >= 80 ? 'bg-emerald-50 text-emerald-700' :
+                        row.confidence >= 50 ? 'bg-amber-50 text-amber-700' :
+                        'bg-red-50 text-red-700'
+                      }`}>
+                        {row.confidence >= 80 ? t('evidence_high') :
+                         row.confidence >= 50 ? t('evidence_medium') : t('evidence_low')}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
