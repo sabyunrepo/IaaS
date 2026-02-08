@@ -1,17 +1,18 @@
 prompts:
   competency_matching:
-    description: "JD 역량과 후보자 시맨틱 매칭 분석"
+    description: "JD 역량과 후보자 시맨틱 매칭 분석 (근거 기반)"
     template: |
       # CRITICAL OUTPUT RULES
       - Return ONLY raw JSON, NO markdown formatting
       - Start your response with [ and end with ]
 
       # ROLE
-      You are an expert technical recruiter analyzing candidate-job fit.
+      You are an expert technical recruiter analyzing candidate-job fit with evidence-based assessment.
 
       # TASK
       Compare each JD requirement against the candidate's skills from resume and code analysis.
       Determine match level using semantic understanding, not just keyword matching.
+      EVERY match_label MUST cite the specific evidence source (Resume skill list, GitHub tech stack, etc.).
 
       # OUTPUT LANGUAGE (CRITICAL)
       Write ALL output text in {{output_language}}.
@@ -19,11 +20,20 @@ prompts:
       JSON keys must remain in English. The "match" field must be one of: strong|partial|unknown|none.
       Even if the input data is in another language, ALL output values MUST be in {{output_language}}.
 
-      # MATCH LEVELS
-      - "strong": Candidate has direct, proven experience (exact or closely related skill)
-      - "partial": Candidate has related experience that partially covers the requirement
-      - "unknown": Cannot determine from available data
-      - "none": No evidence of this skill in candidate profile
+      # MATCH LEVELS AND EVIDENCE REQUIREMENTS
+      - "strong": Candidate has direct, proven experience — MUST cite specific skill from Resume OR GitHub
+        Example match_label: "Resume에서 Python 3년 확인 + GitHub에서 FastAPI 프로젝트 탐지"
+      - "partial": Candidate has related but not exact experience — cite the related skill
+        Example match_label: "Resume에서 Django 경험 확인 (Flask 요구사항과 유사 프레임워크)"
+      - "unknown": Cannot determine from available data — explain what data is missing
+        Example match_label: "이력서/GitHub에서 관련 경험 확인 불가"
+      - "none": No evidence of this skill — state clearly
+        Example match_label: "제공된 데이터에서 해당 스킬 근거 없음"
+
+      # ANTI-HALLUCINATION RULES
+      - NEVER claim the candidate has a skill that is not in the provided input data
+      - If a skill is not listed in Resume skills OR GitHub code_skills, it is "unknown" or "none"
+      - Do NOT infer skills from job titles alone — only use the explicit skill lists provided
 
       # INPUT
       JD Requirements:
@@ -43,14 +53,14 @@ prompts:
         {{
           "name": "requirement name in {{output_language}}",
           "match": "strong|partial|unknown|none",
-          "match_label": "explanation in {{output_language}} (e.g., 'Candidate: 3 years Python experience confirmed')",
+          "match_label": "evidence-cited explanation in {{output_language}} — MUST reference Resume or GitHub data",
           "desc": "requirement description in {{output_language}}",
           "why": "why this matters for the role in {{output_language}}"
         }}
       ]
 
   radar_analysis:
-    description: "5축 레이더 차트 점수 산출 (LLM 기반)"
+    description: "5축 레이더 차트 점수 산출 (LLM 기반, 공식 기준 참조)"
     template: |
       # CRITICAL OUTPUT RULES
       - Return ONLY raw JSON, NO markdown formatting
@@ -61,17 +71,43 @@ prompts:
 
       # TASK
       Score the candidate on 5 axes (0-100 scale) based on the provided analysis data.
-      Be precise and evidence-based. Do NOT default to 50 for everything.
+      A deterministic formula has pre-computed base scores (see FORMULA BASE below).
+      Your job: refine these scores using qualitative evidence the formula cannot capture.
+      Your final scores MUST stay within ±15 points of the formula base.
+      Each score MUST cite at least one specific evidence point in the reasoning.
 
       # OUTPUT LANGUAGE
       Write ALL reasoning text in {{output_language}}. JSON keys must remain in English.
 
-      # AXES
-      1. role_fit: How well candidate matches the specific role requirements
-      2. technical: Technical depth and breadth of skills
-      3. execution: Track record of delivering results, project ownership
-      4. communication: Documentation quality, code readability, collaboration signals
-      5. code_quality: Code quality assessment (code readability, test coverage, documentation, architecture patterns)
+      # SCORING CALIBRATION (what different ranges mean)
+      - 85-100: Exceptional — exceeds role requirements with strong evidence
+      - 70-84: Strong — meets requirements well, multiple evidence points
+      - 50-69: Adequate — meets some requirements, limited evidence
+      - 30-49: Below expectations — significant gaps, weak evidence
+      - 0-29: Critical gaps — little to no relevant evidence
+
+      # AXES AND SCORING CRITERIA
+      1. role_fit: JD requirement coverage + skill overlap ratio
+         - High: ≥80% of JD requirements matched by candidate skills
+         - Low: <40% overlap or key requirements missing
+      2. technical: Code quality metrics + tech stack breadth + contribution consistency
+         - High: Good code quality + diverse tech + active monthly commits
+         - Low: No code data or poor quality metrics
+      3. execution: Experience years (SFIA) + commit consistency + code contribution volume
+         - High: Senior+ experience + consistent monthly commits + substantial codebase
+         - Low: Junior experience + sporadic activity
+      4. communication: Documentation score + code readability (inverse complexity)
+         - High: Well-documented code + low cyclomatic complexity
+         - Low: No documentation + high complexity
+      5. code_quality: Composite of complexity(30%) + test coverage(30%) + docs(20%) + stability(20%)
+         - High: Low complexity + good test coverage + well-documented + stable codebase
+         - Low: High complexity + no tests + no docs
+
+      # FORMULA BASE SCORES (deterministic reference — your scores must be within ±15 of these)
+      {{formula_base_scores}}
+
+      # FORMULA CALCULATION SOURCES
+      {{formula_sources}}
 
       # INPUT
       JD Analysis:
@@ -90,28 +126,29 @@ prompts:
       {{
         "candidate_scores": [role_fit, technical, execution, communication, code_quality],
         "reasoning": {{
-          "role_fit": "brief reason",
-          "technical": "brief reason",
-          "execution": "brief reason",
-          "communication": "brief reason",
-          "code_quality": "brief reason"
+          "role_fit": "evidence-based reason citing specific data (e.g., '4/5 JD skills matched in resume')",
+          "technical": "evidence-based reason citing specific data (e.g., '8 tech stack items, 10/12 active months')",
+          "execution": "evidence-based reason citing specific data (e.g., '5 years experience, 200+ commits')",
+          "communication": "evidence-based reason citing specific data (e.g., 'doc score 65%, avg CC 8.2')",
+          "code_quality": "evidence-based reason citing specific data (e.g., 'test coverage 45%, complexity grade B')"
         }}
       }}
 
   skill_matching:
-    description: "JD 요구사항 vs 후보자 스킬 시맨틱 매칭"
+    description: "JD 요구사항 vs 후보자 스킬 시맨틱 매칭 (근거 기반)"
     template: |
       # CRITICAL OUTPUT RULES
       - Return ONLY raw JSON array, NO markdown formatting
       - Start your response with [ and end with ]
 
       # ROLE
-      You are an expert technical recruiter performing semantic skill matching.
+      You are an expert technical recruiter performing evidence-based semantic skill matching.
 
       # TASK
       Match each JD requirement against the candidate's actual skills from resume and code analysis.
       Use semantic understanding: "Boto3" relates to "cloud infrastructure", "OpenAI SDK" relates to "LLM API development", etc.
       Be honest: if a skill genuinely doesn't match, mark it as "none".
+      EVERY match MUST cite the specific evidence source.
 
       # OUTPUT LANGUAGE (CRITICAL)
       Write ALL output text in {{output_language}}.
@@ -123,6 +160,19 @@ prompts:
       - "similar": Closely related skill (e.g., "API development" ↔ "FastAPI experience")
       - "partial": Tangentially related (e.g., "Cloud services" ↔ "AWS S3 usage")
       - "none": No meaningful connection
+
+      # CONFIDENCE CALIBRATION
+      - 90-100: Exact skill name match confirmed in both Resume AND GitHub
+      - 70-89: Exact match in one source, or strong semantic match in both
+      - 50-69: Semantic/partial match in one source only
+      - 30-49: Weak or tangential connection
+      - 0-29: No evidence found (type should be "none")
+
+      # EVIDENCE RULES
+      - For "evidence" field, be SPECIFIC: cite "Resume" or "GitHub" or "Resume + GitHub"
+      - If from GitHub, mention the skill/technology name found in code analysis
+      - If from Resume, mention the skill listed in resume
+      - NEVER fabricate evidence — if a skill is not in the input data, mark as "none"
 
       # INPUT
       JD Requirements (top 6):
@@ -140,24 +190,25 @@ prompts:
           "skill": "JD requirement text in {{output_language}}",
           "candidate": "matched candidate skill name, or '—' if none",
           "type": "exact|similar|partial|none",
-          "evidence": "source: Resume|GitHub|No evidence",
+          "evidence": "specific source in {{output_language}} (e.g., 'Resume: Python listed' or 'GitHub: FastAPI detected in tech stack' or 'No evidence')",
           "confidence": 0-100
         }}
       ]
 
   engineering_dna:
-    description: "Engineering DNA 심층 분석"
+    description: "Engineering DNA 심층 분석 (메트릭 기반)"
     template: |
       # CRITICAL OUTPUT RULES
       - Return ONLY raw JSON array, NO markdown formatting
       - Start your response with [ and end with ]
 
       # ROLE
-      You are a senior engineering manager assessing a candidate's engineering practices.
+      You are a senior engineering manager assessing a candidate's engineering practices based on code metrics.
 
       # TASK
-      Analyze the candidate's code to assess their engineering DNA across key dimensions.
-      Provide scores (0-100) and display labels.
+      Analyze the candidate's code metrics to assess their engineering DNA.
+      Scores MUST be derived from the actual metrics in the input data, not general impressions.
+      If a metric is not available, set value to 0 and note "Data not available".
 
       # OUTPUT LANGUAGE (CRITICAL)
       Write ALL output text in {{output_language}}.
@@ -172,27 +223,43 @@ prompts:
       # ADDITIONAL CONTEXT (may be empty)
       {{kg_context}}
 
-      # DIMENSIONS TO ASSESS
-      1. Test Coverage - Testing practices and coverage
-      2. Documentation Quality - Documentation quality
-      3. IaC Usage - Infrastructure as Code adoption
-      4. Code Complexity - Code complexity management
-      5. Design Patterns - Design pattern usage (if detectable)
+      # DIMENSIONS AND SCORING CRITERIA
+      1. Test Coverage — Use test_coverage metric directly
+         - ≥70: emerald, "Excellent" | 40-69: amber, "Moderate" | <40: red, "Poor"
+      2. Documentation Quality — Use documentation_score metric
+         - ≥80: blue, "Excellent" | 50-79: amber, "Moderate" | <50: red, "Poor"
+      3. IaC Usage — Check for infrastructure patterns (Dockerfile, CI/CD, Terraform)
+         - ≥50: emerald, "Confirmed" | <50: red, "Not detected"
+      4. Code Complexity — Use complexity_score (lower is better for readability)
+         - ≤30: emerald, "Low" | 31-70: amber, "Moderate" | >70: red, "High"
+      5. Design Patterns — Assess from code structure if detectable
+         - Only score if patterns are detectable in the data, otherwise value=0 color="slate"
+
+      # COLOR RULES
+      - emerald: Good/positive metric
+      - blue: Informational/good documentation
+      - amber: Moderate/needs improvement
+      - red: Poor/concerning
+      - slate: Data unavailable or not applicable
+
+      # tooltip FIELD
+      The "tooltip" field is for non-technical users. Explain what this metric means in simple terms.
+      Example: "Test coverage measures how much of the code is verified by automated tests — higher is better"
 
       # OUTPUT FORMAT (JSON array)
       [
         {{
           "label": "dimension label in {{output_language}}",
           "value": 0-100,
-          "display": "quality rating in {{output_language}} (e.g., 'Excellent', 'Moderate', 'Poor')",
+          "display": "quality rating in {{output_language}} following the criteria above",
           "color": "emerald|blue|amber|red|slate",
-          "note": "optional explanation in {{output_language}} or null",
-          "tooltip": "optional non-tech explanation in {{output_language}} or null"
+          "note": "specific metric citation in {{output_language}} (e.g., 'test_coverage: 72%') or null",
+          "tooltip": "non-tech explanation in {{output_language}} or null"
         }}
       ]
 
   decision_summary:
-    description: "후보자 Decision Summary 생성 (레벨/강점/우려사항)"
+    description: "후보자 Decision Summary 생성 (근거 기반 레벨/강점/우려사항)"
     template: |
       # CRITICAL OUTPUT RULES
       - Return ONLY raw JSON, NO markdown formatting
@@ -200,7 +267,7 @@ prompts:
 
       # ROLE
       You are a senior hiring manager making a data-driven hiring decision.
-      Analyze the candidate holistically and produce a concise decision summary.
+      Analyze the candidate holistically and produce a concise, evidence-based decision summary.
 
       # OUTPUT LANGUAGE (CRITICAL)
       Write ALL output text in {{output_language}}.
@@ -210,20 +277,44 @@ prompts:
 
       # TASK
       Based on the candidate's profile and JD requirements, generate:
-      1. Experience summary
+      1. Experience summary (years + most recent role)
       2. JD match level (High/Medium/Low — translated to {{output_language}})
       3. Estimated level (Junior/Mid/Senior/Lead/Principal)
-      4. Key strengths with evidence sources
-      5. Key concerns or areas to verify
+      4. Key strengths — each MUST include evidence source in parentheses
+      5. Key concerns — each MUST cite what data is missing or problematic
 
-      # LEVEL ESTIMATION RULES
-      - Junior: 0-2 years experience
-      - Mid: 3-6 years experience
-      - Senior: 7-9 years experience
-      - Lead: 10-14 years experience
-      - Principal: 15+ years experience
+      # LEVEL ESTIMATION RULES (SFIA v9 / Dreyfus Model)
+      - Junior: 0-2 years experience (SFIA 1-2)
+      - Mid: 3-6 years experience (SFIA 3)
+      - Senior: 7-9 years experience (SFIA 4)
+      - Lead: 10-14 years experience (SFIA 5)
+      - Principal: 15+ years experience (SFIA 6-7)
       - ALSO consider: leadership scope, architectural decisions, mentoring evidence
       - Experience years alone is insufficient — weigh role complexity and impact
+
+      # JD MATCH THRESHOLDS
+      - High: jd_match_score ≥ 0.75
+      - Medium: jd_match_score 0.50-0.74
+      - Low: jd_match_score < 0.50
+
+      # EVIDENCE RULES FOR STRENGTHS
+      Each strength MUST end with a source tag in parentheses:
+      - "(Resume)" — from candidate profile/skills
+      - "(GitHub)" — from code analysis
+      - "(Resume + GitHub)" — confirmed in both
+      Example: "Python 5년 경험, FastAPI 프로젝트 3개 (Resume + GitHub)"
+
+      # EVIDENCE RULES FOR CONCERNS
+      Each concern MUST reference what triggered it:
+      - Data gap: "GitHub 데이터 없어 코드 품질 검증 불가"
+      - Skill gap: "JD 필수 요구사항 Kubernetes 관련 경험 없음 (Resume/GitHub 모두 미확인)"
+      - Inconsistency: "이력서 경력 8년이나 GitHub 활동 2년만 확인"
+      NEVER fabricate concerns not supported by input data.
+
+      # CROSS-CONSISTENCY CHECK
+      - strengths should align with high-scoring areas
+      - concerns should align with low-scoring areas or data gaps
+      - jd_match should be consistent with jd_match_score value
 
       # INPUT
       JD Analysis:
@@ -243,11 +334,11 @@ prompts:
 
       # OUTPUT FORMAT
       {{
-        "experience": "experience summary in {{output_language}} (e.g., '8 yrs (Senior Backend Engineer @ TechCorp)')",
+        "experience": "experience summary in {{output_language}} (e.g., '8년 (Senior Backend Engineer @ TechCorp)')",
         "jd_match": "High|Medium|Low (translated to {{output_language}})",
         "level": "Junior|Mid|Senior|Lead|Principal",
         "strengths": ["strength1 (source) in {{output_language}}", "strength2 (source)", ...],
-        "concerns": ["concern1 in {{output_language}}", "concern2", ...]
+        "concerns": ["concern1 with evidence in {{output_language}}", "concern2 with evidence", ...]
       }}
 
   interviewer_tips:

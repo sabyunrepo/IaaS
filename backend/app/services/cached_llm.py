@@ -304,8 +304,12 @@ class CachedLLMService:
         return await _get_shared_redis()
 
     @staticmethod
-    def _model_settings(model: str | None = None, override_max_tokens: int | None = None):
-        """모델별 최적 ModelSettings 반환"""
+    def _model_settings(
+        model: str | None = None,
+        override_max_tokens: int | None = None,
+        temperature: float = 0.0,
+    ):
+        """모델별 최적 ModelSettings 반환 (temperature 기본값 0.0 = 결정적 출력)"""
         from pydantic_ai import ModelSettings
         from app.services.llm_config import get_max_output_tokens
         if override_max_tokens:
@@ -314,7 +318,7 @@ class CachedLLMService:
             max_tokens = get_max_output_tokens(model)
         else:
             max_tokens = settings.LLM_MAX_OUTPUT_TOKENS
-        return ModelSettings(max_tokens=max_tokens)
+        return ModelSettings(max_tokens=max_tokens, temperature=temperature)
 
     @staticmethod
     def _make_cache_key(prompt: str, model: str, activity_name: str | None = None, job_id: str | None = None) -> str:
@@ -371,11 +375,12 @@ class CachedLLMService:
         result_type: Any,
         override_max_tokens: int | None = None,
         trace_meta: dict | None = None,
+        temperature: float = 0.0,
     ) -> tuple[Any, Any]:
         """LLM 호출 + 폴백 + 결과 정규화. (data, run_result) 반환."""
         from app.services.llm_config import get_llm_agent
 
-        ms = self._model_settings(model, override_max_tokens)
+        ms = self._model_settings(model, override_max_tokens, temperature=temperature)
         try:
             agent = get_llm_agent(result_type=result_type, model=model)
             run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
@@ -412,6 +417,7 @@ class CachedLLMService:
         result_type: Any = None,
         activity_name: str | None = None,
         override_max_tokens: int | None = None,
+        temperature: float = 0.0,
     ) -> Any:
         """캐시 조회 → LLM 호출 → Langfuse 로깅 → 캐시 저장 (공통 파이프라인)"""
         # 1. 캐시 조회
@@ -422,6 +428,7 @@ class CachedLLMService:
         # 2. LLM 호출 + 폴백
         data, run_result = await self._call_llm_with_fallback(
             prompt, model, result_type, override_max_tokens, trace_meta,
+            temperature=temperature,
         )
 
         # 3. Langfuse 로깅
@@ -502,6 +509,15 @@ class CachedLLMService:
         if prompt_config.config:
             config_max_tokens = prompt_config.config.get("max_output_tokens")
 
+        # Temperature 추출: PromptWithConfig.temperature → config dict → 기본값 0.0 (결정적)
+        config_temperature = 0.0
+        if prompt_config.temperature is not None:
+            config_temperature = prompt_config.temperature
+        elif prompt_config.config:
+            temp = prompt_config.config.get("temperature")
+            if temp is not None:
+                config_temperature = float(temp)
+
         return await self._execute_with_cache(
             prompt=prompt,
             model=model,
@@ -510,6 +526,7 @@ class CachedLLMService:
             result_type=result_type,
             activity_name=prompt_name,
             override_max_tokens=config_max_tokens,
+            temperature=config_temperature,
         )
 
     # ─── Langfuse 이벤트 로깅 ────────────────────────────
