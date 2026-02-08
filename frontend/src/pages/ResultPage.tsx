@@ -220,7 +220,7 @@ export function ResultPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Intel Brief
+            {t('result_tab_intel_brief')}
           </button>
           <button
             role="tab"
@@ -237,7 +237,7 @@ export function ResultPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            Deep Analysis
+            {t('result_tab_analysis')}
           </button>
           <button
             role="tab"
@@ -254,7 +254,7 @@ export function ResultPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
-            Live Interview ({questions.length})
+            {t('result_tab_interview')} ({questions.length})
           </button>
           <button
             role="tab"
@@ -271,7 +271,7 @@ export function ResultPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Decision
+            {t('result_tab_decision')}
           </button>
         </div>
       ) : (
@@ -672,7 +672,7 @@ export function ResultPage() {
                       <div className="text-lg font-bold text-indigo-600">
                         ≥ {guide.evaluation_matrix.strong_hire_threshold}
                       </div>
-                      <div className="text-sm text-gray-500">Strong Hire</div>
+                      <div className="text-sm text-gray-500">{t('result_strong_hire')}</div>
                     </div>
                   </div>
                   {guide.evaluation_matrix.category_weights && (
@@ -694,7 +694,7 @@ export function ResultPage() {
               <div className="grid gap-6 sm:grid-cols-2">
                 {guide.green_flags_summary && guide.green_flags_summary.length > 0 && (
                   <div className="rounded-xl border border-green-200 bg-green-50 p-6">
-                    <h2 className="text-lg font-semibold text-green-900 mb-3">✅ Green Flags</h2>
+                    <h2 className="text-lg font-semibold text-green-900 mb-3">✅ {t('result_green_flags')}</h2>
                     <ul className="space-y-2">
                       {guide.green_flags_summary.map((flag, i) => (
                         <li key={i} className="text-sm text-green-800 flex items-start gap-2">
@@ -707,7 +707,7 @@ export function ResultPage() {
                 )}
                 {guide.red_flags_summary && guide.red_flags_summary.length > 0 && (
                   <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                    <h2 className="text-lg font-semibold text-red-900 mb-3">🚩 Red Flags</h2>
+                    <h2 className="text-lg font-semibold text-red-900 mb-3">🚩 {t('result_red_flags')}</h2>
                     <ul className="space-y-2">
                       {guide.red_flags_summary.map((flag, i) => (
                         <li key={i} className="text-sm text-red-800 flex items-start gap-2">

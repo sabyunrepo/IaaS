@@ -75,7 +75,7 @@ export function LoginPage() {
                 />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Vantict Sniper</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('app_title')}</h1>
             <p className="mt-2 text-sm text-gray-600">{t('login_subtitle')}</p>
           </div>
 
