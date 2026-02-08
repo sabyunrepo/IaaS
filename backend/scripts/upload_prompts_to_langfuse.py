@@ -102,7 +102,7 @@ def load_yaml_prompts(prompts_dir: Path, filename: str | None = None) -> dict:
             model = get_model_for_activity(activity_name)
             config = {
                 "model": model,
-                "temperature": 0.5,
+                "temperature": 0.0,
                 "max_output_tokens": get_max_output_tokens(model),
             }
 

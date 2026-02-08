@@ -172,10 +172,13 @@ class CodeAnalyzer:
             if file_list else 0
         )
 
-        # diff 기반 정렬: 복잡도 × 변경량 기준
+        # diff 기반 정렬: 복잡도 × 변경량 기준 (secondary key로 안정 정렬 보장)
         commit_diffs.sort(
-            key=lambda x: x["complexity"] * (x["additions"] + x["deletions"]),
-            reverse=True
+            key=lambda x: (
+                x["complexity"] * (x["additions"] + x["deletions"]),
+                x.get("file_path", ""),
+            ),
+            reverse=True,
         )
 
         # Build monthly_contributions array (last 12 months, oldest → newest)
@@ -216,7 +219,7 @@ class CodeAnalyzer:
         for f in files:
             score = f.get("complexity", 0) * (1 + f.get("methods", 0) * 0.1)
             scored.append((score, f))
-        scored.sort(key=lambda x: x[0], reverse=True)
+        scored.sort(key=lambda x: (x[0], x[1].get("filename", "")), reverse=True)
         return [f for _, f in scored[:max_files]]
 
     async def analyze_ast(

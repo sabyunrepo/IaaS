@@ -49,6 +49,20 @@ async def _llm_calculate_radar_scores(
             except Exception as e:
                 logger.debug(f"KG enrichment failed for radar: {e}")
 
+        # 결정론적 공식 기반 기준 점수 선계산 (LLM 참고용)
+        from app.services.scoring_formulas import (
+            calculate_radar_scores as _formula_radar,
+        )
+        formula_radar = _formula_radar(jd_analysis, code_analysis or {}, document_analysis)
+        formula_base = {
+            "role_fit": formula_radar.candidate[0],
+            "technical": formula_radar.candidate[1],
+            "execution": formula_radar.candidate[2],
+            "communication": formula_radar.candidate[3],
+            "code_quality": formula_radar.candidate[4],
+        }
+        formula_sources = formula_radar.sources
+
         # 요약 데이터 준비
         code_summary = _t("no_code_analysis_data", output_language)
         if code_analysis:
@@ -78,6 +92,8 @@ async def _llm_calculate_radar_scores(
             document_analysis_summary=doc_summary,
             output_language=output_language,
             kg_context=kg_context,
+            formula_base_scores=json.dumps(formula_base, ensure_ascii=False),
+            formula_sources=json.dumps(formula_sources, ensure_ascii=False),
         )
 
         llm = CachedLLMService()
@@ -94,11 +110,7 @@ async def _llm_calculate_radar_scores(
         candidate_scores = [max(0, min(100, int(s))) for s in scores]
 
         # 결정론적 기준 점수와 비교하여 ±15% 범위로 바운딩
-        from app.services.scoring_formulas import (
-            calculate_radar_scores as _formula_radar,
-            get_required_scores,
-        )
-        formula_radar = _formula_radar(jd_analysis, code_analysis or {}, document_analysis)
+        from app.services.scoring_formulas import get_required_scores
         for i in range(5):
             base = formula_radar.candidate[i]
             max_delta = max(15, int(base * 0.15))
