@@ -168,7 +168,27 @@ async def generate_interviewer_notes(questions: list[dict], enriched_input: dict
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     from app.services.cached_llm import validate_llm_output
-    return validate_llm_output(result, activity_name="generate_interviewer_notes")
+    validated = validate_llm_output(result, activity_name="generate_interviewer_notes")
+
+    # 면접관 노트 핵심 필드 존재 검증
+    REQUIRED_FIELDS = {"business_interpretation", "daily_analogy", "what_to_listen_for"}
+    if isinstance(validated, dict):
+        total_notes = 0
+        incomplete_notes = 0
+        for q_key, note_data in validated.items():
+            if not isinstance(note_data, dict):
+                continue
+            total_notes += 1
+            present = set(note_data.keys()) & REQUIRED_FIELDS
+            if present != REQUIRED_FIELDS:
+                incomplete_notes += 1
+                missing = REQUIRED_FIELDS - present
+                logger.warning(f"generate_interviewer_notes: {q_key} missing fields: {missing}")
+        if total_notes > 0:
+            coverage = round((total_notes - incomplete_notes) / total_notes * 100, 1)
+            logger.info(f"generate_interviewer_notes: {total_notes} notes, {coverage}% have all required fields")
+
+    return validated
 
 
 @activity.defn
@@ -202,7 +222,28 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     from app.services.cached_llm import validate_llm_output
-    return validate_llm_output(result, activity_name="generate_decision_guide")
+    validated = validate_llm_output(result, activity_name="generate_decision_guide")
+
+    # 의사결정 가이드 구조 검증
+    REQUIRED_TOP_KEYS = {"scoring_weights", "decision_thresholds", "category_insights"}
+    if isinstance(validated, dict):
+        present = set(validated.keys()) & REQUIRED_TOP_KEYS
+        if present != REQUIRED_TOP_KEYS:
+            missing = REQUIRED_TOP_KEYS - present
+            logger.warning(f"generate_decision_guide: missing top-level keys: {missing}")
+        else:
+            logger.info("generate_decision_guide: all required top-level keys present")
+
+        # risk_assessment에 identified_risks가 있으면 근거 없는 빈 리스크 경고
+        risk_assessment = validated.get("risk_assessment", {})
+        if isinstance(risk_assessment, dict):
+            risks = risk_assessment.get("identified_risks", [])
+            if isinstance(risks, list):
+                empty_risks = [r for r in risks if isinstance(r, str) and len(r.strip()) < 5]
+                if empty_risks:
+                    logger.warning(f"generate_decision_guide: {len(empty_risks)} risks with insufficient description")
+
+    return validated
 
 
 @activity.defn
