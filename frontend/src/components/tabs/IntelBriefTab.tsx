@@ -15,8 +15,9 @@ interface IntelBriefTabProps {
 
 export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, techStack, linkedinProfile }: IntelBriefTabProps) {
   const { t } = useTranslation()
-  const { jd_summary, competencies, github, linkedin, linkedin_warning } = intel
+  const { jd_summary, jd_full, competencies, github, linkedin, linkedin_warning } = intel
   const [avatarError, setAvatarError] = useState(false)
+  const [jdFullExpanded, setJdFullExpanded] = useState(false)
 
   return (
     <div className="space-y-6">
@@ -131,6 +132,33 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
           </div>
         )}
       </div>
+
+      {/* Full JD Text (collapsible) */}
+      {jd_full && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+          <button
+            onClick={() => setJdFullExpanded(!jdFullExpanded)}
+            className="w-full px-6 py-4 flex items-center justify-between text-left"
+          >
+            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {t('intel_jd_full_text')}
+            </h3>
+            <svg className={`w-4 h-4 text-gray-400 transition-transform ${jdFullExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {jdFullExpanded && (
+            <div className="px-6 pb-4">
+              <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded-lg p-4 border border-gray-100">
+                {jd_full}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Competency Matching */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
