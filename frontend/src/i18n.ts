@@ -327,6 +327,10 @@ const resources = {
       scenario_expert: '🌟 Expert',
       scenario_mid: '📊 Mid',
       scenario_low: '📉 Low',
+      // LiveInterviewTab - follow-up answer quality labels
+      live_followup_good: '좋은 답변',
+      live_followup_poor: '주의 답변',
+      live_followup_pts: '점',
       // DeepAnalysisTab
       engineering_dna: 'Engineering DNA',
       data_confidence_label: '데이터 신뢰도',
@@ -679,6 +683,10 @@ const resources = {
       scenario_expert: '🌟 Expert',
       scenario_mid: '📊 Mid',
       scenario_low: '📉 Low',
+      // LiveInterviewTab - follow-up answer quality labels
+      live_followup_good: 'Good',
+      live_followup_poor: 'Poor',
+      live_followup_pts: 'pts',
       // DeepAnalysisTab
       engineering_dna: 'Engineering DNA',
       data_confidence_label: 'Data Confidence',

@@ -262,11 +262,11 @@ export function InterviewQuestionCard({
                   <p className="font-medium text-gray-900 mb-2">{followUp.question_text}</p>
                   <div className="grid sm:grid-cols-2 gap-3 mb-3">
                     <div className="p-2 bg-green-50 rounded-lg border border-green-200">
-                      <span className="text-xs font-semibold text-green-700">Good ({followUp.good.score}pts)</span>
+                      <span className="text-xs font-semibold text-green-700">{t('live_followup_good')} ({followUp.good.score}{t('live_followup_pts')})</span>
                       <p className="text-sm text-green-800 mt-1">{followUp.good.text}</p>
                     </div>
                     <div className="p-2 bg-red-50 rounded-lg border border-red-200">
-                      <span className="text-xs font-semibold text-red-700">Poor ({followUp.poor.score}pts)</span>
+                      <span className="text-xs font-semibold text-red-700">{t('live_followup_poor')} ({followUp.poor.score}{t('live_followup_pts')})</span>
                       <p className="text-sm text-red-800 mt-1">{followUp.poor.text}</p>
                     </div>
                   </div>
