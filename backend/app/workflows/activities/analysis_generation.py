@@ -178,17 +178,34 @@ async def _llm_analyze_engineering_dna(code_analysis: dict | None, output_langua
 
         from app.services.match_config import sanitize_color
 
+        # 실제 코드 메트릭으로 note 검증/보강
+        actual_metrics = code_analysis.get("quality_metrics", {})
+        metric_map = {
+            "test": f"test_coverage: {actual_metrics.get('test_coverage', 0)}% (GitHub)",
+            "doc": f"documentation_score: {actual_metrics.get('documentation_score', 0)}% (GitHub)",
+            "iac": f"iac_score: {actual_metrics.get('iac_score', 0)}% (GitHub)",
+            "complex": f"complexity_score: {actual_metrics.get('complexity_score', 0)} (GitHub)",
+        }
+
         items = []
         for item in result[:6]:
             if not isinstance(item, dict):
                 continue
             color = sanitize_color(item.get("color", "slate"))
+            note = item.get("note")
+            # LLM note가 없거나 빈 경우, 실제 메트릭에서 보강
+            label_lower = item.get("label", "").lower()
+            if not note:
+                for key, metric_note in metric_map.items():
+                    if key in label_lower:
+                        note = metric_note
+                        break
             items.append(EngineeringDNAItem(
                 label=item.get("label", ""),
                 value=max(0, min(100, int(item.get("value", 0)))),
                 display=item.get("display", ""),
                 color=color,
-                note=item.get("note"),
+                note=note,
                 tooltip=item.get("tooltip"),
             ))
 
@@ -252,6 +269,7 @@ def _analyze_engineering_dna(code_analysis: dict | None, lang: str = "ko") -> li
         value=test_coverage,
         display=f"{test_coverage}%",
         color="emerald" if test_coverage >= 70 else "amber" if test_coverage >= 40 else "red",
+        note=f"test_coverage: {test_coverage}% (GitHub)",
     ))
 
     # 문서화 품질
@@ -262,6 +280,7 @@ def _analyze_engineering_dna(code_analysis: dict | None, lang: str = "ko") -> li
         value=doc_score,
         display=doc_display,
         color="blue" if doc_score >= 80 else "amber" if doc_score >= 50 else "red",
+        note=f"documentation_score: {doc_score}% (GitHub)",
     ))
 
     # IaC 사용 여부
@@ -271,7 +290,7 @@ def _analyze_engineering_dna(code_analysis: dict | None, lang: str = "ko") -> li
         value=iac_score,
         display=_t("confirmed", lang) if iac_score >= 50 else _t("unconfirmed", lang),
         color="emerald" if iac_score >= 50 else "red",
-        note=_t("iac_not_found", lang) if iac_score < 50 else None,
+        note=f"iac_score: {iac_score}% (GitHub)" if iac_score >= 50 else _t("iac_not_found", lang),
         tooltip=_t("iac_tooltip", lang),
     ))
 
@@ -283,6 +302,7 @@ def _analyze_engineering_dna(code_analysis: dict | None, lang: str = "ko") -> li
         value=complexity,
         display=complexity_display,
         color="emerald" if complexity <= 30 else "amber" if complexity <= 70 else "red",
+        note=f"complexity_score: {complexity} (GitHub)",
     ))
 
     return items
