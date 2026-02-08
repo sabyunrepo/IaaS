@@ -15,13 +15,14 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
   const { radar_candidate, radar_required, engineering_dna, risk_flags, skill_table, overall_match, score_sources, data_confidence, data_confidence_score } = analysis
   const [showSources, setShowSources] = useState(false)
 
-  const radarLabels = [
-    t('deep_role_fit'),
-    t('deep_technical'),
-    t('deep_execution'),
-    t('deep_communication'),
-    t('deep_code_quality')
+  const radarAxisConfig = [
+    { label: t('deep_role_fit'), desc: t('deep_role_fit_desc') },
+    { label: t('deep_technical'), desc: t('deep_technical_desc') },
+    { label: t('deep_execution'), desc: t('deep_execution_desc') },
+    { label: t('deep_communication'), desc: t('deep_communication_desc') },
+    { label: t('deep_code_quality'), desc: t('deep_code_quality_desc') },
   ]
+  const radarLabels = radarAxisConfig.map(a => a.label)
 
   return (
     <div className="space-y-6">
@@ -67,13 +68,23 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
 
           {/* Score breakdown */}
           <div className="space-y-3 w-full lg:w-auto">
-            {radarLabels.map((label, i) => {
+            {radarAxisConfig.map((axis, i) => {
               const candidate = radar_candidate?.[i] ?? 0
               const required = radar_required?.[i] ?? 0
               const diff = candidate - required
               return (
-                <div key={label} className="flex items-center gap-3">
-                  <span className="w-28 text-sm text-gray-600">{label}</span>
+                <div key={axis.label} className="flex items-center gap-3">
+                  <span className="w-28 text-sm text-gray-600 flex items-center gap-1">
+                    {axis.label}
+                    <span className="group relative">
+                      <svg className="w-3.5 h-3.5 text-gray-400 cursor-help flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg hidden group-hover:block z-10 pointer-events-none">
+                        {axis.desc}
+                      </span>
+                    </span>
+                  </span>
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-emerald-500 rounded-full"

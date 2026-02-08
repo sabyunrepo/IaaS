@@ -323,6 +323,17 @@ const resources = {
       evidence_high: '근거 충분',
       evidence_medium: '근거 보통',
       evidence_low: '근거 부족',
+      // Score Transparency - Axis Explanations (for non-developers)
+      deep_role_fit_desc: '채용공고(JD)의 요구사항과 후보자의 경험/스킬이 얼마나 일치하는지',
+      deep_technical_desc: '프로그래밍 언어, 프레임워크, 도구 등 기술적 깊이와 폭',
+      deep_execution_desc: '문제를 정의하고 해결책을 실행하는 능력 (코드 복잡도, 프로젝트 완성도)',
+      deep_communication_desc: '문서화, 코드 리뷰, 팀 협업 등 소통 역량',
+      deep_code_quality_desc: '코드의 가독성, 테스트 커버리지, 유지보수성',
+      // Score Transparency - Recommendation Explanations
+      rec_strong_hire_desc: '80% 이상 매칭 — 핵심 요구사항을 모두 충족하며 강력 추천',
+      rec_hire_desc: '60~79% 매칭 — 대부분의 요구사항을 충족하며 추천',
+      rec_leaning_no_desc: '40~59% 매칭 — 일부 요구사항만 충족, 신중한 검토 필요',
+      rec_no_hire_desc: '40% 미만 매칭 — 요구사항 충족 부족, 추천하지 않음',
       // Dev login
       dev_login: '테스트 로그인 (개발 전용)',
     },
@@ -648,6 +659,17 @@ const resources = {
       evidence_high: 'Strong Evidence',
       evidence_medium: 'Moderate Evidence',
       evidence_low: 'Weak Evidence',
+      // Score Transparency - Axis Explanations (for non-developers)
+      deep_role_fit_desc: 'How well the candidate\'s experience/skills match the JD requirements',
+      deep_technical_desc: 'Depth and breadth of programming languages, frameworks, and tools',
+      deep_execution_desc: 'Ability to define problems and deliver solutions (code complexity, project completion)',
+      deep_communication_desc: 'Documentation, code reviews, team collaboration skills',
+      deep_code_quality_desc: 'Code readability, test coverage, and maintainability',
+      // Score Transparency - Recommendation Explanations
+      rec_strong_hire_desc: '80%+ match — Meets all key requirements, strongly recommended',
+      rec_hire_desc: '60-79% match — Meets most requirements, recommended',
+      rec_leaning_no_desc: '40-59% match — Meets some requirements, careful review needed',
+      rec_no_hire_desc: 'Below 40% match — Insufficient requirements coverage, not recommended',
       // Dev login
       dev_login: 'Dev Login (Development Only)',
     },
