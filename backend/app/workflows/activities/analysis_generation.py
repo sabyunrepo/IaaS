@@ -453,38 +453,55 @@ def _build_skill_table(
         confidence = 0
 
         # 1단계: 이력서 스킬에서 매칭
+        resume_source = ""
         for cs in candidate_skills:
             cs_lower = cs.lower()
             if skill_lower == cs_lower:
                 match_type, candidate_skill = "exact", cs
-                evidence, confidence = _t("resume", lang), 95
+                resume_source = f"Resume: {cs} listed"
+                evidence, confidence = resume_source, 95
                 break
-            # 후보자 스킬이 JD 요구사항에 포함 (역방향, e.g. "openai" in "llm api or...")
             elif len(cs_lower) >= 3 and cs_lower in skill_lower:
                 match_type, candidate_skill = "similar", cs
-                evidence, confidence = _t("resume", lang), 75
+                resume_source = f"Resume: {cs} (similar)"
+                evidence, confidence = resume_source, 75
                 break
-            # JD 키워드가 후보자 스킬에 포함 (정방향, e.g. "api" in "fastapi")
             elif len(skill_lower) >= 3 and skill_lower in cs_lower:
                 match_type, candidate_skill = "similar", cs
-                evidence, confidence = _t("resume", lang), 70
+                resume_source = f"Resume: {cs} (related)"
+                evidence, confidence = resume_source, 70
                 break
 
-        # 2단계: 코드 분석 tech_stack에서 매칭
-        if match_type == "none" and code_analysis:
+        # 2단계: 코드 분석 tech_stack에서 매칭 (보강 또는 신규)
+        code_source = ""
+        if code_analysis:
             for cs in code_skills:
                 cs_lower = cs.lower()
                 if skill_lower == cs_lower:
-                    match_type, candidate_skill = "exact", cs
-                    evidence, confidence = "GitHub", 90
+                    code_source = f"GitHub: {cs} detected"
+                    if match_type == "none":
+                        match_type, candidate_skill = "exact", cs
+                        evidence, confidence = code_source, 90
+                    else:
+                        # Resume + GitHub 이중 확인 → confidence 상향
+                        evidence = f"{resume_source} + {code_source}"
+                        confidence = min(100, confidence + 5)
                     break
                 elif len(cs_lower) >= 3 and cs_lower in skill_lower:
-                    match_type, candidate_skill = "partial", cs
-                    evidence, confidence = "GitHub", 65
+                    code_source = f"GitHub: {cs} (partial)"
+                    if match_type == "none":
+                        match_type, candidate_skill = "partial", cs
+                        evidence, confidence = code_source, 65
+                    elif resume_source:
+                        evidence = f"{resume_source} + {code_source}"
                     break
                 elif len(skill_lower) >= 3 and skill_lower in cs_lower:
-                    match_type, candidate_skill = "partial", cs
-                    evidence, confidence = "GitHub", 60
+                    code_source = f"GitHub: {cs} (related)"
+                    if match_type == "none":
+                        match_type, candidate_skill = "partial", cs
+                        evidence, confidence = code_source, 60
+                    elif resume_source:
+                        evidence = f"{resume_source} + {code_source}"
                     break
 
         rows.append(SkillMatchRow(
