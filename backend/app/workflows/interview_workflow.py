@@ -271,16 +271,26 @@ class InterviewGenerationWorkflow:
             decision_guide = all_enhancements[4]
 
             # Merge enhancements into questions
+            # Enhancement Activity들은 question의 id/topic을 키로 사용하여 dict를 반환
             for q in questions:
-                q_id = q.get("question_id") or q.get("topic", "")
-                if q_id in terminology:
-                    q["terminology"] = terminology[q_id]
-                if q_id in scenarios:
-                    q["evaluation_scenarios"] = scenarios[q_id]
-                if q_id in follow_ups:
-                    q["follow_up_questions"] = follow_ups[q_id]
-                if q_id in interviewer_notes:
-                    q["interviewer_note"] = interviewer_notes[q_id]
+                # 여러 가능한 키 후보를 시도: id (UUID), question_id, topic
+                q_keys = [
+                    q.get("id", ""),
+                    q.get("question_id", ""),
+                    q.get("topic", ""),
+                ]
+                for enhancement, field_name in [
+                    (terminology, "terminology"),
+                    (scenarios, "evaluation_scenarios"),
+                    (follow_ups, "follow_up_questions"),
+                    (interviewer_notes, "interviewer_note"),
+                ]:
+                    if not isinstance(enhancement, dict):
+                        continue
+                    for q_key in q_keys:
+                        if q_key and q_key in enhancement:
+                            q[field_name] = enhancement[q_key]
+                            break
 
             # Phase 4: Quality Review + Finalization
             self._update_status(JobStatus.REVIEWING, "Phase 4: Review", 85)

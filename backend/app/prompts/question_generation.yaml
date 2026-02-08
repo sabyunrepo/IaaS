@@ -1543,9 +1543,10 @@ prompts:
       Even if input questions are in another language, your output must be in {{output_language}}.
 
       # OUTPUT FORMAT (JSON)
+      Use each question's "id" field (e.g. "q-tech-a1b2c3d4") as the key.
       ```json
       {
-        "question_id": [
+        "q-tech-a1b2c3d4": [
           {
             "term": "Technical term",
             "plain_language_explanation": "Everyday analogy or simple description",
@@ -1597,10 +1598,11 @@ prompts:
       All scenario descriptions, keywords, and behavioral indicators must be in {{output_language}}.
 
       # OUTPUT FORMAT (JSON)
-      For each question, create scenarios at three levels:
+      For each question, use its "id" field (e.g. "q-tech-a1b2c3d4") as the key.
+      Create scenarios at three levels:
       ```json
       {
-        "question_id": {
+        "q-tech-a1b2c3d4": {
           "expert": {
             "description": "What expert-level response looks like",
             "trigger_keywords": ["specific terms that indicate expertise"],
@@ -1653,9 +1655,10 @@ prompts:
       All follow-up questions and purposes must be in {{output_language}}.
 
       # OUTPUT FORMAT (JSON)
+      Use each question's "id" field (e.g. "q-tech-a1b2c3d4") as the key.
       ```json
       {
-        "question_id": [
+        "q-tech-a1b2c3d4": [
           {
             "trigger": "expert|mid|low",
             "question_text": "Follow-up question",
@@ -1688,9 +1691,10 @@ prompts:
       All notes, analogies, and guidance must be in {{output_language}}.
 
       # OUTPUT FORMAT (JSON)
+      Use each question's "id" field (e.g. "q-tech-a1b2c3d4") as the key.
       ```json
       {
-        "question_id": {
+        "q-tech-a1b2c3d4": {
           "business_interpretation": "What this question reveals in business terms",
           "daily_analogy": "Everyday situation that parallels this technical concept",
           "what_to_listen_for": "Key phrases or concepts that indicate competence",
