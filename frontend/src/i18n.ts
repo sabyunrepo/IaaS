@@ -226,6 +226,9 @@ const resources = {
       live_coaching_tip: '💡 코칭 팁: ',
       live_recovery_question: '🔄 회복 질문: ',
       live_follow_up_direction: '➡️ 후속 방향: ',
+      live_extra_follow_ups: '추가 꼬리질문',
+      live_fuq_purpose: '📌 목적: ',
+      live_fuq_expected: '💡 기대 인사이트: ',
       live_prev_question: '← 이전 질문',
       live_next_question: '다음 질문 →',
       // RadarChart
@@ -570,6 +573,9 @@ const resources = {
       live_coaching_tip: '💡 Coaching Tip: ',
       live_recovery_question: '🔄 Recovery Question: ',
       live_follow_up_direction: '➡️ Follow-up Direction: ',
+      live_extra_follow_ups: 'Additional Follow-ups',
+      live_fuq_purpose: '📌 Purpose: ',
+      live_fuq_expected: '💡 Expected Insight: ',
       live_prev_question: '← Previous',
       live_next_question: 'Next →',
       // RadarChart

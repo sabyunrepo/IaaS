@@ -190,6 +190,14 @@ export interface EvaluationScenarioDetail {
   follow_up_direction?: string
 }
 
+/** Additional follow-up question (enhanced structure from quality review) */
+export interface FollowUpQuestionExtra {
+  trigger?: string
+  question_text: string
+  purpose?: string
+  expected_insight?: string
+}
+
 /** Interview Question (v2 structure) */
 export interface InterviewQuestion {
   id: string
@@ -222,7 +230,7 @@ export interface InterviewQuestion {
     mid_level?: EvaluationScenarioDetail
     low_level?: EvaluationScenarioDetail
   }
-  follow_up_questions?: Array<Record<string, unknown>>
+  follow_up_questions?: FollowUpQuestionExtra[]
 
   // Evidence quality from quality review
   evidence_score?: number
