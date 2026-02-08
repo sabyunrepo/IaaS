@@ -49,6 +49,26 @@ export function ResultPage() {
       .finally(() => setLoading(false))
   }, [jobId])
 
+  // Tab keyboard navigation (WCAG 2.1)
+  // IMPORTANT: useCallback must be called before any early returns
+  // to maintain consistent hook call order (React Rules of Hooks).
+  const v2TabIds = ['intel', 'analysis', 'interview', 'decision'] as const
+  const v1TabIds = ['questions', 'summary', 'guide'] as const
+
+  const handleTabKeyDown = useCallback((e: React.KeyboardEvent, tabs: readonly string[]) => {
+    const currentIndex = tabs.indexOf(activeTab)
+    if (currentIndex === -1) return
+    let newIndex = currentIndex
+    if (e.key === 'ArrowRight') newIndex = (currentIndex + 1) % tabs.length
+    else if (e.key === 'ArrowLeft') newIndex = (currentIndex - 1 + tabs.length) % tabs.length
+    else if (e.key === 'Home') newIndex = 0
+    else if (e.key === 'End') newIndex = tabs.length - 1
+    else return
+    e.preventDefault()
+    setActiveTab(tabs[newIndex] as typeof activeTab)
+    document.getElementById(`tab-${tabs[newIndex]}`)?.focus()
+  }, [activeTab])
+
   if (loading) {
     return (
       <div className="space-y-6 py-6">
@@ -100,24 +120,6 @@ export function ResultPage() {
   const handleScoreChange = (index: number, score: number) => {
     setScores((prev) => ({ ...prev, [index]: score }))
   }
-
-  // Tab keyboard navigation (WCAG 2.1)
-  const v2TabIds = ['intel', 'analysis', 'interview', 'decision'] as const
-  const v1TabIds = ['questions', 'summary', 'guide'] as const
-
-  const handleTabKeyDown = useCallback((e: React.KeyboardEvent, tabs: readonly string[]) => {
-    const currentIndex = tabs.indexOf(activeTab)
-    if (currentIndex === -1) return
-    let newIndex = currentIndex
-    if (e.key === 'ArrowRight') newIndex = (currentIndex + 1) % tabs.length
-    else if (e.key === 'ArrowLeft') newIndex = (currentIndex - 1 + tabs.length) % tabs.length
-    else if (e.key === 'Home') newIndex = 0
-    else if (e.key === 'End') newIndex = tabs.length - 1
-    else return
-    e.preventDefault()
-    setActiveTab(tabs[newIndex] as typeof activeTab)
-    document.getElementById(`tab-${tabs[newIndex]}`)?.focus()
-  }, [activeTab])
 
   const totalScore = Object.values(scores).reduce((sum, s) => sum + s, 0)
   const maxScore = Object.keys(scores).length * 5
