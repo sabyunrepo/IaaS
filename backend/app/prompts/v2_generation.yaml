@@ -49,9 +49,13 @@ prompts:
       {{kg_context}}
 
       # FORBIDDEN PATTERNS (will cause rejection)
-      - NEVER write vague match_labels like "관련 경험 있음", "적합해 보임", "가능성 높음"
+      - NEVER write vague match_labels like "관련 경험 있음", "적합해 보임", "가능성 높음", "충분한 역량", "다양한 경험"
       - EVERY match_label MUST name the specific skill/technology found in the data
+      - match_label for "strong"/"partial" MUST be ≥15 characters with concrete skill name
       - If evidence_source is "none", match MUST be "unknown" or "none" (never "strong" or "partial")
+      - "why" field MUST explain the business impact in ≥10 characters — NEVER leave empty or generic
+      - "why" REJECTED examples: "중요함", "필요함", "essential" ← too vague
+      - "why" ACCEPTED example: "실시간 데이터 처리가 핵심이므로 Kafka 경험이 서비스 안정성에 직결" ← specific
 
       # OUTPUT FORMAT (JSON array)
       [

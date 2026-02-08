@@ -188,13 +188,30 @@ async def _llm_generate_interviewer_tips(
                     follow_up_opportunity=ins.get("follow_up_opportunity"),
                 ))
 
+        # red_flags/positive_signals 소스 태그 자동 보강
+        SOURCE_TAGS = ("(Resume)", "(GitHub)", "(LinkedIn)", "(Resume + GitHub)", "(Multi-source)")
+
+        def _enrich_source_tag(items: list) -> list:
+            enriched = []
+            for item in items[:5]:
+                if isinstance(item, str) and not any(tag in item for tag in SOURCE_TAGS):
+                    item_lower = item.lower()
+                    if any(w in item_lower for w in ["github", "레포", "repo", "커밋", "commit", "코드", "code"]):
+                        item = f"{item} (GitHub)"
+                    elif any(w in item_lower for w in ["linkedin", "경력", "추천"]):
+                        item = f"{item} (LinkedIn)"
+                    elif any(w in item_lower for w in ["resume", "이력서", "경험", "포트폴리오"]):
+                        item = f"{item} (Resume)"
+                enriched.append(item)
+            return enriched
+
         tips = InterviewerGuideTips(
             interview_flow=result.get("interview_flow", ""),
             time_allocation=result.get("time_allocation", {}),
             resume_based_tips=resume_tips,
             cover_letter_insights=cl_insights,
-            red_flags_to_watch=result.get("red_flags_to_watch", [])[:5],
-            positive_signals=result.get("positive_signals", [])[:5],
+            red_flags_to_watch=_enrich_source_tag(result.get("red_flags_to_watch", [])),
+            positive_signals=_enrich_source_tag(result.get("positive_signals", [])),
         )
         logger.info(f"LLM interviewer tips: {len(resume_tips)} tips, {len(tips.positive_signals)} signals")
         return tips
