@@ -2,6 +2,7 @@
  * InterviewQuestionCard - Individual question card with scenario scoring and follow-ups
  * Extracted from LiveInterviewTab.tsx for SRP compliance
  */
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type {
   InterviewQuestion,
@@ -25,6 +26,7 @@ export function InterviewQuestionCard({
   onFollowUpScore
 }: InterviewQuestionCardProps) {
   const { t } = useTranslation()
+  const [expandedKeyword, setExpandedKeyword] = useState<number | null>(null)
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
@@ -65,26 +67,85 @@ export function InterviewQuestionCard({
         )}
       </div>
 
-      {/* Answer Keywords */}
+      {/* Answer Keywords — tap to expand explanation */}
       {question.answer_keywords && question.answer_keywords.length > 0 && (
         <div className="mb-6">
           <h5 className="text-sm font-semibold text-gray-700 mb-2">{t('live_keywords')}</h5>
           <div className="flex flex-wrap gap-2">
             {question.answer_keywords.map((kw, i) => (
-              <span
+              <button
                 key={i}
-                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                type="button"
+                onClick={() => setExpandedKeyword(expandedKeyword === i ? null : i)}
+                className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
                   kw.importance === 'must'
-                    ? 'bg-red-100 text-red-700 border border-red-200'
-                    : 'bg-gray-100 text-gray-700 border border-gray-200'
-                }`}
-                title={kw.explanation}
+                    ? 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'
+                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                } ${expandedKeyword === i ? 'ring-2 ring-indigo-300' : ''}`}
               >
                 {kw.keyword}
-                {kw.importance === 'must' && ' *'}
-              </span>
+                <span className="ml-1 text-[10px] opacity-60">
+                  {kw.importance === 'must' ? t('live_keyword_must') : t('live_keyword_nice')}
+                </span>
+              </button>
             ))}
           </div>
+          {expandedKeyword !== null && question.answer_keywords[expandedKeyword]?.explanation && (
+            <div className="mt-2 p-3 bg-indigo-50 rounded-lg border border-indigo-200 text-sm text-indigo-800 animate-fadeIn">
+              <strong>{question.answer_keywords[expandedKeyword].keyword}:</strong>{' '}
+              {question.answer_keywords[expandedKeyword].explanation}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Terminology — plain language explanations for non-developers */}
+      {question.terminology && question.terminology.length > 0 && (
+        <div className="mb-6">
+          <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+            <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            {t('live_terminology')}
+          </h5>
+          <div className="space-y-2">
+            {question.terminology.map((term, i) => (
+              <div key={i} className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <div className="font-medium text-sm text-amber-900">{term.term}</div>
+                <div className="text-sm text-amber-800 mt-1">
+                  {term.plain_language_explanation || term.definition}
+                </div>
+                {term.business_context && (
+                  <div className="text-xs text-amber-700 mt-1">
+                    <strong>{t('live_term_business')}</strong> {term.business_context}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Code Reference — shows which code file this question is based on */}
+      {question.code_reference && (question.code_reference.file || question.code_reference.snippet) && (
+        <div className="mb-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            {t('live_code_reference')}
+          </h5>
+          {question.code_reference.file && (
+            <div className="text-xs font-mono text-gray-600 mb-1">
+              {question.code_reference.file}
+              {question.code_reference.lines && `:${question.code_reference.lines}`}
+            </div>
+          )}
+          {question.code_reference.snippet && (
+            <pre className="text-xs font-mono bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto max-h-32">
+              <code>{question.code_reference.snippet}</code>
+            </pre>
+          )}
         </div>
       )}
 
