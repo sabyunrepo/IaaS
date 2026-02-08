@@ -90,3 +90,8 @@ LoginPage.js            5KB
 - **i18n**: 21개 키 추가 (QuestionCard, DecisionTab, LiveInterviewTab, DeepAnalysisTab, CreateJobPage)
 - **성능**: RadarChart/ContributionChart React.memo, GlossarySection 컴포넌트 분리
 - **보안**: HSTS 헤더 (nginx)
+
+### PR #115: OAuth 로그인 localhost 리다이렉트 수정
+- OAuth 로그인 URL을 절대 URL(`http://localhost:8000/...`)에서 상대 URL(`/api/auth/...`)로 전환
+- LoginPage, CreateJobPage, useAuth 등에서 `BACKEND` 상수 기반 절대 URL 제거
+- Docker/프록시 환경에서 localhost 리다이렉트 실패 문제 해결

@@ -69,3 +69,7 @@
 ### PR #105-106: i18n + 성능
 - `CreateJobPage.tsx`: 5개 하드코딩 한국어 문자열 i18n 전환
 - `ResultPage.tsx`: GlossarySection 컴포넌트 분리 → `components/GlossarySection.tsx`
+
+### PR #115: OAuth 상대 URL 전환
+- `LoginPage.tsx`: OAuth 로그인 URL을 `BACKEND` 상수 기반 절대 URL에서 상대 URL(`/api/auth/...`)로 전환
+- `CreateJobPage.tsx`: 파일 업로드 등 API 호출 URL도 상대 경로로 통일
