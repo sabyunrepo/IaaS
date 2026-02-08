@@ -55,7 +55,8 @@ prompts:
           "match": "strong|partial|unknown|none",
           "match_label": "evidence-cited explanation in {{output_language}} — MUST reference Resume or GitHub data",
           "desc": "requirement description in {{output_language}}",
-          "why": "why this matters for the role in {{output_language}}"
+          "why": "why this matters for the role in {{output_language}}",
+          "evidence_source": "resume|github|resume+github|vector_store|none"
         }}
       ]
 
@@ -363,8 +364,10 @@ prompts:
       1. Recommended interview flow (category order with time allocation)
       2. Resume-based verification tips (specific claims to verify)
       3. Cover letter insights (claims to validate)
-      4. Red flags to watch for during interview
-      5. Positive signals indicating strong fit
+      4. Red flags to watch for during interview — each MUST include the data source in parentheses
+         Example: "GitHub 활동이 최근 6개월간 없음 (GitHub)" or "이력서 경력 갭 2023-2024 (Resume)"
+      5. Positive signals indicating strong fit — each MUST include the data source in parentheses
+         Example: "12개 레포에서 일관된 코드 품질 (GitHub)" or "Google 3년 재직 (Resume)"
 
       # INPUT
       Questions:
