@@ -318,24 +318,29 @@ def _extract_risk_flags(
 
     flags = []
 
-    # 코드 분석 기반 리스크
+    # 코드 분석 기반 리스크 — (GitHub) 소스 어노테이션
     if code_analysis:
         code_risks = code_analysis.get("risk_flags", [])
         for risk in code_risks:
             if isinstance(risk, dict):
+                detail = risk.get("detail", risk.get("description", ""))
+                if detail and "(GitHub)" not in detail:
+                    detail = f"{detail} (GitHub)"
                 flags.append(RiskFlag(
                     label=risk.get("label", _t("risk", lang)),
-                    detail=risk.get("detail", risk.get("description", "")),
+                    detail=detail,
                 ))
             elif isinstance(risk, str):
-                flags.append(RiskFlag(label=_t("caution", lang), detail=risk))
+                detail = f"{risk} (GitHub)" if "(GitHub)" not in risk else risk
+                flags.append(RiskFlag(label=_t("caution", lang), detail=detail))
 
-    # 문서 분석 기반 리스크
+    # 문서 분석 기반 리스크 — (Resume) 소스 어노테이션
     profile = document_analysis.get("profile", {})
     areas_to_probe = profile.get("areas_to_probe", [])
-    for area in areas_to_probe[:3]:  # 상위 3개
+    for area in areas_to_probe[:3]:
         if isinstance(area, str):
-            flags.append(RiskFlag(label=_t("needs_verification", lang), detail=area))
+            detail = f"{area} (Resume)" if "(Resume)" not in area else area
+            flags.append(RiskFlag(label=_t("needs_verification", lang), detail=detail))
 
     return flags[:5]  # 최대 5개
 
