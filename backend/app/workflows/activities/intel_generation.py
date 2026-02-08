@@ -150,6 +150,20 @@ async def _llm_match_competencies(
                 logger.warning(
                     f"Competency matching: {no_why_count}/{len(competencies)} items have empty/short 'why' field"
                 )
+
+            # evidence_source 없는 strong/match → partial로 다운그레이드
+            downgraded = 0
+            for c in competencies:
+                if c.match in ("strong", "match") and c.evidence_source in ("", "llm", "none"):
+                    c.match = "partial"
+                    c.color, c.icon = get_match_color_icon("partial")
+                    downgraded += 1
+            if downgraded > 0:
+                logger.warning(
+                    f"Competency matching: {downgraded}/{len(competencies)} strong/match items "
+                    "downgraded to partial (no concrete evidence_source)"
+                )
+
             logger.info(f"LLM competency matching: {len(competencies)} items")
             return competencies
         return None
