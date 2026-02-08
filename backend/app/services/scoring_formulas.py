@@ -102,6 +102,40 @@ CODE_QUALITY_WEIGHTS = {
 }
 
 
+def extract_code_stats(code_analysis: dict | None) -> tuple[dict, dict]:
+    """code_analysis에서 quality_metrics와 stats를 추출/집계
+
+    analyze_code Activity 결과는 per-repo 데이터를 repositories[] 안에 저장하며
+    top-level에 stats/quality_metrics 키가 없음.
+    이 함수는 repositories[]에서 집계하여 반환.
+
+    Returns:
+        (quality_metrics, stats) tuple
+    """
+    if not code_analysis:
+        return {}, {}
+
+    quality_metrics = code_analysis.get("quality_metrics", {})
+    stats = code_analysis.get("stats", {})
+
+    # top-level에 stats가 없으면 repositories에서 집계
+    if not stats:
+        repos = code_analysis.get("repositories", [])
+        if repos:
+            total_commits = sum(r.get("candidate_commits", 0) for r in repos)
+            total_additions = sum(r.get("candidate_additions", 0) for r in repos)
+            complexities = [r.get("avg_complexity", 0) for r in repos if r.get("avg_complexity", 0) > 0]
+            avg_complexity = sum(complexities) / len(complexities) if complexities else 0
+            stats = {
+                "total_commits": total_commits,
+                "total_additions": total_additions,
+                "total_deletions": 0,
+                "avg_complexity": avg_complexity,
+            }
+
+    return quality_metrics, stats
+
+
 def calculate_code_quality_score(
     quality_metrics: dict,
     stats: dict | None = None,
@@ -218,11 +252,7 @@ def calculate_radar_scores(
         RadarScores with candidate/required scores and sources
     """
     profile = document_analysis.get("profile", {})
-    quality = {}
-    stats = {}
-    if code_analysis:
-        quality = code_analysis.get("quality_metrics", {})
-        stats = code_analysis.get("stats", {})
+    quality, stats = extract_code_stats(code_analysis)
 
     sources = []
 
