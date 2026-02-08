@@ -48,15 +48,20 @@ prompts:
       # ADDITIONAL CONTEXT (may be empty)
       {{kg_context}}
 
+      # FORBIDDEN PATTERNS (will cause rejection)
+      - NEVER write vague match_labels like "관련 경험 있음", "적합해 보임", "가능성 높음"
+      - EVERY match_label MUST name the specific skill/technology found in the data
+      - If evidence_source is "none", match MUST be "unknown" or "none" (never "strong" or "partial")
+
       # OUTPUT FORMAT (JSON array)
       [
         {{
           "name": "requirement name in {{output_language}}",
           "match": "strong|partial|unknown|none",
-          "match_label": "evidence-cited explanation in {{output_language}} — MUST reference Resume or GitHub data",
+          "match_label": "evidence-cited explanation in {{output_language}} — MUST name specific skill from Resume/GitHub",
           "desc": "requirement description in {{output_language}}",
           "why": "why this matters for the role in {{output_language}}",
-          "evidence_source": "resume|github|resume+github|vector_store|none"
+          "evidence_source": "resume|github|resume+github|vector_store|none — MUST be exactly one of these values"
         }}
       ]
 
@@ -123,15 +128,20 @@ prompts:
       # ADDITIONAL CONTEXT (may be empty)
       {{kg_context}}
 
+      # REASONING REQUIREMENTS
+      Each axis reasoning MUST include at least ONE specific numeric data point from the input.
+      FORBIDDEN: "후보자는 기술력이 높음", "전반적으로 우수함", "경험이 풍부함" (too vague)
+      REQUIRED: "test_coverage 72%, documentation_score 65% (GitHub)" (specific metrics with source)
+
       # OUTPUT FORMAT
       {{
         "candidate_scores": [role_fit, technical, execution, communication, code_quality],
         "reasoning": {{
-          "role_fit": "evidence-based reason citing specific data (e.g., '4/5 JD skills matched in resume')",
-          "technical": "evidence-based reason citing specific data (e.g., '8 tech stack items, 10/12 active months')",
-          "execution": "evidence-based reason citing specific data (e.g., '5 years experience, 200+ commits')",
-          "communication": "evidence-based reason citing specific data (e.g., 'doc score 65%, avg CC 8.2')",
-          "code_quality": "evidence-based reason citing specific data (e.g., 'test coverage 45%, complexity grade B')"
+          "role_fit": "MUST cite skill count or match ratio (e.g., 'JD 5개 요구사항 중 4개 매칭: Python, FastAPI, Docker, PostgreSQL (Resume + GitHub)')",
+          "technical": "MUST cite tech stack count or commit data (e.g., 'tech stack 8종, 활성 월 10/12개월 (GitHub)')",
+          "execution": "MUST cite years or commit volume (e.g., '경력 5년 (Resume), 커밋 200+ (GitHub)')",
+          "communication": "MUST cite doc/complexity metric (e.g., 'documentation_score 65%, 평균 CC 8.2 (GitHub)')",
+          "code_quality": "MUST cite test/complexity metric (e.g., 'test_coverage 45%, complexity_score 62 (GitHub)')"
         }}
       }}
 
@@ -170,10 +180,10 @@ prompts:
       - 0-29: No evidence found (type should be "none")
 
       # EVIDENCE RULES
-      - For "evidence" field, be SPECIFIC: cite "Resume" or "GitHub" or "Resume + GitHub"
-      - If from GitHub, mention the skill/technology name found in code analysis
-      - If from Resume, mention the skill listed in resume
-      - NEVER fabricate evidence — if a skill is not in the input data, mark as "none"
+      - For "evidence" field, use STRICT format: "Resume: [skill name] listed" or "GitHub: [skill name] detected" or "Resume + GitHub: [skill] confirmed"
+      - If no match found: "No evidence" (do NOT write empty string)
+      - NEVER fabricate evidence — if a skill is not in the input data, mark type as "none"
+      - FORBIDDEN evidence formats: "Some evidence", "Possibly in", "Appears to be", "관련 있을 수 있음", "경험이 있는 것 같음"
 
       # INPUT
       JD Requirements (top 6):
