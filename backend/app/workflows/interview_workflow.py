@@ -205,6 +205,17 @@ class InterviewGenerationWorkflow:
             questions = await asyncio.gather(*question_tasks)
             questions = list(questions)
 
+            # evidence_source 분포 로깅 — 범용 질문 비율 모니터링
+            source_dist: dict[str, int] = {}
+            for q in questions:
+                src = q.get("evidence_source", "Unknown") if isinstance(q, dict) else "Unknown"
+                source_dist[src] = source_dist.get(src, 0) + 1
+            total_q = len(questions)
+            general_ratio = round(source_dist.get("General", 0) / total_q * 100, 1) if total_q > 0 else 0
+            logger.info(f"Question evidence_source distribution: {source_dist} (General: {general_ratio}%)")
+            if general_ratio > 20:
+                logger.warning(f"Generic question ratio {general_ratio}% exceeds 20% target")
+
             # Phase 3c-3g: Enhancement Agents (병렬)
             self._update_status(JobStatus.GENERATING, "Phase 3: Enhancement", 70)
 

@@ -191,11 +191,18 @@ prompts:
       - follow_ups MUST probe deeper into candidate-specific experiences
       - If candidate_context is empty, create a reasonable question based on topic alone
 
+      # EVIDENCE-BASED QUESTION REQUIREMENT
+      - EVERY question MUST reference specific candidate data (project, code, company, technology)
+      - Generic questions like "경험을 설명해주세요" or "어떻게 접근하시겠습니까?" are UNACCEPTABLE
+      - evidence_source MUST specify where this question came from: "GitHub", "Resume", "LinkedIn", "Portfolio", "Code", or "KnowledgeGraph"
+      - If you cannot ground the question in specific evidence, set evidence_source to "General" (target: ≤20% of questions)
+
       # OUTPUT FORMAT (v2 JSON)
       ```json
       {
         "title": "짧은 제목 (2-4 단어)",
         "question_text": "Main question in {{output_language}}",
+        "evidence_source": "GitHub|Resume|LinkedIn|Portfolio|Code|KnowledgeGraph|General",
         "why_matters": "이 질문이 중요한 이유 (비즈니스 관점)",
         "listen_for": "핵심 키워드와 개념",
         "is_risk": false,

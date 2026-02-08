@@ -430,6 +430,25 @@ async def craft_question(
         "poor": "",
     })
 
+    # evidence_source 보강 — LLM이 미제공 시 topic 소스에서 자동 유추
+    if not question.get("evidence_source"):
+        source = topic.get("source", "")
+        if source.startswith("kg_"):
+            question["evidence_source"] = "KnowledgeGraph"
+        elif source == "code":
+            question["evidence_source"] = "Code"
+        elif source in ("resume", "document"):
+            question["evidence_source"] = "Resume"
+        elif source == "linkedin":
+            question["evidence_source"] = "LinkedIn"
+        elif source == "portfolio":
+            question["evidence_source"] = "Portfolio"
+        elif source == "github":
+            question["evidence_source"] = "GitHub"
+        else:
+            question["evidence_source"] = "General"
+            logger.info(f"craft_question: no evidence_source for topic '{topic.get('topic', '')[:40]}', marked as General")
+
     # Add KG provenance metadata
     if topic.get("source", "").startswith("kg_"):
         question["kg_source"] = topic.get("source")
