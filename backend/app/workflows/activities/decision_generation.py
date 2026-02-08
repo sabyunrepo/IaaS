@@ -41,11 +41,11 @@ async def _llm_generate_decision_summary(
                 gaps = await queries._get_gap_candidates()
                 if conflicts:
                     kg_context += f"Conflicts requiring attention: {len(conflicts)}\n"
-                    for c in conflicts[:3]:
+                    for c in conflicts[:5]:
                         kg_context += f"- {c.topic}\n"
                 if gaps:
                     kg_context += f"Skill gaps identified: {len(gaps)}\n"
-                    for g in gaps[:3]:
+                    for g in gaps[:5]:
                         kg_context += f"- {g.topic}\n"
             except Exception as e:
                 logger.debug(f"KG enrichment failed for decision summary: {e}")
