@@ -234,6 +234,29 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
         dropped = len(result) - len(filtered)
         if dropped > 0:
             logger.info(f"select_topics: dropped {dropped} low-confidence topics (< {MIN_CONFIDENCE})")
+
+        # LLM이 source 필드를 누락한 topic에 candidates에서 source 복원
+        candidate_source_map = {c["topic"]: c.get("source", "") for c in candidates if isinstance(c, dict)}
+        restored = 0
+        for topic in filtered:
+            if isinstance(topic, dict) and not topic.get("source"):
+                topic_text = topic.get("topic", "")
+                # 완전 일치 먼저, 없으면 부분 매칭
+                if topic_text in candidate_source_map:
+                    topic["source"] = candidate_source_map[topic_text]
+                    restored += 1
+                else:
+                    # 부분 매칭: candidate topic이 LLM topic에 포함되거나 그 반대
+                    for cand_topic, cand_source in candidate_source_map.items():
+                        if cand_topic and topic_text and (
+                            cand_topic in topic_text or topic_text in cand_topic
+                        ):
+                            topic["source"] = cand_source
+                            restored += 1
+                            break
+        if restored > 0:
+            logger.info(f"select_topics: restored source for {restored}/{len(filtered)} topics from candidates")
+
         if alog:
             await alog.result("Topics selected", {
                 "topics_count": len(filtered[:max_questions]),
@@ -471,11 +494,24 @@ async def craft_question(
                 question["evidence_source"] = "SemanticSearch"
         elif source == "jd_match":
             question["evidence_source"] = "JD"
+        elif source == "generated":
+            question["evidence_source"] = "Analysis"
         else:
-            question["evidence_source"] = "General"
-            question.setdefault("_quality_flags", [])
-            question["_quality_flags"].append("no_evidence_source")
-            logger.warning(f"craft_question: no evidence_source for topic '{topic.get('topic', '')[:40]}', marked as General — may be generic")
+            # source가 빈 경우: topic/question 내용 기반으로 evidence_source 추론
+            topic_text = (topic.get("topic", "") + " " + question.get("question_text", "")).lower()
+            if any(kw in topic_text for kw in ("github", "commit", "repository", "repo", "코드", "code", "pull request", "pr")):
+                question["evidence_source"] = "GitHub"
+            elif any(kw in topic_text for kw in ("linkedin", "경력", "career", "experience", "이력")):
+                question["evidence_source"] = "LinkedIn"
+            elif any(kw in topic_text for kw in ("resume", "이력서", "portfolio", "포트폴리오")):
+                question["evidence_source"] = "Resume"
+            elif any(kw in topic_text for kw in ("jd", "job description", "직무", "요구사항", "requirement")):
+                question["evidence_source"] = "JD"
+            else:
+                question["evidence_source"] = "General"
+                question.setdefault("_quality_flags", [])
+                question["_quality_flags"].append("no_evidence_source")
+                logger.warning(f"craft_question: no evidence_source for topic '{topic.get('topic', '')[:40]}', marked as General — may be generic")
 
     # Add KG provenance metadata
     if topic.get("source", "").startswith("kg_"):
