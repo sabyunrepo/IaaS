@@ -46,8 +46,17 @@ class JDCompetencyWeight(BaseModel):
     related_questions: list[int] = Field(default_factory=list)
 
 
+class KGEvidence(BaseModel):
+    """Knowledge Graph 기반 분석 근거"""
+    conflicts: list[str] = Field(default_factory=list)   # KG에서 발견된 모순/주의점
+    gaps: list[str] = Field(default_factory=list)          # KG에서 발견된 스킬 갭
+    conflict_count: int = 0
+    gap_count: int = 0
+
+
 class DecisionSupport(BaseModel):
     """Decision 탭 데이터"""
     summary: DecisionSummary
     interviewer_guide: InterviewerGuideTips
     jd_competency_map: list[JDCompetencyWeight] = Field(default_factory=list)
+    kg_evidence: KGEvidence | None = None  # Knowledge Graph 근거 (있는 경우)
