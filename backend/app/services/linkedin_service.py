@@ -200,6 +200,8 @@ class LinkedInService:
         # 단일 형식: experience[].title (직책이 바로 있는 경우)
         experiences = []
         raw_exp = data.get("experience") or data.get("experiences") or []
+        if not raw_exp:
+            logger.warning("Bright Data returned empty experience array")
         if raw_exp:
             for exp in raw_exp[:10]:
                 if not isinstance(exp, dict):
@@ -235,9 +237,24 @@ class LinkedInService:
                     })
         experiences = experiences[:10]  # 최대 10개
 
+        # Fallback: experience가 비었지만 current_company가 있으면 최소 1개 구성
+        if not experiences and current_company:
+            headline = data.get("headline") or data.get("position") or ""
+            experiences.append({
+                "title": headline if headline else None,
+                "company": current_company,
+                "description": None,
+                "starts_at": None,
+                "ends_at": None,
+                "duration": None,
+                "location": data.get("city") or data.get("location"),
+            })
+
         # 학력 정규화 — Bright Data는 start_year/end_year 사용, title이 학교명
         education = []
         raw_edu = data.get("education") or []
+        if not raw_edu:
+            logger.warning("Bright Data returned empty education array")
         if raw_edu:
             for edu in raw_edu[:5]:
                 if not isinstance(edu, dict):
