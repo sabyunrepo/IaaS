@@ -660,6 +660,32 @@ async def generate_deep_analysis(
         data_confidence_score=data_conf_score,
     )
 
+    # === Post-processing 품질 검증 ===
+
+    # 레이더 점수 축별 근거 커버리지 검증
+    llm_sourced = sum(1 for s in score_sources if "LLM:" in s and "formula-based" not in s)
+    formula_only = sum(1 for s in score_sources if "formula-based" in s)
+    if score_sources:
+        reasoning_coverage = round(llm_sourced / min(5, len(score_sources)) * 100, 1)
+        logger.info(f"Radar reasoning coverage: {reasoning_coverage}% LLM-sourced ({llm_sourced}/5), {formula_only} formula-fallback")
+        if formula_only >= 3:
+            logger.warning(f"Radar reasoning: {formula_only}/5 axes fell back to formula-only — LLM reasoning quality low")
+
+    # 스킬 테이블 품질 검증
+    if skill_table:
+        no_evidence = sum(1 for r in skill_table if not r.evidence or r.evidence in ("No evidence", "—", ""))
+        zero_conf = sum(1 for r in skill_table if r.confidence == 0)
+        type_conf_mismatch = sum(
+            1 for r in skill_table
+            if r.type == "exact" and r.confidence < 70
+            or r.type == "none" and r.confidence > 30
+        )
+        logger.info(f"Skill table: {len(skill_table)} rows, no_evidence={no_evidence}, zero_conf={zero_conf}, type_conf_mismatch={type_conf_mismatch}")
+        if no_evidence > len(skill_table) // 2:
+            logger.warning(f"Skill table: {no_evidence}/{len(skill_table)} rows lack evidence")
+        if type_conf_mismatch > 0:
+            logger.warning(f"Skill table: {type_conf_mismatch} rows have type↔confidence mismatch (e.g., exact but <70%)")
+
     logger.info(
         f"Deep Analysis generated: overall_match={overall_match}% "
         f"(confidence={data_conf_tier}/{data_conf_score})"

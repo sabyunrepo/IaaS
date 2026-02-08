@@ -511,5 +511,29 @@ async def generate_decision_support(
         kg_evidence=kg_evidence,
     )
 
+    # === Post-processing 품질 검증 ===
+
+    # Decision Summary: 강점에 소스 태그 존재 확인
+    if summary.strengths:
+        SOURCE_TAGS = ("(Resume)", "(GitHub)", "(Resume + GitHub)", "(LinkedIn)", "(Multi-source)", "(다중 소스)")
+        strengths_with_source = sum(1 for s in summary.strengths if any(tag in s for tag in SOURCE_TAGS))
+        logger.info(f"Decision summary: {len(summary.strengths)} strengths, {strengths_with_source} with source tags")
+        if strengths_with_source < len(summary.strengths) // 2:
+            logger.warning(f"Decision summary: {len(summary.strengths) - strengths_with_source} strengths lack source citation")
+
+    # Decision Summary: 우려사항 비어있지 않은지 + level_evidence 존재 확인
+    if summary.concerns:
+        empty_concerns = sum(1 for c in summary.concerns if not c or len(c.strip()) < 5)
+        if empty_concerns > 0:
+            logger.warning(f"Decision summary: {empty_concerns} concerns with insufficient description")
+    if not summary.level_evidence or len(summary.level_evidence.strip()) < 10:
+        logger.warning("Decision summary: level_evidence missing or too short — SFIA/Dreyfus classification not cited")
+
+    # Interviewer Guide: red_flags/positive_signals 소스 어노테이션 확인
+    if interviewer_guide.red_flags_to_watch:
+        flags_with_source = sum(1 for f in interviewer_guide.red_flags_to_watch if "(Resume)" in f or "(GitHub)" in f or "(LinkedIn)" in f)
+        if flags_with_source < len(interviewer_guide.red_flags_to_watch) // 2:
+            logger.warning(f"Interviewer guide: {len(interviewer_guide.red_flags_to_watch) - flags_with_source} red flags lack source annotation")
+
     logger.info(f"Decision Support generated with {len(jd_competency_map)} competencies mapped")
     return decision_support.model_dump()
