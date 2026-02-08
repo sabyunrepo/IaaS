@@ -31,6 +31,7 @@ class CompetencyMatch(BaseModel):
     why: str  # 왜 필요한가
     color: Literal["emerald", "amber", "red", "blue", "slate"]
     icon: str  # ✅/⚠️/❌
+    evidence_source: str = ""  # 근거 출처 (resume/github/vector_store/llm)
 
 
 class LinkedInPosition(BaseModel):
