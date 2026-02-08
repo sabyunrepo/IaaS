@@ -24,7 +24,6 @@ export const DecisionTab = memo(function DecisionTab({
   maxScore = 100,
   riskFlags,
   dataConfidence,
-  dataConfidenceScore
 }: DecisionTabProps) {
   const { t } = useTranslation()
   const { summary, interviewer_guide, jd_competency_map } = decision
@@ -115,6 +114,9 @@ export const DecisionTab = memo(function DecisionTab({
           <div className="p-4 bg-gray-50 rounded-lg">
             <div className="text-sm text-gray-500">{t('decision_level')}</div>
             <div className="font-semibold text-gray-900">{summary.level}</div>
+            {summary.level_evidence && (
+              <div className="text-xs text-gray-500 mt-1">{summary.level_evidence}</div>
+            )}
           </div>
         </div>
 
