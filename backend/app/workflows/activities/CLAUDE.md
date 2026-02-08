@@ -63,4 +63,5 @@ Temporal Activity 함수 (16개). 모두 `@activity.defn` 데코레이터 사용
 - Rule-based fallback 한국어 라벨: `from app.services.i18n_labels import _t` 사용 (lang 파라미터 전달)
 - DRY 설정: `from app.services.match_config import get_match_color_icon, sanitize_color` (PR #106)
 - SSRF 방어: `finalization.py` 아바타 다운로드에 도메인 allowlist 적용 (PR #106)
+- SSRF bare except 축소: `finalization.py` bare `except` → 구체적 예외 타입으로 narrowing (PR #116)
 - LLM 검증: `question_generation.py` craft_question에 `validate_llm_output()` 적용 (PR #106)

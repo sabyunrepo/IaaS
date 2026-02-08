@@ -101,6 +101,10 @@ activity_name 없으면: llm_cache:{SHA256(model:prompt)}
 - 필수 필드 존재 + 타입 체크, 실패 시 로깅 + 빈 기본값 반환
 - `question_generation.py` craft_question/enhancement에서 활용
 
+### linkedin_service.py (PR #116)
+
+- 6개 루프에 타입 가드 추가 (`isinstance` 체크 → non-list 입력 시 안전 스킵)
+
 ### activity_logger.py
 
 - `X-Internal-Token` 헤더로 내부 API 인증 (Phase 1)

@@ -95,3 +95,8 @@ LoginPage.js            5KB
 - OAuth 로그인 URL을 절대 URL(`http://localhost:8000/...`)에서 상대 URL(`/api/auth/...`)로 전환
 - LoginPage, CreateJobPage, useAuth 등에서 `BACKEND` 상수 기반 절대 URL 제거
 - Docker/프록시 환경에서 localhost 리다이렉트 실패 문제 해결
+
+### PR #116: 프론트엔드 안전성 강화
+- **IntelBriefTab/DecisionTab**: unsafe DOM 조작 → React state 방식으로 전환
+- **LiveInterviewTab**: optional chaining + 공백 안전 처리
+- **DeepAnalysisTab**: 레이더 차트 bounds check 추가

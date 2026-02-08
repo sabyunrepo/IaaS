@@ -54,3 +54,4 @@
 - **PR #86**: LiveInterviewTab 카테고리별 질문 배분 표시
 - **PR #105**: WCAG 탭 접근성 + 하드코딩 한국어 i18n 전환
 - **PR #106**: GlossarySection 컴포넌트 분리, 차트 React.memo, i18n 21개 키 추가
+- **PR #116**: 탭 안전성 강화 — IntelBriefTab/DecisionTab DOM→React state, LiveInterviewTab optional chaining, DeepAnalysisTab radar bounds check

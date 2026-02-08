@@ -46,3 +46,9 @@ ResultPage 4탭 컴포넌트.
 - **LiveInterviewTab**: 시나리오 레벨 라벨 i18n (`scenario_expert`, `scenario_mid`, `scenario_low`)
 - **DeepAnalysisTab**: "Engineering DNA" 제목 i18n (`engineering_dna`)
 - 모든 탭: `React.memo` 적용 완료 (PR #105), WCAG 탭 접근성
+
+## PR #116 변경사항
+- **IntelBriefTab**: unsafe DOM 조작 → React state 전환
+- **DecisionTab**: unsafe DOM 조작 → React state 전환
+- **LiveInterviewTab**: optional chaining + 공백 안전 처리
+- **DeepAnalysisTab**: 레이더 차트 bounds check 추가

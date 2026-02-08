@@ -90,12 +90,13 @@ REDIS_PASSWORD=...            # Redis 인증
 - **LLM 검증**: `validate_llm_output()` 헬퍼 (cached_llm.py)
 - **DRY**: `match_config.py` 공유 설정 모듈 (intel/analysis 중복 제거)
 
-## 개선 사이클 3 (PR #113, #115)
+## 개선 사이클 3 (PR #113, #115, #116)
 
 | PR | 내용 |
 |----|------|
 | #113 | 테스트 7개 파일 mock 대상 Langfuse-first 패턴 동기화 (474 passed, 4 skipped) |
 | #115 | OAuth 로그인 localhost 리다이렉트 수정 — 상대 URL 전환 |
+| #116 | 백엔드 타입 가드 + 프론트엔드 안전성 강화 (finalization SSRF bare except 축소, linkedin 6 loop 타입 가드, 탭 DOM→React state + optional chaining) |
 
 ## 테스트
 
