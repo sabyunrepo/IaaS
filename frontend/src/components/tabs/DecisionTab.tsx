@@ -33,10 +33,10 @@ export const DecisionTab = memo(function DecisionTab({
 
   // Determine recommendation based on score
   const getRecommendation = () => {
-    if (scorePercent >= 80) return { label: t('rec_strong_hire'), color: 'emerald', icon: '🌟' }
-    if (scorePercent >= 60) return { label: t('rec_hire'), color: 'green', icon: '✅' }
-    if (scorePercent >= 40) return { label: t('rec_leaning_no'), color: 'amber', icon: '⚠️' }
-    return { label: t('rec_no_hire'), color: 'red', icon: '❌' }
+    if (scorePercent >= 80) return { label: t('rec_strong_hire'), desc: t('rec_strong_hire_desc'), color: 'emerald', icon: '🌟' }
+    if (scorePercent >= 60) return { label: t('rec_hire'), desc: t('rec_hire_desc'), color: 'green', icon: '✅' }
+    if (scorePercent >= 40) return { label: t('rec_leaning_no'), desc: t('rec_leaning_no_desc'), color: 'amber', icon: '⚠️' }
+    return { label: t('rec_no_hire'), desc: t('rec_no_hire_desc'), color: 'red', icon: '❌' }
   }
 
   const recommendation = getRecommendation()
@@ -72,6 +72,7 @@ export const DecisionTab = memo(function DecisionTab({
             <div>
               <h3 className="text-lg font-medium opacity-90">{t('decision_recommendation')}</h3>
               <p className="text-2xl sm:text-4xl font-bold mt-1">{recommendation.icon} {recommendation.label}</p>
+              <p className="text-sm opacity-70 mt-1">{recommendation.desc}</p>
               {candidate && (
                 <p className="text-sm opacity-80 mt-2">{candidate.name} · {candidate.role || candidate.current_title}</p>
               )}
