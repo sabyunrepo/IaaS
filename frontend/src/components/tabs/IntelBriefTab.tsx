@@ -1,7 +1,7 @@
 /**
  * IntelBriefTab - JD Analysis + GitHub Chart + LinkedIn Timeline + Competency Matching
  */
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { IntelBrief, Candidate } from '../../types/interview'
 import { ContributionChart } from '../charts'
@@ -15,6 +15,7 @@ interface IntelBriefTabProps {
 export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, techStack }: IntelBriefTabProps) {
   const { t } = useTranslation()
   const { jd_summary, competencies, github, linkedin, linkedin_warning } = intel
+  const [avatarError, setAvatarError] = useState(false)
 
   return (
     <div className="space-y-6">
@@ -22,21 +23,18 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
       {candidate && (
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center gap-4">
-            {candidate.avatar_url ? (
+            {candidate.avatar_url && !avatarError ? (
               <img
                 src={candidate.avatar_url}
                 alt={candidate.name}
                 className="h-16 w-16 rounded-full object-cover border-2 border-white/30"
-                onError={(e) => {
-                  const target = e.currentTarget
-                  target.style.display = 'none'
-                  target.nextElementSibling?.classList.remove('hidden')
-                }}
+                onError={() => setAvatarError(true)}
               />
-            ) : null}
-            <div className={`flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-2xl font-bold ${candidate.avatar_url ? 'hidden' : ''}`}>
-              {candidate.initials || candidate.name?.charAt(0) || '?'}
-            </div>
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-2xl font-bold">
+                {candidate.initials || candidate.name?.charAt(0) || '?'}
+              </div>
+            )}
             <div>
               <h2 className="text-xl sm:text-2xl font-bold">{candidate.name}</h2>
               <p className="text-indigo-100">{candidate.role || candidate.current_title}</p>

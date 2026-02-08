@@ -70,7 +70,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, cate
         selectedLevel: level,
         followUpScores: prev[questionId]?.followUpScores || {},
         totalScore: score + Object.values(prev[questionId]?.followUpScores || {}).reduce((a, b) => a + b, 0),
-        maxPossibleScore: 20 + (questions.find(q => q.id === questionId)?.follow_ups.length || 0) * 10
+        maxPossibleScore: 20 + (questions.find(q => q.id === questionId)?.follow_ups?.length || 0) * 10
       }
     }))
   }
@@ -196,7 +196,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, cate
                       </span>
                       {q.time_allocation_minutes && (
                         <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
-                          {q.time_allocation_minutes}{t('live_minutes')}
+                          {q.time_allocation_minutes} {t('live_minutes')}
                         </span>
                       )}
                     </div>

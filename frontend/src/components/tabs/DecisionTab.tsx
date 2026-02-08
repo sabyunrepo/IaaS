@@ -25,6 +25,7 @@ export const DecisionTab = memo(function DecisionTab({
   const { t } = useTranslation()
   const { summary, interviewer_guide, jd_competency_map } = decision
   const scorePercent = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
+  const [avatarError, setAvatarError] = useState(false)
 
   // Determine recommendation based on score
   const getRecommendation = () => {
@@ -49,23 +50,20 @@ export const DecisionTab = memo(function DecisionTab({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {candidate && (
-              <>
-                {candidate.avatar_url ? (
+              <div className="hidden sm:block">
+                {candidate.avatar_url && !avatarError ? (
                   <img
                     src={candidate.avatar_url}
                     alt={candidate.name}
-                    className="h-14 w-14 rounded-full object-cover border-2 border-white/30 hidden sm:block"
-                    onError={(e) => {
-                      const target = e.currentTarget
-                      target.style.display = 'none'
-                      target.nextElementSibling?.classList.remove('hidden')
-                    }}
+                    className="h-14 w-14 rounded-full object-cover border-2 border-white/30"
+                    onError={() => setAvatarError(true)}
                   />
-                ) : null}
-                <div className={`hidden sm:flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-xl font-bold ${candidate.avatar_url ? 'hidden' : ''}`}>
-                  {candidate.initials || candidate.name?.charAt(0) || '?'}
-                </div>
-              </>
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-xl font-bold">
+                    {candidate.initials || candidate.name?.charAt(0) || '?'}
+                  </div>
+                )}
+              </div>
             )}
             <div>
               <h3 className="text-lg font-medium opacity-90">{t('decision_recommendation')}</h3>

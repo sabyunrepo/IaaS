@@ -33,7 +33,7 @@ def _is_avatar_url_allowed(url: str) -> bool:
         parsed = urlparse(url)
         hostname = (parsed.hostname or "").lower()
         return hostname in _AVATAR_ALLOWED_DOMAINS
-    except Exception:
+    except (ValueError, AttributeError):
         return False
 
 

@@ -57,8 +57,8 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
           {/* Score breakdown */}
           <div className="space-y-3 w-full lg:w-auto">
             {radarLabels.map((label, i) => {
-              const candidate = radar_candidate[i]
-              const required = radar_required[i]
+              const candidate = radar_candidate?.[i] ?? 0
+              const required = radar_required?.[i] ?? 0
               const diff = candidate - required
               return (
                 <div key={label} className="flex items-center gap-3">
