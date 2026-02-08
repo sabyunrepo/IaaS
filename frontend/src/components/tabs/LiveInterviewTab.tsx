@@ -200,6 +200,15 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, cate
                           {q.time_allocation_minutes} {t('live_minutes')}
                         </span>
                       )}
+                      {q.evidence_quality && (
+                        <span className={`px-1.5 py-0.5 text-xs rounded ${
+                          q.evidence_quality === 'high' ? 'bg-emerald-100 text-emerald-700' :
+                          q.evidence_quality === 'medium' ? 'bg-blue-100 text-blue-700' :
+                          'bg-orange-100 text-orange-700'
+                        }`}>
+                          {t(`evidence_${q.evidence_quality}`)}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-2">{q.question_text}</p>
                   </div>

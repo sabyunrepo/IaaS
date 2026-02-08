@@ -309,6 +309,24 @@ class InterviewGenerationWorkflow:
                     retry_policy=LLM_RETRY,
                 )
 
+            # 4a-2. Merge evidence quality data from review into questions
+            if isinstance(review, dict):
+                for qr in review.get("question_reviews", []):
+                    if not isinstance(qr, dict):
+                        continue
+                    q_idx = qr.get("question_index")
+                    if q_idx is not None and isinstance(q_idx, int) and 0 <= q_idx < len(questions):
+                        q = questions[q_idx]
+                        if isinstance(q, dict):
+                            if qr.get("evidence_score") is not None:
+                                q["evidence_score"] = qr["evidence_score"]
+                            if qr.get("hallucination_risk"):
+                                q["evidence_quality"] = (
+                                    "high" if qr["hallucination_risk"] == "low"
+                                    else "low" if qr["hallucination_risk"] == "high"
+                                    else "medium"
+                                )
+
             # 4b. 최종화
             self._update_status(JobStatus.REVIEWING, "Phase 4: Finalization", 90)
             final_script = await workflow.execute_activity(
@@ -361,6 +379,7 @@ class InterviewGenerationWorkflow:
                         job_id,
                         output_language,
                         input_data.get("experience_level", "미들"),
+                        linkedin_profile,
                     ],
                     start_to_close_timeout=timedelta(minutes=2),
                     heartbeat_timeout=timedelta(seconds=60),

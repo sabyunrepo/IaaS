@@ -1,7 +1,7 @@
 /**
  * DeepAnalysisTab - Radar Chart + Engineering DNA + Skill Matching Table
  */
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DeepAnalysis } from '../../types/interview'
 import { RadarChart, ProgressBarGroup } from '../charts'
@@ -12,7 +12,8 @@ interface DeepAnalysisTabProps {
 
 export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
   const { t } = useTranslation()
-  const { radar_candidate, radar_required, engineering_dna, risk_flags, skill_table, overall_match } = analysis
+  const { radar_candidate, radar_required, engineering_dna, risk_flags, skill_table, overall_match, score_sources, data_confidence, data_confidence_score } = analysis
+  const [showSources, setShowSources] = useState(false)
 
   const radarLabels = [
     t('deep_role_fit'),
@@ -31,6 +32,16 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
             <div>
               <h3 className="text-lg font-medium text-indigo-100">{t('deep_overall_match')}</h3>
               <p className="text-2xl sm:text-4xl font-bold mt-1">{overall_match}%</p>
+              {data_confidence && (
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                  data_confidence === 'high' ? 'bg-emerald-400/20 text-emerald-100'
+                  : data_confidence === 'medium' ? 'bg-amber-400/20 text-amber-100'
+                  : 'bg-red-400/20 text-red-100'
+                }`}>
+                  {t('data_confidence_label')}: {t(`data_confidence_${data_confidence}`)}
+                  {data_confidence_score != null && ` (${data_confidence_score}%)`}
+                </span>
+              )}
             </div>
             <div className="text-6xl opacity-20">📊</div>
           </div>
@@ -81,6 +92,42 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
           </div>
         </div>
       </div>
+
+      {/* Score Sources (collapsible) */}
+      {score_sources && score_sources.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <button
+            onClick={() => setShowSources(prev => !prev)}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-sm font-semibold text-gray-900">{t('score_sources_title')}</span>
+              <span className="text-xs text-gray-400">({score_sources.length})</span>
+            </div>
+            <svg className={`w-5 h-5 text-gray-400 transition-transform ${showSources ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {showSources && (
+            <div className="px-4 pb-4 border-t border-gray-100">
+              <p className="text-xs text-gray-500 mt-3 mb-3">{t('score_sources_desc')}</p>
+              <div className="space-y-2">
+                {score_sources.map((source, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-medium mt-0.5">
+                      {i + 1}
+                    </span>
+                    <span className="text-gray-700 font-mono text-xs leading-relaxed">{source}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Engineering DNA */}
       {engineering_dna && engineering_dna.length > 0 && (

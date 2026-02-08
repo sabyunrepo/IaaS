@@ -112,6 +112,9 @@ export interface DeepAnalysis {
   risk_flags: RiskFlag[]
   skill_table: SkillMatchRow[]
   overall_match?: number
+  score_sources?: string[]
+  data_confidence?: 'high' | 'medium' | 'low'
+  data_confidence_score?: number
 }
 
 // =============================================================================
@@ -203,6 +206,10 @@ export interface InterviewQuestion {
     low?: Record<string, unknown>
   }
   follow_up_questions?: Array<Record<string, unknown>>
+
+  // Evidence quality from quality review
+  evidence_score?: number
+  evidence_quality?: 'high' | 'medium' | 'low'
 
   // Finalization output fields
   revised_question?: string

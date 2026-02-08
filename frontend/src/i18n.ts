@@ -299,6 +299,16 @@ const resources = {
       scenario_low: '📉 Low',
       // DeepAnalysisTab
       engineering_dna: 'Engineering DNA',
+      data_confidence_label: '데이터 신뢰도',
+      data_confidence_high: '높음',
+      data_confidence_medium: '보통',
+      data_confidence_low: '낮음',
+      // Score Transparency
+      score_sources_title: '점수 산출 근거',
+      score_sources_desc: '각 축의 점수가 어떤 데이터를 기반으로 계산되었는지 보여줍니다',
+      evidence_high: '근거 충분',
+      evidence_medium: '근거 보통',
+      evidence_low: '근거 부족',
       // Dev login
       dev_login: '테스트 로그인 (개발 전용)',
     },
@@ -600,6 +610,16 @@ const resources = {
       scenario_low: '📉 Low',
       // DeepAnalysisTab
       engineering_dna: 'Engineering DNA',
+      data_confidence_label: 'Data Confidence',
+      data_confidence_high: 'High',
+      data_confidence_medium: 'Medium',
+      data_confidence_low: 'Low',
+      // Score Transparency
+      score_sources_title: 'Score Breakdown',
+      score_sources_desc: 'Shows how each axis score was calculated from the available data',
+      evidence_high: 'Strong Evidence',
+      evidence_medium: 'Moderate Evidence',
+      evidence_low: 'Weak Evidence',
       // Dev login
       dev_login: 'Dev Login (Development Only)',
     },

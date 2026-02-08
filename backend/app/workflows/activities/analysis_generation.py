@@ -472,6 +472,7 @@ async def generate_deep_analysis(
     job_id: str | None = None,
     output_language: str = "ko",
     experience_level: str = "미들",
+    linkedin_profile: dict | None = None,
 ) -> dict:
     """Deep Analysis 생성
 
@@ -482,6 +483,7 @@ async def generate_deep_analysis(
         job_id: Job ID (observability용)
         output_language: 출력 언어
         experience_level: 경험 레벨 (CTO/VP, 시니어, 미들, 주니어, 신입)
+        linkedin_profile: LinkedIn 프로필 데이터 (optional)
 
     Returns:
         DeepAnalysis 데이터 (Evidence-Based Scoring 적용)
@@ -553,12 +555,23 @@ async def generate_deep_analysis(
     score_sources.append(f"overall_match: {overall_result.source}")
 
     # 6. 데이터 신뢰도 계산
+    has_linkedin = linkedin_profile is not None and bool(linkedin_profile)
     linkedin_positions = 0
+    if has_linkedin:
+        experiences = linkedin_profile.get("experiences") or linkedin_profile.get("experience") or []
+        linkedin_positions = len(experiences) if isinstance(experiences, list) else 0
+
+    has_resume = bool(
+        profile.get("skills")
+        or profile.get("experiences")
+        or profile.get("experience_years")
+    )
+
     github_commits = code_stats.get("total_commits", 0) if code_stats else 0
     data_conf_tier, data_conf_score = calculate_data_confidence(
         has_github=code_analysis is not None and github_commits > 0,
-        has_linkedin=False,  # LinkedIn 여부는 caller에서 판단
-        has_resume=bool(profile.get("skills")),
+        has_linkedin=has_linkedin,
+        has_resume=has_resume,
         github_commits=github_commits,
         linkedin_positions=linkedin_positions,
     )
