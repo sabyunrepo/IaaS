@@ -197,6 +197,12 @@ prompts:
       - evidence_source MUST specify where this question came from: "GitHub", "Resume", "LinkedIn", "Portfolio", "Code", or "KnowledgeGraph"
       - If you cannot ground the question in specific evidence, set evidence_source to "General" (target: ≤20% of questions)
 
+      # CODE-BASED QUESTION PRIORITY
+      - If evidence_context contains code snippets or file paths, the question MUST directly reference that code
+      - Code-based questions should ask "이 코드에서 왜 X 패턴을 선택했나요?" or "이 함수의 Y 부분을 어떻게 개선하겠습니까?" style
+      - NEVER ignore provided code evidence — it is the most valuable interview material
+      - When code evidence is available, question_text MUST mention the specific file, function, or pattern
+
       # OUTPUT FORMAT (v2 JSON)
       ```json
       {
