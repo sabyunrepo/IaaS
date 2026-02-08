@@ -81,6 +81,7 @@ async def _llm_generate_decision_summary(
             experience=result.get("experience", ""),
             jd_match=result.get("jd_match", _t("jd_medium", output_language)),
             level=result.get("level", "Mid"),
+            level_evidence=result.get("level_evidence", ""),
             strengths=result.get("strengths", [])[:5],
             concerns=result.get("concerns", [])[:3],
         )
