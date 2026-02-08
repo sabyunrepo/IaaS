@@ -74,14 +74,27 @@ async def _llm_match_competencies(
 
         from app.services.match_config import get_match_color_icon
 
+        # VectorStore에서 매칭된 스킬 이름 목록 (evidence_source 보강용)
+        vector_matched_skills = set()
+        if vector_context:
+            for line in vector_context.strip().split("\n"):
+                if line.startswith("- ") and ":" in line:
+                    skill_part = line[2:].split(":")[0].strip().lower()
+                    if skill_part:
+                        vector_matched_skills.add(skill_part)
+
+        VALID_SOURCES = {"resume", "github", "resume+github", "vector_store", "none", "llm"}
+
         competencies = []
         for item in result[:6]:
             if not isinstance(item, dict):
                 continue
             match_level = item.get("match", "none")
             color, icon = get_match_color_icon(match_level)
-            # LLM이 evidence_source를 반환하면 사용, 아니면 match_label에서 추론
+            # LLM이 evidence_source를 반환하면 유효값 검증 후 사용
             ev_source = item.get("evidence_source", "")
+            if ev_source and ev_source not in VALID_SOURCES:
+                ev_source = ""  # 유효하지 않은 값은 무시
             if not ev_source:
                 label = item.get("match_label", "").lower()
                 if "github" in label or "code" in label or "repo" in label:
@@ -90,6 +103,17 @@ async def _llm_match_competencies(
                     ev_source = "resume"
                 elif match_level in ("strong", "match", "partial"):
                     ev_source = "llm"
+
+            # VectorStore 시맨틱 매칭이 기여한 경우 소스 보강
+            comp_name_lower = item.get("name", "").lower()
+            if vector_matched_skills and comp_name_lower:
+                for vs_skill in vector_matched_skills:
+                    if vs_skill in comp_name_lower or comp_name_lower in vs_skill:
+                        if ev_source and ev_source not in ("none", "llm", "vector_store"):
+                            ev_source = f"{ev_source}+vector_store"
+                        elif ev_source in ("none", "llm", ""):
+                            ev_source = "vector_store"
+                        break
             competencies.append(CompetencyMatch(
                 name=item.get("name", ""),
                 match=match_level,
