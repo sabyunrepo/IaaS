@@ -77,12 +77,27 @@ async def _llm_generate_decision_summary(
         if not isinstance(result, dict):
             return None
 
+        # 강점 소스 태그 자동 보강 — LLM이 누락 시 후처리
+        SOURCE_TAGS = ("(Resume)", "(GitHub)", "(Resume + GitHub)", "(LinkedIn)", "(Multi-source)")
+        raw_strengths = result.get("strengths", [])[:5]
+        enriched_strengths = []
+        for s in raw_strengths:
+            if isinstance(s, str) and not any(tag in s for tag in SOURCE_TAGS):
+                s_lower = s.lower()
+                if any(w in s_lower for w in ["github", "레포", "repo", "커밋", "commit", "코드"]):
+                    s = f"{s} (GitHub)"
+                elif any(w in s_lower for w in ["resume", "이력서", "경력", "경험"]):
+                    s = f"{s} (Resume)"
+                else:
+                    s = f"{s} (Resume)"
+            enriched_strengths.append(s)
+
         summary = DecisionSummary(
             experience=result.get("experience", ""),
             jd_match=result.get("jd_match", _t("jd_medium", output_language)),
             level=result.get("level", "Mid"),
             level_evidence=result.get("level_evidence", ""),
-            strengths=result.get("strengths", [])[:5],
+            strengths=enriched_strengths,
             concerns=result.get("concerns", [])[:3],
         )
         logger.info(f"LLM decision summary: level={summary.level}, match={summary.jd_match}")
