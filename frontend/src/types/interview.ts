@@ -245,6 +245,7 @@ export interface DecisionSummary {
   experience: string
   jd_match: string
   level: string
+  level_evidence?: string
   strengths: string[]
   concerns: string[]
 }

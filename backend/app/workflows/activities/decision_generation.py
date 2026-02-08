@@ -235,9 +235,13 @@ def _extract_decision_summary(
 
     # 레벨: experience_level 파라미터 우선, SFIA v9 경력 기반 fallback
     level = map_experience_level_label(experience_level)
+    level_evidence = ""
     if experience_level not in ("CTO/VP", "시니어", "미들", "주니어", "신입"):
         # 미인식 레벨 → SFIA v9 + Dreyfus 경력 기반 분류
         level, _ = classify_experience_level(experience_years)
+        level_evidence = f"SFIA v9: {experience_years}년 경력 기반 자동 분류 (Resume)"
+    else:
+        level_evidence = f"사용자 지정 레벨: {experience_level} → {level}"
 
     # 강점 추출 — profile.skills 우선, 없으면 candidate_summary.technical_expertise
     strengths = []
@@ -290,6 +294,7 @@ def _extract_decision_summary(
         experience=experience_str,
         jd_match=jd_match,
         level=level,
+        level_evidence=level_evidence,
         strengths=strengths[:5],
         concerns=concerns[:3],
     )
@@ -358,14 +363,20 @@ def _build_interviewer_tips(
                     follow_up_opportunity=_t("ask_for_supporting_evidence", lang),
                 ))
 
-    # Red flags
+    # Red flags — 각 항목에 데이터 출처 어노테이션
     red_flags = []
     areas_to_probe = profile.get("areas_to_probe", [])
     for area in areas_to_probe[:3]:
         if isinstance(area, str):
-            red_flags.append(area)
+            flag_text = area
         elif isinstance(area, dict):
-            red_flags.append(area.get("concern", area.get("area", "")))
+            flag_text = area.get("concern", area.get("area", ""))
+        else:
+            continue
+        if flag_text and "(Resume)" not in flag_text and "(GitHub)" not in flag_text:
+            flag_text = f"{flag_text} (Resume)"
+        if flag_text:
+            red_flags.append(flag_text)
 
     # Positive signals
     positive_signals = [
