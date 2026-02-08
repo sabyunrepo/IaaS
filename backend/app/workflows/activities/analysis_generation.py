@@ -121,8 +121,18 @@ async def _llm_calculate_radar_scores(
 
         required_scores = formula_radar.required
 
-        # LLM reasoning 추출 (축별 근거)
+        # LLM reasoning 추출 (축별 근거) — 5축 모두 존재 검증 + 누락 보강
         llm_reasoning = result.get("reasoning", {})
+        if not isinstance(llm_reasoning, dict):
+            llm_reasoning = {}
+
+        axis_names = ["role_fit", "technical", "execution", "communication", "code_quality"]
+        for i, axis in enumerate(axis_names):
+            reason = llm_reasoning.get(axis, "")
+            if not reason or not isinstance(reason, str) or len(reason.strip()) < 5:
+                # LLM이 누락한 축 → formula_sources 기반 자동 보강
+                fallback_src = formula_radar.sources[i] if i < len(formula_radar.sources) else ""
+                llm_reasoning[axis] = f"{fallback_src} (formula-based)" if fallback_src else "Data insufficient"
 
         logger.info(f"LLM radar scores (bounded): {candidate_scores}, formula base: {formula_radar.candidate}")
         return candidate_scores, required_scores, formula_radar.sources, llm_reasoning
