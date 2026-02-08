@@ -165,13 +165,19 @@ export interface TerminologyEntry {
   definition?: string
   plain_language_explanation?: string
   business_context?: string
+  business_relevance?: string // Legacy field name (pre-#214)
+  pronunciation_guide?: string
 }
 
 /** Interviewer note with business interpretation */
 export interface InterviewerNote {
   business_interpretation: string
   daily_analogy: string
-  level_expectation: string
+  level_expectation?: string
+  what_to_listen_for?: string
+  red_flags?: string[]
+  green_flags?: string[]
+  time_guidance?: string
 }
 
 /** Interview Question (v2 structure) */

@@ -1550,7 +1550,7 @@ prompts:
           {
             "term": "Technical term",
             "plain_language_explanation": "Everyday analogy or simple description",
-            "business_relevance": "Why this matters for business outcomes",
+            "business_context": "Why this matters for business outcomes",
             "pronunciation_guide": "How to say it (if non-obvious)"
           }
         ]
@@ -1563,7 +1563,7 @@ prompts:
       {
         "term": "마이크로서비스 아키텍처",
         "plain_language_explanation": "레고 블록처럼 작은 서비스들을 조립해서 큰 시스템을 만드는 방식. 하나가 고장나도 전체가 멈추지 않음",
-        "business_relevance": "시스템 일부만 업데이트할 수 있어 배포 속도가 빠르고, 장애 영향 범위가 작아 서비스 안정성이 높음",
+        "business_context": "시스템 일부만 업데이트할 수 있어 배포 속도가 빠르고, 장애 영향 범위가 작아 서비스 안정성이 높음",
         "pronunciation_guide": "마이크로-서비스 아키텍처"
       }
       ```
@@ -1572,7 +1572,7 @@ prompts:
       - plain_language_explanation MUST be ≥15 characters — short phrases are REJECTED
       - NEVER define a term by repeating itself: "API는 API입니다" ← REJECTED
       - Use everyday analogies that a non-technical person would understand
-      - business_relevance MUST explain real impact (cost, speed, reliability) — not just "중요합니다"
+      - business_context MUST explain real impact (cost, speed, reliability) — not just "중요합니다"
       - Do NOT duplicate the same term across different questions
 
       REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
@@ -1697,11 +1697,11 @@ prompts:
         "q-tech-a1b2c3d4": {
           "business_interpretation": "What this question reveals in business terms",
           "daily_analogy": "Everyday situation that parallels this technical concept",
+          "level_expectation": "What to expect from this experience level (e.g. 시니어: 구체적 사례+수치 | 주니어: 학습 의지+기본 이해)",
           "what_to_listen_for": "Key phrases or concepts that indicate competence",
           "red_flags": ["Warning signs in candidate's answer"],
           "green_flags": ["Positive indicators in candidate's answer"],
-          "time_guidance": "How long to spend, when to move on",
-          "note_to_self": "Quick reminder for interviewer"
+          "time_guidance": "How long to spend, when to move on"
         }
       }
       ```
