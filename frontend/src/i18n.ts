@@ -344,6 +344,9 @@ const resources = {
       evidence_high: '근거 충분',
       evidence_medium: '근거 보통',
       evidence_low: '근거 부족',
+      confidence_tooltip_high: '이력서, GitHub 코드 등 확실한 근거가 있어 매칭 결과를 신뢰할 수 있습니다.',
+      confidence_tooltip_medium: '일부 근거는 있지만 추가 확인이 필요할 수 있습니다.',
+      confidence_tooltip_low: '근거가 부족하여 면접에서 직접 확인이 필요합니다.',
       // Score Transparency - Axis Explanations (for non-developers)
       deep_role_fit_desc: '채용공고(JD)의 요구사항과 후보자의 경험/스킬이 얼마나 일치하는지',
       deep_technical_desc: '프로그래밍 언어, 프레임워크, 도구 등 기술적 깊이와 폭',
@@ -701,6 +704,9 @@ const resources = {
       evidence_high: 'Strong Evidence',
       evidence_medium: 'Moderate Evidence',
       evidence_low: 'Weak Evidence',
+      confidence_tooltip_high: 'Strong evidence from resume, GitHub code, etc. This match result is reliable.',
+      confidence_tooltip_medium: 'Some evidence exists but may need additional verification in the interview.',
+      confidence_tooltip_low: 'Limited evidence available. Direct confirmation in the interview is recommended.',
       // Score Transparency - Axis Explanations (for non-developers)
       deep_role_fit_desc: 'How well the candidate\'s experience/skills match the JD requirements',
       deep_technical_desc: 'Depth and breadth of programming languages, frameworks, and tools',

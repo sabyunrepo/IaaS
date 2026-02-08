@@ -22,8 +22,6 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
     { label: t('deep_communication'), desc: t('deep_communication_desc') },
     { label: t('deep_code_quality'), desc: t('deep_code_quality_desc') },
   ]
-  const radarLabels = radarAxisConfig.map(a => a.label)
-
   return (
     <div className="space-y-6">
       {/* Overall Match Score */}
@@ -215,13 +213,19 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-500">{row.evidence}</div>
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium mt-1 ${
-                        row.confidence >= 80 ? 'bg-emerald-50 text-emerald-700' :
-                        row.confidence >= 50 ? 'bg-amber-50 text-amber-700' :
-                        'bg-red-50 text-red-700'
-                      }`}>
-                        {row.confidence >= 80 ? t('evidence_high') :
-                         row.confidence >= 50 ? t('evidence_medium') : t('evidence_low')}
+                      <span className="group relative inline-flex items-center">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium mt-1 cursor-help ${
+                          row.confidence >= 80 ? 'bg-emerald-50 text-emerald-700' :
+                          row.confidence >= 50 ? 'bg-amber-50 text-amber-700' :
+                          'bg-red-50 text-red-700'
+                        }`}>
+                          {row.confidence >= 80 ? t('evidence_high') :
+                           row.confidence >= 50 ? t('evidence_medium') : t('evidence_low')}
+                        </span>
+                        <span className="invisible group-hover:visible absolute left-0 bottom-full mb-2 w-52 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg z-10 leading-relaxed">
+                          {row.confidence >= 80 ? t('confidence_tooltip_high') :
+                           row.confidence >= 50 ? t('confidence_tooltip_medium') : t('confidence_tooltip_low')}
+                        </span>
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
