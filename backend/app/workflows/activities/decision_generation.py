@@ -561,6 +561,23 @@ async def generate_decision_support(
     if not summary.level_evidence or len(summary.level_evidence.strip()) < 10:
         logger.warning("Decision summary: level_evidence missing or too short — SFIA/Dreyfus classification not cited")
 
+    # Decision 내부 일관성: jd_match vs strengths/concerns 비율
+    strengths_count = len(summary.strengths) if summary.strengths else 0
+    concerns_count = len(summary.concerns) if summary.concerns else 0
+    jd_match_lower = (summary.jd_match or "").lower()
+    is_positive_match = any(w in jd_match_lower for w in ["높음", "strong", "우수", "적합", "high"])
+    is_negative_match = any(w in jd_match_lower for w in ["낮음", "low", "부족", "미달", "weak"])
+    if is_positive_match and concerns_count > strengths_count:
+        logger.warning(
+            f"Decision consistency issue: jd_match='{summary.jd_match}' (positive) "
+            f"but concerns({concerns_count}) > strengths({strengths_count})"
+        )
+    elif is_negative_match and strengths_count > concerns_count + 2:
+        logger.warning(
+            f"Decision consistency issue: jd_match='{summary.jd_match}' (negative) "
+            f"but strengths({strengths_count}) >> concerns({concerns_count})"
+        )
+
     # Interviewer Guide: red_flags/positive_signals 소스 어노테이션 확인
     if interviewer_guide.red_flags_to_watch:
         flags_with_source = sum(1 for f in interviewer_guide.red_flags_to_watch if "(Resume)" in f or "(GitHub)" in f or "(LinkedIn)" in f)
