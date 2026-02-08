@@ -8,7 +8,8 @@ import type {
   InterviewQuestion,
   ScenarioLevelType,
   QuestionScoreState,
-  EvaluationScenarioDetail
+  EvaluationScenarioDetail,
+  FollowUpQuestionExtra
 } from '../../types/interview'
 
 interface InterviewQuestionCardProps {
@@ -42,6 +43,15 @@ export function InterviewQuestionCard({
           )}
           {question.is_risk && (
             <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">{t('live_risk_verify')}</span>
+          )}
+          {question.evidence_quality && (
+            <span className={`px-2 py-0.5 text-xs rounded-full ${
+              question.evidence_quality === 'high' ? 'bg-emerald-100 text-emerald-700' :
+              question.evidence_quality === 'medium' ? 'bg-blue-100 text-blue-700' :
+              'bg-gray-100 text-gray-500'
+            }`}>
+              {t(`evidence_${question.evidence_quality}`)}
+            </span>
           )}
           {question.time_allocation_minutes && (
             <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
@@ -287,6 +297,36 @@ export function InterviewQuestionCard({
           </div>
         </div>
       )}
+
+      {/* Additional Follow-up Questions (purpose + expected insight) */}
+      {score?.selectedLevel && question.follow_up_questions && question.follow_up_questions.length > 0 && (() => {
+        const filtered = question.follow_up_questions.filter(
+          (fq: FollowUpQuestionExtra) => !fq.trigger || fq.trigger.toLowerCase() === 'any' || fq.trigger.toLowerCase() === score.selectedLevel?.toLowerCase()
+        )
+        if (filtered.length === 0) return null
+        return (
+          <div className="border-t border-gray-200 pt-6 mb-6">
+            <h5 className="text-sm font-semibold text-gray-700 mb-3">{t('live_extra_follow_ups')}</h5>
+            <div className="space-y-3">
+              {filtered.map((fq: FollowUpQuestionExtra, i: number) => (
+                <div key={i} className="p-4 bg-teal-50 rounded-xl border border-teal-200">
+                  <p className="font-medium text-gray-900 mb-2">{fq.question_text}</p>
+                  {fq.purpose && (
+                    <p className="text-sm text-teal-800 mb-1">
+                      <strong>{t('live_fuq_purpose')}</strong> {fq.purpose}
+                    </p>
+                  )}
+                  {fq.expected_insight && (
+                    <p className="text-sm text-teal-700">
+                      <strong>{t('live_fuq_expected')}</strong> {fq.expected_insight}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Interviewer Note */}
       {question.interviewer_note && (
