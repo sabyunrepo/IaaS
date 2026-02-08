@@ -395,7 +395,7 @@ async def generate_intel_brief(
     if linkedin_profile:
         warnings = []
         experiences = linkedin_profile.get("experiences") or linkedin_profile.get("experience") or []
-        if not any("CTO" in e.get("title", "") or "VP" in e.get("title", "") for e in experiences):
+        if not any("CTO" in (e.get("title") or "") or "VP" in (e.get("title") or "") for e in experiences):
             from app.services.i18n_labels import _t
             warnings.append(_t("no_cto_vp_experience", output_language))
         if warnings:
