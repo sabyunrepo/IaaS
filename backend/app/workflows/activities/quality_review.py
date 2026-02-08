@@ -63,6 +63,7 @@ async def review_questions(questions: list[dict], output_language: str = "ko") -
             issues.append({"type": "too_many_hard", "ratio": hard_ratio})
 
     # 3. LLM 기반 중복/품질 검토
+    all_question_reviews: list[dict] = []
     if len(questions) > 0:
         question_texts = [q.get("question_text", "") for q in questions[:25]]
         from app.prompts import get_prompt_with_config
@@ -73,10 +74,13 @@ async def review_questions(questions: list[dict], output_language: str = "ko") -
         if isinstance(review_result, dict):
             if review_result.get("duplicates"):
                 issues.append({"type": "duplicates", "details": review_result["duplicates"]})
-            # LLM이 식별한 개별 질문 문제
+            # LLM이 식별한 개별 질문 문제 + 전체 품질 메트릭 보존
+            all_question_reviews = []
             for qr in review_result.get("question_reviews", []):
-                if isinstance(qr, dict) and qr.get("issue"):
-                    questions_to_revise.append(qr)
+                if isinstance(qr, dict):
+                    all_question_reviews.append(qr)
+                    if qr.get("issue"):
+                        questions_to_revise.append(qr)
             # 환각 위험 질문 검출
             for hr in review_result.get("hallucination_risks", []):
                 if isinstance(hr, dict):
@@ -94,6 +98,7 @@ async def review_questions(questions: list[dict], output_language: str = "ko") -
         "verdict": verdict,
         "issues": issues,
         "questions_to_revise": questions_to_revise,
+        "question_reviews": all_question_reviews,
         "category_distribution": category_counts,
         "difficulty_distribution": difficulty_counts,
     }

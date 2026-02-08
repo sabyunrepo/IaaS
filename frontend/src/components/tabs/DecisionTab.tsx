@@ -12,6 +12,8 @@ interface DecisionTabProps {
   totalScore?: number
   maxScore?: number
   riskFlags?: RiskFlag[]
+  dataConfidence?: 'high' | 'medium' | 'low'
+  dataConfidenceScore?: number
 }
 
 export const DecisionTab = memo(function DecisionTab({
@@ -20,7 +22,9 @@ export const DecisionTab = memo(function DecisionTab({
   categoryWeights,
   totalScore = 0,
   maxScore = 100,
-  riskFlags
+  riskFlags,
+  dataConfidence,
+  dataConfidenceScore
 }: DecisionTabProps) {
   const { t } = useTranslation()
   const { summary, interviewer_guide, jd_competency_map } = decision
@@ -76,6 +80,15 @@ export const DecisionTab = memo(function DecisionTab({
           <div className="text-right">
             <div className="text-3xl sm:text-5xl font-bold">{scorePercent}%</div>
             <div className="text-sm opacity-80">{t('decision_points', { score: totalScore, max: maxScore })}</div>
+            {dataConfidence && (
+              <div className={`text-xs font-medium mt-1 ${
+                dataConfidence === 'high' ? 'text-emerald-200'
+                : dataConfidence === 'medium' ? 'text-amber-200'
+                : 'text-red-200'
+              }`}>
+                {t('data_confidence_label')}: {t(`data_confidence_${dataConfidence}`)}
+              </div>
+            )}
           </div>
         </div>
       </div>
