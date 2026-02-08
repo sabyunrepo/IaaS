@@ -36,23 +36,44 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
     from app.services.cached_llm import validate_llm_output
     validated = validate_llm_output(result, activity_name="enhance_terminology")
 
-    # 용어 설명 커버리지 검증 — plain_explanation 누락 감지
+    # 용어 설명 커버리지 검증 — plain_explanation 누락 + 중복 + 자기참조 감지
     if isinstance(validated, dict):
         total_terms = 0
         missing_explanation = 0
+        self_referential = 0
+        all_term_names: list[str] = []
         for q_key, q_data in validated.items():
             terms = q_data if isinstance(q_data, list) else q_data.get("terminology", []) if isinstance(q_data, dict) else []
             for term in terms:
                 if isinstance(term, dict):
                     total_terms += 1
+                    term_name = str(term.get("term", "") or term.get("name", "")).strip().lower()
                     explanation = term.get("plain_explanation", "") or term.get("explanation", "")
-                    if not explanation or len(str(explanation).strip()) < 3:
+                    explanation_str = str(explanation).strip()
+
+                    if not explanation_str or len(explanation_str) < 3:
                         missing_explanation += 1
+                    elif term_name and term_name in explanation_str.lower() and len(explanation_str) < len(term_name) * 3:
+                        # 자기참조: 설명이 용어명을 반복하며 짧은 경우
+                        self_referential += 1
+
+                    if term_name:
+                        all_term_names.append(term_name)
+
+        # 중복 용어 감지
+        from collections import Counter as _TermCounter
+        term_counts = _TermCounter(all_term_names)
+        duplicates = {t: c for t, c in term_counts.items() if c > 1}
+
         if total_terms > 0:
             coverage = round((total_terms - missing_explanation) / total_terms * 100, 1)
             logger.info(f"enhance_terminology: {total_terms} terms, {coverage}% have explanations")
             if missing_explanation > 0:
                 logger.warning(f"enhance_terminology: {missing_explanation}/{total_terms} terms missing plain_explanation")
+            if self_referential > 0:
+                logger.warning(f"enhance_terminology: {self_referential}/{total_terms} terms have self-referential explanations")
+            if duplicates:
+                logger.warning(f"enhance_terminology: duplicate terms across questions: {duplicates}")
 
     return validated
 
@@ -85,6 +106,8 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
     if isinstance(validated, dict):
         total_questions = 0
         incomplete_questions = 0
+        short_scenario_count = 0
+        low_discriminability = 0
         for q_key, q_data in validated.items():
             if not isinstance(q_data, dict):
                 continue
@@ -94,9 +117,37 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
                 incomplete_questions += 1
                 missing = EXPECTED_LEVELS - present_levels
                 logger.warning(f"craft_evaluation_scenarios: {q_key} missing levels: {missing}")
+
+            # 시나리오 텍스트 최소 길이 + 구분도 검증
+            texts = []
+            for level in EXPECTED_LEVELS:
+                level_data = q_data.get(level, {})
+                text = ""
+                if isinstance(level_data, dict):
+                    text = level_data.get("text", "") or level_data.get("description", "")
+                elif isinstance(level_data, str):
+                    text = level_data
+                texts.append(str(text).strip())
+                if len(str(text).strip()) < 15:
+                    short_scenario_count += 1
+
+            # 구분도: expert와 low_level 텍스트가 너무 유사하면 경고
+            if len(texts) >= 3 and texts[0] and texts[2]:
+                # 간단한 유사도: 공통 단어 비율
+                expert_words = set(texts[0].lower().split())
+                low_words = set(texts[2].lower().split())
+                if expert_words and low_words:
+                    overlap = len(expert_words & low_words) / max(len(expert_words), len(low_words))
+                    if overlap > 0.8:
+                        low_discriminability += 1
+
         if total_questions > 0:
             coverage = round((total_questions - incomplete_questions) / total_questions * 100, 1)
             logger.info(f"craft_evaluation_scenarios: {total_questions} questions, {coverage}% have all 3 levels")
+            if short_scenario_count > 0:
+                logger.warning(f"craft_evaluation_scenarios: {short_scenario_count} scenario texts are too short (<15 chars)")
+            if low_discriminability > 0:
+                logger.warning(f"craft_evaluation_scenarios: {low_discriminability}/{total_questions} questions have low expert/low discriminability (>80% word overlap)")
 
     return validated
 
