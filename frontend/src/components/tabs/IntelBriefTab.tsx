@@ -159,15 +159,27 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
                     <span className="text-lg">{comp.icon}</span>
                     <span className="font-semibold text-gray-900">{comp.name}</span>
                   </div>
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    comp.color === 'emerald' ? 'bg-emerald-200 text-emerald-800' :
-                    comp.color === 'amber' ? 'bg-amber-200 text-amber-800' :
-                    comp.color === 'red' ? 'bg-red-200 text-red-800' :
-                    comp.color === 'slate' ? 'bg-slate-200 text-slate-800' :
-                    'bg-gray-200 text-gray-800'
-                  }`}>
-                    {comp.match_label}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {comp.evidence_source && comp.evidence_source !== 'none' && (
+                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                        comp.evidence_source === 'github' ? 'bg-gray-800 text-white' :
+                        comp.evidence_source === 'resume' ? 'bg-blue-100 text-blue-700' :
+                        comp.evidence_source === 'vector_store' ? 'bg-purple-100 text-purple-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                        {t(`evidence_src_${comp.evidence_source}`)}
+                      </span>
+                    )}
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      comp.color === 'emerald' ? 'bg-emerald-200 text-emerald-800' :
+                      comp.color === 'amber' ? 'bg-amber-200 text-amber-800' :
+                      comp.color === 'red' ? 'bg-red-200 text-red-800' :
+                      comp.color === 'slate' ? 'bg-slate-200 text-slate-800' :
+                      'bg-gray-200 text-gray-800'
+                    }`}>
+                      {comp.match_label}
+                    </span>
+                  </div>
                 </div>
                 <p className="text-sm text-gray-600 mb-2">{comp.desc}</p>
                 <p className={`text-sm font-medium ${
