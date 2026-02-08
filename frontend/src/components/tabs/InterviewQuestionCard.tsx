@@ -115,9 +115,9 @@ export function InterviewQuestionCard({
                 <div className="text-sm text-amber-800 mt-1">
                   {term.plain_language_explanation || term.definition}
                 </div>
-                {term.business_context && (
+                {(term.business_context || term.business_relevance) && (
                   <div className="text-xs text-amber-700 mt-1">
-                    <strong>{t('live_term_business')}</strong> {term.business_context}
+                    <strong>{t('live_term_business')}</strong> {term.business_context || term.business_relevance}
                   </div>
                 )}
               </div>
@@ -244,8 +244,42 @@ export function InterviewQuestionCard({
             </p>
           )}
           {question.interviewer_note.level_expectation && (
-            <p className="text-sm text-indigo-800">
+            <p className="text-sm text-indigo-800 mb-2">
               <strong>{t('live_level_expectation')}</strong> {question.interviewer_note.level_expectation}
+            </p>
+          )}
+          {question.interviewer_note.what_to_listen_for && (
+            <p className="text-sm text-indigo-800 mb-2">
+              <strong>{t('live_listen_for')}</strong> {question.interviewer_note.what_to_listen_for}
+            </p>
+          )}
+          {question.interviewer_note.green_flags && question.interviewer_note.green_flags.length > 0 && (
+            <div className="mt-2">
+              <strong className="text-xs text-emerald-700">{t('live_green_flags')}</strong>
+              <ul className="mt-1 space-y-1">
+                {question.interviewer_note.green_flags.map((flag, i) => (
+                  <li key={i} className="text-sm text-emerald-700 flex items-start gap-1.5">
+                    <span className="mt-0.5 shrink-0">✅</span> {flag}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {question.interviewer_note.red_flags && question.interviewer_note.red_flags.length > 0 && (
+            <div className="mt-2">
+              <strong className="text-xs text-red-700">{t('live_red_flags')}</strong>
+              <ul className="mt-1 space-y-1">
+                {question.interviewer_note.red_flags.map((flag, i) => (
+                  <li key={i} className="text-sm text-red-700 flex items-start gap-1.5">
+                    <span className="mt-0.5 shrink-0">⚠️</span> {flag}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {question.interviewer_note.time_guidance && (
+            <p className="text-xs text-indigo-600 mt-2 italic">
+              {question.interviewer_note.time_guidance}
             </p>
           )}
         </div>

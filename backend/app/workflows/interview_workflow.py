@@ -289,7 +289,11 @@ class InterviewGenerationWorkflow:
                         continue
                     for q_key in q_keys:
                         if q_key and q_key in enhancement:
-                            q[field_name] = enhancement[q_key]
+                            # interviewer_note는 deep-merge (craft_question의 level_expectation 보존)
+                            if field_name == "interviewer_note" and isinstance(q.get(field_name), dict):
+                                q[field_name] = {**q[field_name], **enhancement[q_key]}
+                            else:
+                                q[field_name] = enhancement[q_key]
                             break
 
             # Phase 4: Quality Review + Finalization

@@ -218,6 +218,9 @@ const resources = {
       live_business_interpretation: '비즈니스 해석:',
       live_daily_analogy: '일상 비유:',
       live_level_expectation: '레벨 기대치:',
+      live_listen_for: '핵심 관찰 포인트:',
+      live_green_flags: '✅ 긍정 신호',
+      live_red_flags: '⚠️ 주의 신호',
       live_prev_question: '← 이전 질문',
       live_next_question: '다음 질문 →',
       // RadarChart
@@ -554,6 +557,9 @@ const resources = {
       live_business_interpretation: 'Business Interpretation:',
       live_daily_analogy: 'Daily Analogy:',
       live_level_expectation: 'Level Expectation:',
+      live_listen_for: 'What to Listen For:',
+      live_green_flags: '✅ Positive Signals',
+      live_red_flags: '⚠️ Warning Signs',
       live_prev_question: '← Previous',
       live_next_question: 'Next →',
       // RadarChart
