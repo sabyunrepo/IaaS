@@ -40,11 +40,11 @@ async def _llm_calculate_radar_scores(
                 gaps = await queries._get_gap_candidates()
                 if conflicts:
                     kg_context += f"Conflicts detected: {len(conflicts)}\n"
-                    for c in conflicts[:3]:
+                    for c in conflicts[:5]:
                         kg_context += f"- {c.topic}\n"
                 if gaps:
                     kg_context += f"Skill gaps detected: {len(gaps)}\n"
-                    for g in gaps[:3]:
+                    for g in gaps[:5]:
                         kg_context += f"- {g.topic}\n"
             except Exception as e:
                 logger.debug(f"KG enrichment failed for radar: {e}")
@@ -121,8 +121,11 @@ async def _llm_calculate_radar_scores(
 
         required_scores = formula_radar.required
 
+        # LLM reasoning 추출 (축별 근거)
+        llm_reasoning = result.get("reasoning", {})
+
         logger.info(f"LLM radar scores (bounded): {candidate_scores}, formula base: {formula_radar.candidate}")
-        return candidate_scores, required_scores
+        return candidate_scores, required_scores, formula_radar.sources, llm_reasoning
 
     except Exception as e:
         logger.warning(f"LLM radar analysis failed, using fallback: {e}")
@@ -508,8 +511,13 @@ async def generate_deep_analysis(
     score_sources = []
     llm_radar = await _llm_calculate_radar_scores(jd_analysis, code_analysis, document_analysis, output_language, job_id=job_id)
     if llm_radar:
-        radar_candidate, radar_required = llm_radar
-        score_sources.append("radar: LLM-generated (bounded ±15% from formula base)")
+        radar_candidate, radar_required, axis_sources, llm_reasoning = llm_radar
+        # 축별 공식 근거 + LLM 추론 결합
+        for i, src in enumerate(axis_sources):
+            axis_name = ["role_fit", "technical", "execution", "communication", "code_quality"][i] if i < 5 else f"axis_{i}"
+            llm_note = llm_reasoning.get(axis_name, "")
+            combined = f"{src} | LLM: {llm_note}" if llm_note else f"{src} | LLM-bounded"
+            score_sources.append(combined)
     else:
         radar_candidate, radar_required, axis_sources, confidence = _calculate_radar_scores(
             jd_analysis, code_analysis, document_analysis, experience_level
