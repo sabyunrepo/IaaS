@@ -1567,6 +1567,13 @@ prompts:
       }
       ```
 
+      # QUALITY RULES (MANDATORY)
+      - plain_language_explanation MUST be ≥15 characters — short phrases are REJECTED
+      - NEVER define a term by repeating itself: "API는 API입니다" ← REJECTED
+      - Use everyday analogies that a non-technical person would understand
+      - business_relevance MUST explain real impact (cost, speed, reliability) — not just "중요합니다"
+      - Do NOT duplicate the same term across different questions
+
       REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
   craft_evaluation_scenarios:
@@ -1615,6 +1622,13 @@ prompts:
         }
       }
       ```
+
+      # DISCRIMINABILITY RULES (MANDATORY)
+      - expert and low_level descriptions MUST be clearly different — do NOT use similar wording
+      - expert: cite specific numbers, metrics, architecture patterns, or trade-off analysis
+      - low_level: describe vague responses, surface-level answers, or avoidance of specifics
+      - EVERY description MUST be ≥15 characters (short generic phrases are REJECTED)
+      - trigger_keywords for expert and low_level MUST NOT overlap
 
       REMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.
 
