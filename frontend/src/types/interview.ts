@@ -180,6 +180,16 @@ export interface InterviewerNote {
   time_guidance?: string
 }
 
+/** Rich evaluation scenario detail for interviewer guidance */
+export interface EvaluationScenarioDetail {
+  description?: string
+  trigger_keywords?: string[]
+  behavioral_indicators?: string[]
+  coaching_tip?: string
+  recovery_question?: string
+  follow_up_direction?: string
+}
+
 /** Interview Question (v2 structure) */
 export interface InterviewQuestion {
   id: string
@@ -206,11 +216,11 @@ export interface InterviewQuestion {
     snippet?: string
   }
 
-  // Legacy v1 fields (for backward compatibility)
+  // Rich evaluation guidance per scenario level
   evaluation_scenarios?: {
-    expert?: Record<string, unknown>
-    mid?: Record<string, unknown>
-    low?: Record<string, unknown>
+    expert?: EvaluationScenarioDetail
+    mid_level?: EvaluationScenarioDetail
+    low_level?: EvaluationScenarioDetail
   }
   follow_up_questions?: Array<Record<string, unknown>>
 

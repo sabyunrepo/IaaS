@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next'
 import type {
   InterviewQuestion,
   ScenarioLevelType,
-  QuestionScoreState
+  QuestionScoreState,
+  EvaluationScenarioDetail
 } from '../../types/interview'
 
 interface InterviewQuestionCardProps {
@@ -180,6 +181,64 @@ export function InterviewQuestionCard({
           ))}
         </div>
       </div>
+
+      {/* Evaluation Guidance (shown after scenario selection) */}
+      {score?.selectedLevel && question.evaluation_scenarios && (() => {
+        const levelMap: Record<ScenarioLevelType, EvaluationScenarioDetail | undefined> = {
+          Expert: question.evaluation_scenarios?.expert,
+          Mid: question.evaluation_scenarios?.mid_level,
+          Low: question.evaluation_scenarios?.low_level,
+        }
+        const detail = levelMap[score.selectedLevel]
+        if (!detail) return null
+        return (
+          <div className="mb-6 p-4 bg-violet-50 rounded-xl border border-violet-200 animate-fadeIn">
+            <h5 className="text-xs font-semibold text-violet-700 uppercase mb-3">{t('live_eval_guidance')}</h5>
+            {detail.description && (
+              <p className="text-sm text-violet-900 mb-3">{detail.description}</p>
+            )}
+            {detail.trigger_keywords && detail.trigger_keywords.length > 0 && (
+              <div className="mb-3">
+                <span className="text-xs font-semibold text-violet-700">{t('live_trigger_keywords')}</span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {detail.trigger_keywords.map((kw, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-violet-100 text-violet-800 text-xs rounded-full border border-violet-200">
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {detail.behavioral_indicators && detail.behavioral_indicators.length > 0 && (
+              <div className="mb-3">
+                <span className="text-xs font-semibold text-violet-700">{t('live_behavioral_indicators')}</span>
+                <ul className="mt-1 space-y-1">
+                  {detail.behavioral_indicators.map((ind, i) => (
+                    <li key={i} className="text-sm text-violet-800 flex items-start gap-1.5">
+                      <span className="mt-0.5 shrink-0">•</span> {ind}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {detail.coaching_tip && (
+              <div className="p-2 bg-amber-50 rounded-lg border border-amber-200 text-sm text-amber-800">
+                <strong>{t('live_coaching_tip')}</strong> {detail.coaching_tip}
+              </div>
+            )}
+            {detail.recovery_question && (
+              <div className="p-2 bg-blue-50 rounded-lg border border-blue-200 text-sm text-blue-800 mt-2">
+                <strong>{t('live_recovery_question')}</strong> {detail.recovery_question}
+              </div>
+            )}
+            {detail.follow_up_direction && (
+              <div className="p-2 bg-green-50 rounded-lg border border-green-200 text-sm text-green-800 mt-2">
+                <strong>{t('live_follow_up_direction')}</strong> {detail.follow_up_direction}
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Follow-up Questions (shown after scenario selection) */}
       {score?.selectedLevel && question.follow_ups && question.follow_ups.length > 0 && (
