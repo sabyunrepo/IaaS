@@ -220,6 +220,22 @@ async def _llm_analyze_engineering_dna(code_analysis: dict | None, output_langua
             ))
 
         if items:
+            # === Post-processing 품질 검증 ===
+            no_note = sum(1 for i in items if not i.note or len(str(i.note).strip()) < 5)
+            no_tooltip = sum(1 for i in items if not i.tooltip or len(str(i.tooltip).strip()) < 10)
+            zero_value = sum(1 for i in items if i.value == 0 and i.note and "not available" not in str(i.note).lower())
+            if no_note > 0:
+                logger.warning(
+                    f"Engineering DNA: {no_note}/{len(items)} items have empty/short note — metric citation missing"
+                )
+            if no_tooltip > 0:
+                logger.warning(
+                    f"Engineering DNA: {no_tooltip}/{len(items)} items have empty/short tooltip — non-tech explanation missing"
+                )
+            if zero_value > 0:
+                logger.warning(
+                    f"Engineering DNA: {zero_value}/{len(items)} items have value=0 but note doesn't say 'not available'"
+                )
             logger.info(f"LLM engineering DNA: {len(items)} items")
             return items
         return None

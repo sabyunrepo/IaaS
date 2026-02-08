@@ -126,6 +126,30 @@ async def _llm_match_competencies(
             ))
 
         if competencies:
+            # === Post-processing 품질 검증 ===
+            VAGUE_PATTERNS = (
+                "다양한 경험", "풍부한 경력", "excellent skills", "strong background",
+                "good experience", "sufficient capability", "적절한 역량",
+                "관련 경험 있음", "해당 기술 보유",
+            )
+            vague_count = 0
+            no_why_count = 0
+            for c in competencies:
+                label_lower = (c.match_label or "").lower().strip()
+                if any(vp in label_lower for vp in VAGUE_PATTERNS) or (
+                    c.match in ("strong", "match") and len(label_lower) < 10
+                ):
+                    vague_count += 1
+                if not c.why or len(c.why.strip()) < 5:
+                    no_why_count += 1
+            if vague_count > 0:
+                logger.warning(
+                    f"Competency matching: {vague_count}/{len(competencies)} items have vague match_label"
+                )
+            if no_why_count > 0:
+                logger.warning(
+                    f"Competency matching: {no_why_count}/{len(competencies)} items have empty/short 'why' field"
+                )
             logger.info(f"LLM competency matching: {len(competencies)} items")
             return competencies
         return None

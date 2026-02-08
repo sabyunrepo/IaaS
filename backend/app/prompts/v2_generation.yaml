@@ -257,6 +257,14 @@ prompts:
       The "tooltip" field is for non-technical users. Explain what this metric means in simple terms.
       Example: "Test coverage measures how much of the code is verified by automated tests — higher is better"
 
+      # FORBIDDEN PATTERNS (will cause rejection)
+      - note without specific metric: "좋은 품질" ← REJECTED (no metric citation)
+      - note without source: "테스트가 잘 작성됨" ← REJECTED (no parenthesized source)
+      - EVERY note MUST cite the actual metric value + (GitHub): "test_coverage: 72% (GitHub)" ← ACCEPTED
+      - If metric is unavailable, note MUST say: "Data not available" ← ACCEPTED
+      - tooltip that repeats label: "테스트 커버리지는 테스트 커버리지입니다" ← REJECTED
+      - EVERY tooltip MUST explain the metric in non-technical terms for HR managers
+
       # OUTPUT FORMAT (JSON array)
       [
         {{
