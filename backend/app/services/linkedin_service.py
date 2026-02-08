@@ -160,9 +160,11 @@ class LinkedInService:
 
         Bright Data LinkedIn People Profile 데이터셋 필드:
         - 기본: name, headline, about, country_code, city, avatar
-        - 경력: experience[] (title, company, company_name, start_date, end_date, description)
-        - 학력: education[] (school, degree, field_of_study, start_date, end_date)
-        - 기술: skills[], languages[], certifications[]
+        - 경력: experience[] — 중첩 positions[] 구조 지원
+          - 단일 포지션: {title, company, start_date, end_date, description}
+          - 그룹 포지션: {company, positions: [{title, start_date, end_date, ...}]}
+        - 학력: education[] (title/school, degree, field, start_year/start_date, end_year/end_date)
+        - 기술: Bright Data는 skills 필드 미반환 → about/experience/project에서 추출
         - 프로젝트: projects[] (title, start_date, description)
         - 수상: honors_and_awards[] (title, publication, date, description)
         - 활동: activity[] (interaction, title, link)
@@ -170,6 +172,9 @@ class LinkedInService:
         - 회사: current_company, current_company_name
         - 링크: websites[], personal_urls[], bio_links[]
         """
+        # 디버그: Bright Data 원본 키 로깅 (필드 누락 진단용)
+        raw_keys = sorted(data.keys()) if isinstance(data, dict) else []
+        logger.info(f"Bright Data raw keys: {raw_keys}")
         # GitHub URL 추출 (websites, bio_links 등에서)
         github_url = None
         all_websites = []
@@ -190,23 +195,47 @@ class LinkedInService:
         elif data.get("current_company_name"):
             current_company = data["current_company_name"]
 
-        # 경력 정규화 (experience가 null일 수 있음)
+        # 경력 정규화 — Bright Data 중첩 positions 구조 지원
+        # Bright Data 형식: experience[].positions[] (한 회사에 여러 직책)
+        # 단일 형식: experience[].title (직책이 바로 있는 경우)
         experiences = []
         raw_exp = data.get("experience") or data.get("experiences") or []
         if raw_exp:
             for exp in raw_exp[:10]:
                 if not isinstance(exp, dict):
                     continue
-                experiences.append({
-                    "title": exp.get("title"),
-                    "company": exp.get("company") or exp.get("company_name"),
-                    "description": exp.get("description"),
-                    "starts_at": exp.get("start_date") or exp.get("starts_at"),
-                    "ends_at": exp.get("end_date") or exp.get("ends_at"),
-                    "location": exp.get("location"),
-                })
 
-        # 학력 정규화 (education이 null일 수 있음)
+                positions = exp.get("positions")
+                if positions and isinstance(positions, list):
+                    # 그룹 형식: 한 회사에 여러 포지션
+                    company_name = exp.get("company") or exp.get("company_name") or exp.get("title", "")
+                    company_location = exp.get("location")
+                    for pos in positions:
+                        if not isinstance(pos, dict):
+                            continue
+                        experiences.append({
+                            "title": pos.get("title") or pos.get("subtitle"),
+                            "company": company_name,
+                            "description": pos.get("description"),
+                            "starts_at": pos.get("start_date") or pos.get("starts_at"),
+                            "ends_at": pos.get("end_date") or pos.get("ends_at"),
+                            "duration": pos.get("duration") or pos.get("duration_short"),
+                            "location": pos.get("location") or company_location,
+                        })
+                else:
+                    # 단일 형식: 직접 title/company가 있는 경우
+                    experiences.append({
+                        "title": exp.get("title"),
+                        "company": exp.get("company") or exp.get("company_name"),
+                        "description": exp.get("description"),
+                        "starts_at": exp.get("start_date") or exp.get("starts_at"),
+                        "ends_at": exp.get("end_date") or exp.get("ends_at"),
+                        "duration": exp.get("duration") or exp.get("duration_short"),
+                        "location": exp.get("location"),
+                    })
+        experiences = experiences[:10]  # 최대 10개
+
+        # 학력 정규화 — Bright Data는 start_year/end_year 사용, title이 학교명
         education = []
         raw_edu = data.get("education") or []
         if raw_edu:
@@ -214,11 +243,11 @@ class LinkedInService:
                 if not isinstance(edu, dict):
                     continue
                 education.append({
-                    "school": edu.get("school") or edu.get("school_name"),
+                    "school": edu.get("school") or edu.get("school_name") or edu.get("title"),
                     "degree": edu.get("degree") or edu.get("degree_name"),
                     "field": edu.get("field_of_study") or edu.get("field"),
-                    "starts_at": edu.get("start_date") or edu.get("starts_at"),
-                    "ends_at": edu.get("end_date") or edu.get("ends_at"),
+                    "starts_at": edu.get("start_date") or edu.get("starts_at") or edu.get("start_year"),
+                    "ends_at": edu.get("end_date") or edu.get("ends_at") or edu.get("end_year"),
                 })
 
         # 프로젝트 정규화 (새로 추가)
@@ -280,11 +309,24 @@ class LinkedInService:
             elif isinstance(lang, dict):
                 languages.append(lang.get("name") or "")
 
+        # 스킬 추출: Bright Data API는 skills 필드를 반환하지 않으므로
+        # 원본 데이터에 skills가 있으면 사용, 없으면 텍스트에서 추출
+        raw_skills = data.get("skills") or []
+        if not raw_skills:
+            raw_skills = self._extract_skills_from_text(data, experiences, projects)
+
+        # 경력 수 및 스킬 수 로깅 (진단용)
+        logger.info(
+            f"LinkedIn normalized: {len(experiences)} experiences, "
+            f"{len(education)} education, {len(raw_skills)} skills, "
+            f"{len(projects)} projects"
+        )
+
         return {
             # 기본 정보
             "profile_url": url,
             "full_name": data.get("name") or data.get("full_name"),
-            "headline": data.get("headline"),
+            "headline": data.get("headline") or data.get("position"),
             "summary": data.get("about") or data.get("summary"),
             "country": data.get("country") or data.get("country_code") or data.get("country_full_name"),
             "city": data.get("city") or data.get("location"),
@@ -296,7 +338,7 @@ class LinkedInService:
             # 경력/학력/기술
             "experiences": experiences,
             "education": education,
-            "skills": (data.get("skills") or [])[:30],
+            "skills": raw_skills[:30],
             "languages": languages,
             "certifications": certifications,
 
@@ -315,6 +357,75 @@ class LinkedInService:
             "github_url": github_url,
             "websites": all_websites,
         }
+
+    @staticmethod
+    def _extract_skills_from_text(
+        data: dict,
+        experiences: list[dict],
+        projects: list[dict],
+    ) -> list[str]:
+        """프로필 텍스트에서 기술 스킬 키워드를 추출
+
+        Bright Data가 skills 필드를 반환하지 않을 때 fallback으로 사용.
+        about, headline, experience descriptions, project descriptions에서
+        일반적인 기술 키워드를 매칭하여 추출.
+        """
+        # 텍스트 수집
+        texts = []
+        about = data.get("about") or data.get("summary") or ""
+        headline = data.get("headline") or data.get("position") or ""
+        texts.append(about)
+        texts.append(headline)
+
+        for exp in experiences:
+            desc = exp.get("description") or ""
+            title = exp.get("title") or ""
+            texts.append(desc)
+            texts.append(title)
+
+        for proj in projects:
+            desc = proj.get("description") or ""
+            texts.append(desc)
+
+        combined = " ".join(texts).lower()
+        if not combined.strip():
+            return []
+
+        # 기술 키워드 사전 (대소문자 무관 매칭)
+        tech_keywords = {
+            # Languages
+            "python", "javascript", "typescript", "java", "c++", "c#", "go", "golang",
+            "rust", "ruby", "php", "swift", "kotlin", "scala", "r", "matlab",
+            # Frontend
+            "react", "vue", "angular", "next.js", "nuxt", "svelte", "tailwind",
+            "html", "css", "sass", "webpack", "vite",
+            # Backend
+            "node.js", "express", "fastapi", "django", "flask", "spring",
+            "rails", "laravel", "gin", "fiber",
+            # Data / ML
+            "tensorflow", "pytorch", "scikit-learn", "pandas", "numpy",
+            "machine learning", "deep learning", "nlp", "computer vision",
+            "langchain", "llm", "generative ai", "rag",
+            # Cloud / DevOps
+            "aws", "azure", "gcp", "docker", "kubernetes", "terraform",
+            "ci/cd", "github actions", "jenkins", "ansible",
+            # Database
+            "postgresql", "mysql", "mongodb", "redis", "elasticsearch",
+            "dynamodb", "firebase", "supabase", "pgvector",
+            # Tools / Concepts
+            "git", "linux", "api", "rest", "graphql", "grpc",
+            "microservices", "agile", "scrum", "devops",
+            "temporal", "kafka", "rabbitmq", "celery",
+        }
+
+        found = []
+        for keyword in tech_keywords:
+            # 단어 경계 체크 (간단한 substring 매칭)
+            if keyword in combined:
+                # 원본 대소문자 보존
+                found.append(keyword.title() if len(keyword) > 3 else keyword.upper())
+
+        return sorted(set(found))
 
 
 # 하위 호환: 기존 import 경로 유지

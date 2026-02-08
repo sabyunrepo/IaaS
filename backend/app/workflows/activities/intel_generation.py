@@ -23,6 +23,7 @@ async def _llm_match_competencies(
     code_analysis: dict | None,
     output_language: str = "ko",
     job_id: str | None = None,
+    linkedin_profile: dict | None = None,
 ) -> list[CompetencyMatch] | None:
     """LLM 기반 시맨틱 역량 매칭 (실패 시 None 반환)"""
     try:
@@ -36,6 +37,16 @@ async def _llm_match_competencies(
 
         candidate_skills = (document_analysis.get("profile") or {}).get("skills") or []
         code_skills = (code_analysis.get("tech_stack") or []) if code_analysis else []
+
+        # LinkedIn 프로필에서 추가 스킬 통합
+        linkedin_skills = (linkedin_profile.get("skills") or []) if linkedin_profile else []
+        if linkedin_skills:
+            existing = {s.lower() for s in candidate_skills + code_skills}
+            for ls in linkedin_skills:
+                s = ls if isinstance(ls, str) else (ls.get("name", "") if isinstance(ls, dict) else "")
+                if s and s.lower() not in existing:
+                    candidate_skills.append(s)
+                    existing.add(s.lower())
 
         # VectorStore 시맨틱 스킬 매칭
         vector_context = ""
@@ -303,7 +314,7 @@ def _extract_github_summary(code_analysis: dict | None, lang: str = "ko") -> Git
 
 
 def _extract_linkedin_positions(linkedin_profile: dict | None) -> list[LinkedInPosition]:
-    """LinkedIn 프로필에서 경력 추출"""
+    """LinkedIn 프로필에서 경력 추출 (duration 자동 계산 포함)"""
     if not linkedin_profile:
         return []
 
@@ -314,6 +325,13 @@ def _extract_linkedin_positions(linkedin_profile: dict | None) -> list[LinkedInP
         company = exp.get("company", exp.get("company_name", "Unknown"))
         title = exp.get("title", exp.get("position", ""))
         duration = exp.get("duration", exp.get("tenure", ""))
+
+        # duration이 없으면 starts_at/ends_at에서 계산
+        if not duration:
+            starts = exp.get("starts_at") or exp.get("start_date") or ""
+            ends = exp.get("ends_at") or exp.get("end_date") or ""
+            if starts:
+                duration = f"{starts} — {ends or 'Present'}"
 
         positions.append(LinkedInPosition(
             initial=company[0].upper() if company else "?",
@@ -356,8 +374,11 @@ async def generate_intel_brief(
     jd_summary = _extract_jd_summary(jd_analysis, lang=output_language)
     activity.heartbeat()
 
-    # 2. 역량 매칭 분석 (LLM 우선, 규칙 기반 fallback)
-    competencies = await _llm_match_competencies(jd_analysis, document_analysis, code_analysis, output_language, job_id=job_id)
+    # 2. 역량 매칭 분석 (LLM 우선, 규칙 기반 fallback) — LinkedIn 스킬 포함
+    competencies = await _llm_match_competencies(
+        jd_analysis, document_analysis, code_analysis, output_language,
+        job_id=job_id, linkedin_profile=linkedin_profile,
+    )
     if competencies is None:
         competencies = _match_competencies(jd_analysis, document_analysis, code_analysis, lang=output_language)
     activity.heartbeat()
