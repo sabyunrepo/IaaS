@@ -425,6 +425,46 @@ class InterviewGenerationWorkflow:
                     exp_level, CATEGORY_WEIGHTS_BY_LEVEL["미들"]
                 )
 
+                # 교차 일관성 검증 (Intel ↔ Deep Analysis ↔ Decision)
+                inconsistencies = []
+                intel_data = intel_brief if isinstance(intel_brief, dict) else {}
+                analysis_data = deep_analysis if isinstance(deep_analysis, dict) else {}
+                decision_data = decision_support if isinstance(decision_support, dict) else {}
+
+                # 레이더 점수 ↔ Decision 추천 일관성
+                radar = analysis_data.get("radar_candidate", {})
+                if isinstance(radar, dict) and decision_data:
+                    avg_radar = 0
+                    radar_values = [v for v in radar.values() if isinstance(v, (int, float))]
+                    if radar_values:
+                        avg_radar = sum(radar_values) / len(radar_values)
+                    summary = decision_data.get("summary", {})
+                    if isinstance(summary, dict):
+                        jd_match = summary.get("jd_match", "")
+                        # 평균 레이더 ≤ 30인데 jd_match에 "높" or "strong" → 불일치
+                        if avg_radar > 0 and avg_radar <= 30 and any(w in str(jd_match).lower() for w in ["높", "strong", "excellent"]):
+                            inconsistencies.append(f"radar_avg={avg_radar:.0f} but jd_match='{jd_match}'")
+                        # 평균 레이더 ≥ 80인데 jd_match에 "낮" or "weak" → 불일치
+                        if avg_radar >= 80 and any(w in str(jd_match).lower() for w in ["낮", "weak", "poor"]):
+                            inconsistencies.append(f"radar_avg={avg_radar:.0f} but jd_match='{jd_match}'")
+
+                # Intel 스킬 매칭 수 ↔ Deep Analysis 스킬 테이블 수 비교
+                intel_skills = intel_data.get("competency_match", [])
+                analysis_skills = analysis_data.get("skill_table", [])
+                if isinstance(intel_skills, list) and isinstance(analysis_skills, list):
+                    if len(intel_skills) > 0 and len(analysis_skills) > 0:
+                        ratio = min(len(intel_skills), len(analysis_skills)) / max(len(intel_skills), len(analysis_skills))
+                        if ratio < 0.3:
+                            inconsistencies.append(
+                                f"intel competency_match({len(intel_skills)}) vs analysis skill_table({len(analysis_skills)}) ratio={ratio:.2f}"
+                            )
+
+                if inconsistencies:
+                    logger.warning(f"Cross-tab inconsistencies detected: {inconsistencies}")
+                    meta = final_script.get("metadata", {})
+                    if isinstance(meta, dict):
+                        meta["cross_tab_inconsistencies"] = inconsistencies
+
             # DB에 결과 저장
             job_id = input_data.get("job_id")
             if job_id:

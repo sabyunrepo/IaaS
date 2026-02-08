@@ -122,7 +122,31 @@ async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
     from app.services.cached_llm import validate_llm_output
-    return validate_llm_output(result, activity_name="design_follow_ups")
+    validated = validate_llm_output(result, activity_name="design_follow_ups")
+
+    # 후속질문 트리거 커버리지 + 구조 검증
+    EXPECTED_TRIGGERS = {"expert", "mid", "low"}
+    if isinstance(validated, dict):
+        total_questions = 0
+        missing_trigger_coverage = 0
+        empty_text_count = 0
+        for q_key, follow_ups in validated.items():
+            if not isinstance(follow_ups, list):
+                continue
+            total_questions += 1
+            triggers_present = {fu.get("trigger", "").lower() for fu in follow_ups if isinstance(fu, dict)}
+            if not triggers_present & EXPECTED_TRIGGERS:
+                missing_trigger_coverage += 1
+            for fu in follow_ups:
+                if isinstance(fu, dict) and not fu.get("question_text", "").strip():
+                    empty_text_count += 1
+        if total_questions > 0:
+            coverage = round((total_questions - missing_trigger_coverage) / total_questions * 100, 1)
+            logger.info(f"design_follow_ups: {total_questions} questions, {coverage}% have trigger-based follow-ups")
+            if empty_text_count > 0:
+                logger.warning(f"design_follow_ups: {empty_text_count} follow-ups have empty question_text")
+
+    return validated
 
 
 @activity.defn
