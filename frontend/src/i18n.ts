@@ -176,6 +176,7 @@ const resources = {
       // Result tabs - Decision
       decision_recommendation: '채용 추천',
       decision_points: '{{score}} / {{max}} 점',
+      decision_score_guide: '추천 등급 기준',
       decision_candidate_summary: '후보자 요약',
       decision_experience: '경력',
       decision_jd_match: 'JD 매칭',
@@ -532,6 +533,7 @@ const resources = {
       // Result tabs - Decision
       decision_recommendation: 'Hiring Recommendation',
       decision_points: '{{score}} / {{max}} pts',
+      decision_score_guide: 'Recommendation Criteria',
       decision_candidate_summary: 'Candidate Summary',
       decision_experience: 'Experience',
       decision_jd_match: 'JD Match',
