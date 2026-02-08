@@ -212,12 +212,23 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
         result = result["topics"]
 
     if isinstance(result, list):
+        # confidence_score < 0.3 토픽 필터링 (근거 부족 → 환각 위험)
+        MIN_CONFIDENCE = 0.3
+        filtered = [
+            t for t in result
+            if not isinstance(t, dict)
+            or t.get("confidence_score", 1.0) >= MIN_CONFIDENCE
+        ]
+        dropped = len(result) - len(filtered)
+        if dropped > 0:
+            logger.info(f"select_topics: dropped {dropped} low-confidence topics (< {MIN_CONFIDENCE})")
         if alog:
             await alog.result("Topics selected", {
-                "topics_count": len(result[:max_questions]),
+                "topics_count": len(filtered[:max_questions]),
                 "candidates_considered": len(candidates),
+                "low_confidence_dropped": dropped,
             })
-        return result[:TOTAL_QUESTIONS]
+        return filtered[:TOTAL_QUESTIONS]
 
     # Fallback: 경험 레벨별 배분에 따라 placeholder 토픽 생성
     topics = []
@@ -293,8 +304,12 @@ async def craft_question(
         if code_reference:
             evidence_context += f"\nCode reference: {code_reference.get('file_path', 'N/A')}\n"
             if code_reference.get('code_snippet'):
-                snippet = code_reference['code_snippet'][:300]  # Truncate
+                full_snippet = code_reference['code_snippet']
+                snippet = full_snippet[:300]
+                truncated = len(full_snippet) > 300
                 evidence_context += f"```\n{snippet}\n```\n"
+                if truncated:
+                    evidence_context += f"[TRUNCATED — showing {len(snippet)}/{len(full_snippet)} chars. Do NOT assume content beyond this excerpt.]\n"
 
     elif topic.get("source") == "code":
         evidence = topic.get("evidence", {})
@@ -311,7 +326,10 @@ async def craft_question(
         if why_notable:
             evidence_context += f"- Why notable: {why_notable}\n"
         if snippet:
-            evidence_context += f"```\n{snippet[:300]}\n```\n"
+            truncated_snippet = snippet[:300]
+            evidence_context += f"```\n{truncated_snippet}\n```\n"
+            if len(snippet) > 300:
+                evidence_context += f"[TRUNCATED — showing {len(truncated_snippet)}/{len(snippet)} chars. Do NOT assume content beyond this excerpt.]\n"
 
         # Build code_reference for frontend display
         code_reference = {
