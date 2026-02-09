@@ -54,6 +54,8 @@ from app.workflows.activities.knowledge_graph_activities import (
 from app.workflows.activities.intel_generation import generate_intel_brief
 from app.workflows.activities.analysis_generation import generate_deep_analysis
 from app.workflows.activities.decision_generation import generate_decision_support
+from app.workflows.activities.profile_builder import build_candidate_profile
+from app.workflows.activities.jd_matching import match_candidate_to_jd
 
 ACTIVITIES = [
     enrich_input,
@@ -88,6 +90,10 @@ ACTIVITIES = [
     generate_intel_brief,
     generate_deep_analysis,
     generate_decision_support,
+    # Profile Builder
+    build_candidate_profile,
+    # JD Matching
+    match_candidate_to_jd,
 ]
 
 

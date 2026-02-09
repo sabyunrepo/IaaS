@@ -260,6 +260,7 @@ def _calculate_radar_scores(
     experience_level: str = "미들",
     linkedin_profile: dict | None = None,
     output_language: str = "ko",
+    candidate_profile: dict | None = None,
 ) -> tuple[list[int], list[int], list[str], str, list[str]]:
     """5축 레이더 점수 계산 (Evidence-Based Scoring)
 
@@ -279,6 +280,7 @@ def _calculate_radar_scores(
     radar = _formula_radar(
         jd_analysis, code_analysis, document_analysis, experience_level,
         linkedin_profile=linkedin_profile, output_language=output_language,
+        candidate_profile=candidate_profile,
     )
     return radar.candidate, radar.required, radar.sources, radar.confidence, radar.human_sources
 
@@ -598,6 +600,7 @@ async def generate_deep_analysis(
     output_language: str = "ko",
     experience_level: str = "미들",
     linkedin_profile: dict | None = None,
+    candidate_profile: dict | None = None,
 ) -> dict:
     """Deep Analysis 생성
 
@@ -628,6 +631,7 @@ async def generate_deep_analysis(
             jd_analysis, code_analysis or {}, document_analysis,
             experience_level, linkedin_profile=linkedin_profile,
             output_language=output_language,
+            candidate_profile=candidate_profile,
         )
         # 비개발자 친화 human_sources 우선 사용 (Issue #245)
         if _hr.human_sources:
@@ -640,7 +644,8 @@ async def generate_deep_analysis(
                 score_sources.append(combined)
     else:
         radar_candidate, radar_required, axis_sources, confidence, human_sources = _calculate_radar_scores(
-            jd_analysis, code_analysis, document_analysis, experience_level
+            jd_analysis, code_analysis, document_analysis, experience_level,
+            candidate_profile=candidate_profile,
         )
         # human_sources 우선 사용 (Issue #245)
         if human_sources:

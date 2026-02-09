@@ -337,6 +337,7 @@ def calculate_radar_scores(
     experience_level: str = "미들",
     linkedin_profile: dict | None = None,
     output_language: str = "ko",
+    candidate_profile: dict | None = None,
 ) -> RadarScores:
     """5축 레이더 점수 계산 (결정론적)
 
@@ -391,7 +392,12 @@ def calculate_radar_scores(
 
     # Weighted skill overlap (필수/우대/사소한 스킬 가중치 적용)
     jd_requirements = jd_analysis.get("requirements", [])
-    overlap = _weighted_skill_overlap(jd_requirements, candidate_skills, code_techs)
+    if candidate_profile:
+        # 프로필 기반: 정규화된 canonical 스킬 + implied 관계 활용
+        from app.services.profile_scoring import profile_weighted_skill_overlap
+        overlap, _match_details = profile_weighted_skill_overlap(jd_requirements, candidate_profile)
+    else:
+        overlap = _weighted_skill_overlap(jd_requirements, candidate_skills, code_techs)
     skill_pct = int(overlap * 100)
     skill_component = skill_pct * 0.30
 
@@ -414,10 +420,21 @@ def calculate_radar_scores(
         if r.get("skill", "").lower() not in _TRIVIAL_SKILLS
     ]
     if jd_nontrivial_techs:
-        matched_techs = sum(
-            1 for jt in jd_nontrivial_techs
-            if any(_fuzzy_skill_match(jt, cs) >= 0.6 for cs in all_candidate)
-        )
+        if candidate_profile:
+            # 프로필 기반: canonical + implied 스킬로 매칭
+            from app.services.profile_scoring import extract_profile_skills
+            profile_skills = extract_profile_skills(candidate_profile)
+            matched_techs = sum(
+                1 for jt in jd_nontrivial_techs
+                if jt in profile_skills or any(
+                    _fuzzy_skill_match(jt, ps) >= 0.6 for ps in profile_skills
+                )
+            )
+        else:
+            matched_techs = sum(
+                1 for jt in jd_nontrivial_techs
+                if any(_fuzzy_skill_match(jt, cs) >= 0.6 for cs in all_candidate)
+            )
         tech_breadth = min(100, int((matched_techs / len(jd_nontrivial_techs)) * 100))
     else:
         # JD에 기술 요구사항 없으면 기존 방식 fallback
@@ -442,7 +459,12 @@ def calculate_radar_scores(
     # Experience SFIA score (40%), Commit consistency (30%), Code volume (30%)
     exp_years = profile.get("experience_years", 0) or 0
 
-    # LinkedIn 경력 연수 보강
+    # LinkedIn 경력 연수 보강 (프로필 우선)
+    if not exp_years and candidate_profile:
+        for wh in candidate_profile.get("work_history", []):
+            yrs = wh.get("duration_years", 0)
+            if yrs:
+                exp_years += yrs
     if not exp_years and linkedin_profile:
         linkedin_exp = linkedin_profile.get("experience_years") or linkedin_profile.get("years_of_experience") or 0
         if linkedin_exp:
@@ -512,6 +534,11 @@ def calculate_radar_scores(
         data_sources += 1
     if linkedin_profile:
         data_sources += 1
+    if candidate_profile:
+        # 프로필 기반 데이터 완전성으로 신뢰도 보강
+        completeness = candidate_profile.get("data_completeness", 0.0)
+        if completeness >= 0.8:
+            data_sources += 1
     if data_sources >= 3:
         confidence = "high"
     elif data_sources >= 2:

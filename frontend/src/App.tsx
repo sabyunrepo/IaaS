@@ -14,6 +14,9 @@ const ResultPage = lazy(() => import('./pages/ResultPage').then(m => ({ default:
 const AnalysisLogsPage = lazy(() => import('./pages/AnalysisLogsPage').then(m => ({ default: m.AnalysisLogsPage })))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then(m => ({ default: m.AuthCallbackPage })))
+const CandidateListPage = lazy(() => import('./pages/CandidateListPage').then(m => ({ default: m.CandidateListPage })))
+const CandidateRegisterPage = lazy(() => import('./pages/CandidateRegisterPage').then(m => ({ default: m.CandidateRegisterPage })))
+const CandidateSearchPage = lazy(() => import('./pages/CandidateSearchPage').then(m => ({ default: m.CandidateSearchPage })))
 
 function PageLoader() {
   return (
@@ -61,6 +64,18 @@ function App() {
             <Route
               path="/jobs/:jobId/logs"
               element={isAuthenticated ? <AnalysisLogsPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/candidates"
+              element={isAuthenticated ? <CandidateListPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/candidates/new"
+              element={isAuthenticated ? <CandidateRegisterPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/candidates/search"
+              element={isAuthenticated ? <CandidateSearchPage /> : <Navigate to="/login" />}
             />
             <Route path="/" element={<Navigate to={isAuthenticated ? '/jobs' : '/login'} />} />
             <Route path="*" element={<NotFoundPage />} />

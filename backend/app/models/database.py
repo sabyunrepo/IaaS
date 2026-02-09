@@ -6,10 +6,10 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    Boolean, Column, DateTime, ForeignKey, Index, Integer, String, Text, BigInteger,
+    Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String, Text, BigInteger,
     UniqueConstraint, func,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from pgvector.sqlalchemy import Vector
 from sqlalchemy.orm import DeclarativeBase, relationship
 
@@ -33,6 +33,8 @@ class UserDB(Base):
     oauth_accounts = relationship("OAuthAccountDB", back_populates="user", cascade="all, delete-orphan")
     api_keys = relationship("APIKeyDB", back_populates="user", cascade="all, delete-orphan")
     jobs = relationship("JobDB", back_populates="user")
+    candidates = relationship("CandidateDB", back_populates="user")
+    job_descriptions = relationship("JobDescriptionDB", back_populates="user")
 
 
 class OAuthAccountDB(Base):
@@ -90,6 +92,8 @@ class JobDB(Base):
     input_data = Column(JSONB, nullable=False)
     final_output = Column(JSONB)
     callback_url = Column(String(2048))
+    candidate_id = Column(UUID(as_uuid=True), ForeignKey("candidates.id"))
+    jd_id = Column(UUID(as_uuid=True), ForeignKey("job_descriptions.id"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     completed_at = Column(DateTime(timezone=True))
@@ -232,3 +236,100 @@ class ClaimEvidenceDB(Base):
     job = relationship("JobDB")
     claim_node = relationship("KGNodeDB", foreign_keys=[claim_node_id])
     evidence_node = relationship("KGNodeDB", foreign_keys=[evidence_node_id])
+
+
+# ============================================
+# Candidate & JD Tables (Multi-Tenant)
+# ============================================
+
+class CandidateDB(Base):
+    """후보자 1급 엔터티 (JD-agnostic 프로필)"""
+    __tablename__ = "candidates"
+    __table_args__ = (
+        Index("idx_candidates_user", "user_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    email = Column(String(255))
+    experience_years = Column(Integer)
+    experience_level = Column(String(50))
+    skills = Column(ARRAY(Text), nullable=False, server_default="{}")
+    github_username = Column(String(255))
+    linkedin_url = Column(String(2048))
+    profile_data = Column(JSONB, nullable=False, server_default="{}")
+    data_completeness = Column(Float, default=0.0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("UserDB", back_populates="candidates")
+    matches = relationship("CandidateJDMatchDB", back_populates="candidate", cascade="all, delete-orphan")
+    candidate_embeddings = relationship("CandidateEmbeddingDB", back_populates="candidate", cascade="all, delete-orphan")
+
+
+class JobDescriptionDB(Base):
+    """JD 1급 엔터티"""
+    __tablename__ = "job_descriptions"
+    __table_args__ = (
+        Index("idx_jd_user", "user_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    title = Column(String(500), nullable=False)
+    required_skills = Column(ARRAY(Text), server_default="{}")
+    preferred_skills = Column(ARRAY(Text), server_default="{}")
+    jd_text = Column(Text)
+    jd_analysis = Column(JSONB)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("UserDB", back_populates="job_descriptions")
+    matches = relationship("CandidateJDMatchDB", back_populates="jd", cascade="all, delete-orphan")
+
+
+class CandidateJDMatchDB(Base):
+    """후보자-JD 매칭 결과 (사전계산)"""
+    __tablename__ = "candidate_jd_matches"
+    __table_args__ = (
+        UniqueConstraint("candidate_id", "jd_id", name="uq_candidate_jd_match"),
+        Index("idx_match_by_jd", "jd_id", "overall_match_score"),
+        Index("idx_match_by_candidate", "candidate_id", "overall_match_score"),
+        Index("idx_match_user", "user_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), nullable=False)
+    candidate_id = Column(UUID(as_uuid=True), ForeignKey("candidates.id", ondelete="CASCADE"), nullable=False)
+    jd_id = Column(UUID(as_uuid=True), ForeignKey("job_descriptions.id", ondelete="CASCADE"), nullable=False)
+    overall_match_score = Column(Float, default=0.0)
+    skill_match_score = Column(Float, default=0.0)
+    skill_matches = Column(JSONB, server_default="{}")
+    gaps = Column(JSONB, server_default="[]")
+    match_explanation = Column(Text)
+    confidence_level = Column(String(10), default="medium")
+    job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"))
+    computed_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    candidate = relationship("CandidateDB", back_populates="matches")
+    jd = relationship("JobDescriptionDB", back_populates="matches")
+
+
+class CandidateEmbeddingDB(Base):
+    """후보자 임베딩 (프로필 시맨틱 검색)"""
+    __tablename__ = "candidate_embeddings"
+    __table_args__ = (
+        UniqueConstraint("candidate_id", "embedding_type", name="uq_candidate_embedding"),
+        Index("idx_candidate_emb_user", "user_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), nullable=False)
+    candidate_id = Column(UUID(as_uuid=True), ForeignKey("candidates.id", ondelete="CASCADE"), nullable=False)
+    embedding_type = Column(String(50))  # 'profile_summary', 'skills'
+    embedding = Column(Vector(384))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    candidate = relationship("CandidateDB", back_populates="candidate_embeddings")
