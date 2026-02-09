@@ -53,7 +53,7 @@ function EmptyState() {
       <h3 className="mt-4 text-lg font-semibold text-gray-900">{t('script_list_empty_title')}</h3>
       <p className="mt-1 text-sm text-gray-500">{t('script_list_empty_desc')}</p>
       <Link
-        to="/jobs/new"
+        to="/interview/new"
         className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +144,7 @@ export function JobListPage() {
         </div>
         {jobs.length > 0 && (
           <Link
-            to="/jobs/new"
+            to="/interview/new"
             className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,7 +170,7 @@ export function JobListPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
                       <Link
-                        to={`/jobs/${job.job_id}`}
+                        to={`/interview/${job.job_id}`}
                         className="text-base font-medium text-gray-900 hover:text-indigo-600"
                       >
                         #{job.job_id.slice(0, 8)}
@@ -195,7 +195,7 @@ export function JobListPage() {
                   <div className="flex items-center gap-3">
                     {/* Logs link */}
                     <Link
-                      to={`/jobs/${job.job_id}/logs`}
+                      to={`/interview/${job.job_id}/logs`}
                       className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                       title={t('result_analysis_logs')}
                     >
@@ -205,7 +205,7 @@ export function JobListPage() {
                     </Link>
                     {job.status === 'completed' && (
                       <Link
-                        to={`/jobs/${job.job_id}/result`}
+                        to={`/interview/${job.job_id}/result`}
                         className="rounded-lg bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700 hover:bg-green-100"
                       >
                         {t('view_result')}

@@ -164,7 +164,7 @@ export function JobStatusPage() {
           </svg>
           <p className="mt-3 text-sm font-medium text-red-800">{error}</p>
           <Link
-            to="/jobs"
+            to="/interview"
             className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
           >
             {t('go_home')}
@@ -255,7 +255,7 @@ export function JobStatusPage() {
       {/* Analysis Logs Link */}
       <div className="mb-6">
         <Link
-          to={`/jobs/${jobId}/logs`}
+          to={`/interview/${jobId}/logs`}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:border-gray-300 hover:bg-gray-50"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,7 +313,7 @@ export function JobStatusPage() {
               <p className="text-sm text-green-600">{t('script_generated_desc')}</p>
             </div>
             <Link
-              to={`/jobs/${jobId}/result`}
+              to={`/interview/${jobId}/result`}
               className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md"
             >
               {t('view_result')}
@@ -340,7 +340,7 @@ export function JobStatusPage() {
                 {String((job as Record<string, unknown>).error_message || t('unknown_error'))}
               </p>
               <Link
-                to="/jobs/new"
+                to="/interview/new"
                 className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-red-700 hover:text-red-800"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

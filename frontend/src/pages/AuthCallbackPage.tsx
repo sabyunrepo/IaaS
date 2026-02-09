@@ -10,7 +10,7 @@ export function AuthCallbackPage() {
     const token = searchParams.get('token')
     if (token) {
       setToken(token)
-      navigate('/jobs', { replace: true })
+      navigate('/', { replace: true })
     } else {
       navigate('/login', { replace: true })
     }

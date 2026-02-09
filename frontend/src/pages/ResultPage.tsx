@@ -97,7 +97,7 @@ export function ResultPage() {
         </svg>
         <p className="mt-3 text-sm font-medium text-red-800">{t('result_error')}: {error}</p>
         <Link
-          to="/jobs"
+          to="/interview"
           className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
         >
           {t('go_home')}
@@ -171,7 +171,7 @@ export function ResultPage() {
 
           <div className="flex gap-2 no-print">
             <Link
-              to={`/jobs/${jobId}/logs`}
+              to={`/interview/${jobId}/logs`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-100"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -406,7 +406,7 @@ export function ResultPage() {
       {/* Back to list link */}
       <div className="flex justify-center pt-4 no-print">
         <Link
-          to="/jobs"
+          to="/interview"
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

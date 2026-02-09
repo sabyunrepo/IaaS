@@ -136,7 +136,7 @@ export function CreateJobPage() {
       }
 
       const job = await createJob(inputData)
-      navigate(`/jobs/${job.job_id}`)
+      navigate(`/interview/${job.job_id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -322,7 +322,7 @@ export function CreateJobPage() {
         <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-6">
           <button
             type="button"
-            onClick={() => navigate('/jobs')}
+            onClick={() => navigate('/interview')}
             className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             {t('cancel')}
