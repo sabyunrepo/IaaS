@@ -16,10 +16,10 @@ const ResultPage = lazy(() => import('./pages/ResultPage').then(m => ({ default:
 const AnalysisLogsPage = lazy(() => import('./pages/AnalysisLogsPage').then(m => ({ default: m.AnalysisLogsPage })))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then(m => ({ default: m.AuthCallbackPage })))
-const CandidateListPage = lazy(() => import('./pages/CandidateListPage').then(m => ({ default: m.CandidateListPage })))
 const FindCEOPage = lazy(() => import('./pages/FindCEOPage').then(m => ({ default: m.FindCEOPage })))
 const CandidateRegisterPage = lazy(() => import('./pages/CandidateRegisterPage').then(m => ({ default: m.CandidateRegisterPage })))
 const CandidateSearchPage = lazy(() => import('./pages/CandidateSearchPage').then(m => ({ default: m.CandidateSearchPage })))
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
 
 // 기존 /jobs/:jobId 경로 → /interview/:jobId 리다이렉트
 function JobRedirect({ suffix }: { suffix?: string }) {
@@ -123,10 +123,10 @@ function App() {
               element={<Navigate to="/find-cto" replace />}
             />
 
-            {/* Settings — Cycle F에서 전용 페이지 구현 */}
+            {/* Settings */}
             <Route
               path="/settings"
-              element={isAuthenticated ? <div className="text-center py-20 text-gray-400">Settings (Coming Soon)</div> : <Navigate to="/login" />}
+              element={isAuthenticated ? <SettingsPage /> : <Navigate to="/login" />}
             />
 
             <Route path="*" element={<NotFoundPage />} />
@@ -139,3 +139,4 @@ function App() {
 }
 
 export default App
+

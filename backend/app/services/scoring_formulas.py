@@ -464,7 +464,11 @@ def calculate_radar_scores(
     raw_skills = profile.get("skills", [])
     candidate_skills: set[str] = set()
     if isinstance(raw_skills, dict):
-        candidate_skills = {s.lower() for s in raw_skills.keys()}
+        candidate_skills = {
+            skill.lower()
+            for skill_list in raw_skills.values() if isinstance(skill_list, list)
+            for skill in skill_list if isinstance(skill, str)
+        }
     elif isinstance(raw_skills, list):
         candidate_skills = {s.lower() for s in raw_skills if isinstance(s, str)}
 

@@ -245,6 +245,55 @@ async def get_jd(
     return result
 
 
+@router.put("/jd/{jd_id}", tags=["job-descriptions"])
+@limiter.limit("10/minute")
+async def update_jd(
+    request: Request,
+    jd_id: str,
+    body: dict,
+    user: UserDB = Depends(get_current_user_or_api_key),
+    db: AsyncSession = Depends(get_db),
+):
+    """JD 수정 (jd_text)"""
+    jd = await candidate_service.get_jd(jd_id, user.id, db)
+    if "jd_text" in body:
+        jd.jd_text = body["jd_text"]
+    await db.flush()
+    result = _jd_to_dict(jd)
+    result["jd_text"] = jd.jd_text
+    return result
+
+
+@router.delete("/jd/{jd_id}", status_code=204, tags=["job-descriptions"])
+@limiter.limit("10/minute")
+async def delete_jd(
+    request: Request,
+    jd_id: str,
+    user: UserDB = Depends(get_current_user_or_api_key),
+    db: AsyncSession = Depends(get_db),
+):
+    """JD 삭제"""
+    jd = await candidate_service.get_jd(jd_id, user.id, db)
+    await db.delete(jd)
+
+
+@router.get("/my-profile")
+@limiter.limit("60/minute")
+async def get_my_profile(
+    request: Request,
+    user: UserDB = Depends(get_current_user_or_api_key),
+    db: AsyncSession = Depends(get_db),
+):
+    """내 후보자 프로필 조회 (candidate 역할인 경우)"""
+    # user_id로 내 candidate 조회
+    candidates = await candidate_service.list_candidates(
+        user_id=user.id, db=db, limit=1, offset=0,
+    )
+    if candidates:
+        return _candidate_detail_to_dict(candidates[0])
+    return None
+
+
 # ============================================================
 # Matching Endpoints
 # ============================================================

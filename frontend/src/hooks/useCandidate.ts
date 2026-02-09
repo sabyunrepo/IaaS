@@ -170,10 +170,26 @@ export function useCandidate() {
     return apiFetch(`/candidates/jd/${jdId}/ranking?limit=${limit}`)
   }, [])
 
+  const updateJD = useCallback(async (id: string, data: { jd_text?: string }): Promise<JD> => {
+    return apiFetch(`/candidates/jd/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }, [])
+
+  const deleteJD = useCallback(async (id: string) => {
+    await apiFetch(`/candidates/jd/${id}`, { method: 'DELETE' })
+  }, [])
+
+  const fetchMyProfile = useCallback(async (): Promise<Candidate> => {
+    return apiFetch('/candidates/my-profile')
+  }, [])
+
   return {
     candidates, loading, error,
     fetchCandidates, getCandidate, createCandidate, updateCandidate, deleteCandidate,
-    createJD, fetchJDs, getJD,
+    createJD, fetchJDs, getJD, updateJD, deleteJD,
     matchCandidateToJD, compareCandidates, getJDRanking,
+    fetchMyProfile,
   }
 }
