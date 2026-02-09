@@ -347,6 +347,32 @@ BEGIN
     END IF;
 END $$;
 
+-- ============================================
+-- Schema Migrations (idempotent)
+-- ============================================
+
+-- v2: users 테이블에 role, github_username 추가
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='role') THEN
+        ALTER TABLE users ADD COLUMN role VARCHAR(50);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='github_username') THEN
+        ALTER TABLE users ADD COLUMN github_username VARCHAR(255);
+    END IF;
+END $$;
+
+-- v2: candidates 테이블에 is_self_registered, selected_repos 추가
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='candidates' AND column_name='is_self_registered') THEN
+        ALTER TABLE candidates ADD COLUMN is_self_registered BOOLEAN DEFAULT false;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='candidates' AND column_name='selected_repos') THEN
+        ALTER TABLE candidates ADD COLUMN selected_repos TEXT[] DEFAULT '{}';
+    END IF;
+END $$;
+
 -- BYPASS policy for the application role (superuser/owner already bypasses)
 -- The backend connects as the DB owner, so RLS is bypassed by default.
 -- When we want to enforce RLS, we use SET ROLE or row_security = force.

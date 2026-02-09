@@ -2,6 +2,7 @@
 backend/app/api/routes/auth.py
 OAuth 로그인/콜백 + API Key 관리
 """
+import logging
 import uuid
 from datetime import datetime, timezone
 
@@ -9,6 +10,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 from httpx_oauth.clients.google import GoogleOAuth2
 from httpx_oauth.clients.github import GitHubOAuth2
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,8 +18,10 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.exceptions import AuthenticationError, ValidationError
 from app.models.database import UserDB, OAuthAccountDB, APIKeyDB
-from app.services.auth_service import create_jwt, create_api_key, encrypt_token
+from app.services.auth_service import create_jwt, create_api_key, encrypt_token, decrypt_token
 from app.api.deps import get_current_user
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -140,15 +144,23 @@ async def oauth_callback(
     result = await db.execute(select(UserDB).where(UserDB.email == email))
     user = result.scalar_one_or_none()
 
+    # GitHub 로그인 시 username 추출
+    github_username = None
+    if provider == "github":
+        github_username = user_info.get("login")
+
     if user is None:
         user = UserDB(
             id=uuid.uuid4(),
             email=email,
             name=name,
             image=image,
+            github_username=github_username,
         )
         db.add(user)
         await db.flush()
+    elif provider == "github" and github_username and not user.github_username:
+        user.github_username = github_username
 
     # 4. OAuthAccount upsert
     result = await db.execute(
@@ -220,15 +232,138 @@ async def create_api_key_endpoint(
 
 
 @router.get("/me")
-async def get_me(user: UserDB = Depends(get_current_user)):
-    """현재 사용자 정보"""
+async def get_me(
+    user: UserDB = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """현재 사용자 정보 (OAuth provider 목록 포함)"""
+    result = await db.execute(
+        select(OAuthAccountDB.provider).where(OAuthAccountDB.user_id == user.id)
+    )
+    providers = [row[0] for row in result.all()]
+
     return {
         "id": str(user.id),
         "email": user.email,
         "name": user.name,
         "image": user.image,
         "plan": user.plan,
+        "role": user.role,
+        "github_username": user.github_username,
+        "providers": providers,
     }
+
+
+# --- Role Selection ---
+
+class RoleRequest(BaseModel):
+    role: str  # 'ceo' | 'candidate' | 'both'
+
+
+@router.post("/role")
+async def set_role(
+    body: RoleRequest,
+    user: UserDB = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """유저 역할 설정 (온보딩)"""
+    if body.role not in ("ceo", "candidate", "both"):
+        raise ValidationError("role은 'ceo', 'candidate', 'both' 중 하나여야 합니다")
+    user.role = body.role
+    await db.flush()
+    return {"role": user.role}
+
+
+# --- Profile Update ---
+
+class ProfileUpdateRequest(BaseModel):
+    display_name: str | None = None
+    language_preference: str | None = None
+
+
+@router.put("/profile")
+async def update_profile(
+    body: ProfileUpdateRequest,
+    user: UserDB = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """유저 프로필 수정 (닉네임 등)"""
+    if body.display_name is not None:
+        user.name = body.display_name.strip()[:255]
+    await db.flush()
+    return {
+        "id": str(user.id),
+        "name": user.name,
+        "email": user.email,
+    }
+
+
+# --- GitHub Repos ---
+
+@router.get("/github/repos")
+async def get_github_repos(
+    user: UserDB = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """GitHub OAuth 유저의 레포지토리 목록 조회"""
+    result = await db.execute(
+        select(OAuthAccountDB).where(
+            OAuthAccountDB.user_id == user.id,
+            OAuthAccountDB.provider == "github",
+        )
+    )
+    oauth = result.scalar_one_or_none()
+    if oauth is None or not oauth.access_token:
+        raise ValidationError("GitHub 계정이 연결되어 있지 않습니다")
+
+    try:
+        token = decrypt_token(oauth.access_token)
+    except Exception:
+        raise AuthenticationError("GitHub 토큰이 만료되었습니다. 다시 로그인해주세요.")
+
+    import httpx
+    repos = []
+    page = 1
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        while len(repos) < 100:
+            resp = await client.get(
+                "https://api.github.com/user/repos",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/vnd.github+json",
+                },
+                params={
+                    "sort": "updated",
+                    "direction": "desc",
+                    "per_page": 100,
+                    "page": page,
+                    "type": "owner",
+                },
+            )
+            if resp.status_code != 200:
+                logger.warning(f"GitHub repos API 실패: {resp.status_code}")
+                break
+            batch = resp.json()
+            if not batch:
+                break
+            for r in batch:
+                repos.append({
+                    "name": r.get("name", ""),
+                    "full_name": r.get("full_name", ""),
+                    "url": r.get("html_url", ""),
+                    "clone_url": r.get("clone_url", ""),
+                    "language": r.get("language"),
+                    "stars": r.get("stargazers_count", 0),
+                    "description": r.get("description", ""),
+                    "updated_at": r.get("updated_at", ""),
+                    "is_fork": r.get("fork", False),
+                    "is_private": r.get("private", False),
+                })
+            page += 1
+            if len(batch) < 100:
+                break
+
+    return {"repos": repos, "total": len(repos)}
 
 
 # --- Dev Login (로컬 환경 전용) ---

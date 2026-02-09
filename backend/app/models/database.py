@@ -26,6 +26,8 @@ class UserDB(Base):
     name = Column(String(255))
     image = Column(String(2048))
     plan = Column(String(50), nullable=False, default="free")
+    role = Column(String(50))  # 'ceo' | 'candidate' | 'both' | null (미선택)
+    github_username = Column(String(255))
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -260,6 +262,8 @@ class CandidateDB(Base):
     linkedin_url = Column(String(2048))
     profile_data = Column(JSONB, nullable=False, server_default="{}")
     data_completeness = Column(Float, default=0.0)
+    is_self_registered = Column(Boolean, default=False)
+    selected_repos = Column(ARRAY(Text), server_default="{}")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
