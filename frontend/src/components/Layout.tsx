@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Navbar } from './Navbar'
 
 interface LayoutProps {
-  user: { display_name: string; avatar_url?: string } | null
+  user: { display_name: string; avatar_url?: string; role?: string | null } | null
   onLogout: () => void
 }
 

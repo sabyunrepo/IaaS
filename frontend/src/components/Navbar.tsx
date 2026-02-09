@@ -1,28 +1,46 @@
+import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 interface NavbarProps {
-  user: { display_name: string; avatar_url?: string } | null
+  user: {
+    display_name: string
+    avatar_url?: string
+    role?: string | null
+  } | null
   onLogout: () => void
 }
 
 export function Navbar({ user, onLogout }: NavbarProps) {
   const { t, i18n } = useTranslation()
   const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
-  const toggleLang = () => {
-    i18n.changeLanguage(i18n.language === 'ko' ? 'en' : 'ko')
-  }
+  // 드롭다운 외부 클릭 시 닫기
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   const isActive = (path: string) => {
-    if (path === '/jobs') {
-      return location.pathname === '/jobs' || location.pathname.startsWith('/jobs/')
-    }
-    if (path === '/candidates') {
-      return location.pathname === '/candidates' || location.pathname.startsWith('/candidates/')
-    }
-    return location.pathname === path
+    if (path === '/') return location.pathname === '/'
+    return location.pathname === path || location.pathname.startsWith(path + '/')
   }
+
+  const role = user?.role
+
+  const navItems = [
+    { path: '/', label: t('nav_home'), show: true },
+    { path: '/interview', label: t('nav_interview'), show: true },
+    { path: '/find-cto', label: t('nav_find_cto'), show: role === 'ceo' || role === 'both' },
+    { path: '/find-ceo', label: t('nav_find_ceo'), show: role === 'candidate' || role === 'both' },
+  ].filter(item => item.show)
 
   return (
     <nav
@@ -32,78 +50,59 @@ export function Navbar({ user, onLogout }: NavbarProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md transition-transform group-hover:scale-105">
               <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="hidden sm:inline text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               {t('app_title')}
             </span>
           </Link>
 
-          {/* Navigation Links & Actions */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            {/* Language Toggle */}
-            <button
-              onClick={toggleLang}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-              aria-label={t('switch_language')}
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-              </svg>
-              <span className="hidden sm:inline">{i18n.language === 'ko' ? 'EN' : '한국어'}</span>
-              <span className="sm:hidden">{i18n.language === 'ko' ? 'EN' : 'KO'}</span>
-            </button>
+          {/* Navigation Links (데스크탑) */}
+          {user && (
+            <div className="hidden md:flex items-center gap-1">
+              {navItems.map(item => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive(item.path)
+                      ? 'bg-indigo-50 text-indigo-700'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          )}
 
+          {/* Right Side */}
+          <div className="flex items-center gap-2">
             {user ? (
               <>
-                {/* My Scripts Link */}
+                {/* New Script CTA */}
                 <Link
-                  to="/jobs"
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                    isActive('/jobs')
-                      ? 'bg-indigo-50 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="hidden sm:inline">{t('jobs')}</span>
-                </Link>
-
-                {/* Candidates Link */}
-                <Link
-                  to="/candidates"
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                    isActive('/candidates')
-                      ? 'bg-indigo-50 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="hidden sm:inline">{t('candidates')}</span>
-                </Link>
-
-                {/* New Script Button */}
-                <Link
-                  to="/jobs/new"
-                  className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
+                  to="/interview/new"
+                  className="hidden sm:flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  <span className="hidden sm:inline">{t('create_job')}</span>
+                  {t('create_job')}
                 </Link>
 
-                {/* User Menu */}
-                <div className="ml-2 flex items-center gap-2 border-l border-gray-200 pl-3">
-                  <div className="flex items-center gap-2">
+                {/* User Avatar + Dropdown */}
+                <div className="relative ml-1" ref={menuRef}>
+                  <button
+                    onClick={() => setMenuOpen(prev => !prev)}
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100"
+                    aria-expanded={menuOpen}
+                    aria-haspopup="true"
+                  >
                     {user.avatar_url ? (
                       <img
                         src={user.avatar_url}
@@ -115,23 +114,84 @@ export function Navbar({ user, onLogout }: NavbarProps) {
                         {(user.display_name || 'U').charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span
-                      className="hidden text-sm font-medium text-gray-700 md:inline"
-                      aria-label={t('logged_in_as')}
-                    >
-                      {user.display_name || 'User'}
-                    </span>
-                  </div>
-                  <button
-                    onClick={onLogout}
-                    className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                    title={t('logout')}
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
-                    <span className="hidden sm:inline">{t('logout')}</span>
                   </button>
+
+                  {menuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-lg z-50">
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="text-sm font-medium text-gray-900 truncate">{user.display_name}</p>
+                        <p className="text-xs text-gray-400 truncate">
+                          {role === 'ceo' ? 'CEO / HR' : role === 'candidate' ? 'CTO / Developer' : role === 'both' ? 'CEO & Developer' : ''}
+                        </p>
+                      </div>
+
+                      {/* 모바일 네비 (md 미만에서 표시) */}
+                      <div className="md:hidden border-b border-gray-100 py-1">
+                        {navItems.map(item => (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setMenuOpen(false)}
+                            className={`block px-4 py-2 text-sm ${
+                              isActive(item.path) ? 'text-indigo-700 bg-indigo-50' : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                        <Link
+                          to="/interview/new"
+                          onClick={() => setMenuOpen(false)}
+                          className="block px-4 py-2 text-sm text-indigo-600 font-medium hover:bg-gray-50"
+                        >
+                          + {t('create_job')}
+                        </Link>
+                      </div>
+
+                      <Link
+                        to="/settings"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {t('nav_settings')}
+                      </Link>
+
+                      <button
+                        onClick={() => {
+                          i18n.changeLanguage(i18n.language === 'ko' ? 'en' : 'ko')
+                          setMenuOpen(false)
+                        }}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left"
+                      >
+                        <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                        </svg>
+                        {i18n.language === 'ko' ? 'English' : '한국어'}
+                      </button>
+
+                      <div className="border-t border-gray-100 mt-1 pt-1">
+                        <button
+                          onClick={() => {
+                            setMenuOpen(false)
+                            onLogout()
+                          }}
+                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          {t('logout')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -139,9 +199,6 @@ export function Navbar({ user, onLogout }: NavbarProps) {
                 to="/login"
                 className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                </svg>
                 {t('login')}
               </Link>
             )}

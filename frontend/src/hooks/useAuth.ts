@@ -6,6 +6,9 @@ interface User {
   email: string
   display_name: string
   avatar_url?: string
+  role?: string | null        // 'ceo' | 'candidate' | 'both' | null
+  github_username?: string | null
+  providers?: string[]        // ['google', 'github']
 }
 
 export function useAuth() {
@@ -24,7 +27,15 @@ export function useAuth() {
       })
       if (!res.ok) throw new Error('Unauthorized')
       const data = await res.json()
-      setUser(data)
+      setUser({
+        id: data.id,
+        email: data.email,
+        display_name: data.name || data.email?.split('@')[0] || 'User',
+        avatar_url: data.image,
+        role: data.role,
+        github_username: data.github_username,
+        providers: data.providers || [],
+      })
     } catch {
       clearToken()
       setUser(null)
@@ -49,5 +60,18 @@ export function useAuth() {
     window.location.href = '/login'
   }, [])
 
-  return { user, loading, logout, isAuthenticated: !!user }
+  const updateRole = useCallback(async (role: string) => {
+    const token = getToken()
+    if (!token) return
+    const res = await fetch('/auth/role', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role }),
+    })
+    if (res.ok) {
+      setUser(prev => prev ? { ...prev, role } : null)
+    }
+  }, [])
+
+  return { user, loading, logout, isAuthenticated: !!user, updateRole }
 }

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { useAuth } from './hooks/useAuth'
@@ -7,6 +7,8 @@ import './i18n'
 
 // 코드 스플리팅: 페이지별 lazy loading
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })))
+const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })))
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })))
 const JobListPage = lazy(() => import('./pages/JobListPage').then(m => ({ default: m.JobListPage })))
 const CreateJobPage = lazy(() => import('./pages/CreateJobPage').then(m => ({ default: m.CreateJobPage })))
 const JobStatusPage = lazy(() => import('./pages/JobStatusPage').then(m => ({ default: m.JobStatusPage })))
@@ -18,6 +20,12 @@ const CandidateListPage = lazy(() => import('./pages/CandidateListPage').then(m 
 const CandidateRegisterPage = lazy(() => import('./pages/CandidateRegisterPage').then(m => ({ default: m.CandidateRegisterPage })))
 const CandidateSearchPage = lazy(() => import('./pages/CandidateSearchPage').then(m => ({ default: m.CandidateSearchPage })))
 
+// 기존 /jobs/:jobId 경로 → /interview/:jobId 리다이렉트
+function JobRedirect({ suffix }: { suffix?: string }) {
+  const { jobId } = useParams<{ jobId: string }>()
+  return <Navigate to={`/interview/${jobId}${suffix || ''}`} replace />
+}
+
 function PageLoader() {
   return (
     <div className="min-h-[50vh] flex items-center justify-center">
@@ -27,7 +35,7 @@ function PageLoader() {
 }
 
 function App() {
-  const { user, loading, logout, isAuthenticated } = useAuth()
+  const { user, loading, logout, isAuthenticated, updateRole } = useAuth()
 
   if (loading) {
     return (
@@ -43,31 +51,67 @@ function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route element={<Layout user={user} onLogout={logout} />}>
-            <Route path="/login" element={isAuthenticated ? <Navigate to="/jobs" /> : <LoginPage />} />
+            {/* Public */}
+            <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
+
+            {/* Home */}
             <Route
-              path="/jobs"
+              path="/"
+              element={isAuthenticated ? <HomePage user={user} /> : <Navigate to="/login" />}
+            />
+
+            {/* Onboarding */}
+            <Route
+              path="/onboarding"
+              element={isAuthenticated ? <OnboardingPage onSelectRole={updateRole} /> : <Navigate to="/login" />}
+            />
+
+            {/* Interview (기존 /jobs → /interview 리네임) */}
+            <Route
+              path="/interview"
               element={isAuthenticated ? <JobListPage /> : <Navigate to="/login" />}
             />
             <Route
-              path="/jobs/new"
+              path="/interview/new"
               element={isAuthenticated ? <CreateJobPage /> : <Navigate to="/login" />}
             />
             <Route
-              path="/jobs/:jobId"
+              path="/interview/:jobId"
               element={isAuthenticated ? <JobStatusPage /> : <Navigate to="/login" />}
             />
             <Route
-              path="/jobs/:jobId/result"
+              path="/interview/:jobId/result"
               element={isAuthenticated ? <ResultPage /> : <Navigate to="/login" />}
             />
             <Route
-              path="/jobs/:jobId/logs"
+              path="/interview/:jobId/logs"
               element={isAuthenticated ? <AnalysisLogsPage /> : <Navigate to="/login" />}
             />
+
+            {/* 기존 /jobs 경로 호환 리다이렉트 */}
+            <Route path="/jobs" element={<Navigate to="/interview" replace />} />
+            <Route path="/jobs/new" element={<Navigate to="/interview/new" replace />} />
+            <Route path="/jobs/:jobId" element={<JobRedirect />} />
+            <Route path="/jobs/:jobId/result" element={<JobRedirect suffix="/result" />} />
+            <Route path="/jobs/:jobId/logs" element={<JobRedirect suffix="/logs" />} />
+
+            {/* Find CTO (CEO가 개발자 찾기) — Cycle D에서 전용 페이지 구현, 현재는 기존 후보자 페이지 활용 */}
+            <Route
+              path="/find-cto"
+              element={isAuthenticated ? <CandidateSearchPage /> : <Navigate to="/login" />}
+            />
+
+            {/* Find CEO (개발자가 CEO 찾기) — Cycle E에서 전용 페이지 구현, 현재는 플레이스홀더 */}
+            <Route
+              path="/find-ceo"
+              element={isAuthenticated ? <CandidateListPage /> : <Navigate to="/login" />}
+            />
+
+            {/* 후보자 기존 경로 유지 (호환) */}
             <Route
               path="/candidates"
-              element={isAuthenticated ? <CandidateListPage /> : <Navigate to="/login" />}
+              element={<Navigate to="/find-cto" replace />}
             />
             <Route
               path="/candidates/new"
@@ -75,9 +119,15 @@ function App() {
             />
             <Route
               path="/candidates/search"
-              element={isAuthenticated ? <CandidateSearchPage /> : <Navigate to="/login" />}
+              element={<Navigate to="/find-cto" replace />}
             />
-            <Route path="/" element={<Navigate to={isAuthenticated ? '/jobs' : '/login'} />} />
+
+            {/* Settings — Cycle F에서 전용 페이지 구현 */}
+            <Route
+              path="/settings"
+              element={isAuthenticated ? <div className="text-center py-20 text-gray-400">Settings (Coming Soon)</div> : <Navigate to="/login" />}
+            />
+
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

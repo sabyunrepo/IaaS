@@ -164,7 +164,7 @@ export function AnalysisLogsPage() {
           </svg>
           <p className="mt-3 text-sm font-medium text-red-800">{error}</p>
           <Link
-            to={`/jobs/${jobId}`}
+            to={`/interview/${jobId}`}
             className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
           >
             Job 상태로 돌아가기
@@ -181,7 +181,7 @@ export function AnalysisLogsPage() {
         <div>
           <div className="flex items-center gap-3">
             <Link
-              to={`/jobs/${jobId}`}
+              to={`/interview/${jobId}`}
               className="text-gray-500 hover:text-gray-700"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

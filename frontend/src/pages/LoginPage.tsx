@@ -46,7 +46,7 @@ export function LoginPage() {
       if (!res.ok) throw new Error('Dev login failed')
       const data = await res.json()
       setToken(data.token)
-      window.location.href = '/jobs'
+      window.location.href = '/'
     } catch {
       setDevLoading(false)
     }
