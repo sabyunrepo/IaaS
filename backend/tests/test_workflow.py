@@ -41,11 +41,15 @@ class TestActivityRegistration:
             "generate_intel_brief",
             "generate_deep_analysis",
             "generate_decision_support",
+            # Profile Builder
+            "build_candidate_profile",
+            # JD Matching
+            "match_candidate_to_jd",
         ]
         assert names == expected
 
     def test_activity_count(self):
-        assert len(ACTIVITIES) == 29
+        assert len(ACTIVITIES) == 31
 
 
 class TestWorkflow:

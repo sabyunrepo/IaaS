@@ -162,3 +162,192 @@ CREATE TABLE IF NOT EXISTS claim_evidence (
 CREATE INDEX IF NOT EXISTS idx_claim_evidence_job ON claim_evidence(job_id);
 CREATE INDEX IF NOT EXISTS idx_claim_evidence_type ON claim_evidence(evidence_type);
 CREATE INDEX IF NOT EXISTS idx_claim_evidence_strength ON claim_evidence(evidence_strength);
+
+-- ============================================
+-- Skill Taxonomy Tables (Hybrid Skill Graph)
+-- Source: MIND Tech Ontology (3,333 skills)
+-- ============================================
+
+-- Canonical skill names with embeddings
+CREATE TABLE IF NOT EXISTS skill_taxonomy (
+    id SERIAL PRIMARY KEY,
+    canonical_name VARCHAR(255) UNIQUE NOT NULL,
+    category VARCHAR(50),
+    domain VARCHAR(50),
+    embedding VECTOR(384),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_taxonomy_canonical ON skill_taxonomy(canonical_name);
+CREATE INDEX IF NOT EXISTS idx_taxonomy_category ON skill_taxonomy(category);
+CREATE INDEX IF NOT EXISTS idx_taxonomy_domain ON skill_taxonomy(domain);
+
+-- Skill aliases (synonyms → canonical)
+CREATE TABLE IF NOT EXISTS skill_aliases (
+    id SERIAL PRIMARY KEY,
+    taxonomy_id INT NOT NULL REFERENCES skill_taxonomy(id) ON DELETE CASCADE,
+    alias VARCHAR(255) NOT NULL,
+    source VARCHAR(20) NOT NULL DEFAULT 'ontology',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT uq_skill_alias UNIQUE (alias)
+);
+
+CREATE INDEX IF NOT EXISTS idx_alias_lookup ON skill_aliases(alias);
+
+-- Skill relationships (implies, requires, related_to, subset_of)
+CREATE TABLE IF NOT EXISTS skill_relationships (
+    id SERIAL PRIMARY KEY,
+    source_id INT NOT NULL REFERENCES skill_taxonomy(id) ON DELETE CASCADE,
+    target_id INT NOT NULL REFERENCES skill_taxonomy(id) ON DELETE CASCADE,
+    relation_type VARCHAR(30) NOT NULL,
+    weight FLOAT DEFAULT 1.0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_skill_rel_source ON skill_relationships(source_id);
+CREATE INDEX IF NOT EXISTS idx_skill_rel_target ON skill_relationships(target_id);
+CREATE INDEX IF NOT EXISTS idx_skill_rel_type ON skill_relationships(relation_type);
+
+-- ============================================
+-- Candidate & JD Tables (Multi-Tenant)
+-- ============================================
+
+-- Candidates (1급 엔터티, JD-agnostic)
+CREATE TABLE IF NOT EXISTS candidates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    experience_years INT,
+    experience_level VARCHAR(50),
+    skills TEXT[] NOT NULL DEFAULT '{}',
+    github_username VARCHAR(255),
+    linkedin_url VARCHAR(2048),
+    profile_data JSONB NOT NULL DEFAULT '{}',
+    data_completeness FLOAT DEFAULT 0.0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_candidates_user ON candidates(user_id);
+CREATE INDEX IF NOT EXISTS idx_candidates_skills ON candidates USING GIN (skills);
+
+-- Job Descriptions (1급 엔터티)
+CREATE TABLE IF NOT EXISTS job_descriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    title VARCHAR(500) NOT NULL,
+    required_skills TEXT[] DEFAULT '{}',
+    preferred_skills TEXT[] DEFAULT '{}',
+    jd_text TEXT,
+    jd_analysis JSONB,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_jd_user ON job_descriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_jd_skills ON job_descriptions USING GIN (required_skills);
+
+-- Candidate ↔ JD Match Results (사전계산)
+CREATE TABLE IF NOT EXISTS candidate_jd_matches (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    candidate_id UUID NOT NULL REFERENCES candidates(id) ON DELETE CASCADE,
+    jd_id UUID NOT NULL REFERENCES job_descriptions(id) ON DELETE CASCADE,
+    overall_match_score FLOAT DEFAULT 0.0,
+    skill_match_score FLOAT DEFAULT 0.0,
+    skill_matches JSONB DEFAULT '{}',
+    gaps JSONB DEFAULT '[]',
+    match_explanation TEXT,
+    confidence_level VARCHAR(10) DEFAULT 'medium',
+    job_id UUID REFERENCES jobs(id),
+    computed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(candidate_id, jd_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_match_by_jd ON candidate_jd_matches(jd_id, overall_match_score DESC);
+CREATE INDEX IF NOT EXISTS idx_match_by_candidate ON candidate_jd_matches(candidate_id, overall_match_score DESC);
+CREATE INDEX IF NOT EXISTS idx_match_user ON candidate_jd_matches(user_id);
+
+-- Candidate Embeddings (프로필 시맨틱 검색)
+CREATE TABLE IF NOT EXISTS candidate_embeddings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    candidate_id UUID NOT NULL REFERENCES candidates(id) ON DELETE CASCADE,
+    embedding_type VARCHAR(50),
+    embedding VECTOR(384),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(candidate_id, embedding_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_candidate_emb_user ON candidate_embeddings(user_id);
+
+-- Add candidate_id and jd_id to existing jobs table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='jobs' AND column_name='candidate_id') THEN
+        ALTER TABLE jobs ADD COLUMN candidate_id UUID REFERENCES candidates(id);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='jobs' AND column_name='jd_id') THEN
+        ALTER TABLE jobs ADD COLUMN jd_id UUID REFERENCES job_descriptions(id);
+    END IF;
+END $$;
+
+-- ============================================================
+-- Row Level Security (RLS) — Multi-tenant isolation
+-- Users can only access their own data.
+-- The application sets current_setting('app.current_user_id')
+-- before each query to enforce tenant isolation.
+-- ============================================================
+
+-- Enable RLS on tenant-scoped tables
+ALTER TABLE candidates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE job_descriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE candidate_jd_matches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE candidate_embeddings ENABLE ROW LEVEL SECURITY;
+
+-- Candidates: user can only see/modify their own candidates
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='candidates' AND policyname='candidates_user_isolation') THEN
+        CREATE POLICY candidates_user_isolation ON candidates
+            USING (user_id = current_setting('app.current_user_id', true)::uuid)
+            WITH CHECK (user_id = current_setting('app.current_user_id', true)::uuid);
+    END IF;
+END $$;
+
+-- Job Descriptions: user can only see/modify their own JDs
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='job_descriptions' AND policyname='jd_user_isolation') THEN
+        CREATE POLICY jd_user_isolation ON job_descriptions
+            USING (user_id = current_setting('app.current_user_id', true)::uuid)
+            WITH CHECK (user_id = current_setting('app.current_user_id', true)::uuid);
+    END IF;
+END $$;
+
+-- Candidate-JD Matches: user can only see/modify their own matches
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='candidate_jd_matches' AND policyname='match_user_isolation') THEN
+        CREATE POLICY match_user_isolation ON candidate_jd_matches
+            USING (user_id = current_setting('app.current_user_id', true)::uuid)
+            WITH CHECK (user_id = current_setting('app.current_user_id', true)::uuid);
+    END IF;
+END $$;
+
+-- Candidate Embeddings: user can only see/modify their own embeddings
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='candidate_embeddings' AND policyname='emb_user_isolation') THEN
+        CREATE POLICY emb_user_isolation ON candidate_embeddings
+            USING (user_id = current_setting('app.current_user_id', true)::uuid)
+            WITH CHECK (user_id = current_setting('app.current_user_id', true)::uuid);
+    END IF;
+END $$;
+
+-- BYPASS policy for the application role (superuser/owner already bypasses)
+-- The backend connects as the DB owner, so RLS is bypassed by default.
+-- When we want to enforce RLS, we use SET ROLE or row_security = force.
+-- For now, the policies are in place for future enforcement.

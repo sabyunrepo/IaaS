@@ -57,3 +57,13 @@ class DocumentParseError(VantictBaseError):
 class LinkedInFetchError(VantictBaseError):
     def __init__(self, message: str = "LinkedIn profile fetch failed"):
         super().__init__(status_code=502, code="LINKEDIN_FETCH_ERROR", message=message)
+
+
+class CandidateNotFoundError(VantictBaseError):
+    def __init__(self, candidate_id: str):
+        super().__init__(status_code=404, code="CANDIDATE_NOT_FOUND", message=f"Candidate not found: {candidate_id}")
+
+
+class JDNotFoundError(VantictBaseError):
+    def __init__(self, jd_id: str):
+        super().__init__(status_code=404, code="JD_NOT_FOUND", message=f"Job description not found: {jd_id}")

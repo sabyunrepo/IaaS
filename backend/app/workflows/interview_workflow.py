@@ -35,6 +35,7 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.analysis_generation import generate_deep_analysis
     from app.workflows.activities.decision_generation import generate_decision_support
     from app.workflows.activities.knowledge_graph_activities import build_knowledge_graph
+    from app.workflows.activities.profile_builder import build_candidate_profile
     from app.workflows.workflow_code_analysis import run_parallel_code_analysis
 
 # ── 분리된 모듈 re-export (backwards compatibility) ──
@@ -179,6 +180,21 @@ class InterviewGenerationWorkflow:
                 logger.info("Knowledge Graph built successfully")
             except Exception as kg_err:
                 logger.warning(f"KG build failed (non-fatal): {kg_err}")
+
+            # Phase 2.5b: Profile Building (non-blocking, unified candidate profile)
+            candidate_profile = None
+            if workflow.patched("unified-profile-v1"):
+                try:
+                    candidate_profile = await workflow.execute_activity(
+                        build_candidate_profile,
+                        args=[enriched, analysis.get("document_analysis", {}), analysis.get("code_analysis")],
+                        start_to_close_timeout=timedelta(minutes=3),
+                        heartbeat_timeout=timedelta(seconds=60),
+                        retry_policy=DEFAULT_RETRY,
+                    )
+                    logger.info(f"Unified profile built: {candidate_profile.get('name', 'unknown')}")
+                except Exception as pb_err:
+                    logger.warning(f"Profile builder failed (non-fatal): {pb_err}")
 
             # Phase 3: Question Generation
             self._update_status(JobStatus.GENERATING, "Phase 3: Generation", 60)
@@ -397,6 +413,7 @@ class InterviewGenerationWorkflow:
                         jd_text,
                         job_id,
                         output_language,
+                        candidate_profile,
                     ],
                     start_to_close_timeout=timedelta(minutes=2),
                     heartbeat_timeout=timedelta(seconds=60),
@@ -412,6 +429,7 @@ class InterviewGenerationWorkflow:
                         output_language,
                         input_data.get("experience_level", "미들"),
                         linkedin_profile,
+                        candidate_profile,
                     ],
                     start_to_close_timeout=timedelta(minutes=2),
                     heartbeat_timeout=timedelta(seconds=60),
@@ -427,6 +445,7 @@ class InterviewGenerationWorkflow:
                         job_id,
                         output_language,
                         input_data.get("experience_level", "미들"),
+                        candidate_profile,
                     ],
                     start_to_close_timeout=timedelta(minutes=2),
                     heartbeat_timeout=timedelta(seconds=60),
@@ -444,6 +463,8 @@ class InterviewGenerationWorkflow:
                 final_script["intel"] = intel_brief
                 final_script["analysis"] = deep_analysis
                 final_script["decision"] = decision_support
+                if candidate_profile:
+                    final_script["candidate_profile"] = candidate_profile
                 # Category weights for scoring — 경험 레벨별 차등 배분
                 exp_level = input_data.get("experience_level", "미들")
                 final_script["category_weights"] = CATEGORY_WEIGHTS_BY_LEVEL.get(

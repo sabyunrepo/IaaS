@@ -368,6 +368,7 @@ async def generate_intel_brief(
     jd_text: str | None = None,
     job_id: str | None = None,
     output_language: str = "ko",
+    candidate_profile: dict | None = None,
 ) -> dict:
     """Intel Brief 생성
 
@@ -398,12 +399,44 @@ async def generate_intel_brief(
         competencies = _match_competencies(jd_analysis, document_analysis, code_analysis, lang=output_language)
     activity.heartbeat()
 
+    # 2b. candidate_profile 있으면 역량 매칭 보강 (정규화 스킬 + implied 관계)
+    if candidate_profile and competencies:
+        try:
+            from app.services.profile_scoring import extract_profile_skills, extract_profile_skill_sources
+            from app.services.match_config import get_match_color_icon
+            profile_skills = extract_profile_skills(candidate_profile)
+            sources_map = extract_profile_skill_sources(candidate_profile)
+
+            for comp in competencies:
+                comp_lower = comp.name.lower()
+                # none/partial인데 프로필에 canonical match가 있으면 업그레이드
+                if comp.match in ("none", "partial") and comp_lower in profile_skills:
+                    skill_sources = sources_map.get(comp_lower, [])
+                    comp.match = "strong"
+                    comp.color, comp.icon = get_match_color_icon("strong")
+                    source_str = "+".join(skill_sources) if skill_sources else "profile"
+                    comp.evidence_source = f"profile({source_str})"
+                    from app.services.i18n_labels import _t
+                    comp.match_label = _t("candidate_strong_match", output_language)
+                    logger.debug(f"Profile upgrade: {comp.name} none/partial → strong (canonical match)")
+        except Exception as e:
+            logger.debug(f"Profile competency enrichment failed (non-fatal): {e}")
+
     # 3. GitHub 기여도 데이터 포맷
     github_summary = _extract_github_summary(code_analysis, lang=output_language)
     activity.heartbeat()
 
     # 4. LinkedIn 타임라인 구성
     linkedin_positions = _extract_linkedin_positions(linkedin_profile)
+
+    # 4b. candidate_profile에서 LinkedIn 확장 데이터 보강
+    linkedin_activity_summary = None
+    linkedin_projects = []
+    linkedin_honors = []
+    if candidate_profile:
+        linkedin_activity_summary = candidate_profile.get("linkedin_activity_summary")
+        linkedin_projects = candidate_profile.get("linkedin_projects", [])
+        linkedin_honors = candidate_profile.get("linkedin_honors", [])
 
     # LinkedIn 경고 메시지
     linkedin_warning = None
@@ -425,5 +458,23 @@ async def generate_intel_brief(
         linkedin_warning=linkedin_warning,
     )
 
+    # Attach profile extended data to intel brief output
+    result = intel_brief.model_dump()
+    if candidate_profile:
+        if linkedin_activity_summary:
+            result["linkedin_activity_summary"] = linkedin_activity_summary
+        if linkedin_projects:
+            result["linkedin_projects"] = linkedin_projects[:5]
+        if linkedin_honors:
+            result["linkedin_honors"] = linkedin_honors[:5]
+        # Cover letter insights for Decision tab cross-reference
+        cover_letter = candidate_profile.get("cover_letter_insights")
+        if cover_letter:
+            result["cover_letter_insights"] = cover_letter
+        # areas_to_probe from profile
+        areas = candidate_profile.get("areas_to_probe", [])
+        if areas:
+            result["areas_to_probe"] = areas[:5]
+
     logger.info(f"Intel Brief generated with {len(competencies)} competencies")
-    return intel_brief.model_dump()
+    return result

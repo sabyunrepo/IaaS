@@ -484,6 +484,7 @@ async def generate_decision_support(
     job_id: str | None = None,
     output_language: str = "ko",
     experience_level: str = "미들",
+    candidate_profile: dict | None = None,
 ) -> dict:
     """Decision Support 생성
 
@@ -499,6 +500,15 @@ async def generate_decision_support(
     """
     logger.info(f"Generating Decision Support for job_id={job_id}")
     activity.heartbeat()
+
+    # 0-pre. candidate_profile에서 추가 데이터 추출
+    profile_cover_letter = None
+    profile_areas_to_probe = []
+    profile_linkedin_honors = []
+    if candidate_profile:
+        profile_cover_letter = candidate_profile.get("cover_letter_insights")
+        profile_areas_to_probe = candidate_profile.get("areas_to_probe", [])
+        profile_linkedin_honors = candidate_profile.get("linkedin_honors", [])
 
     # 0. KG 근거 사전 수집 (decision_summary와 interviewer_tips에서 중복 호출 방지)
     kg_evidence = None
@@ -585,4 +595,30 @@ async def generate_decision_support(
             logger.warning(f"Interviewer guide: {len(interviewer_guide.red_flags_to_watch) - flags_with_source} red flags lack source annotation")
 
     logger.info(f"Decision Support generated with {len(jd_competency_map)} competencies mapped")
-    return decision_support.model_dump()
+
+    result = decision_support.model_dump()
+
+    # candidate_profile 확장 데이터 부착
+    if candidate_profile:
+        # 커버레터 인사이트 → 동기/적합성 판단 보강
+        if profile_cover_letter:
+            result["cover_letter_insights"] = profile_cover_letter
+        # LinkedIn 수상/인증 → 인증/수상 근거
+        if profile_linkedin_honors:
+            result["linkedin_honors"] = profile_linkedin_honors[:5]
+        # 프로필 기반 areas_to_probe → concerns 보강
+        if profile_areas_to_probe and summary:
+            existing_concerns = set((c or "").lower() for c in (summary.concerns or []))
+            for area in profile_areas_to_probe[:3]:
+                if isinstance(area, str) and area.lower() not in existing_concerns:
+                    if len(summary.concerns or []) < 5:
+                        if summary.concerns is None:
+                            summary.concerns = []
+                        summary.concerns.append(f"{area} (Profile)")
+            # Update result with enriched summary
+            result["summary"] = summary.model_dump() if hasattr(summary, 'model_dump') else result.get("summary", {})
+        # 데이터 완전성 정보
+        result["data_completeness"] = candidate_profile.get("data_completeness", 0.0)
+        result["confidence_level"] = candidate_profile.get("confidence_level", "medium")
+
+    return result
