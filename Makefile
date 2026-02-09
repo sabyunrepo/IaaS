@@ -38,6 +38,6 @@ shell:
 	docker compose exec backend bash
 
 rebuild:
-	docker compose --profile worker down -v
+	docker compose --profile worker down
 	docker compose build --no-cache
 	docker compose --profile worker up -d

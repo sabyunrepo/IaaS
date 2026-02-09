@@ -76,8 +76,19 @@ async def _llm_calculate_radar_scores(
                 "repos_count": len(code_analysis.get("repositories", [])),
             }, ensure_ascii=False, default=str)
 
+        raw_skills = document_analysis.get("profile", {}).get("skills", [])
+        skills_to_summarize = []
+        if isinstance(raw_skills, dict):
+            skills_to_summarize.extend(
+                skill
+                for skill_list in raw_skills.values() if isinstance(skill_list, list)
+                for skill in skill_list if isinstance(skill, str)
+            )
+        elif isinstance(raw_skills, list):
+            skills_to_summarize.extend(skill for skill in raw_skills if isinstance(skill, str))
+
         doc_summary = json.dumps({
-            "skills": (lambda s: list(s.keys())[:10] if isinstance(s, dict) else list(s)[:10] if s else [])(document_analysis.get("profile", {}).get("skills", [])),
+            "skills": skills_to_summarize[:10],
             "experience_count": len(document_analysis.get("profile", {}).get("experiences", [])),
             "jd_match_score": document_analysis.get("jd_match_score", 0),
         }, ensure_ascii=False, default=str)
@@ -410,10 +421,11 @@ async def _llm_build_skill_table(
         )
 
         raw_candidate_skills = document_analysis.get("profile", {}).get("skills", [])
-        candidate_skills = (
-            list(raw_candidate_skills.keys()) if isinstance(raw_candidate_skills, dict)
-            else list(raw_candidate_skills) if raw_candidate_skills else []
-        )
+        candidate_skills = [
+            skill
+            for skill_list in raw_candidate_skills.values()
+            for skill in skill_list
+        ] if isinstance(raw_candidate_skills, dict) else list(raw_candidate_skills or [])
         code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
 
         jd_text = json.dumps(
@@ -498,15 +510,17 @@ def _build_skill_table(
     raw_candidate_skills = document_analysis.get("profile", {}).get("skills", [])
     raw_code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
 
-    # skills가 dict인 경우 키만 추출 (list/dict 모두 지원)
-    candidate_skills = (
-        list(raw_candidate_skills.keys()) if isinstance(raw_candidate_skills, dict)
-        else list(raw_candidate_skills) if raw_candidate_skills else []
-    )
-    code_skills = (
-        list(raw_code_skills.keys()) if isinstance(raw_code_skills, dict)
-        else list(raw_code_skills) if raw_code_skills else []
-    )
+    candidate_skills = [
+        skill
+        for skill_list in raw_candidate_skills.values()
+        for skill in skill_list
+    ] if isinstance(raw_candidate_skills, dict) else list(raw_candidate_skills or [])
+
+    code_skills = [
+        skill
+        for skill_list in raw_code_skills.values()
+        for skill in skill_list
+    ] if isinstance(raw_code_skills, dict) else list(raw_code_skills or [])
 
     all_candidate_skills = set(s.lower() for s in candidate_skills + code_skills)
 

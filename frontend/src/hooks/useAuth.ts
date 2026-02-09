@@ -73,5 +73,24 @@ export function useAuth() {
     }
   }, [])
 
-  return { user, loading, logout, isAuthenticated: !!user, updateRole }
+  const updateProfile = useCallback(async (data: {
+    display_name?: string
+    language_preference?: string
+  }) => {
+    const token = getToken()
+    if (!token) return
+    const res = await fetch('/auth/profile', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (res.ok) {
+      const updated = await res.json()
+      if (data.display_name) {
+        setUser(prev => prev ? { ...prev, display_name: updated.name } : null)
+      }
+    }
+  }, [])
+
+  return { user, loading, logout, isAuthenticated: !!user, updateRole, updateProfile }
 }

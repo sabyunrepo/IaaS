@@ -99,72 +99,25 @@ async def parse_document(file_path: str) -> ParseResult:
 
 
 async def _parse_pdf(file_path: str) -> ParseResult:
-    """PDF 파일 파싱 (다단계 fallback)"""
+    """PDF 파일 파싱 (Gemini-only LLM 방식)"""
     from app.core.config import settings
 
-    min_chars = settings.PDF_PARSER_MIN_CHARS
+    if not settings.GEMINI_API_KEY:
+        logger.error("GEMINI_API_KEY is not set. Cannot parse PDF with LLM.")
+        raise ValueError("Gemini API key is not configured.")
 
-    # 1. pymupdf4llm 먼저 시도 (빠름)
     try:
-        text = await _extract_with_pymupdf(file_path)
-        if len(text.strip()) >= min_chars:
-            logger.info(f"Parsed {file_path} with pymupdf4llm: {len(text)} chars")
-            return ParseResult(
-                text=text,
-                metadata={"source": file_path, "format": ".pdf"},
-                sections=_extract_sections(text),
-                parser_used="pymupdf4llm",
-            )
-        else:
-            logger.warning(
-                f"pymupdf4llm extracted only {len(text)} chars (min: {min_chars}), "
-                f"trying Gemini OCR"
-            )
-    except Exception as e:
-        logger.warning(f"pymupdf4llm failed for {file_path}: {e}")
-
-    # 2. Gemini 2.5 Flash OCR (스캔/이미지 PDF)
-    if settings.GEMINI_API_KEY:
-        try:
-            text = await _extract_with_gemini(file_path)
-            if text and len(text.strip()) >= min_chars:
-                logger.info(f"Parsed {file_path} with Gemini OCR: {len(text)} chars")
-                return ParseResult(
-                    text=text,
-                    metadata={"source": file_path, "format": ".pdf", "ocr": True},
-                    sections=_extract_sections(text),
-                    parser_used="gemini-2.5-flash",
-                )
-        except Exception as e:
-            logger.warning(f"Gemini OCR failed for {file_path}: {e}")
-    else:
-        logger.debug("GEMINI_API_KEY not set, skipping Gemini OCR")
-
-    # 3. Docling fallback (복잡한 테이블)
-    try:
-        text = await _extract_with_docling(file_path)
-        logger.info(f"Parsed {file_path} with Docling: {len(text)} chars")
+        text = await _extract_with_gemini(file_path)
+        logger.info(f"Successfully parsed {file_path} with Gemini OCR: {len(text)} chars")
         return ParseResult(
             text=text,
-            metadata={"source": file_path, "format": ".pdf"},
+            metadata={"source": file_path, "format": ".pdf", "ocr": True},
             sections=_extract_sections(text),
-            parser_used="docling",
+            parser_used="gemini-2.5-flash",
         )
     except Exception as e:
-        logger.warning(f"Docling failed for {file_path}: {e}")
-
-    # 4. 마지막 시도: pymupdf4llm 결과 반환 (짧더라도)
-    try:
-        text = await _extract_with_pymupdf(file_path)
-        logger.warning(f"Using short pymupdf4llm result: {len(text)} chars")
-        return ParseResult(
-            text=text,
-            metadata={"source": file_path, "format": ".pdf", "quality": "low"},
-            sections=_extract_sections(text),
-            parser_used="pymupdf4llm",
-        )
-    except Exception as e:
-        raise ValueError(f"All parsers failed for: {file_path}") from e
+        logger.error(f"Gemini-only PDF parsing failed for {file_path}: {e}")
+        raise ValueError(f"Failed to parse PDF with Gemini: {file_path}") from e
 
 
 async def _extract_with_gemini(file_path: str) -> str:
