@@ -157,6 +157,13 @@ class CodeEntityExtractor:
                     },
                 ))
 
+            # Static analysis entities (SecurityFinding, ComplexityHotspot, CodeMetric)
+            static = repo.get("static_analysis")
+            if static:
+                self._extract_static_analysis_entities(
+                    static, repo_name, repo_url, entities, relations, provenance_base,
+                )
+
         # Combined tech stack (verified skills from code)
         for tech in code_analysis.get("combined_tech_stack", []):
             skill_exists = any(e.name == tech and e.entity_type == "Skill" for e in entities)
@@ -185,6 +192,105 @@ class CodeEntityExtractor:
                 "total_notable_implementations": code_analysis.get("total_notable_implementations", 0),
             },
         )
+
+
+    def _extract_static_analysis_entities(
+        self,
+        static: dict,
+        repo_name: str,
+        repo_url: str,
+        entities: list[ExtractedEntity],
+        relations: list[ExtractedRelation],
+        provenance_base: dict,
+    ) -> None:
+        """정적 분석 결과 → KG 엔티티 (SecurityFinding, ComplexityHotspot, CodeMetric)"""
+
+        # 1. 보안 취약점 → SecurityFinding 엔티티 (상위 10개)
+        for finding in static.get("security_findings", [])[:10]:
+            finding_name = f"{finding.get('rule_id', 'unknown')}:{finding.get('file_path', '')}"
+            entities.append(ExtractedEntity(
+                entity_type="SecurityFinding",
+                name=finding_name,
+                properties={
+                    "severity": finding.get("severity"),
+                    "message": finding.get("message", "")[:300],
+                    "file_path": finding.get("file_path"),
+                    "line": finding.get("line"),
+                    "tool": finding.get("tool", "semgrep"),
+                },
+                provenance={
+                    **provenance_base,
+                    "repo_url": repo_url,
+                    "extraction_method": "static_analysis",
+                },
+            ))
+            relations.append(ExtractedRelation(
+                source_name=repo_name,
+                source_type="Repository",
+                target_name=finding_name,
+                target_type="SecurityFinding",
+                relation_type="has_vulnerability",
+                confidence=90,
+            ))
+
+        # 2. 복잡도 핫스팟 → ComplexityHotspot 엔티티 (CC ≥ 15)
+        for func in static.get("function_metrics", []):
+            cc = func.get("cyclomatic_complexity", 0)
+            if cc >= 15:
+                hotspot_name = f"{func.get('file_path', '')}:{func.get('function_name', '')}"
+                entities.append(ExtractedEntity(
+                    entity_type="ComplexityHotspot",
+                    name=hotspot_name,
+                    properties={
+                        "cc": cc,
+                        "nloc": func.get("nloc", 0),
+                        "language": func.get("language", ""),
+                    },
+                    provenance={
+                        **provenance_base,
+                        "repo_url": repo_url,
+                        "extraction_method": "lizard",
+                    },
+                ))
+                relations.append(ExtractedRelation(
+                    source_name=repo_name,
+                    source_type="Repository",
+                    target_name=hotspot_name,
+                    target_type="ComplexityHotspot",
+                    relation_type="has_complexity_issue",
+                    confidence=95,
+                ))
+
+        # 3. 코드 메트릭 요약 → CodeMetric 엔티티
+        metric_name = f"{repo_name}_metrics"
+        entities.append(ExtractedEntity(
+            entity_type="CodeMetric",
+            name=metric_name,
+            properties={
+                "avg_cc": static.get("overall_avg_cc"),
+                "max_cc": static.get("overall_max_cc"),
+                "security_score": static.get("security_score"),
+                "documentation_ratio": static.get("documentation_ratio"),
+                "total_nloc": static.get("total_nloc"),
+                "maintainability_index": static.get("maintainability_index"),
+                "language_breakdown": static.get("language_breakdown", {}),
+                "has_tests": static.get("has_tests", False),
+                "test_to_code_ratio": static.get("test_to_code_ratio", 0),
+            },
+            provenance={
+                **provenance_base,
+                "repo_url": repo_url,
+                "extraction_method": "static_analysis",
+            },
+        ))
+        relations.append(ExtractedRelation(
+            source_name=repo_name,
+            source_type="Repository",
+            target_name=metric_name,
+            target_type="CodeMetric",
+            relation_type="measured_by",
+            confidence=100,
+        ))
 
 
 def get_code_extractor(source: str = "code_analysis") -> CodeEntityExtractor:

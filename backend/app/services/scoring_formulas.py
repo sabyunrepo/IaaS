@@ -92,16 +92,51 @@ def normalize_cyclomatic_complexity(avg_cc: float) -> tuple[int, str]:
 # ============================================================
 
 # Weight rationale (from industry practice):
-# - CC: 직접적인 코드 가독성 지표 (30%)
-# - Test coverage: 품질 보증 신호 (30%)
-# - Documentation: 유지보수성 (20%)
-# - Code stability: 성숙도 (20%)
+# - CC: 직접적인 코드 가독성 지표 (25%)
+# - Test coverage: 품질 보증 신호 (20%, 프록시이므로 낮춤)
+# - Documentation: 유지보수성 (15%)
+# - Code stability: 성숙도 (15%)
+# - Security: 보안 점수 (15%, Semgrep 신규)
+# - Maintainability: Radon MI (10%, Python 전용이므로 낮은 가중치)
 CODE_QUALITY_WEIGHTS = {
-    "complexity": 0.30,     # Cyclomatic complexity (Radon)
-    "test_coverage": 0.30,  # Statement coverage (SonarQube default gate: 80%)
-    "documentation": 0.20,  # Docstring/comment ratio
-    "stability": 0.20,      # Inverse churn ratio (Microsoft Research)
+    "complexity": 0.25,       # Cyclomatic complexity (Lizard multi-language / Radon)
+    "test_coverage": 0.20,    # Test file ratio proxy (SonarQube default gate: 80%)
+    "documentation": 0.15,    # Docstring/comment ratio
+    "stability": 0.15,        # Inverse churn ratio (Microsoft Research)
+    "security": 0.15,         # Semgrep security score (신규)
+    "maintainability": 0.10,  # Radon MI (Python 전용, 신규)
 }
+
+# 언어별 CC 보정 팩터 (출처: Lizard docs, SonarQube rules)
+# 언어 특성에 따라 CC가 과대/과소 추정되는 것을 보정
+LANGUAGE_CC_FACTORS: dict[str, float] = {
+    "python": 1.0,       # 기준
+    "javascript": 0.85,  # callback nesting → CC 과대 추정
+    "typescript": 0.85,
+    "java": 1.1,         # verbose → CC 과소 추정
+    "go": 0.9,           # error handling → CC 과대 추정
+    "rust": 1.15,        # match exhaustive → CC 과대 추정
+    "c": 1.2,
+    "c++": 1.15,
+    "ruby": 0.95,
+    "php": 1.0,
+    "kotlin": 0.95,
+    "swift": 0.95,
+}
+
+
+def normalize_cc_by_language(avg_cc: float, language: str) -> float:
+    """언어별 CC 보정 — 동일 기준 비교
+
+    Args:
+        avg_cc: 원시 평균 CC
+        language: 주 언어명
+
+    Returns:
+        보정된 CC 값
+    """
+    factor = LANGUAGE_CC_FACTORS.get(language.lower(), 1.0)
+    return avg_cc * factor
 
 
 def extract_code_stats(code_analysis: dict | None) -> tuple[dict, dict]:
@@ -111,29 +146,73 @@ def extract_code_stats(code_analysis: dict | None) -> tuple[dict, dict]:
     top-level에 stats/quality_metrics 키가 없음.
     이 함수는 repositories[]에서 집계하여 반환.
 
+    정적 분석 데이터가 있으면 quality_metrics에 보강:
+    - test_coverage: 테스트 파일 비율 프록시
+    - documentation: docstring 비율
+    - security_score: Semgrep 보안 점수
+    - avg_cc: Lizard 다중 언어 CC (PyDriller보다 우선)
+    - maintainability_index: Radon MI (Python 전용)
+
     Returns:
         (quality_metrics, stats) tuple
     """
     if not code_analysis:
         return {}, {}
 
-    quality_metrics = code_analysis.get("quality_metrics", {})
+    quality_metrics = dict(code_analysis.get("quality_metrics", {}))
     stats = code_analysis.get("stats", {})
 
     # top-level에 stats가 없으면 repositories에서 집계
-    if not stats:
-        repos = code_analysis.get("repositories", [])
-        if repos:
-            total_commits = sum(r.get("candidate_commits", 0) for r in repos)
-            total_additions = sum(r.get("candidate_additions", 0) for r in repos)
-            complexities = [r.get("avg_complexity", 0) for r in repos if r.get("avg_complexity", 0) > 0]
-            avg_complexity = sum(complexities) / len(complexities) if complexities else 0
-            stats = {
-                "total_commits": total_commits,
-                "total_additions": total_additions,
-                "total_deletions": 0,
-                "avg_complexity": avg_complexity,
-            }
+    repos = code_analysis.get("repositories", [])
+    if not stats and repos:
+        total_commits = sum(r.get("candidate_commits", 0) for r in repos)
+        total_additions = sum(r.get("candidate_additions", 0) for r in repos)
+        complexities = [r.get("avg_complexity", 0) for r in repos if r.get("avg_complexity", 0) > 0]
+        avg_complexity = sum(complexities) / len(complexities) if complexities else 0
+        stats = {
+            "total_commits": total_commits,
+            "total_additions": total_additions,
+            "total_deletions": 0,
+            "avg_complexity": avg_complexity,
+        }
+
+    # 정적 분석 데이터로 quality_metrics 보강
+    # per-repo static_analysis를 집계
+    all_static: list[dict] = []
+    for repo in repos:
+        sa = repo.get("static_analysis")
+        if sa:
+            all_static.append(sa)
+        # per-repo quality_metrics도 참조
+        repo_qm = repo.get("quality_metrics", {})
+        for key in ("security_score", "documentation_ratio", "avg_cc", "maintainability_index", "test_coverage"):
+            if key in repo_qm and key not in quality_metrics:
+                quality_metrics[key] = repo_qm[key]
+
+    if all_static:
+        # test_coverage: 테스트 파일 비율 기반 프록시
+        if not quality_metrics.get("test_coverage"):
+            test_ratios = [s.get("test_to_code_ratio", 0) for s in all_static]
+            quality_metrics["test_coverage"] = (sum(test_ratios) / len(test_ratios)) * 100
+
+        # documentation: docstring 비율
+        if not quality_metrics.get("documentation_score"):
+            doc_ratios = [s.get("documentation_ratio", 0) for s in all_static]
+            quality_metrics["documentation_score"] = (sum(doc_ratios) / len(doc_ratios)) * 100
+
+        # security_score: 보안 점수
+        sec_scores = [s.get("security_score", 100) for s in all_static]
+        quality_metrics["security_score"] = min(sec_scores)  # 최저 점수 사용
+
+        # CC: Lizard 다중 언어 CC 우선 (PyDriller는 Python만 정확)
+        lizard_ccs = [s.get("overall_avg_cc", 0) for s in all_static if s.get("overall_avg_cc", 0) > 0]
+        if lizard_ccs:
+            quality_metrics["avg_cc"] = sum(lizard_ccs) / len(lizard_ccs)
+
+        # maintainability_index: Radon MI (Python 전용, 있으면 활용)
+        mi_values = [s.get("maintainability_index") for s in all_static if s.get("maintainability_index") is not None]
+        if mi_values:
+            quality_metrics["maintainability_index"] = sum(mi_values) / len(mi_values)
 
     return quality_metrics, stats
 
@@ -193,7 +272,7 @@ def calculate_code_quality_score(
     if doc_score > 0:
         has_data = True
 
-    # 4. Code Stability — inverse churn ratio (20%)
+    # 4. Code Stability — inverse churn ratio (15%)
     stability = 50  # default when no git data
     if stats:
         additions = stats.get("total_additions", 0)
@@ -208,12 +287,31 @@ def calculate_code_quality_score(
         "source": "Git churn ratio (deletions/additions) — Bird et al. 2011, Microsoft Research",
     }
 
-    # Weighted composite
-    composite = (
-        components["complexity"]["score"] * CODE_QUALITY_WEIGHTS["complexity"]
-        + components["test_coverage"]["score"] * CODE_QUALITY_WEIGHTS["test_coverage"]
-        + components["documentation"]["score"] * CODE_QUALITY_WEIGHTS["documentation"]
-        + components["stability"]["score"] * CODE_QUALITY_WEIGHTS["stability"]
+    # 5. Security Score (15%) — Semgrep findings
+    sec_score = quality_metrics.get("security_score", 50)
+    components["security"] = {
+        "score": min(100, max(0, sec_score)),
+        "raw": sec_score,
+        "source": "Semgrep SARIF — severity-weighted deduction",
+    }
+    if sec_score != 50:  # 50 is default/no-data
+        has_data = True
+
+    # 6. Maintainability Index (10%) — Radon MI (Python only)
+    mi_score = quality_metrics.get("maintainability_index", 50)
+    components["maintainability"] = {
+        "score": min(100, max(0, int(mi_score))),
+        "raw": mi_score,
+        "source": "Radon Maintainability Index (Python, Halstead-based)",
+    }
+    if quality_metrics.get("maintainability_index") is not None:
+        has_data = True
+
+    # Weighted composite (6 axes)
+    composite = sum(
+        components[axis]["score"] * CODE_QUALITY_WEIGHTS[axis]
+        for axis in CODE_QUALITY_WEIGHTS
+        if axis in components
     )
     final_score = max(0, min(100, int(composite)))
 
@@ -223,7 +321,7 @@ def calculate_code_quality_score(
 
     return ScoringResult(
         score=final_score,
-        source="Composite: CC(30%) + TestCov(30%) + Docs(20%) + Stability(20%)",
+        source="Composite: CC(25%) + TestCov(20%) + Docs(15%) + Stability(15%) + Security(15%) + MI(10%)",
         confidence=confidence,
         components=components,
     )

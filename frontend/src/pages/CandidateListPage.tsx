@@ -116,7 +116,7 @@ export function CandidateListPage() {
   const [levelFilter, setLevelFilter] = useState('')
 
   useEffect(() => {
-    fetchCandidates({ limit: 200 })
+    fetchCandidates({ limit: 100 })
   }, [fetchCandidates])
 
   const filtered = levelFilter

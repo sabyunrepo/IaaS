@@ -91,6 +91,35 @@ async def analyze_ast(
         except ImportError:
             logger.warning("tree-sitter JS/TS bindings not installed, using fallback")
 
+    # Fallback for unsupported languages: use Lizard metrics if available
+    if parser_used == "fallback" and primary_language:
+        parser_used = "lizard_metrics"
+        for f in files:
+            # Lizard function_metrics may be embedded in file data
+            func_metrics = f.get("function_metrics", [])
+            for fm in func_metrics:
+                functions.append({
+                    "name": fm.get("function_name", ""),
+                    "params": [],
+                    "decorators": [],
+                    "complexity": fm.get("cyclomatic_complexity", 0),
+                    "nloc": fm.get("nloc", 0),
+                    "analysis_method": "lizard_metrics",
+                })
+
+            # Basic file-level info from Lizard
+            if f.get("complexity") or f.get("nloc"):
+                filename = f.get("filename", "")
+                if filename and not any(fn.get("name") == filename for fn in functions):
+                    functions.append({
+                        "name": f"file:{filename}",
+                        "params": [],
+                        "decorators": [],
+                        "complexity": f.get("complexity", 0),
+                        "nloc": f.get("nloc", 0),
+                        "analysis_method": "lizard_metrics",
+                    })
+
     return {
         "functions": functions[:50],
         "classes": classes[:30],
