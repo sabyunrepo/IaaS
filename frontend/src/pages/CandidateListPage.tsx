@@ -145,7 +145,7 @@ export function CandidateListPage() {
         </svg>
         <p className="mt-3 text-sm font-medium text-red-800">{t('fetch_error')}</p>
         <button
-          onClick={() => fetchCandidates({ limit: 200 })}
+          onClick={() => fetchCandidates({ limit: 100 })}
           className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
         >
           {t('retry')}
