@@ -53,7 +53,10 @@ async def _llm_calculate_radar_scores(
         from app.services.scoring_formulas import (
             calculate_radar_scores as _formula_radar,
         )
-        formula_radar = _formula_radar(jd_analysis, code_analysis or {}, document_analysis)
+        formula_radar = _formula_radar(
+            jd_analysis, code_analysis or {}, document_analysis,
+            output_language=output_language,
+        )
         formula_base = {
             "role_fit": formula_radar.candidate[0],
             "technical": formula_radar.candidate[1],
@@ -255,7 +258,9 @@ def _calculate_radar_scores(
     code_analysis: dict | None,
     document_analysis: dict,
     experience_level: str = "미들",
-) -> tuple[list[int], list[int], list[str], str]:
+    linkedin_profile: dict | None = None,
+    output_language: str = "ko",
+) -> tuple[list[int], list[int], list[str], str, list[str]]:
     """5축 레이더 점수 계산 (Evidence-Based Scoring)
 
     축: [role_fit, technical, execution, communication, code_quality]
@@ -267,12 +272,15 @@ def _calculate_radar_scores(
     - Bird et al. (2011): Code ownership & stability
 
     Returns:
-        (candidate_scores, required_scores, sources, confidence)
+        (candidate_scores, required_scores, sources, confidence, human_sources)
     """
     from app.services.scoring_formulas import calculate_radar_scores as _formula_radar
 
-    radar = _formula_radar(jd_analysis, code_analysis, document_analysis, experience_level)
-    return radar.candidate, radar.required, radar.sources, radar.confidence
+    radar = _formula_radar(
+        jd_analysis, code_analysis, document_analysis, experience_level,
+        linkedin_profile=linkedin_profile, output_language=output_language,
+    )
+    return radar.candidate, radar.required, radar.sources, radar.confidence, radar.human_sources
 
 
 def _analyze_engineering_dna(code_analysis: dict | None, lang: str = "ko") -> list[EngineeringDNAItem]:
@@ -393,6 +401,12 @@ async def _llm_build_skill_table(
         if not jd_requirements:
             return None
 
+        # 필수 스킬 우선 정렬 + 최대 15개 (Issue #245)
+        sorted_requirements = sorted(
+            jd_requirements,
+            key=lambda r: 0 if r.get("category") in ("필수", "required", "must") else 1,
+        )
+
         raw_candidate_skills = document_analysis.get("profile", {}).get("skills", [])
         candidate_skills = (
             list(raw_candidate_skills.keys()) if isinstance(raw_candidate_skills, dict)
@@ -401,7 +415,7 @@ async def _llm_build_skill_table(
         code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
 
         jd_text = json.dumps(
-            [r.get("skill", r.get("text", "")) for r in jd_requirements[:6]],
+            [{"skill": r.get("skill", r.get("text", "")), "category": r.get("category", "우대")} for r in sorted_requirements[:15]],
             ensure_ascii=False,
         )
         candidate_text = json.dumps(candidate_skills[:15], ensure_ascii=False) if candidate_skills else "[]"
@@ -435,7 +449,7 @@ async def _llm_build_skill_table(
         }
         corrected_count = 0
         rows = []
-        for item in result[:6]:
+        for item in result[:15]:
             if not isinstance(item, dict):
                 continue
             match_type = item.get("type", "none")
@@ -494,7 +508,12 @@ def _build_skill_table(
 
     all_candidate_skills = set(s.lower() for s in candidate_skills + code_skills)
 
-    for req in jd_requirements[:6]:  # 상위 6개
+    # 필수 스킬 우선 정렬 + 최대 15개 (Issue #245)
+    sorted_reqs = sorted(
+        jd_requirements,
+        key=lambda r: 0 if r.get("category") in ("필수", "required", "must") else 1,
+    )
+    for req in sorted_reqs[:15]:
         skill = req.get("skill", req.get("text", ""))
         skill_lower = skill.lower()
 
@@ -603,17 +622,31 @@ async def generate_deep_analysis(
     llm_radar = await _llm_calculate_radar_scores(jd_analysis, code_analysis, document_analysis, output_language, job_id=job_id)
     if llm_radar:
         radar_candidate, radar_required, axis_sources, llm_reasoning = llm_radar
-        # 축별 공식 근거 + LLM 추론 결합
-        for i, src in enumerate(axis_sources):
-            axis_name = ["role_fit", "technical", "execution", "communication", "code_quality"][i] if i < 5 else f"axis_{i}"
-            llm_note = llm_reasoning.get(axis_name, "")
-            combined = f"{src} | LLM: {llm_note}" if llm_note else f"{src} | LLM-bounded"
-            score_sources.append(combined)
+        # human_sources 가져오기 (formula_radar에서)
+        from app.services.scoring_formulas import calculate_radar_scores as _formula_radar_fn
+        _hr = _formula_radar_fn(
+            jd_analysis, code_analysis or {}, document_analysis,
+            experience_level, linkedin_profile=linkedin_profile,
+            output_language=output_language,
+        )
+        # 비개발자 친화 human_sources 우선 사용 (Issue #245)
+        if _hr.human_sources:
+            score_sources.extend(_hr.human_sources)
+        else:
+            for i, src in enumerate(axis_sources):
+                axis_name = ["role_fit", "technical", "execution", "communication", "code_quality"][i] if i < 5 else f"axis_{i}"
+                llm_note = llm_reasoning.get(axis_name, "")
+                combined = f"{src} | LLM: {llm_note}" if llm_note else f"{src} | LLM-bounded"
+                score_sources.append(combined)
     else:
-        radar_candidate, radar_required, axis_sources, confidence = _calculate_radar_scores(
+        radar_candidate, radar_required, axis_sources, confidence, human_sources = _calculate_radar_scores(
             jd_analysis, code_analysis, document_analysis, experience_level
         )
-        score_sources.extend(axis_sources)
+        # human_sources 우선 사용 (Issue #245)
+        if human_sources:
+            score_sources.extend(human_sources)
+        else:
+            score_sources.extend(axis_sources)
     activity.heartbeat()
 
     # 2. Engineering DNA 분석 (LLM 우선, 규칙 기반 fallback)
@@ -644,10 +677,24 @@ async def generate_deep_analysis(
         extract_code_stats,
     )
 
-    # 스킬 매칭 평균
+    # 스킬 매칭 평균 — JD 카테고리 가중 (Issue #245)
+    # 필수 스킬의 exact match가 우대 스킬의 partial match보다 높은 가중치
     skill_match_avg = 0
     if skill_table:
-        skill_match_avg = sum(row.confidence for row in skill_table) // len(skill_table)
+        jd_req_map = {}
+        for req in jd_analysis.get("requirements", []):
+            s = req.get("skill", "").lower()
+            if s:
+                jd_req_map[s] = req.get("category", "우대")
+
+        total_w = 0.0
+        weighted_sum = 0.0
+        for row in skill_table:
+            cat = jd_req_map.get(row.skill.lower(), "우대")
+            w = 1.0 if cat in ("필수", "required", "must") else 0.5
+            weighted_sum += row.confidence * w
+            total_w += w
+        skill_match_avg = int(weighted_sum / max(total_w, 0.001))
 
     # 코드 품질 점수 (repositories에서 stats 집계)
     quality_metrics, code_stats = extract_code_stats(code_analysis)
@@ -661,9 +708,13 @@ async def generate_deep_analysis(
     # JD 매칭 점수
     jd_match = document_analysis.get("jd_match_score", 0.5)
 
-    overall_result = calculate_overall_match(skill_match_avg, cq.score, exp_score, jd_match)
+    overall_result = calculate_overall_match(
+        skill_match_avg, cq.score, exp_score, jd_match,
+        output_language=output_language,
+    )
     overall_match = overall_result.score
-    score_sources.append(f"overall_match: {overall_result.source}")
+    # human_source 우선 사용 (Issue #245)
+    score_sources.append(overall_result.human_source or f"overall_match: {overall_result.source}")
 
     # 6. 데이터 신뢰도 계산
     has_linkedin = linkedin_profile is not None and bool(linkedin_profile)
