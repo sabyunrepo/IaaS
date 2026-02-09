@@ -13,7 +13,6 @@ const JobListPage = lazy(() => import('./pages/JobListPage').then(m => ({ defaul
 const CreateJobPage = lazy(() => import('./pages/CreateJobPage').then(m => ({ default: m.CreateJobPage })))
 const JobStatusPage = lazy(() => import('./pages/JobStatusPage').then(m => ({ default: m.JobStatusPage })))
 const ResultPage = lazy(() => import('./pages/ResultPage').then(m => ({ default: m.ResultPage })))
-const AnalysisLogsPage = lazy(() => import('./pages/AnalysisLogsPage').then(m => ({ default: m.AnalysisLogsPage })))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then(m => ({ default: m.AuthCallbackPage })))
 const FindCEOPage = lazy(() => import('./pages/FindCEOPage').then(m => ({ default: m.FindCEOPage })))
@@ -85,17 +84,12 @@ function App() {
               path="/interview/:jobId/result"
               element={isAuthenticated ? <ResultPage /> : <Navigate to="/login" />}
             />
-            <Route
-              path="/interview/:jobId/logs"
-              element={isAuthenticated ? <AnalysisLogsPage /> : <Navigate to="/login" />}
-            />
 
             {/* 기존 /jobs 경로 호환 리다이렉트 */}
             <Route path="/jobs" element={<Navigate to="/interview" replace />} />
             <Route path="/jobs/new" element={<Navigate to="/interview/new" replace />} />
             <Route path="/jobs/:jobId" element={<JobRedirect />} />
             <Route path="/jobs/:jobId/result" element={<JobRedirect suffix="/result" />} />
-            <Route path="/jobs/:jobId/logs" element={<JobRedirect suffix="/logs" />} />
 
             {/* Find CTO (CEO가 개발자 찾기) — Cycle D에서 전용 페이지 구현, 현재는 기존 후보자 페이지 활용 */}
             <Route

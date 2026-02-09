@@ -203,7 +203,8 @@ class InterviewGenerationWorkflow:
             topics = await workflow.execute_activity(
                 select_topics,
                 args=[analysis, enriched, job_id],  # job_id 추가 (KG 기반 질문 후보 조회용)
-                start_to_close_timeout=timedelta(minutes=3),
+                start_to_close_timeout=timedelta(minutes=10),  # Kimi K2 실측 200s + 마진
+                heartbeat_timeout=timedelta(seconds=120),  # heartbeat 미수신 시 dead activity 감지
                 retry_policy=LLM_RETRY,
             )
 
@@ -214,7 +215,8 @@ class InterviewGenerationWorkflow:
                     workflow.execute_activity(
                         craft_question,
                         args=[topic, analysis, enriched, job_id],  # job_id 추가 (KG evidence 조회용)
-                        start_to_close_timeout=timedelta(minutes=2),
+                        start_to_close_timeout=timedelta(minutes=5),  # Kimi K2 실측 86-122s + 마진
+                        heartbeat_timeout=timedelta(seconds=120),
                         retry_policy=LLM_RETRY,
                     )
                 )
@@ -240,21 +242,24 @@ class InterviewGenerationWorkflow:
                 workflow.execute_activity(
                     enhance_terminology,
                     args=[questions, enriched],
-                    start_to_close_timeout=timedelta(minutes=3),
+                    start_to_close_timeout=timedelta(minutes=7),  # 20개 질문 일괄 처리, Kimi K2 대비
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=LLM_RETRY,
                 ),
                 # 3d. Scenario Writer Agent
                 workflow.execute_activity(
                     craft_evaluation_scenarios,
                     args=[questions, enriched],
-                    start_to_close_timeout=timedelta(minutes=3),
+                    start_to_close_timeout=timedelta(minutes=7),
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=LLM_RETRY,
                 ),
                 # 3e. Follow-up Designer Agent
                 workflow.execute_activity(
                     design_follow_ups,
                     args=[questions, enriched],
-                    start_to_close_timeout=timedelta(minutes=3),
+                    start_to_close_timeout=timedelta(minutes=7),
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=LLM_RETRY,
                 ),
             ]
@@ -264,14 +269,15 @@ class InterviewGenerationWorkflow:
                 workflow.execute_activity(
                     generate_interviewer_notes,
                     args=[questions, enriched],
-                    start_to_close_timeout=timedelta(minutes=3),
+                    start_to_close_timeout=timedelta(minutes=7),
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=LLM_RETRY,
                 ),
                 # 3g. Decision Guide Agent
                 workflow.execute_activity(
                     generate_decision_guide,
                     args=[analysis, enriched],
-                    start_to_close_timeout=timedelta(minutes=3),
+                    start_to_close_timeout=timedelta(minutes=5),  # 실측 40s, 마진 충분
                     retry_policy=LLM_RETRY,
                 ),
             ]
@@ -319,7 +325,8 @@ class InterviewGenerationWorkflow:
             review = await workflow.execute_activity(
                 review_questions,
                 args=[questions, output_language],
-                start_to_close_timeout=timedelta(minutes=3),
+                start_to_close_timeout=timedelta(minutes=7),  # 20개 질문 일괄 검토, Kimi K2 대비
+                heartbeat_timeout=timedelta(seconds=120),
                 retry_policy=LLM_RETRY,
             )
 
@@ -340,13 +347,15 @@ class InterviewGenerationWorkflow:
                 questions = await workflow.execute_activity(
                     revise_questions,
                     args=[questions, review, enriched],
-                    start_to_close_timeout=timedelta(minutes=3),
+                    start_to_close_timeout=timedelta(minutes=7),
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=LLM_RETRY,
                 )
                 review = await workflow.execute_activity(
                     review_questions,
                     args=[questions, output_language],
-                    start_to_close_timeout=timedelta(minutes=3),
+                    start_to_close_timeout=timedelta(minutes=7),
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=LLM_RETRY,
                 )
 
@@ -415,8 +424,8 @@ class InterviewGenerationWorkflow:
                         output_language,
                         candidate_profile,
                     ],
-                    start_to_close_timeout=timedelta(minutes=2),
-                    heartbeat_timeout=timedelta(seconds=60),
+                    start_to_close_timeout=timedelta(minutes=5),  # Kimi K2 대비 확장
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=DEFAULT_RETRY,
                 ),
                 workflow.execute_activity(
@@ -431,8 +440,8 @@ class InterviewGenerationWorkflow:
                         linkedin_profile,
                         candidate_profile,
                     ],
-                    start_to_close_timeout=timedelta(minutes=2),
-                    heartbeat_timeout=timedelta(seconds=60),
+                    start_to_close_timeout=timedelta(minutes=5),
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=DEFAULT_RETRY,
                 ),
                 workflow.execute_activity(
@@ -447,8 +456,8 @@ class InterviewGenerationWorkflow:
                         input_data.get("experience_level", "미들"),
                         candidate_profile,
                     ],
-                    start_to_close_timeout=timedelta(minutes=2),
-                    heartbeat_timeout=timedelta(seconds=60),
+                    start_to_close_timeout=timedelta(minutes=5),
+                    heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=DEFAULT_RETRY,
                 ),
             ]
