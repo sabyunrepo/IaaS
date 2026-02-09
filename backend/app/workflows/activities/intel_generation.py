@@ -54,7 +54,12 @@ async def _llm_match_competencies(
             try:
                 from app.services.vector_store import get_vector_store
                 vs = get_vector_store(job_id)
-                for req in jd_requirements[:6]:
+                # 필수 스킬 우선 정렬 (Issue #245)
+                sorted_reqs = sorted(
+                    jd_requirements,
+                    key=lambda r: 0 if r.get("category") in ("필수", "required", "must") else 1,
+                )
+                for req in sorted_reqs[:15]:
                     skill = req.get("skill", "") if isinstance(req, dict) else str(req)
                     if skill:
                         matches = await vs.search_profile(skill, limit=2)
@@ -70,7 +75,7 @@ async def _llm_match_competencies(
 
         prompt_config = get_prompt_with_config(
             "v2_generation.yaml", "competency_matching",
-            jd_requirements=json.dumps(jd_requirements[:6], ensure_ascii=False, default=str),
+            jd_requirements=json.dumps(sorted_reqs[:15], ensure_ascii=False, default=str),
             candidate_skills=json.dumps(candidate_skills[:20], ensure_ascii=False, default=str),
             code_skills=json.dumps(code_skills[:20], ensure_ascii=False, default=str),
             output_language=output_language,
@@ -97,7 +102,7 @@ async def _llm_match_competencies(
         VALID_SOURCES = {"resume", "github", "resume+github", "vector_store", "none", "llm"}
 
         competencies = []
-        for item in result[:6]:
+        for item in result[:15]:
             if not isinstance(item, dict):
                 continue
             match_level = item.get("match", "none")
@@ -188,8 +193,13 @@ def _extract_jd_summary(jd_analysis: dict, lang: str = "ko") -> JDSummary:
     """JD 분석에서 요약 정보 추출"""
     from app.services.i18n_labels import _t
     requirements = jd_analysis.get("requirements") or []
+    # 필수 스킬 우선 정렬 (Issue #245)
+    sorted_requirements = sorted(
+        requirements,
+        key=lambda r: 0 if r.get("category") in ("필수", "required", "must") else 1,
+    )
     req_matches = []
-    for req in requirements[:5]:  # 상위 5개 요구사항
+    for req in sorted_requirements[:10]:
         req_matches.append(RequirementMatch(
             text=req.get("skill", req.get("text", "")),
             desc=req.get("description", req.get("desc", "")),
@@ -229,7 +239,12 @@ def _match_competencies(
         "none": ("red", "❌"),
     }
 
-    for req in jd_requirements[:6]:  # 상위 6개 역량
+    # 필수 스킬 우선 정렬 + 최대 15개 (Issue #245)
+    sorted_reqs = sorted(
+        jd_requirements,
+        key=lambda r: 0 if r.get("category") in ("필수", "required", "must") else 1,
+    )
+    for req in sorted_reqs[:15]:
         skill = req.get("skill", req.get("text", ""))
         desc = req.get("description", req.get("desc", ""))
         why = req.get("importance", req.get("why", ""))

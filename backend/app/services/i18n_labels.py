@@ -89,6 +89,31 @@ _LABELS: dict[str, dict[str, str]] = {
         "en": "Specific team collaboration examples",
     },
     "competency_n": {"ko": "역량{n}", "en": "Competency {n}"},
+    # scoring_formulas.py -- human_source (비개발자 친화 점수 근거)
+    "score_role_fit": {
+        "ko": "직무 적합도 {total}점: JD 요구사항 매칭 {jd_pct}% (비중 70%) + 핵심 스킬 일치율 {skill_pct}% (비중 30%)",
+        "en": "Role Fit {total}pts: JD requirement match {jd_pct}% (weight 70%) + key skill overlap {skill_pct}% (weight 30%)",
+    },
+    "score_technical": {
+        "ko": "기술 역량 {total}점: 코드 품질 {cq}점 (40%) + 기술 스택 폭 {tb}점 (30%) + 꾸준한 활동 {cc}점 (30%)",
+        "en": "Technical {total}pts: code quality {cq} (40%) + tech breadth {tb} (30%) + consistency {cc} (30%)",
+    },
+    "score_execution": {
+        "ko": "실행력 {total}점: 경력 수준 {exp}점 (40%) + 개발 꾸준함 {cc}점 (30%) + 코드 작성량 {vol}점 (30%)",
+        "en": "Execution {total}pts: experience {exp} (40%) + consistency {cc} (30%) + code volume {vol} (30%)",
+    },
+    "score_communication": {
+        "ko": "소통/문서화 {total}점: 코드 문서화 수준 {doc}점 (50%) + 코드 가독성 {read}점 (50%)",
+        "en": "Communication {total}pts: documentation {doc} (50%) + readability {read} (50%)",
+    },
+    "score_code_quality": {
+        "ko": "코드 품질 {total}점: 테스트·문서화·복잡도·안정성 종합",
+        "en": "Code Quality {total}pts: composite of tests, docs, complexity, stability",
+    },
+    "score_overall_match": {
+        "ko": "종합 매칭 {total}점: 스킬({skill}점)×35% + 코드({code}점)×25% + 경력({exp}점)×25% + JD({jd}점)×15%",
+        "en": "Overall Match {total}pts: skill({skill})×35% + code({code})×25% + exp({exp})×25% + JD({jd})×15%",
+    },
 }
 
 

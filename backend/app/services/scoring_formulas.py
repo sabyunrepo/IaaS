@@ -31,9 +31,10 @@ logger = logging.getLogger(__name__)
 class ScoringResult:
     """점수 계산 결과 (투명성 보장)"""
     score: int          # 0-100
-    source: str         # 점수 산출 근거 설명
+    source: str         # 점수 산출 근거 설명 (기술적, 로깅/디버그용)
     confidence: str     # "high" | "medium" | "low"
     components: dict = field(default_factory=dict)  # 세부 항목별 점수
+    human_source: str = ""  # 비개발자 친화 설명 (UI 표시용)
 
 
 @dataclass
@@ -41,8 +42,9 @@ class RadarScores:
     """레이더 차트 점수 (5축)"""
     candidate: list[int]    # [role_fit, technical, execution, communication, code_quality]
     required: list[int]     # 경험 레벨별 기대 점수
-    sources: list[str]      # 각 축의 산출 근거
+    sources: list[str]      # 각 축의 산출 근거 (기술적)
     confidence: str         # 전체 데이터 신뢰도
+    human_sources: list[str] = field(default_factory=list)  # 비개발자 친화 설명
 
 
 # ============================================================
@@ -232,11 +234,109 @@ def calculate_code_quality_score(
 #    Each axis has a transparent formula with cited weights.
 # ============================================================
 
+# Trivial skills — low weight in JD matching (Issue #245)
+# These skills are universal/tooling and don't differentiate candidates
+_TRIVIAL_SKILLS: set[str] = {
+    "git", "github", "gitlab", "csv", "json", "xml", "yaml", "toml",
+    "html", "css", "markdown", "http", "rest", "api",
+    "linux", "macos", "windows", "terminal", "cli", "bash", "shell",
+    "npm", "pip", "yarn", "vscode", "ide", "jira", "slack", "notion",
+    "agile", "scrum", "kanban",
+}
+
+
+def _fuzzy_skill_match(jd_skill: str, candidate_skill: str) -> float:
+    """퍼지 스킬 매칭 점수 (0.0-1.0)
+
+    - 정확 매칭: 1.0
+    - 부분 문자열 (길이 비율 ≥50%): 0.8 — "Java"→"JavaScript" 방지
+    - 토큰 50% 일치: 0.6
+    """
+    jd_lower = jd_skill.lower().strip()
+    cand_lower = candidate_skill.lower().strip()
+
+    if not jd_lower or not cand_lower:
+        return 0.0
+
+    # Exact match
+    if jd_lower == cand_lower:
+        return 1.0
+
+    # Substring match with length guard (≥50% length ratio)
+    shorter, longer = (jd_lower, cand_lower) if len(jd_lower) <= len(cand_lower) else (cand_lower, jd_lower)
+    if len(shorter) >= 3 and shorter in longer:
+        ratio = len(shorter) / len(longer)
+        if ratio >= 0.50:
+            return 0.8
+
+    # Token overlap (≥50%)
+    jd_tokens = set(jd_lower.replace("-", " ").replace(".", " ").split())
+    cand_tokens = set(cand_lower.replace("-", " ").replace(".", " ").split())
+    if jd_tokens and cand_tokens:
+        overlap = len(jd_tokens & cand_tokens)
+        if overlap / max(len(jd_tokens), 1) >= 0.5:
+            return 0.6
+
+    return 0.0
+
+
+def _weighted_skill_overlap(
+    jd_requirements: list[dict],
+    candidate_skills: set[str],
+    code_techs: set[str],
+) -> float:
+    """JD 카테고리 가중치 기반 스킬 오버랩 (Issue #245)
+
+    가중치: 필수 1.0, 우대 0.5, 사소한 스킬 0.1
+
+    Returns:
+        가중 매칭 비율 (0.0-1.0)
+    """
+    if not jd_requirements:
+        return 0.0
+
+    all_candidate = candidate_skills | code_techs
+    total_weight = 0.0
+    matched_weight = 0.0
+
+    for req in jd_requirements:
+        skill = req.get("skill", "").strip()
+        if not skill:
+            continue
+        category = req.get("category", "우대")
+
+        # Determine weight: trivial overrides category
+        skill_lower = skill.lower()
+        if skill_lower in _TRIVIAL_SKILLS:
+            weight = 0.1
+        elif category in ("필수", "required", "must"):
+            weight = 1.0
+        else:  # 우대, preferred, nice-to-have
+            weight = 0.5
+
+        total_weight += weight
+
+        # Find best fuzzy match among candidate skills
+        best_match = 0.0
+        for cs in all_candidate:
+            score = _fuzzy_skill_match(skill, cs)
+            if score > best_match:
+                best_match = score
+                if score >= 1.0:
+                    break  # Perfect match, no need to continue
+
+        matched_weight += weight * best_match
+
+    return matched_weight / max(total_weight, 0.001)
+
+
 def calculate_radar_scores(
     jd_analysis: dict,
     code_analysis: dict | None,
     document_analysis: dict,
     experience_level: str = "미들",
+    linkedin_profile: dict | None = None,
+    output_language: str = "ko",
 ) -> RadarScores:
     """5축 레이더 점수 계산 (결정론적)
 
@@ -247,49 +347,82 @@ def calculate_radar_scores(
         code_analysis: 코드 분석 결과 (optional)
         document_analysis: 문서 분석 결과
         experience_level: 경험 레벨 (CTO/VP, 시니어, 미들, 주니어, 신입)
+        linkedin_profile: LinkedIn 프로필 데이터 (optional)
+        output_language: 출력 언어 (ko/en)
 
     Returns:
-        RadarScores with candidate/required scores and sources
+        RadarScores with candidate/required scores, sources, and human_sources
     """
+    from app.services.i18n_labels import _t
+
     profile = document_analysis.get("profile", {})
     quality, stats = extract_code_stats(code_analysis)
 
     sources = []
+    human_sources = []
 
-    # --- Axis 0: Role Fit ---
-    # Primary: JD match score (70%), Skill overlap ratio (30%)
-    jd_match = document_analysis.get("jd_match_score", 0.5)
-    jd_component = int(jd_match * 100) * 0.70
-
-    # Skill overlap
-    jd_skills = {r.get("skill", "").lower() for r in jd_analysis.get("requirements", [])}
+    # Collect all candidate skills (resume + code + linkedin)
     raw_skills = profile.get("skills", [])
-    candidate_skills = set()
+    candidate_skills: set[str] = set()
     if isinstance(raw_skills, dict):
         candidate_skills = {s.lower() for s in raw_skills.keys()}
     elif isinstance(raw_skills, list):
         candidate_skills = {s.lower() for s in raw_skills if isinstance(s, str)}
 
-    code_techs = set()
+    code_techs: set[str] = set()
     if code_analysis:
         code_techs = {s.lower() for s in code_analysis.get("tech_stack", [])}
+
+    # LinkedIn skills integration
+    if linkedin_profile:
+        linkedin_skills_raw = linkedin_profile.get("skills") or []
+        for ls in linkedin_skills_raw:
+            s = ls if isinstance(ls, str) else (ls.get("name", "") if isinstance(ls, dict) else "")
+            if s:
+                candidate_skills.add(s.lower())
+
     all_candidate = candidate_skills | code_techs
 
-    overlap = len(jd_skills & all_candidate) / max(len(jd_skills), 1)
-    skill_component = int(overlap * 100) * 0.30
+    # --- Axis 0: Role Fit ---
+    # Primary: JD match score (70%), Weighted skill overlap (30%)
+    jd_match = document_analysis.get("jd_match_score", 0.5)
+    jd_pct = int(jd_match * 100)
+    jd_component = jd_pct * 0.70
+
+    # Weighted skill overlap (필수/우대/사소한 스킬 가중치 적용)
+    jd_requirements = jd_analysis.get("requirements", [])
+    overlap = _weighted_skill_overlap(jd_requirements, candidate_skills, code_techs)
+    skill_pct = int(overlap * 100)
+    skill_component = skill_pct * 0.30
 
     role_fit = max(0, min(100, int(jd_component + skill_component)))
     sources.append(
-        f"role_fit: jd_match({jd_match:.2f})×70% + skill_overlap({overlap:.2f})×30%"
+        f"role_fit: jd_match({jd_match:.2f})×70% + weighted_skill_overlap({overlap:.2f})×30%"
+    )
+    human_sources.append(
+        _t("score_role_fit", output_language, total=role_fit, jd_pct=jd_pct, skill_pct=skill_pct)
     )
 
     # --- Axis 1: Technical Depth ---
-    # Code quality (40%), Tech breadth (30%), Contribution consistency (30%)
+    # Code quality (40%), JD-based tech breadth (30%), Contribution consistency (30%)
     cq = calculate_code_quality_score(quality, stats)
     cq_component = cq.score * 0.40
 
-    tech_stack = code_analysis.get("tech_stack", []) if code_analysis else []
-    tech_breadth = min(100, len(tech_stack) * 12)  # 8+ techs = ~100
+    # tech_breadth: JD 요구 기술(사소한 스킬 제외) 중 후보자 보유 비율
+    jd_nontrivial_techs = [
+        r.get("skill", "").lower() for r in jd_requirements
+        if r.get("skill", "").lower() not in _TRIVIAL_SKILLS
+    ]
+    if jd_nontrivial_techs:
+        matched_techs = sum(
+            1 for jt in jd_nontrivial_techs
+            if any(_fuzzy_skill_match(jt, cs) >= 0.6 for cs in all_candidate)
+        )
+        tech_breadth = min(100, int((matched_techs / len(jd_nontrivial_techs)) * 100))
+    else:
+        # JD에 기술 요구사항 없으면 기존 방식 fallback
+        tech_stack = code_analysis.get("tech_stack", []) if code_analysis else []
+        tech_breadth = min(100, len(tech_stack) * 12)
     tb_component = tech_breadth * 0.30
 
     monthly = code_analysis.get("monthly_contributions", []) if code_analysis else []
@@ -299,12 +432,22 @@ def calculate_radar_scores(
 
     technical = max(0, min(100, int(cq_component + tb_component + cc_component)))
     sources.append(
-        f"technical: code_quality({cq.score})×40% + tech_breadth({tech_breadth})×30% + consistency({consistency})×30%"
+        f"technical: code_quality({cq.score})×40% + jd_tech_breadth({tech_breadth})×30% + consistency({consistency})×30%"
+    )
+    human_sources.append(
+        _t("score_technical", output_language, total=technical, cq=cq.score, tb=tech_breadth, cc=consistency)
     )
 
     # --- Axis 2: Execution & Delivery ---
     # Experience SFIA score (40%), Commit consistency (30%), Code volume (30%)
     exp_years = profile.get("experience_years", 0) or 0
+
+    # LinkedIn 경력 연수 보강
+    if not exp_years and linkedin_profile:
+        linkedin_exp = linkedin_profile.get("experience_years") or linkedin_profile.get("years_of_experience") or 0
+        if linkedin_exp:
+            exp_years = linkedin_exp
+
     _, sfia_score = classify_experience_level(exp_years)
     exp_component = sfia_score * 0.40
 
@@ -318,6 +461,9 @@ def calculate_radar_scores(
     execution = max(0, min(100, int(exp_component + commit_consistency_component + vol_component)))
     sources.append(
         f"execution: sfia_exp({sfia_score})×40% + commit_consistency({consistency})×30% + code_volume({code_volume})×30%"
+    )
+    human_sources.append(
+        _t("score_execution", output_language, total=execution, exp=sfia_score, cc=consistency, vol=code_volume)
     )
 
     # --- Axis 3: Communication ---
@@ -333,12 +479,18 @@ def calculate_radar_scores(
     sources.append(
         f"communication: doc_score({doc_score})×50% + readability({cc_norm})×50%"
     )
+    human_sources.append(
+        _t("score_communication", output_language, total=communication, doc=doc_score, read=cc_norm)
+    )
 
     # --- Axis 4: Code Quality ---
     # Direct composite code quality score
     code_quality = cq.score
     sources.append(
         f"code_quality: composite({cq.score}) = {cq.source}"
+    )
+    human_sources.append(
+        _t("score_code_quality", output_language, total=code_quality)
     )
 
     # No-code fallback: reasonable defaults when GitHub data unavailable
@@ -358,6 +510,8 @@ def calculate_radar_scores(
         data_sources += 1
     if document_analysis.get("jd_match_score") is not None:
         data_sources += 1
+    if linkedin_profile:
+        data_sources += 1
     if data_sources >= 3:
         confidence = "high"
     elif data_sources >= 2:
@@ -368,6 +522,7 @@ def calculate_radar_scores(
         required=required,
         sources=sources,
         confidence=confidence,
+        human_sources=human_sources,
     )
 
 
@@ -480,6 +635,7 @@ def calculate_overall_match(
     code_quality_score: int,
     experience_fit_score: int,
     jd_match_score: float,
+    output_language: str = "ko",
 ) -> ScoringResult:
     """전체 매칭 점수 계산 (가중 평균)
 
@@ -488,6 +644,7 @@ def calculate_overall_match(
         code_quality_score: 코드 품질 점수 (0-100)
         experience_fit_score: 경험 적합도 점수 (0-100)
         jd_match_score: JD 매칭 점수 (0.0-1.0)
+        output_language: 출력 언어 (ko/en)
 
     Returns:
         ScoringResult
@@ -495,6 +652,8 @@ def calculate_overall_match(
     Reference: Weighted scoring model (daily.dev, Scale.jobs)
                Score = Σ(wi × si) / Σ(wi) where Σ(wi) = 1.0
     """
+    from app.services.i18n_labels import _t
+
     jd_normalized = int(jd_match_score * 100)
 
     composite = (
@@ -518,6 +677,11 @@ def calculate_overall_match(
             "experience_fit": experience_fit_score,
             "jd_match": jd_normalized,
         },
+        human_source=_t(
+            "score_overall_match", output_language,
+            total=final, skill=skill_match_score, code=code_quality_score,
+            exp=experience_fit_score, jd=jd_normalized,
+        ),
     )
 
 
