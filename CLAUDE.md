@@ -499,21 +499,27 @@ frontend/e2e/                      → Playwright E2E 테스트
 - 반드시 `--production` 플래그 사용 (없으면 워커가 구버전 사용)
 - 모델 설정은 `llm_config.py` 단일 소스 — 스크립트에서 자동 참조
 
-### 자율 GitHub Issue/PR/Merge 워크플로우 (Autonomous QA)
+### 자율 GitHub Issue/PR/Merge 워크플로우 (Mandatory)
 
-자체 디버깅/검증 과정에서 문제를 발견하면 다음 워크플로우를 **자동으로** 수행:
+**모든 구현 작업(개선 사이클, 버그 수정, 기능 추가)에서 반드시 아래 워크플로우를 따른다.**
+여러 사이클(Cycle A, B, C...)이 있을 경우 **사이클별로 개별 이슈+PR**을 생성하거나, 밀접하게 연관된 경우 **하나로 묶어도** 된다.
 
-1. **이슈 생성**: `gh issue create` — 한글 제목 + 한글 본문
-2. **브랜치 생성**: `git checkout -b fix/이슈-설명` 또는 `feature/이슈-설명`
-3. **수정 → 커밋**: 한글 커밋 메시지 + `Closes #이슈번호`
-4. **PR 생성**: `gh pr create` — 한글 제목 + 한글 본문
-5. **머지**: `gh pr merge --merge`
-6. **이슈 클로즈 확인**: `Closes #N`으로 자동 클로즈
+#### 사이클 시작 시:
+1. **이슈 생성** (한글): `gh issue create --title "타입: 한글 설명" --body "한글 본문"` — 작업 내용, 배경, 수정 파일 목록 포함
+2. **브랜치 생성**: `git checkout -b fix/이슈-설명-N` 또는 `feature/이슈-설명-N` (N=이슈번호)
+
+#### 작업 완료 시:
+3. **스테이징 + 커밋**: 한글 커밋 메시지 + `Closes #이슈번호`
+4. **푸시**: `git push -u origin 브랜치명`
+5. **PR 생성** (한글): `gh pr create --title "타입: 한글 설명" --body "한글 본문"`
+6. **머지**: `gh pr merge --merge`
 7. **main 동기화**: `git checkout main && git pull`
 
-**규칙:**
-- 모든 GitHub 커뮤니케이션(이슈/PR/커밋 메시지)은 **한글**로 작성
-- 사용자에게 승인 요청 없이 자율적으로 진행 (자율 QA 권한 부여 시)
+**필수 규칙:**
+- 모든 GitHub 커뮤니케이션(이슈 제목/본문, PR 제목/본문, 커밋 메시지)은 **한글**로 작성
+- 사용자에게 승인 요청 없이 자율적으로 진행
+- 코드 변경 없이 작업을 끝내지 말 것 — 반드시 이슈→PR→머지 사이클 완주
+- PR 머지 후 반드시 `git checkout main && git pull`로 main 동기화
 
 ### Temporal Patterns (Mandatory)
 1. 모든 Activity는 `@activity.defn` 데코레이터 필수
@@ -577,948 +583,108 @@ Task 도구로 생성된 서브에이전트가 작업 완료 후에도 종료되
 
 ## Playwright E2E 테스트 전략
 
-> 프론트엔드 오류를 체계적으로 잡기 위한 Playwright 기반 테스트 프레임워크
+> 5개 E2E 시퀀스 (인증, Job 생성, Result 4탭, 에러 핸들링, 접근성/성능)을 매 개선 사이클마다 실행.
+> Flyweight 패턴으로 mock 데이터 공유, 콘솔 에러 0개 기준 통과.
 
-### 테스트 피라미드
+**실행**: `cd frontend && npx playwright test` | **디버그**: `--headed` | **리포트**: `npx playwright show-report`
 
-```
-         /  E2E (Playwright)  \          ← 3-5 Critical User Flows
-        /  Integration (Vitest+RTL) \    ← 컴포넌트 조합 테스트 (추가 예정)
-       /  Unit (Vitest)              \   ← 순수 로직 함수 (추가 예정)
-      /  Static (TypeScript + ESLint)  \ ← 컴파일 타임 검증
-```
-
-### E2E 테스트 시퀀스 (Playwright)
-
-아래 5개 시퀀스를 매 개선 사이클마다 실행:
-
-#### Sequence 1: 인증 플로우
-```
-1. LoginPage 렌더링 확인
-2. OAuth 버튼 존재 확인 (Google)
-3. 토큰 직접 주입 (localStorage) → 인증 우회
-4. /jobs 리다이렉트 확인
-5. 비인증 상태 → /login 리다이렉트 확인
-```
-
-#### Sequence 2: Job 생성 플로우
-```
-1. CreateJobPage 렌더링 확인
-2. 필수 필드 입력: JD, experience_level, output_language
-3. 선택 필드: LinkedIn URL, GitHub URL, portfolio PDF
-4. 질문 수 슬라이더 (5-25) 조작
-5. 제출 → API 호출 확인 → JobStatusPage 리다이렉트
-6. 폼 유효성 검사 (빈 필드 제출 시 에러)
-```
-
-#### Sequence 3: Result 페이지 4탭 순회 (핵심)
-```
-1. ResultPage 로딩 → API mock 주입 (/api/v1/results/{id})
-2. Intel Brief 탭:
-   - 후보자 이름, 직함, 요약 렌더링 확인
-   - Competency 매칭 카드 존재 확인
-3. Deep Analysis 탭:
-   - RadarChart SVG 렌더링 확인
-   - 스킬 매칭 테이블 행 수 확인
-   - Engineering DNA 섹션 존재 확인
-4. Live Interview 탭:
-   - 질문 카드 렌더링 (최소 5개)
-   - 카테고리별 배분 확인
-   - 질문 클릭 → 상세 패널 열림
-   - follow-up 질문 존재 확인
-5. Decision 탭:
-   - 종합 점수 렌더링
-   - 추천/비추천 배지 확인
-   - 위험 평가 항목 존재
-6. 전 탭 콘솔 에러 0개 확인
-7. 스크린샷 캡처 → 이전 버전과 비교
-```
-
-#### Sequence 4: 에러 핸들링 & 엣지 케이스
-```
-1. 404 페이지 렌더링 확인
-2. API 500 에러 시 ErrorBoundary 동작 확인
-3. 네트워크 오프라인 시 graceful degradation
-4. 빈 결과 데이터 시 빈 상태 UI 확인
-5. 긴 텍스트 오버플로우 처리 확인
-6. 모바일 뷰포트 (375px) 레이아웃 깨짐 확인
-```
-
-#### Sequence 5: 접근성 & 성능
-```
-1. 키보드 네비게이션 (Tab, Enter, Escape)
-2. ARIA 라벨 존재 확인
-3. 색상 대비 비율 (WCAG 2.1 AA)
-4. LCP < 2.5s, CLS < 0.1 측정
-5. 번들 사이즈 확인 (초기 로딩 < 300KB)
-```
-
-### E2E 테스트 실행 명령
-
-```bash
-# 전체 E2E 테스트
-cd frontend && npx playwright test
-
-# 특정 시퀀스만
-npx playwright test result-page.spec.ts
-npx playwright test create-job.spec.ts
-
-# 시각적 확인 (headed 모드)
-npx playwright test --headed
-
-# 디버그 모드
-npx playwright test --debug
-
-# HTML 리포트
-npx playwright show-report
-```
-
-### Flyweight 패턴 적용 (테스트 데이터)
-
-E2E 테스트에서 mock 데이터를 Flyweight 패턴으로 관리:
-
-```typescript
-// e2e/fixtures/mock-data.ts — 공유 테스트 데이터 풀
-export const SHARED_CANDIDATE = {
-  name: "Alex Kim",
-  title: "Senior AI Engineer",
-  experience_years: 8,
-  // ... 모든 테스트에서 공유
-};
-
-export const SHARED_QUESTIONS = [
-  { id: 1, category: "technical_depth", text: "..." },
-  // ... 20개 질문 풀
-];
-
-// 테스트별로 필요한 부분만 확장 (intrinsic + extrinsic 분리)
-export function createMockResult(overrides?: Partial<ResultData>): ResultData {
-  return { ...SHARED_CANDIDATE, ...SHARED_QUESTIONS, ...overrides };
-}
-```
-
-**장점:**
-- 테스트 파일 간 데이터 중복 제거
-- mock 데이터 변경 시 단일 소스에서 수정
-- 테스트 실행 메모리 절약
+**상세 시퀀스/데이터 패턴/에러 탐지 파이프라인** → `docs/claude-references/playwright-e2e-strategy.md`
 
 ---
 
 ## 🔄 Continuous Improvement Engine (지속적 개선 엔진)
 
-> **핵심 원칙**: 매 사이클마다 측정 → 분석 → 개선 → 검증을 반복하여 프로젝트 품질을 지속적으로 향상시킨다.
+> MEASURE → ANALYZE → IMPROVE → VERIFY → REPORT 사이클 반복
 
-### 최근 변경
+### 개선 영역 요약 (미션 우선순위순)
 
-| PR | 내용 |
-|----|------|
-| #120 | ResultPage useCallback Hook 호출 순서 수정 |
-| #118 | nginx X-Forwarded-Proto Cloudflare 보존 |
-| #117 | OAuth redirect_uri 동적 감지 |
-| #116 | 견고성 사이클 3: type guards + SSRF 방어 |
-| #115 | OAuth localhost 리다이렉트 수정 |
-| #113 | 테스트 mock 대상 Langfuse-first 동기화 (474 passed) |
+| 우선순위 | 영역 | 핵심 목표 | 관련 파일 |
+|---------|------|----------|----------|
+| 🔴 P0-1 | 점수 근거 체계 | 코드 메트릭 기반 정량 공식 (레이더 5축, 매치율, 스킬별) | `analysis_generation.py`, `decision_generation.py`, `DeepAnalysisTab.tsx` |
+| 🔴 P0-2 | 코드 기반 질문 | ≥60% 질문이 후보자 GitHub 코드에서 추출 | `question_generation.py`, `code_analysis.py` |
+| 🔴 P0-3 | 비개발자 답변 가이드 | 3단계(우수/보통/주의) + glossary + 후속질문 팁 | `craft_evaluation_scenarios()`, `LiveInterviewTab.tsx` |
+| 🔴 P0-4 | LinkedIn 경력 구조화 | 타임라인 + 추천서 요약 + 승진 패턴 | `linkedin_service.py`, `IntelBriefTab.tsx` |
+| 🟡 P1 | 아웃풋 품질 & UX | AST/PyDriller 정확도, 반응형, WCAG 2.1 AA, i18n | `quality_review.py`, 프론트엔드 전체 |
+| 🟢 P2 | 인프라 & 안정성 | N+1, 캐시, CWV, OWASP Top 10, SRP | 백엔드/프론트엔드 전체 |
 
-### 개선 사이클 구조
+### Git 워크플로우 (매 개선건)
 
-```
- MEASURE → ANALYZE → IMPROVE → VERIFY → REPORT
-   (측정)    (분석)    (개선)    (검증)    (보고)
-     ↑                                      │
-     └──────────────────────────────────────┘
-```
+`gh issue create` → `git checkout -b improve/[영역]` → 수정+테스트 → `git commit -m "improve: [설명] Closes #N"` → `gh pr create` → merge → main sync
 
-### 개선 영역 (미션 우선순위순)
-
-> **원칙**: 제품 미션(비개발자가 개발자를 판단할 수 있게 돕기)에 직결되는 문제부터 해결한다.
-
----
-
-#### 🔴 P0: 제품 미션 핵심 (최우선)
-
-##### 1. 점수 근거 체계 확립 (Evidence-Based Scoring)
-
-**현재 문제**: 레이더 차트 5축 점수, 전체 매치율(%), 스킬별 점수가 **LLM이 임의로 부여**하여 근거 불명확
-
-**목표**: 모든 점수에 코드 메트릭 / 경력 데이터 기반 **정량 공식** 적용
-
-**구체적 개선 항목:**
-- [ ] **레이더 차트 5축 공식 정의**: 각 축(technical_depth, problem_solving, code_quality, system_design, leadership)에 대해 입력 메트릭 → 점수 변환 공식 수립
-  - 예: `code_quality = f(avg_complexity, test_coverage, docstring_ratio, lint_score)`
-  - 예: `technical_depth = f(language_count, framework_diversity, commit_depth, PR_complexity)`
-- [ ] **전체 매치율(%) 공식**: `match_score = Σ(axis_score × weight) / Σ(weights)` — 가중치는 JD 요구사항에서 자동 산출
-- [ ] **스킬별 매칭 근거**: 각 스킬에 `evidence_source` 필수 (GitHub 레포명, 파일 경로, 커밋 수, 사용 빈도)
-- [ ] **점수 출처 UI 표시**: 프론트엔드에서 점수 클릭 시 "이 점수의 근거" 팝업/툴팁 표시
-
-**관련 파일:**
-- `analysis_generation.py` — 레이더 차트 점수 생성
-- `decision_generation.py` — 최종 추천/점수 생성
-- `intel_generation.py` — 스킬 매칭 점수
-- `DeepAnalysisTab.tsx` — 레이더 차트 UI
-- `DecisionTab.tsx` — 최종 점수 UI
-
-##### 2. 코드 기반 구체적 질문 생성
-
-**현재 문제**: "경험을 설명해주세요" 같은 범용 질문이 다수, 후보자 GitHub 코드에서 나온 구체적 질문 비율 낮음
-
-**목표**: 질문의 ≥60%가 후보자의 실제 코드/프로젝트에서 추출된 구체적 질문
-
-**구체적 개선 항목:**
-- [ ] **코드 기반 질문 비율 측정**: 현재 `craft_question` 출력에서 `evidence_source`가 GitHub인 질문 비율 추적
-- [ ] **코드 스니펫 첨부 질문**: 후보자의 실제 코드 조각을 보여주며 "이 코드에서 왜 이런 패턴을 선택했나요?" 형태
-- [ ] **커밋 히스토리 기반 질문**: PyDriller 분석 결과(핫스팟 파일, 리팩토링 패턴)에서 질문 도출
-- [ ] **범용 질문 비율 제한**: `quality_review`에서 evidence_score < 40인 범용 질문을 20% 이하로 강제
-
-**관련 파일:**
-- `question_generation.py`, `question_generation_utils.py` — 질문 생성
-- `question_enhancement.py` — 질문 강화
-- `code_analysis.py` — GitHub 코드 분석
-- `question_generation.yaml` — 질문 생성 프롬프트
-
-##### 3. 비개발자 친화 답변 가이드
-
-**현재 문제**: 면접관(비개발자)이 좋은 답변과 나쁜 답변을 구분할 기준이 없음
-
-**목표**: 모든 질문에 비개발자도 이해하는 "기대 답변 예시 + 평가 기준" 제공
-
-**구체적 개선 항목:**
-- [ ] **3단계 답변 가이드**: 각 질문에 "우수한 답변 특징 / 보통 답변 특징 / 주의 신호" 를 비개발자 언어로 제공
-  - 예: 우수 — "구체적 숫자(성능 50% 향상)나 팀 협업 사례를 언급"
-  - 예: 주의 — "추상적 표현만 사용('많이 개선했습니다')하거나 질문을 회피"
-- [ ] **전문 용어 자동 번역**: 질문/답변의 모든 기술 용어에 `glossary_term` + `plain_explanation` 쌍 추가
-  - 예: "Docker 컨테이너" → "프로그램을 독립된 상자에 넣어 어디서든 동일하게 실행하는 기술"
-- [ ] **면접관 액션 가이드**: 각 질문에 "이 질문 후 이런 반응이면 이렇게 후속 질문하세요" 안내
-- [ ] **비개발자 이해도 검증**: Playwright 테스트에서 용어 설명 누락 여부 자동 체크
-
-**관련 파일:**
-- `craft_evaluation_scenarios()` — 평가 시나리오 생성
-- `enhance_terminology()` — 용어 설명 강화
-- `design_follow_ups()` — 꼬리질문 설계
-- `LiveInterviewTab.tsx` — 질문 카드 UI
-
-##### 4. LinkedIn 경력 정보 구조화
-
-**현재 문제**: LinkedIn 데이터(경력, 추천서, 학력)를 충분히 정리/활용하지 않음
-
-**목표**: 비개발자가 한눈에 이해하는 경력 타임라인 + 추천서 요약 + 학력 정리 제공
-
-**구체적 개선 항목:**
-- [ ] **경력 타임라인**: 회사명, 직급, 기간, 주요 성과를 시각적 타임라인으로 정리
-- [ ] **추천서 요약**: LinkedIn 추천서에서 핵심 평가 키워드 추출 + 요약 (예: "3명이 '리더십' 언급, 2명이 '기술 깊이' 언급")
-- [ ] **학력/자격증 정리**: 관련 학위, 부트캠프, 자격증을 구조화하여 표시
-- [ ] **승진 패턴 분석**: 경력 이동에서 승진/이직 패턴을 비개발자 언어로 해석 (예: "3년마다 직급 상승 → 성장 속도 빠름")
-- [ ] **Intel Brief 탭 강화**: 위 정보를 IntelBriefTab에 구조화 섹션으로 추가
-
-**관련 파일:**
-- `linkedin_service.py` — LinkedIn 데이터 수집
-- `intel_generation.py` — Intel Brief 생성
-- `finalization.py` — 최종 데이터 조합
-- `IntelBriefTab.tsx` — Intel Brief UI
-
----
-
-#### 🟡 P1: 아웃풋 품질 & UX
-
-##### 5. 에이전트 아웃풋 품질 향상
-
-- AST 분석: Python `ast`, JS/TS `tree-sitter` — 메트릭 추출 정확도
-- 기여도 분석: `PyDriller` — 커밋 빈도, 코드 변경량, 핫스팟 파일
-- 스킬 매칭: JD ↔ 후보자 스킬 매칭 정확도, confidence 현실성
-- 분석 실패 시 fallback 데이터 유의미성
-- P0 항목(점수 근거, 코드 기반 질문, 답변 가이드)의 품질 검증
-
-##### 6. UI/UX 프론트엔드 향상 + Playwright 테스트
-
-**비개발자 UX 최우선 점검:**
-- 전문 용어에 쉬운 설명이 병기되는지 (glossary 표시 확인)
-- 점수/등급 옆에 "왜 이 점수인지" 근거가 보이는지
-- 답변 가이드가 카드 형태로 쉽게 읽히는지
-
-**기존 UI/UX 점검:**
-- 디자인 일관성: 색상, 타이포그래피, 간격, 버튼 스타일 통일
-- 반응형: 모바일(375px), 태블릿(768px), 데스크탑(1280px) 검증
-- 접근성: WCAG 2.1 AA — 키보드 네비게이션, 스크린 리더, 색상 대비
-- i18n: 모든 사용자 대면 텍스트 번역 키 사용
-
-**Playwright 자동 검증:**
-- 매 개선 사이클마다 E2E 시퀀스 전체 실행
-- 콘솔 에러 0개 기준 통과
-- 용어 설명 누락/점수 근거 누락 자동 탐지
-- 모바일/데스크탑 뷰포트 모두 검증
-
-##### 7. Playwright 기반 프론트엔드 에러 탐지
-
-**자동화된 에러 탐지 파이프라인:**
-```
-1. Playwright 테스트 실행 → 2. 콘솔 에러 수집 → 3. 에러 분류 → 4. 이슈 생성 → 5. 수정 + 재테스트
-```
-
-| 에러 유형 | 탐지 방법 | 대응 패턴 |
-|----------|----------|----------|
-| Hook 순서 위반 | 콘솔 에러 + Playwright | 조건부 렌더링 전에 모든 Hook 호출 |
-| undefined 프로퍼티 접근 | Playwright + TypeScript | optional chaining `?.` + nullish coalescing `??` |
-| API 데이터 타입 불일치 | Playwright + type guard | 런타임 검증 또는 type guard 함수 |
-| i18n 누락 | Playwright 텍스트 검증 | `t()` 함수 + 번역 키 자동 추출 |
-
----
-
-#### 🟢 P2: 인프라 & 안정성
-
-##### 8. 성능 최적화 (`/improve --perf`)
-
-**백엔드:** DB 쿼리 N+1, Redis 캐시 히트율, API p50/p95 응답시간, LLM 토큰 비용
-**프론트엔드:** 번들 <300KB, Core Web Vitals (LCP <2.5s, FID <100ms, CLS <0.1)
-
-##### 9. 보안 향상 (`/analyze --focus security`)
-
-OWASP Top 10 기반: 접근 제어, 암호화, 주입 방지, Rate limiting, CVE 스캔, SSRF 방어
-
-##### 10. 아키텍처 최적화
-
-- 디자인 패턴: Strategy (LLM 선택), Factory (Activity 생성), Template Method, Circuit Breaker
-- 하드코딩 제거 → 상수/환경변수/i18n/`llm_config.py`
-- 300줄 초과 파일 분리 (SRP), 타입 힌트 100%
-
-##### 11. 선택적 캐시 무효화 전략
-
-```python
-# 특정 Activity만 캐시 무효화 (나머지 유지 → 토큰 절약)
-async def invalidate_activity_cache(activity_name: str):
-    pattern = f"llm_cache:{activity_name}:*"
-    keys = await redis.keys(pattern)
-    await redis.delete(*keys)
-```
-
-### Git 워크플로우 (매 개선건마다)
-
-```
-1. gh issue create --title "개선: [영역] [구체적 설명]"
-2. git checkout -b improve/[영역]-[설명]
-3. 코드 수정 + 테스트
-4. git commit -m "improve: [설명] Closes #N"
-5. gh pr create + gh pr merge --merge
-6. git checkout main && git pull
-```
-
-### 개선 사이클 보고서 형식
-
-```markdown
-## 개선 사이클 #N 보고서
-
-### 측정 결과
-| 영역 | 이전 | 이후 | 변화 |
-|------|------|------|------|
-
-### 에이전트 아웃풋 품질 지표
-| Phase | 지표 | 값 | 목표 | 상태 |
-|-------|------|-----|------|------|
-| P2 | 프로필 추출 완전성 | ? | ≥90% | |
-| P2 | JD 기술 스택 누락 | ? | ≤2개 | |
-| P2 | 코드 분석 HYBRID 완수율 | ? | 100% | |
-| P3 | 평균 Evidence Score | ?/100 | ≥70 | |
-| P3 | 환각 탐지율 | ? | 0% | |
-| P3 | 중복 질문 비율 | ? | 0% | |
-| P3 | 카테고리 균형도 | ? | ≥3/cat | |
-| P4 | Intel Brief 사실 오류 | ? | 0개 | |
-| P4 | 교차 일관성 (4탭 모순) | ? | 0개 | |
-| P4 | 추천 일관성 | ? | 100% | |
-
-### 프롬프트 A/B 테스트 결과
-| 프롬프트 | Version A | Version B | 승자 | 차이 |
-|----------|-----------|-----------|------|------|
-
-### Playwright 테스트 결과
-| 시퀀스 | 통과 | 실패 | 콘솔 에러 |
-|--------|------|------|----------|
-
-### 수정 내역
-| Issue | PR | 영역 | 설명 |
-|-------|-----|------|------|
-
-### 다음 사이클 목표
-- [ ] ...
-```
+**P0 상세 TODO, P1/P2 세부, 보고서 형식** → `docs/claude-references/improvement-engine.md`
 
 ---
 
 ## 🔍 Agent Output Quality Verification Engine (에이전트 아웃풋 품질 검증 엔진)
 
-> 전체 파이프라인(32개 Activity)의 LLM 생성 결과물을 자동으로 검증하고 지속적으로 개선하는 통합 품질 시스템
+> 전체 파이프라인(Phase 0-4, 16+ Activity)의 LLM 아웃풋을 자동 검증하는 통합 품질 시스템.
 
-### 품질 검증 대상: 전체 파이프라인 아웃풋 매트릭스
+### 핵심 게이트: Evidence Score
 
-```
-Phase 0-1: INPUT & PLANNING
-  enrich_input()          → URL 추출 정확도, LinkedIn/GitHub 유효성
-  create_execution_plan() → 분석 대상 선정 정확도, 시간 추정 현실성
+| 점수 | 판정 | 조치 |
+|------|------|------|
+| 70-100 | PASS | 통과 |
+| 40-69 | REVISE | 근거 보강 후 재생성 |
+| 0-39 | REJECT | 삭제 및 재생성 |
 
-Phase 2: PARALLEL ANALYSIS (품질 영향도 HIGH)
-  analyze_documents()     → 프로필 추출 완전성, 스킬 정확도
-  analyze_jd()            → JD 요구사항 구조화 정확도, 누락 항목
-  analyze_code()          → 코드 분석 깊이, 기술 스택 매칭, HYBRID 품질
-  build_knowledge_graph() → KG 엔티티 정확도, 관계 타당성, 충돌 탐지
+### 품질 차원 요약
 
-Phase 3: QUESTION GENERATION (품질 영향도 CRITICAL)
-  select_topics()         → 토픽 균형, 후보자 특화도, 카테고리 배분
-  craft_question()        → 질문 품질 8차원 (기존 quality_review)
-  enhance_terminology()   → 용어 설명 정확성, 비전문가 이해도
-  craft_evaluation_scenarios() → 평가 기준 구분도, 현실성
-  design_follow_ups()     → 꼬리질문 깊이/연관성, 난이도 분기
-  generate_decision_guide() → 채용 가이드 근거 타당성
+| Phase | 핵심 검증 | 합격 기준 |
+|-------|----------|----------|
+| P2 분석 | 프로필 완전성, 스킬 정확도, JD 구조화, HYBRID 완수 | ≥90% 필드, 환각 0, 누락 ≤2 |
+| P3 질문 | 10차원 (Relevance/Clarity/Depth/Bias/Evidence/Hallucination/Duplicate/Specificity/EvalScenario/Terminology) | Evidence ≥70, 범용 <20%, 중복 0 |
+| P4 결과물 | Intel 정확성, 레이더 근거, 추천 일관성, 4탭 교차 일관성 | 사실오류 0, 모순 0 |
 
-Phase 4: RESULT GENERATION (품질 영향도 CRITICAL)
-  generate_intel_brief()      → 요약 정확성, 역량 매칭 근거
-  generate_deep_analysis()    → 레이더 차트 점수 근거, 스킬 매칭 정밀도
-  generate_decision_support() → 추천 일관성, 위험 평가 근거
-  finalize_output()           → 전체 조합 일관성, 데이터 무결성
-```
+### 구현 상태
 
-### Phase별 품질 차원 정의
+| ✅ 완료 | ⚠️ 미연결 (HIGH) |
+|---------|-----------------|
+| `quality_review.py` 구조적+LLM 8차원 검증 | Langfuse 스코어 미호출 |
+| Evidence Score 게이트 (0-100) | 품질 결과 DB 미저장 |
+| 중복 탐지 + `revise_questions` 자동 수정 | Phase 2/4 품질 게이트 없음 |
+| `validate_code_analysis()` HYBRID 검증 | 교차 일관성 검증 없음 |
+| Langfuse 트레이싱 (Job 단위) | 프론트엔드 품질 지표 미표시 |
 
-#### Phase 2: 분석 품질 (Analysis Quality)
-
-| Activity | 품질 차원 | 측정 방법 | 합격 기준 |
-|----------|----------|----------|----------|
-| `analyze_documents` | 프로필 완전성 | 필수 필드 채워짐 비율 | ≥90% 필드 추출 |
-| `analyze_documents` | 스킬 정확도 | 추출 스킬 ↔ 실제 이력서 대조 | 환각 스킬 0개 |
-| `analyze_jd` | 요구사항 구조화 | 필수/우대 분류 정확도 | ≥85% 정확도 |
-| `analyze_jd` | 기술 스택 추출 | 명시 기술 vs 추출 기술 | 누락 ≤2개 |
-| `analyze_code` | 레포 선별 정확도 | JD 관련 레포 선택 비율 | ≥80% 관련성 |
-| `analyze_code` | 코드 분석 깊이 | AST 메트릭 + LLM 분석 완전성 | HYBRID 3단계 완수 |
-| `build_knowledge_graph` | 엔티티 정확도 | 추출 엔티티 ↔ 원본 데이터 대조 | 환각 엔티티 0개 |
-| `build_knowledge_graph` | 관계 타당성 | 관계 추론의 논리적 근거 | 근거 없는 관계 0개 |
-
-#### Phase 3: 질문 품질 (Question Quality) — 기존 8차원 확장
-
-```
-┌──────────────────────────────────────────────────────────┐
-│            QUESTION QUALITY DIMENSIONS (8+2)              │
-│                                                          │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────┐    │
-│  │Relevance │ │ Clarity  │ │  Depth   │ │Bias-Free│    │
-│  │ (0-10)   │ │ (0-10)   │ │ (0-10)   │ │ (0-10)  │    │
-│  └──────────┘ └──────────┘ └──────────┘ └─────────┘    │
-│                                                          │
-│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐    │
-│  │Evidence Score │ │ Hallucination│ │  Duplicate   │    │
-│  │  (0-100)     │ │ Risk (L/M/H) │ │ Detection    │    │
-│  └──────────────┘ └──────────────┘ └──────────────┘    │
-│                                                          │
-│  ┌──────────────────┐ ┌──────────────────┐              │
-│  │ Specificity      │ │ Follow-up Quality│              │
-│  │ (generic vs      │ │ (꼬리질문 품질)   │              │
-│  │  candidate-based)│ │                  │              │
-│  └──────────────────┘ └──────────────────┘              │
-│                                                          │
-│  ── 신규 추가 ──────────────────────────────────────     │
-│  ┌──────────────────┐ ┌──────────────────┐              │
-│  │ Eval Scenario    │ │ Terminology      │              │
-│  │ Discriminability │ │ Accuracy         │              │
-│  │ (우수/보통/미흡  │ │ (용어 설명       │              │
-│  │  구분 명확도)    │ │  정확성)         │              │
-│  └──────────────────┘ └──────────────────┘              │
-└──────────────────────────────────────────────────────────┘
-```
-
-#### Phase 4: 결과물 품질 (Output Quality)
-
-| Activity | 품질 차원 | 측정 방법 | 합격 기준 |
-|----------|----------|----------|----------|
-| `generate_intel_brief` | 요약 정확성 | 요약 ↔ 원본 분석 데이터 일치 | 사실 오류 0개 |
-| `generate_intel_brief` | 역량 매칭 근거 | 각 매칭에 evidence_source 존재 | 근거 없는 매칭 0개 |
-| `generate_deep_analysis` | 레이더 점수 근거 | 5축 점수에 대한 설명/근거 존재 | 각 축 근거 ≥1개 |
-| `generate_deep_analysis` | 스킬 매칭 정밀도 | JD 요구 스킬 ↔ 후보자 스킬 대조 | F1 ≥0.8 |
-| `generate_deep_analysis` | Engineering DNA | 코드 분석 기반 특성 추출 | 코드 근거 필수 |
-| `generate_decision_support` | 추천 일관성 | 점수/근거/추천이 상충 없음 | 모순 0개 |
-| `generate_decision_support` | 위험 평가 근거 | 각 risk flag에 출처 존재 | 근거 없는 위험 0개 |
-| `finalize_output` | 데이터 무결성 | 4탭 데이터 누락/불일치 | 누락 필드 0개 |
-| `finalize_output` | 교차 일관성 | Intel Brief ↔ Deep Analysis ↔ Decision 간 일관 | 모순 0개 |
-
-### Evidence Score 기준 (환각 방지 핵심 게이트)
-
-| 점수 범위 | 판정 | 의미 | 조치 |
-|----------|------|------|------|
-| 100 | PASS | 이력서/코드에서 직접 확인 가능한 근거 | 통과 |
-| 70-99 | PASS | 명시된 스킬 기반, 일부 일반화 포함 | 통과 |
-| 40-69 | REVISE | 간접적 관련성, 과도한 추론 | 근거 보강 후 재생성 |
-| 0-39 | REJECT | 근거 없는 가정/환각 | 삭제 및 재생성 |
-
-### 현재 품질 검증 시스템 상태
-
-#### 구현 완료 (✅)
-| 컴포넌트 | 파일 | 기능 |
-|----------|------|------|
-| 구조적 검증 | `quality_review.py` | 카테고리 분포 (5종 × 3개 이상), 난이도 균형 (<60% easy/hard) |
-| LLM 기반 리뷰 | `quality_review.yaml` | 8차원 평가 (관련성, 명확성, 깊이, 편향, 근거, 환각 등) |
-| Evidence Score | `quality_review.yaml` | 근거 점수 0-100 (70+ PASS, 40-69 REVISE, <40 REJECT) |
-| 중복 탐지 | `quality_review.yaml` | 의미적/완전 중복 질문 탐지 |
-| 질문 수정 | `question_generation.py` | `revise_questions` Activity로 REVISE 판정 질문 자동 수정 |
-| Langfuse 스코어 설정 | `evaluation.py` | SCORE_CONFIGS 정의 (question_quality, relevance 등) |
-| 코드 분석 검증 | `code_analysis.py` | `validate_code_analysis()` Activity — HYBRID 완전성 검증 |
-| Langfuse 트레이싱 | `observability_activities.py` | Job 단위 트레이스 시작/종료 + 메타데이터 |
-
-#### 미연결/미사용 (⚠️ — 개선 필요)
-| 갭 | 영향도 | 설명 |
-|----|--------|------|
-| Langfuse 스코어 미연결 | 🔴 HIGH | `evaluation.py`에 `create_score()` 존재하나 `quality_review.py`에서 호출 안 함 |
-| 품질 결과 미저장 | 🔴 HIGH | 질문별 evidence_score, hallucination_risk가 DB에 저장되지 않음 |
-| 프론트엔드 미표시 | 🔴 HIGH | 품질 지표가 Result 페이지에 노출되지 않음 |
-| 수정 후 재평가 없음 | 🟡 MED | revise_questions 후 quality score 재계산 없음 |
-| Phoenix eval 미사용 | 🟡 MED | `phoenix_eval.py` 존재하나 메인 플로우에 미연결 |
-| Phase 2 분석 품질 미검증 | 🔴 HIGH | analyze_documents/jd/code 결과에 대한 품질 게이트 없음 |
-| Phase 4 결과물 품질 미검증 | 🔴 HIGH | intel_brief/deep_analysis/decision에 대한 사후 검증 없음 |
-| 교차 일관성 검증 없음 | 🟡 MED | 4탭 간 데이터 모순 탐지 로직 없음 |
-
-### 전체 파이프라인 품질 검증 아키텍처
-
-```
-Phase 0-1: INPUT ENRICHMENT & PLANNING
-    ├─ 구조적 검증 (URL 유효성, 파일 포맷)
-    └─ 실행 계획 합리성 검증
-    ↓
-Phase 2: PARALLEL ANALYSIS
-    ├─ analyze_documents → 프로필 완전성 검증 (필드 커버리지)
-    ├─ analyze_jd → 구조화 정확도 검증
-    ├─ analyze_code → validate_code_analysis() [구현완료]
-    └─ build_knowledge_graph → 엔티티/관계 품질 검증 [TO-DO]
-    ↓
-Phase 3: QUESTION GENERATION
-    ├─ select_topics → 카테고리 균형 + 후보자 특화도 검증
-    ├─ craft_question × 20 → 8+2차원 품질 평가
-    ├─ quality_review → 구조적 + LLM 기반 검증 [구현완료]
-    └─ revise_questions → 재평가 루프 [구현완료, 재평가 미연결]
-    ↓
-Phase 4: RESULT GENERATION
-    ├─ generate_intel_brief → 요약 정확성 + 역량 매칭 근거 검증 [TO-DO]
-    ├─ generate_deep_analysis → 레이더 점수 근거 + 스킬 매칭 정밀도 [TO-DO]
-    ├─ generate_decision_support → 추천 일관성 + 위험 평가 근거 [TO-DO]
-    └─ finalize_output → 교차 일관성 검증 (4탭 모순 탐지) [TO-DO]
-    ↓
-Phase 5: SCORING & RECORDING
-    ├─ Langfuse 스코어 기록 (Activity별 품질 점수)
-    ├─ DB 저장 (품질 메트릭 영구 저장)
-    └─ 품질 추세 대시보드 (주간 리포트)
-```
-
-### 품질 검증 체크리스트
-
-#### Phase 2: 분석 품질
-- [ ] **프로필 추출 완전성**: 이름, 경력, 스킬, 학력, 프로젝트 등 필수 필드 추출
-- [ ] **스킬 정확도**: 추출 스킬이 실제 이력서에 존재하는지 (환각 스킬 0)
-- [ ] **JD 구조화 정확도**: 필수/우대 요건 분류, 기술 스택 추출 누락 ≤2개
-- [ ] **코드 분석 깊이**: HYBRID 3단계(Overview→Deep→Synthesis) 완수 여부
-- [ ] **KG 엔티티 정확도**: 추출 엔티티가 원본 데이터에 근거하는지
-
-#### Phase 3: 질문 품질
-- [ ] **지원자 데이터 기반 여부**: 질문이 이력서/포트폴리오/GitHub 분석 결과에 근거하는지
-- [ ] **중복 질문 제거**: 의미적으로 동일한 질문이 없는지 (유사도 >0.85 탐지)
-- [ ] **수준 적절성**: 경력 수준(주니어/시니어/CTO)에 맞는 난이도인지
-- [ ] **원론적 답변 방지**: 구체적 경험 기반 질문 (범용 질문 비율 <20%)
-- [ ] **카테고리 균형**: 5개 카테고리 균형 (최소 3개/카테고리)
-- [ ] **꼬리질문 품질**: expert/mid/low 분기 논리성, 메인과 비중복
-- [ ] **평가 시나리오 구분도**: 우수/보통/미흡 답변의 차이 명확
-
-#### Phase 4: 결과물 품질
-- [ ] **Intel Brief 정확성**: 요약 내용이 분석 데이터와 일치
-- [ ] **역량 매칭 근거**: 각 매칭에 evidence_source(이력서/코드/JD) 존재
-- [ ] **레이더 점수 근거**: 5축 각각에 정량적 근거 (코드 메트릭, 경력 등)
-- [ ] **추천 일관성**: 점수/분석/추천이 상충하지 않음
-- [ ] **교차 일관성**: Intel Brief ↔ Deep Analysis ↔ Decision 간 데이터 모순 없음
+**Phase별 상세 품질 차원, 파이프라인 아키텍처, 체크리스트** → `docs/claude-references/quality-verification-engine.md`
 
 ---
 
 ## 🧪 Prompt A/B Testing Strategy (프롬프트 A/B 테스트 전략)
 
-> 프롬프트를 과학적으로 비교/검증하여 더 나은 버전을 자동 선택하는 시스템
+> GOLDEN DATASET → PROMPT A/B 실행 → EVALUATORS → COMPARE → PROMOTE/ROLLBACK
 
-### A/B 테스트 대상 프롬프트 (6개)
+### 대상 프롬프트 (6개)
 
-| 프롬프트 YAML | Activity | 품질 영향도 | A/B 테스트 우선순위 |
-|---------------|----------|-----------|-------------------|
-| `question_generation.yaml` (select_topics) | `select_topics()` | CRITICAL | P0 |
-| `quality_review.yaml` (review) | `review_questions()` | CRITICAL | P0 |
-| `document_analysis.yaml` (extract_profile) | `analyze_documents()` | HIGH | P1 |
-| `v2_generation.yaml` (competency_matching) | Intel/Deep/Decision | HIGH | P1 |
-| `jd_analysis.yaml` (analyze) | `analyze_jd()` | MEDIUM | P2 |
-| `finalization.yaml` (candidate_summary) | `finalize_output()` | MEDIUM | P2 |
+| YAML | Activity | 우선순위 |
+|------|----------|---------|
+| `question_generation.yaml` | `select_topics()` | P0 |
+| `quality_review.yaml` | `review_questions()` | P0 |
+| `document_analysis.yaml` | `analyze_documents()` | P1 |
+| `v2_generation.yaml` | Intel/Deep/Decision | P1 |
+| `jd_analysis.yaml` | `analyze_jd()` | P2 |
+| `finalization.yaml` | `finalize_output()` | P2 |
 
-### Langfuse Experiments 기반 A/B 테스트 워크플로우
+### 승격/롤백 기준
 
-```
-┌─────────────────────────────────────────────────────────┐
-│              PROMPT A/B TESTING WORKFLOW                  │
-│                                                         │
-│  ┌────────────┐                                         │
-│  │ 1. GOLDEN  │  고품질 입출력 쌍 수집                   │
-│  │  DATASET   │  (실제 운영 데이터 큐레이션)             │
-│  └─────┬──────┘                                         │
-│        ↓                                                │
-│  ┌────────────┐   ┌────────────┐                        │
-│  │ 2. PROMPT  │   │ 2. PROMPT  │  동일 입력으로          │
-│  │ VERSION A  │   │ VERSION B  │  두 프롬프트 실행       │
-│  │ (현재)     │   │ (후보)     │                        │
-│  └─────┬──────┘   └─────┬──────┘                        │
-│        ↓                ↓                                │
-│  ┌────────────────────────────┐                          │
-│  │ 3. EVALUATORS (자동 평가)   │                          │
-│  │  ├─ LLM-as-Judge 평가자    │                          │
-│  │  ├─ 구조적 검증기          │                          │
-│  │  └─ Phoenix 배치 평가      │                          │
-│  └───────────┬────────────────┘                          │
-│              ↓                                           │
-│  ┌────────────────────────────┐                          │
-│  │ 4. COMPARE & DECIDE       │                          │
-│  │  ├─ 통계적 유의성 검증     │                          │
-│  │  ├─ 품질 지표 비교 (≥5%)   │                          │
-│  │  └─ 비용/속도 트레이드오프  │                          │
-│  └───────────┬────────────────┘                          │
-│              ↓                                           │
-│  ┌────────────────────────────┐                          │
-│  │ 5. PROMOTE or ROLLBACK    │                          │
-│  │  ├─ 승자 → Langfuse production label                 │
-│  │  └─ 패자 → 아카이브 + 분석 기록                      │
-│  └────────────────────────────┘                          │
-└─────────────────────────────────────────────────────────┘
-```
+| 항목 | 승격 (B→Prod) | 롤백 |
+|------|--------------|------|
+| 품질 | avg(B) > avg(A) + 5% | avg(B) < avg(A) |
+| 환각 | hallu(B) ≤ hallu(A) | hallu(B) > hallu(A) + 2% |
+| 비용 | cost(B) ≤ cost(A) × 1.2 | cost(B) > cost(A) × 1.5 |
+| 샘플 | n ≥ 50 | n < 30 |
 
-### 실행 방법: Langfuse Experiments API
+### 실행 주기
 
-```python
-from langfuse import Langfuse
+- **Daily**: 6개 프롬프트 × (A 5회 + B 5회) = 60회/일
+- **5일 누적** → 통계적 유의성 → 승격/롤백
+- **졸업 기준**: P0 Evidence ≥80, P1 정확도 ≥85%, 환각 0% (50회 연속)
 
-langfuse = Langfuse()
+### 품질 개선 전략 (권장 순서)
 
-# 1. 골든 데이터셋 구축 (최소 20-50개 입출력 쌍)
-dataset = langfuse.create_dataset(name="interview_questions_golden_v1")
+프롬프트 최적화 → Few-shot 강화 → Eval 게이트 (Langfuse+Phoenix) → 파인튜닝 (Fireworks AI LoRA)
 
-# 실제 운영에서 고품질 결과를 큐레이션하여 추가
-for item in curated_high_quality_results:
-    langfuse.create_dataset_item(
-        dataset_name="interview_questions_golden_v1",
-        input=item["input"],       # candidate_profile + jd + code_analysis
-        expected_output=item["output"],  # 고품질 질문 세트
-        metadata={"source": "production", "quality_score": item["score"]}
-    )
+### 자동 개선 루프
 
-# 2. 실험 실행 (프롬프트 A vs B)
-def run_prompt_variant(dataset_item, prompt_version: str):
-    """특정 프롬프트 버전으로 질문 생성"""
-    prompt = langfuse.get_prompt(
-        name="select_topics",
-        version=prompt_version,  # "v2.0" vs "v2.1"
-    )
-    result = llm_service.generate(prompt, dataset_item.input)
-    return result
+`GENERATE → EVALUATE → SCORE & RECORD → ANALYZE TRENDS → (low score) → REVISE → GENERATE` + A/B 승자 자동 승격
 
-# 3. 평가자 정의
-def evaluate_question_quality(output, expected_output) -> dict:
-    """LLM-as-Judge + 구조적 검증 결합"""
-    scores = {
-        "relevance": llm_judge(output, expected_output, "relevance"),
-        "specificity": structural_check(output, "specificity"),
-        "evidence_grounding": evidence_check(output),
-        "category_balance": distribution_check(output),
-        "cost": calculate_token_cost(output),
-    }
-    return scores
-
-# 4. 실험 실행 + 비교
-experiment_a = langfuse.run_experiment(
-    name="select_topics_v2.0",
-    dataset_name="interview_questions_golden_v1",
-    task=lambda item: run_prompt_variant(item, "v2.0"),
-    evaluators=[evaluate_question_quality],
-)
-
-experiment_b = langfuse.run_experiment(
-    name="select_topics_v2.1",
-    dataset_name="interview_questions_golden_v1",
-    task=lambda item: run_prompt_variant(item, "v2.1"),
-    evaluators=[evaluate_question_quality],
-)
-
-# 5. 비교 결과 → Langfuse UI에서 시각적 확인
-# avg(v2.1) > avg(v2.0) + 5% → v2.1을 production label로 승격
-```
-
-### Phoenix 기반 병렬 A/B 평가 (고속)
-
-```python
-from phoenix.evals import create_classifier, LLM, run_evals
-import pandas as pd
-
-llm = LLM(provider="openai", model="gpt-4o")
-
-# Activity별 커스텀 평가자
-evaluators = {
-    # 프로필 추출 품질 (Phase 2)
-    "profile_completeness": create_classifier(
-        name="profile_completeness", llm=llm,
-        prompt_template="""
-        [추출된 프로필]: {extracted_profile}
-        [원본 이력서]: {resume_text}
-        프로필 추출이 완전한가? (이름, 경력, 스킬, 학력, 프로젝트 포함)
-        답변: "complete", "partial", "incomplete"
-        """,
-        choices={"complete": 1.0, "partial": 0.5, "incomplete": 0.0},
-    ),
-    # Intel Brief 정확성 (Phase 4)
-    "intel_brief_accuracy": create_classifier(
-        name="intel_brief_accuracy", llm=llm,
-        prompt_template="""
-        [Intel Brief 요약]: {intel_brief}
-        [분석 데이터]: {analysis_data}
-        요약이 분석 데이터와 정확히 일치하는가? 환각이나 과장이 없는가?
-        답변: "accurate", "mostly_accurate", "inaccurate"
-        """,
-        choices={"accurate": 1.0, "mostly_accurate": 0.5, "inaccurate": 0.0},
-    ),
-    # Decision 일관성 (Phase 4)
-    "decision_consistency": create_classifier(
-        name="decision_consistency", llm=llm,
-        prompt_template="""
-        [Deep Analysis 점수]: {radar_scores}
-        [Decision 추천]: {recommendation}
-        [위험 평가]: {risk_assessment}
-        점수, 추천, 위험 평가가 서로 일관적인가? 모순이 없는가?
-        답변: "consistent", "minor_inconsistency", "contradictory"
-        """,
-        choices={"consistent": 1.0, "minor_inconsistency": 0.5, "contradictory": 0.0},
-    ),
-    # 질문 특화도 (Phase 3)
-    "question_specificity": create_classifier(
-        name="specificity", llm=llm,
-        prompt_template="""
-        [지원자 배경]: {candidate_summary}
-        [면접 질문]: {question}
-        이 질문이 지원자의 구체적 경험에 기반한 맞춤 질문인가?
-        답변: "specific", "somewhat_specific", "generic"
-        """,
-        choices={"specific": 1.0, "somewhat_specific": 0.5, "generic": 0.0},
-    ),
-}
-
-# 배치 평가 (20x 속도 향상 — async + concurrency)
-df = pd.DataFrame(test_data)
-results = run_evals(df, evaluators=list(evaluators.values()), concurrency=10)
-```
-
-### A/B 테스트 승격/롤백 기준
-
-| 항목 | 승격 조건 (B → Production) | 롤백 조건 (B → Archive) |
-|------|--------------------------|------------------------|
-| 품질 점수 | avg(B) > avg(A) + 5% | avg(B) < avg(A) |
-| 환각 비율 | hallucination(B) ≤ hallucination(A) | hallucination(B) > hallucination(A) + 2% |
-| 토큰 비용 | cost(B) ≤ cost(A) × 1.2 | cost(B) > cost(A) × 1.5 |
-| 샘플 수 | n ≥ 50 (5일 × 10회, 통계적 유의성) | n < 30 (불충분) |
-| 응답 속도 | latency(B) ≤ latency(A) × 1.3 | latency(B) > latency(A) × 2.0 |
-
-### A/B 테스트 실행 주기 (사전 런칭 집중 모드)
-
-> **현재 상태**: 서비스 미출시 — 자체 품질 업그레이드 집중 기간. 매일 테스트를 돌려 빠르게 프롬프트 품질을 수렴시킨다.
-
-```
-Daily (매일 — 프롬프트당 A 5회 + B 5회 = 총 10회):
-  ┌─────────────────────────────────────────────────────────┐
-  │  P0 (select_topics, quality_review)                      │
-  │    → A 버전 5회 실행 + B 버전 5회 실행 = 10회/일         │
-  │    → 평가자 자동 채점 → 일간 비교 리포트                  │
-  │                                                         │
-  │  P1 (document_analysis, v2_generation)                   │
-  │    → A 버전 5회 실행 + B 버전 5회 실행 = 10회/일         │
-  │    → 프로필 완전성 + 역량 매칭 평가                       │
-  │                                                         │
-  │  P2 (jd_analysis, finalization)                          │
-  │    → A 버전 5회 실행 + B 버전 5회 실행 = 10회/일         │
-  │    → JD 구조화 + 교차 일관성 평가                         │
-  └─────────────────────────────────────────────────────────┘
-
-  총 일일 테스트: 6개 프롬프트 × 10회 = 60회/일
-
-  일간 판정 흐름:
-    1. 매일 테스트 실행 (create_test_job.py 활용, 다양한 입력 조합)
-    2. Langfuse/Phoenix 평가자 자동 채점
-    3. 5일간 누적 데이터 (각 프롬프트 50회) → 통계적 유의성 확보
-    4. 5일 누적 avg(B) > avg(A) + 5% → B를 production label로 승격
-    5. 승격 후 → B가 새 A가 되고, 다음 후보 C 개발 → 반복
-
-On-demand (즉시):
-  - 프롬프트 수정 시 → 당일 10회 테스트 즉시 실행
-  - 새 Activity 추가 시 → 관련 평가자 추가 + 10회 베이스라인 측정
-  - 품질 하락 감지 시 → 즉시 원인 분석 + 롤백 판단
-
-런칭 전 졸업 기준:
-  - 모든 P0 프롬프트 Evidence Score 평균 ≥ 80
-  - 모든 P1 프롬프트 정확도 ≥ 85%
-  - Phase 4 교차 일관성 모순 0개 (10회 연속)
-  - 환각 비율 0% (50회 연속)
-  → 졸업 후 운영 모드 전환 (주간 벤치마크로 축소)
-```
-
-### 일일 A/B 테스트 실행 방법
-
-```bash
-# 1. 다양한 입력 조합으로 테스트 Job 5개 생성
-for i in 1 2 3 4 5; do
-  docker compose exec backend python scripts/create_test_job.py \
-    --email test${i}@example.com \
-    --level $(echo "주니어 시니어 CTO/VP 리드 미들" | cut -d' ' -f$i) \
-    --lang $(echo "ko en ko en ko" | cut -d' ' -f$i) \
-    --questions $(echo "15 20 25 10 20" | cut -d' ' -f$i)
-done
-
-# 2. Temporal 워크플로우 실행 대기 (Phase 0-5 완료)
-
-# 3. Langfuse에서 실험 결과 비교
-#    Langfuse UI → Experiments → 프롬프트 버전별 품질 점수 비교
-
-# 4. Phoenix 배치 평가 (선택)
-docker compose exec backend python scripts/run_phoenix_eval.py \
-  --prompt select_topics --versions "v2.0,v2.1" --runs 5
-```
-
-### Langfuse Eval 통합 방안 (LLM-as-Judge + SDK)
-
-> Langfuse는 이미 프로젝트에 통합되어 있으므로, Eval 기능을 활용하여 전체 파이프라인 품질 검증을 자동화
-
-#### 1. LLM-as-Judge 평가자 (전체 파이프라인)
-
-Langfuse UI → Evaluators → 아래 평가자 생성:
-
-| 평가자 | 타입 | 대상 Activity | 평가 내용 |
-|--------|------|--------------|----------|
-| `profile_extraction_quality` | NUMERIC (0-1) | `analyze_documents` | 프로필 추출 완전성 + 정확도 |
-| `jd_analysis_quality` | NUMERIC (0-1) | `analyze_jd` | 요구사항 구조화 정확도 |
-| `code_analysis_depth` | NUMERIC (0-1) | `analyze_code` | HYBRID 분석 깊이 + 정확도 |
-| `kg_entity_accuracy` | NUMERIC (0-1) | `build_knowledge_graph` | KG 엔티티/관계 정확도 |
-| `question_relevance` | NUMERIC (0-1) | `craft_question` | JD + 후보자 경험 ↔ 질문 관련성 |
-| `question_specificity` | NUMERIC (0-1) | `craft_question` | 후보자 특화 vs 범용 |
-| `evidence_grounding` | NUMERIC (0-1) | `craft_question` | 근거 기반 vs 환각 |
-| `followup_quality` | NUMERIC (0-1) | `design_follow_ups` | 꼬리질문 논리성/연관성 |
-| `intel_brief_accuracy` | NUMERIC (0-1) | `generate_intel_brief` | 요약 정확성 + 매칭 근거 |
-| `radar_score_grounding` | NUMERIC (0-1) | `generate_deep_analysis` | 레이더 점수 근거 타당성 |
-| `decision_consistency` | NUMERIC (0-1) | `generate_decision_support` | 추천/점수/위험 일관성 |
-| `cross_tab_consistency` | NUMERIC (0-1) | `finalize_output` | 4탭 교차 일관성 |
-
-#### 2. SDK 기반 스코어 기록 (전 Activity 확장)
-
-```python
-# 각 Activity 완료 후 품질 스코어 자동 기록
-from app.core.evaluation import create_score
-
-# Phase 2: 분석 Activity 스코어
-async def score_analysis_quality(trace_id, activity_name, result):
-    completeness = calculate_completeness(result)
-    create_score(trace_id, f"{activity_name}_completeness", completeness)
-    create_score(trace_id, f"{activity_name}_accuracy", calculate_accuracy(result))
-
-# Phase 3: 질문 Activity 스코어 (기존)
-async def score_question_quality(trace_id, question_review):
-    create_score(trace_id, "question_quality", question_review["score"] / 10)
-    create_score(trace_id, "evidence_score", question_review["evidence_score"] / 100)
-
-# Phase 4: 결과물 Activity 스코어 (신규)
-async def score_output_quality(trace_id, tab_name, output, analysis_data):
-    consistency = check_cross_consistency(output, analysis_data)
-    create_score(trace_id, f"{tab_name}_consistency", consistency)
-    create_score(trace_id, f"{tab_name}_grounding", check_evidence(output))
-```
-
-#### 3. 골든 데이터셋 (Activity별)
-
-```python
-# Activity별 골든 데이터셋 구축
-datasets = {
-    "profile_extraction_golden":   "analyze_documents 고품질 결과",
-    "jd_analysis_golden":          "analyze_jd 고품질 결과",
-    "topic_selection_golden":      "select_topics 고품질 결과",
-    "question_generation_golden":  "craft_question 고품질 결과",
-    "intel_brief_golden":          "generate_intel_brief 고품질 결과",
-    "deep_analysis_golden":        "generate_deep_analysis 고품질 결과",
-    "decision_support_golden":     "generate_decision_support 고품질 결과",
-}
-
-# 각 데이터셋은 최소 20개 입출력 쌍
-# 실제 운영 데이터에서 높은 품질 점수를 받은 결과를 자동 큐레이션
-```
-
-#### 4. Annotation Queue (사람 평가)
-
-- 채용 담당자가 생성된 전체 결과물(4탭)을 직접 평가
-- LLM-as-Judge 점수 ↔ 사람 평가 점수 상관관계 검증
-- Cohen's Kappa로 자동 평가 신뢰도 측정
-- 신뢰도 낮은 평가자 → 프롬프트 개선 트리거
-
-### Kimi K2.5 파인튜닝 현황
-
-| 항목 | 상태 | 비고 |
-|------|------|------|
-| Moonshot Platform API 파인튜닝 | ❌ 미지원 | `moonshot-v1-auto` API는 추론만 가능 |
-| Open-source 모델 (HuggingFace) | ✅ 가능 | `moonshotai/Kimi-K2.5` (1T params, 32B active, MoE) |
-| LoRA 파인튜닝 | ✅ 가능 | LlamaFactory + KTransformers (2x RTX 4090 필요) |
-| Fireworks AI 관리형 | ✅ 가능 | LoRA 파인튜닝 지원, Full RL은 대기 목록 |
-| NVIDIA NeMo | ✅ 가능 | AutoModel 기반 커스터마이징 |
-
-#### 파인튜닝 대비 현실적 품질 개선 전략 (권장 순서)
-
-```
-Phase 1 (현재): 프롬프트 최적화 (Langfuse 프롬프트 관리)
-    ↓ 효과 부족 시
-Phase 2: Few-shot 예시 강화 (골든 데이터셋 기반)
-    ↓ 효과 부족 시
-Phase 3: Eval 기반 자동 품질 게이트 (Langfuse + Phoenix)
-    + Prompt A/B Testing (실험적 검증)
-    ↓ 효과 부족 시
-Phase 4: 파인튜닝 검토 (Fireworks AI LoRA 또는 self-hosted)
-```
-
-**현재 권장**: Phase 1-3에 집중. 파인튜닝은 GPU 인프라 비용 대비 프롬프트 최적화 + Eval 게이트 + A/B 테스트가 더 비용 효율적.
-
-### 전체 품질 자동 개선 루프
-
-```
-┌──────────────────────────────────────────────────────────┐
-│        AGENT OUTPUT QUALITY AUTO-IMPROVEMENT LOOP         │
-│                                                          │
-│  ┌──────────┐   ┌──────────┐   ┌───────────────────────┐│
-│  │ GENERATE │ → │ EVALUATE │ → │ SCORE & RECORD        ││
-│  │ (전체    │   │ (Phase별 │   │ (Langfuse + DB 기록)  ││
-│  │ 파이프   │   │  평가자)  │   │                       ││
-│  │ 라인)    │   │          │   │                       ││
-│  └──────────┘   └──────────┘   └──────────┬────────────┘│
-│       ↑                                    │             │
-│  ┌────┴────┐                    ┌─────────↓───────────┐ │
-│  │ REVISE  │ ←  LOW SCORE ←── │ ANALYZE TRENDS       │ │
-│  │ (재생성 │                   │ (Activity별 품질     │ │
-│  │  / 수정)│                   │  추세 분석)          │ │
-│  └─────────┘                   └─────────┬───────────┘ │
-│                                           │             │
-│                              ┌────────────↓───────────┐ │
-│                              │ A/B TEST & PROMOTE     │ │
-│                              │ (프롬프트 실험 →       │ │
-│                              │  승자 승격)            │ │
-│                              └────────────────────────┘ │
-└──────────────────────────────────────────────────────────┘
-
-자동화 트리거:
-Phase 2:
-- 프로필 추출 완전성 < 90% → analyze_documents 프롬프트 A/B 테스트 트리거
-- JD 기술 누락 > 2개 → analyze_jd 프롬프트 검토
-- HYBRID 분석 미완수 → analyze_code 재실행
-
-Phase 3:
-- Evidence Score < 70 → revise_questions 자동 호출
-- 환각 탐지 → 해당 질문 REJECT + 재생성
-- 중복 발견 → 중복 제거 + 대체 질문 생성
-- 카테고리 불균형 → 부족 카테고리 추가 질문 생성
-
-Phase 4:
-- Intel Brief 사실 오류 탐지 → 재생성
-- 레이더 점수 근거 부족 → 분석 데이터 재참조
-- Decision-Analysis 모순 탐지 → 교차 검증 후 수정
-
-전체:
-- Langfuse 주간 리포트 → Activity별 품질 추세 대시보드
-- 품질 하락 Activity → 자동 A/B 테스트 트리거
-- A/B 테스트 승자 → Langfuse production label 자동 승격
-```
+**Langfuse API/Phoenix 코드, 12개 LLM-as-Judge 평가자, 골든 데이터셋, 파인튜닝 현황** → `docs/claude-references/prompt-ab-testing.md`
