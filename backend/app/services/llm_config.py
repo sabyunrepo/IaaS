@@ -24,8 +24,8 @@ T = TypeVar('T', bound=BaseModel)
 # Activity별 최적 LLM 모델 설정 (Langfuse upload_prompts_to_langfuse.py와 동기화)
 # =============================================================================
 # 모델 선택 기준:
-# - 전체 Activity: Kimi K2.5 (256K context, $0.06/$0.18 per 1M, 병렬 안정)
-# - 코드 분석 최적화: Kimi K2.5 (CODER 모드)
+# - 전체 Activity: Kimi K2 (256K context, $0.60/$2.50 per 1M USD, 캐시 시 $0.15 input)
+# - 코드 분석: Kimi K2 (enhanced agentic coding, context 이해 향상)
 # - Fallback: GPT-4o → Claude Sonnet (settings.LLM_FALLBACK_MODEL)
 # - GLM 무료 모델: 동시 요청 1개 제한으로 병렬 Activity 타임아웃 발생 → 전면 제거
 # =============================================================================
@@ -38,13 +38,15 @@ GLM_CHAT_MODEL = "zai/glm-4.5-flash"  # 무료 모델
 GLM_CODER_MODEL = "zai/glm-4.7"  # 코드 분석용 플래그십
 
 # Moonshot AI (Kimi) 모델
-# K2: 128K context, MoE 1T params (32B active), $0.06/1M input, $0.18/1M output
-# K2.5: 256K context, vision 지원, $0.06/1M input, $0.18/1M output (권장)
+# K2 (kimi-k2-0905-preview): 256K context, MoE 1T(32B active), $0.60/$2.50 per 1M USD
+#   - enhanced agentic coding, improved frontend code quality, better context understanding
+# K2.5 (kimi-k2.5): 256K context, 멀티모달(vision+text), $0.60/$3.00 per 1M USD
+#   - thinking/non-thinking 모드, 이미지 분석 가능 (향후 이력서 이미지용)
 # 중국어+영어 최적화, 코드 분석/문서 이해에 강점
-KIMI_K2_MODEL = "moonshot/moonshot-v1-128k"  # K2: 128K context
-KIMI_K2_5_MODEL = "moonshot/moonshot-v1-auto"  # K2.5: auto mode (최신, 권장)
-KIMI_CHAT_MODEL = KIMI_K2_5_MODEL  # 기본 채팅용
-KIMI_CODER_MODEL = KIMI_K2_5_MODEL  # 코드 분석용
+KIMI_K2_MODEL = "moonshot/kimi-k2-0905-preview"  # K2: 256K, MoE 1T(32B active)
+KIMI_K2_5_MODEL = "moonshot/kimi-k2.5"  # K2.5: 256K, 멀티모달 (향후 업그레이드용)
+KIMI_CHAT_MODEL = KIMI_K2_MODEL  # 전체 Activity 기본 — 안정성 우선
+KIMI_CODER_MODEL = KIMI_K2_MODEL  # 코드 분석 — enhanced agentic coding
 
 # Legacy alias (backward compatibility)
 CODE_ANALYSIS_GLM_MODEL = GLM_CODER_MODEL
@@ -56,7 +58,7 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     # Phase 1: Planning
     "select_topics": KIMI_CHAT_MODEL,
 
-    # Phase 2: Analysis - Kimi K2.5 (256K context, 문서/코드 분석 강점)
+    # Phase 2: Analysis - Kimi K2 (256K context, 문서/코드 분석 강점)
     "analyze_documents": KIMI_CHAT_MODEL,
     "analyze_code": KIMI_CODER_MODEL,
     "analyze_jd": KIMI_CHAT_MODEL,
@@ -66,7 +68,7 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     "code_deep_analysis": KIMI_CODER_MODEL,          # Stage 2: Deep Analysis (prefix match)
     "code_synthesis_analysis": KIMI_CODER_MODEL,     # Stage 3: Synthesis Agent
 
-    # Phase 3: Question Generation - 전체 Kimi K2.5
+    # Phase 3: Question Generation - 전체 Kimi K2
     "craft_question": KIMI_CHAT_MODEL,               # 핵심 질문 생성
     "enhance_terminology": KIMI_CHAT_MODEL,           # 용어 설명
     "craft_evaluation_scenarios": KIMI_CHAT_MODEL,    # 평가 시나리오
@@ -84,7 +86,7 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     "generate_terminology": KIMI_CHAT_MODEL,
     "generate_depth_markers": KIMI_CHAT_MODEL,
 
-    # Phase 4: Review & Finalization - 전체 Kimi K2.5
+    # Phase 4: Review & Finalization - 전체 Kimi K2
     "quality_review": KIMI_CHAT_MODEL,
     "check_duplicates": KIMI_CHAT_MODEL,              # 중복 체크
     "finalize_candidate_summary": KIMI_CHAT_MODEL,
@@ -94,7 +96,7 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     "generate_deep_analysis": KIMI_CHAT_MODEL,         # v2 Deep Analysis 생성
     "generate_decision_support": KIMI_CHAT_MODEL,      # v2 Decision Support 생성
 
-    # Phase 4: v2 Generation (Intel/Analysis/Decision) - Kimi K2.5
+    # Phase 4: v2 Generation (Intel/Analysis/Decision) - Kimi K2
     "intel_competency_matching": KIMI_CHAT_MODEL,
     "radar_analysis": KIMI_CHAT_MODEL,
     "engineering_dna": KIMI_CHAT_MODEL,
@@ -107,8 +109,8 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
 # =============================================================================
 # 모델별 최대 출력 토큰 수
 # =============================================================================
-# Kimi K2.5: 256K context, 대용량 출력 가능 → 16384
-# Kimi K2:   128K context → 12288
+# Kimi K2:   256K context, MoE 1T(32B active) → 16384
+# Kimi K2.5: 256K context, 멀티모달 → 16384
 # GLM-4.7:   플래그십 → 8192
 # GLM-4.5-flash: 무료, 제한적 → 4096
 # GPT-4o:    문서상 max_output_tokens=16384
