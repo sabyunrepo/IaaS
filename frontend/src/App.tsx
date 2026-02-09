@@ -17,6 +17,7 @@ const AnalysisLogsPage = lazy(() => import('./pages/AnalysisLogsPage').then(m =>
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then(m => ({ default: m.AuthCallbackPage })))
 const CandidateListPage = lazy(() => import('./pages/CandidateListPage').then(m => ({ default: m.CandidateListPage })))
+const FindCEOPage = lazy(() => import('./pages/FindCEOPage').then(m => ({ default: m.FindCEOPage })))
 const CandidateRegisterPage = lazy(() => import('./pages/CandidateRegisterPage').then(m => ({ default: m.CandidateRegisterPage })))
 const CandidateSearchPage = lazy(() => import('./pages/CandidateSearchPage').then(m => ({ default: m.CandidateSearchPage })))
 
@@ -102,10 +103,10 @@ function App() {
               element={isAuthenticated ? <CandidateSearchPage /> : <Navigate to="/login" />}
             />
 
-            {/* Find CEO (개발자가 CEO 찾기) — Cycle E에서 전용 페이지 구현, 현재는 플레이스홀더 */}
+            {/* Find CEO (개발자가 CEO 찾기) */}
             <Route
               path="/find-ceo"
-              element={isAuthenticated ? <CandidateListPage /> : <Navigate to="/login" />}
+              element={isAuthenticated ? <FindCEOPage /> : <Navigate to="/login" />}
             />
 
             {/* 후보자 기존 경로 유지 (호환) */}
