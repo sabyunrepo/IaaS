@@ -1,17 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCandidate } from '../hooks/useCandidate'
+import { useAuth } from '../hooks/useAuth'
 import { SectionCard } from '../components/SectionCard'
 import { FileUploadField, type FileUpload } from '../components/FileUploadField'
+import { GitHubRepoSelector } from '../components/GitHubRepoSelector'
 import { getToken } from '../lib/api'
 
 export function CandidateRegisterPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { createCandidate } = useCandidate()
+  const { user } = useAuth()
 
-  // Basic info
+  // Basic info — auto-fill from authenticated user
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [experienceLevel, setExperienceLevel] = useState('미들')
@@ -19,6 +22,15 @@ export function CandidateRegisterPage() {
   const [githubUsername, setGithubUsername] = useState('')
   const [skillInput, setSkillInput] = useState('')
   const [skills, setSkills] = useState<string[]>([])
+  const [selectedRepos, setSelectedRepos] = useState<string[]>([])
+
+  // Auto-fill from auth user data
+  useEffect(() => {
+    if (!user) return
+    if (!name && user.display_name) setName(user.display_name)
+    if (!email && user.email) setEmail(user.email)
+    if (!githubUsername && user.github_username) setGithubUsername(user.github_username)
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // File uploads
   const [resume, setResume] = useState<FileUpload>({ file: null, path: null, uploading: false, error: null })
@@ -105,6 +117,8 @@ export function CandidateRegisterPage() {
       if (portfolio.path) profileData.portfolio_path = portfolio.path
       if (coverLetter.path) profileData.cover_letter_path = coverLetter.path
 
+      if (selectedRepos.length > 0) profileData.selected_repos = selectedRepos
+
       await createCandidate({
         name: name.trim(),
         email: email.trim() || undefined,
@@ -115,7 +129,7 @@ export function CandidateRegisterPage() {
         profile_data: Object.keys(profileData).length > 0 ? profileData : undefined,
       })
 
-      navigate('/candidates')
+      navigate('/find-cto')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -142,6 +156,21 @@ export function CandidateRegisterPage() {
           </div>
         </div>
       </div>
+
+      {/* Auto-fill info banner */}
+      {user && (user.display_name || user.email || user.github_username) && (
+        <div className="mb-6 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+          <div className="flex items-center gap-3">
+            <svg className="h-5 w-5 flex-shrink-0 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-indigo-800">{t('auto_filled_info')}</p>
+              <p className="mt-0.5 text-xs text-indigo-600">{t('auto_filled_hint')}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
@@ -281,6 +310,19 @@ export function CandidateRegisterPage() {
           </div>
         </SectionCard>
 
+        {/* GitHub Repository Selection */}
+        <SectionCard
+          title={t('github_repos')}
+          description={t('github_repos_desc')}
+        >
+          <GitHubRepoSelector
+            selectedRepos={selectedRepos}
+            onSelectionChange={setSelectedRepos}
+            maxSelection={10}
+            githubConnected={!!(user?.providers?.includes('github'))}
+          />
+        </SectionCard>
+
         {/* Document Upload */}
         <SectionCard
           title={t('document_upload')}
@@ -328,7 +370,7 @@ export function CandidateRegisterPage() {
         <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-6">
           <button
             type="button"
-            onClick={() => navigate('/candidates')}
+            onClick={() => navigate('/find-cto')}
             className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             {t('cancel')}

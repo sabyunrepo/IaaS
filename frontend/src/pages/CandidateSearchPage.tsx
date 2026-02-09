@@ -187,7 +187,7 @@ export function CandidateSearchPage() {
       })
 
       // 2. Fetch all candidates
-      const candidates = await fetchCandidates({ limit: 200 })
+      const candidates = await fetchCandidates({ limit: 100 })
       if (!candidates || candidates.length === 0) {
         setRankings([])
         setHasSearched(true)
