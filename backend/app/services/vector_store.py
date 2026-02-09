@@ -118,6 +118,67 @@ class VectorStore:
 
         logger.info(f"[{self.job_id}] Stored {len(entries)} code vectors")
 
+    async def store_static_analysis(self, static_analysis: dict) -> None:
+        """정적 분석 요약 → 임베딩 저장 (시맨틱 검색 활용)"""
+        logger.info(f"[{self.job_id}] Storing static analysis vectors")
+
+        summary_parts = []
+        # Language breakdown
+        langs = static_analysis.get("language_breakdown", {})
+        if langs:
+            summary_parts.append(f"Languages: {', '.join(f'{k} ({v} lines)' for k, v in langs.items())}")
+
+        # Security
+        score = static_analysis.get("security_score", 100)
+        findings = static_analysis.get("security_findings", [])
+        summary_parts.append(f"Security score: {score}/100, {len(findings)} findings")
+        for f in findings[:5]:
+            summary_parts.append(f"  - {f.get('severity', 'WARNING')}: {f.get('rule_id', '')} in {f.get('file_path', '')}")
+
+        # Complexity
+        avg_cc = static_analysis.get("overall_avg_cc", 0)
+        max_cc = static_analysis.get("overall_max_cc", 0)
+        summary_parts.append(f"Complexity: avg CC={avg_cc:.1f}, max CC={max_cc}")
+
+        # Complexity hotspots
+        for fm in static_analysis.get("function_metrics", [])[:5]:
+            if fm.get("cyclomatic_complexity", 0) >= 10:
+                summary_parts.append(
+                    f"  - {fm.get('function_name', '')} in {fm.get('file_path', '')}: CC={fm['cyclomatic_complexity']}"
+                )
+
+        # Documentation & tests
+        doc_ratio = static_analysis.get("documentation_ratio", 0)
+        test_ratio = static_analysis.get("test_to_code_ratio", 0)
+        summary_parts.append(f"Documentation ratio: {doc_ratio:.0%}, Test ratio: {test_ratio:.0%}")
+
+        # Maintainability
+        mi = static_analysis.get("maintainability_index")
+        if mi is not None:
+            summary_parts.append(f"Maintainability Index: {mi:.1f}/100")
+
+        summary_text = "\n".join(summary_parts)
+
+        async with async_session() as session:
+            embedding = await _get_embedding(summary_text)
+            row = EmbeddingDB(
+                id=uuid.uuid4(),
+                job_id=uuid.UUID(self.job_id),
+                kind="static_analysis",
+                content_key="static_analysis_summary",
+                content_text=summary_text[:4000],
+                extra_data={
+                    "source": "static_analysis",
+                    "security_score": score,
+                    "avg_cc": avg_cc,
+                },
+                embedding=embedding,
+            )
+            session.add(row)
+            await session.commit()
+
+        logger.info(f"[{self.job_id}] Stored static analysis vector")
+
     async def search_code(self, query: str, limit: int = 5) -> list[dict]:
         """코드 벡터 유사도 검색"""
         return await self._search(query, "code", limit)

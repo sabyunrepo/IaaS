@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Semgrep CLI (installed separately — large package, ~100MB)
+RUN pip install --no-cache-dir semgrep>=1.50.0
+
 # Source code
 COPY . .
 

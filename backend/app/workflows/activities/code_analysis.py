@@ -212,6 +212,17 @@ async def analyze_code(
         except Exception as e:
             logger.warning(f"vector_store_code_failed: {e}", exc_info=False)
 
+    # Store static analysis vectors (non-blocking)
+    if job_id:
+        for repo in repositories:
+            sa = repo.get("static_analysis")
+            if sa:
+                try:
+                    vs = get_vector_store(job_id)
+                    await vs.store_static_analysis(sa)
+                except Exception as e:
+                    logger.warning(f"vector_store_static_analysis_failed: {e}", exc_info=False)
+
     # Log final result
     if alog:
         await alog.result("Code analysis completed", {
@@ -312,6 +323,31 @@ async def analyze_single_repo(
         since_years=settings.GITHUB_ANALYSIS_YEARS,
         file_types=file_types,
     )
+
+    # ================================================================
+    # Phase 2.5: Static Analysis (optional, non-blocking)
+    # shallow clone → 후보자 파일만 Lizard/Semgrep/Radon 분석
+    # ================================================================
+    static_analysis = None
+    candidate_file_paths = [f.get("filename", "") for f in driller_result.get("files", []) if f.get("filename")]
+    if candidate_file_paths:
+        activity.heartbeat(f"Phase 2.5: Static analysis for {repo_name}")
+        if alog:
+            await alog.progress(f"Phase 2.5: Static analysis for {repo_name}", {
+                "phase": 2.5,
+                "target_files_count": len(candidate_file_paths),
+            })
+        try:
+            from app.services.static_analysis_runner import StaticAnalysisRunner
+            runner = StaticAnalysisRunner()
+            static_result = await runner.run_analysis(
+                repo_url=repo_url,
+                target_files=candidate_file_paths,
+            )
+            static_analysis = static_result.model_dump()
+            activity.heartbeat("Static analysis completed")
+        except Exception as e:
+            logger.warning(f"Static analysis failed for {repo_name} (non-fatal): {e}")
 
     # ================================================================
     # Phase 3: AST 분석
@@ -426,6 +462,18 @@ async def analyze_single_repo(
     # ================================================================
     # 결과 조립
     # ================================================================
+    # Build quality_metrics from static analysis (if available)
+    quality_metrics = {}
+    if static_analysis:
+        quality_metrics["security_score"] = static_analysis.get("security_score", 100)
+        quality_metrics["documentation_ratio"] = static_analysis.get("documentation_ratio", 0.0)
+        quality_metrics["test_coverage"] = static_analysis.get("test_to_code_ratio", 0) * 100
+        if static_analysis.get("maintainability_index") is not None:
+            quality_metrics["maintainability_index"] = static_analysis["maintainability_index"]
+        # Lizard multi-language CC takes precedence over PyDriller Python-only CC
+        if static_analysis.get("overall_avg_cc", 0) > 0:
+            quality_metrics["avg_cc"] = static_analysis["overall_avg_cc"]
+
     result = {
         "repo_url": repo_url,
         "repo_name": repo_name,
@@ -437,12 +485,16 @@ async def analyze_single_repo(
         "ast_analysis": ast_result,
         "analysis": synthesis_result,
         "notable_implementations": synthesis_result.get("notable_implementations", []),
+        "quality_metrics": quality_metrics,
+        # 정적 분석 결과 (KG/Scoring에서 활용)
+        "static_analysis": static_analysis,
         # HYBRID 분석 메타데이터
         "hybrid_metadata": {
             "key_files_count": len(key_files),
             "deep_analyses_count": len(successful_analyses),
             "failed_analyses_count": failed_count,
             "model_used": KIMI_CODER_MODEL,
+            "has_static_analysis": static_analysis is not None,
         },
     }
 
