@@ -367,4 +367,37 @@ async def revise_questions(questions: list[dict], review_feedback: dict, enriche
     )
     # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    return result if isinstance(result, list) else questions
+
+    # LLM은 revision diff 목록을 반환 (original_index, revised_question 등)
+    # 이를 원래 질문 객체에 병합해야 함 — diff를 그대로 반환하면 질문 데이터가 소실됨
+    if isinstance(result, list):
+        applied = 0
+        for revision in result:
+            if not isinstance(revision, dict):
+                continue
+            idx = revision.get("original_index")
+            if idx is None or not isinstance(idx, int) or idx < 0 or idx >= len(questions):
+                logger.warning(f"revise_questions: invalid original_index={idx}, skipping")
+                continue
+            original = questions[idx]
+            if not isinstance(original, dict):
+                continue
+
+            # question_text를 수정된 텍스트로 업데이트 (핵심 수정)
+            revised_text = revision.get("revised_question")
+            if revised_text:
+                original["question_text"] = revised_text
+                applied += 1
+
+            # revision 메타데이터를 원래 질문에 기록 (투명성)
+            for field in ("revision_type", "revision_rationale", "new_evidence_reference"):
+                if revision.get(field):
+                    original[field] = revision[field]
+            if revision.get("new_confidence_score") is not None:
+                original["confidence_score"] = revision["new_confidence_score"]
+
+        logger.info(f"revise_questions: applied {applied}/{len(result)} revisions to {len(questions)} questions")
+        return questions
+    else:
+        logger.warning("revise_questions: LLM did not return a list, returning original questions")
+        return questions
