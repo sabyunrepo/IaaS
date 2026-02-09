@@ -4,8 +4,10 @@ backend/app/workflows/activities/question_enhancement.py
 
 Extracted from question_generation.py for SRP compliance.
 """
+import asyncio
 import json
 import logging
+from typing import Any
 
 from temporalio import activity
 
@@ -14,27 +16,101 @@ from app.workflows.utils import run_llm_with_prompt_config_heartbeat
 
 logger = logging.getLogger(__name__)
 
+# 병렬 처리 상수
+ENHANCEMENT_MAX_CONCURRENCY = 10  # 동시 LLM 호출 제한 (API rate limit 방지)
+
+
+async def _run_batched_enhancement(
+    questions: list[dict],
+    prompt_file: str,
+    prompt_name: str,
+    activity_name: str,
+    extra_vars: dict[str, Any] | None = None,
+) -> dict:
+    """Enhancement Activity 질문별 병렬 LLM 호출
+
+    질문 1개당 1회 LLM 호출 → asyncio.gather로 전체 병렬 실행
+    → 결과 dict 병합. Heartbeat는 별도 태스크로 관리.
+    동시성 세마포어로 API rate limit 방지.
+
+    기존: 1 LLM 호출 × 20 질문 (프롬프트 거대, 3분+)
+    변경: 20 LLM 호출 × 1 질문 (프롬프트 소형, ~20-30s) 병렬 → wall time ~30s
+    """
+    from app.services.cached_llm import CachedLLMService, validate_llm_output
+    from app.prompts import get_prompt_with_config
+
+    llm = CachedLLMService()
+    semaphore = asyncio.Semaphore(ENHANCEMENT_MAX_CONCURRENCY)
+
+    logger.info(f"{activity_name}: {len(questions)} questions → {len(questions)} parallel LLM calls (concurrency={ENHANCEMENT_MAX_CONCURRENCY})")
+
+    async def process_single(question: dict, idx: int) -> dict:
+        """질문 1개에 대한 LLM 호출 (세마포어로 동시성 제한)"""
+        async with semaphore:
+            vars_ = {**(extra_vars or {})}
+            vars_["questions_json"] = json.dumps([question], ensure_ascii=False, default=str)
+            prompt_config = get_prompt_with_config(prompt_file, prompt_name, **vars_)
+            result = await llm.run_with_prompt_config(prompt_config)
+            validated = validate_llm_output(result, activity_name=f"{activity_name}_q{idx}")
+            return validated if isinstance(validated, dict) else {}
+
+    # Heartbeat 태스크 — 병렬 LLM 호출 중 Temporal에 alive 신호 전송
+    completed = [0]
+
+    async def heartbeat_loop():
+        count = 0
+        try:
+            while True:
+                await asyncio.sleep(30)
+                count += 1
+                activity.heartbeat(
+                    f"{activity_name}: {completed[0]}/{len(questions)} done (#{count})"
+                )
+        except asyncio.CancelledError:
+            pass
+
+    hb_task = asyncio.create_task(heartbeat_loop())
+    try:
+        async def process_and_track(question: dict, idx: int) -> dict:
+            result = await process_single(question, idx)
+            completed[0] += 1
+            return result
+
+        results = await asyncio.gather(
+            *[process_and_track(q, i) for i, q in enumerate(questions)],
+            return_exceptions=True,
+        )
+    finally:
+        hb_task.cancel()
+
+    # 결과 병합
+    merged: dict = {}
+    failed_count = 0
+    for i, result in enumerate(results):
+        if isinstance(result, dict):
+            merged.update(result)
+        elif isinstance(result, Exception):
+            failed_count += 1
+            logger.warning(f"{activity_name} question {i} failed: {result}")
+
+    logger.info(f"{activity_name}: merged {len(merged)} results, {failed_count} failures")
+    return merged
+
 
 @activity.defn
 @observe_activity(name="enhance_terminology", phase="question_generation")
 async def enhance_terminology(questions: list[dict], enriched_input: dict) -> dict:
-    """3c. Terminology Agent — 전문용어에 비개발자용 설명 추가"""
-    from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt_with_config
-
-    llm = CachedLLMService()
+    """3c. Terminology Agent — 전문용어에 비개발자용 설명 추가 (배치 병렬)"""
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
 
-    prompt_config = get_prompt_with_config(
-        "question_generation.yaml", "enhance_terminology",
-        output_language=output_language,
-        questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
+    validated = await _run_batched_enhancement(
+        questions=questions[:25],
+        prompt_file="question_generation.yaml",
+        prompt_name="enhance_terminology",
+        activity_name="enhance_terminology",
+        extra_vars={"output_language": output_language},
     )
-    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    from app.services.cached_llm import validate_llm_output
-    validated = validate_llm_output(result, activity_name="enhance_terminology")
 
     # 용어 설명 커버리지 검증 — plain_explanation 누락 + 중복 + 자기참조 감지
     if isinstance(validated, dict):
@@ -54,13 +130,11 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
                     if not explanation_str or len(explanation_str) < 3:
                         missing_explanation += 1
                     elif term_name and term_name in explanation_str.lower() and len(explanation_str) < len(term_name) * 3:
-                        # 자기참조: 설명이 용어명을 반복하며 짧은 경우
                         self_referential += 1
 
                     if term_name:
                         all_term_names.append(term_name)
 
-        # 중복 용어 감지
         from collections import Counter as _TermCounter
         term_counts = _TermCounter(all_term_names)
         duplicates = {t: c for t, c in term_counts.items() if c > 1}
@@ -81,25 +155,18 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
 @activity.defn
 @observe_activity(name="craft_evaluation_scenarios", phase="question_generation")
 async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict) -> dict:
-    """3d. Scenario Writer Agent — 3단계 평가 시나리오 생성"""
-    from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt_with_config
-
-    llm = CachedLLMService()
+    """3d. Scenario Writer Agent — 3단계 평가 시나리오 생성 (배치 병렬)"""
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
     experience_level = raw_input.get("experience_level", "미들")
 
-    prompt_config = get_prompt_with_config(
-        "question_generation.yaml", "craft_evaluation_scenarios",
-        output_language=output_language,
-        experience_level=experience_level,
-        questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
+    validated = await _run_batched_enhancement(
+        questions=questions[:25],
+        prompt_file="question_generation.yaml",
+        prompt_name="craft_evaluation_scenarios",
+        activity_name="craft_evaluation_scenarios",
+        extra_vars={"output_language": output_language, "experience_level": experience_level},
     )
-    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    from app.services.cached_llm import validate_llm_output
-    validated = validate_llm_output(result, activity_name="craft_evaluation_scenarios")
 
     # 3단계 시나리오 구조 검증 — expert/mid_level/low_level 존재 확인
     EXPECTED_LEVELS = {"expert", "mid_level", "low_level"}
@@ -118,7 +185,6 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
                 missing = EXPECTED_LEVELS - present_levels
                 logger.warning(f"craft_evaluation_scenarios: {q_key} missing levels: {missing}")
 
-            # 시나리오 텍스트 최소 길이 + 구분도 검증
             texts = []
             for level in EXPECTED_LEVELS:
                 level_data = q_data.get(level, {})
@@ -131,9 +197,7 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
                 if len(str(text).strip()) < 15:
                     short_scenario_count += 1
 
-            # 구분도: expert와 low_level 텍스트가 너무 유사하면 경고
             if len(texts) >= 3 and texts[0] and texts[2]:
-                # 간단한 유사도: 공통 단어 비율
                 expert_words = set(texts[0].lower().split())
                 low_words = set(texts[2].lower().split())
                 if expert_words and low_words:
@@ -155,25 +219,18 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
 @activity.defn
 @observe_activity(name="design_follow_ups", phase="question_generation")
 async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict:
-    """3e. Follow-up Designer Agent — 후속질문 분기 설계"""
-    from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt_with_config
-
-    llm = CachedLLMService()
+    """3e. Follow-up Designer Agent — 후속질문 분기 설계 (질문별 병렬)"""
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
     experience_level = raw_input.get("experience_level", "미들")
 
-    prompt_config = get_prompt_with_config(
-        "question_generation.yaml", "design_follow_ups",
-        output_language=output_language,
-        experience_level=experience_level,
-        questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
+    validated = await _run_batched_enhancement(
+        questions=questions[:25],
+        prompt_file="question_generation.yaml",
+        prompt_name="design_follow_ups",
+        activity_name="design_follow_ups",
+        extra_vars={"output_language": output_language, "experience_level": experience_level},
     )
-    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    from app.services.cached_llm import validate_llm_output
-    validated = validate_llm_output(result, activity_name="design_follow_ups")
 
     # 후속질문 트리거 커버리지 + 구조 검증
     EXPECTED_TRIGGERS = {"expert", "mid", "low"}
@@ -203,23 +260,17 @@ async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict
 @activity.defn
 @observe_activity(name="generate_interviewer_notes", phase="question_generation")
 async def generate_interviewer_notes(questions: list[dict], enriched_input: dict) -> dict:
-    """3f. Interviewer Note Agent — 면접관 참고 노트"""
-    from app.services.cached_llm import CachedLLMService
-    from app.prompts import get_prompt_with_config
-
-    llm = CachedLLMService()
+    """3f. Interviewer Note Agent — 면접관 참고 노트 (질문별 병렬)"""
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
 
-    prompt_config = get_prompt_with_config(
-        "question_generation.yaml", "generate_interviewer_notes",
-        output_language=output_language,
-        questions_json=json.dumps(questions[:25], ensure_ascii=False, default=str),
+    validated = await _run_batched_enhancement(
+        questions=questions[:25],
+        prompt_file="question_generation.yaml",
+        prompt_name="generate_interviewer_notes",
+        activity_name="generate_interviewer_notes",
+        extra_vars={"output_language": output_language},
     )
-    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
-    result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-    from app.services.cached_llm import validate_llm_output
-    validated = validate_llm_output(result, activity_name="generate_interviewer_notes")
 
     # 면접관 노트 핵심 필드 존재 검증
     REQUIRED_FIELDS = {"business_interpretation", "daily_analogy", "what_to_listen_for"}

@@ -243,7 +243,6 @@ const resources = {
       radar_required_legend: '요구 수준',
       // ResultPage - header & common
       result_question_count: '{{count}}개 질문',
-      result_analysis_logs: '분석 로그',
       result_back_to_list: '목록으로 돌아가기',
       result_terms_count: '{{count}}개 용어',
       // ResultPage - v2 tabs
@@ -298,7 +297,6 @@ const resources = {
       // JobStatusPage
       status_title: '면접 스크립트 #{{id}}',
       progress_label: '진행률',
-      view_analysis_logs: '분석 로그 보기',
       processing_steps: '처리 단계',
       script_generated_desc: '면접 스크립트가 성공적으로 생성되었습니다',
       create_new_script: '새 스크립트 생성하기',
@@ -748,7 +746,6 @@ const resources = {
       radar_required_legend: 'Required',
       // ResultPage - header & common
       result_question_count: '{{count}} questions',
-      result_analysis_logs: 'Analysis Logs',
       result_back_to_list: 'Back to List',
       result_terms_count: '{{count}} terms',
       // ResultPage - v2 tabs
@@ -803,7 +800,6 @@ const resources = {
       // JobStatusPage
       status_title: 'Interview Script #{{id}}',
       progress_label: 'Progress',
-      view_analysis_logs: 'View Analysis Logs',
       processing_steps: 'Processing Steps',
       script_generated_desc: 'Interview script generated successfully',
       create_new_script: 'Create New Script',
