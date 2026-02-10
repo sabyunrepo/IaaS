@@ -193,6 +193,12 @@ export function JobListPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
+                    <Link
+                      to={`/interview/${job.job_id}`}
+                      className="rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
+                    >
+                      {t('view_job_status')}
+                    </Link>
                     {job.status === 'completed' && (
                       <Link
                         to={`/interview/${job.job_id}/result`}

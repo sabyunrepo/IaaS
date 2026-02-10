@@ -4,7 +4,7 @@ import { initReactI18next } from 'react-i18next'
 const resources = {
   ko: {
     translation: {
-      app_title: 'Vantict Sniper',
+      app_title: 'HireReady',
       login: '로그인',
       logout: '로그아웃',
       // Navigation - "Job" → "면접 스크립트" 변경
@@ -49,6 +49,7 @@ const resources = {
       score_label: '점수',
       candidate_summary: '후보자 요약',
       export_json: 'JSON 내보내기',
+      view_job_status: 'Job 상세',
       print_pdf: 'PDF 인쇄',
       glossary: '용어집',
       result_error: '결과를 불러올 수 없습니다.',
@@ -237,6 +238,13 @@ const resources = {
       live_fuq_expected: '💡 기대 인사이트: ',
       live_prev_question: '← 이전 질문',
       live_next_question: '다음 질문 →',
+      live_finish_interview: '면접 완료',
+      live_interview_complete: '면접이 완료되었습니다',
+      live_scored_count: '{{scored}}/{{total}}개 질문 채점 완료',
+      live_points_unit: '점',
+      live_category_scores: '카테고리별 점수',
+      live_review_questions: '질문 다시 보기',
+      live_new_interview: '새 면접 시작',
       // RadarChart
       radar_required: '요구',
       radar_candidate_legend: '후보자',
@@ -507,7 +515,7 @@ const resources = {
   },
   en: {
     translation: {
-      app_title: 'Vantict Sniper',
+      app_title: 'HireReady',
       login: 'Login',
       logout: 'Logout',
       // Navigation - "Jobs" → "Interview Scripts" change
@@ -552,6 +560,7 @@ const resources = {
       score_label: 'Score',
       candidate_summary: 'Candidate Summary',
       export_json: 'Export JSON',
+      view_job_status: 'Job Details',
       print_pdf: 'Print PDF',
       glossary: 'Glossary',
       result_error: 'Failed to load result.',
@@ -740,6 +749,13 @@ const resources = {
       live_fuq_expected: '💡 Expected Insight: ',
       live_prev_question: '← Previous',
       live_next_question: 'Next →',
+      live_finish_interview: 'Finish Interview',
+      live_interview_complete: 'Interview Complete',
+      live_scored_count: '{{scored}}/{{total}} questions scored',
+      live_points_unit: 'pts',
+      live_category_scores: 'Scores by Category',
+      live_review_questions: 'Review Questions',
+      live_new_interview: 'New Interview',
       // RadarChart
       radar_required: 'Req',
       radar_candidate_legend: 'Candidate',

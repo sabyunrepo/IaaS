@@ -30,7 +30,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, cate
     })
   }, [questions])
 
-  const [phase, setPhase] = useState<'select' | 'interview'>('select')
+  const [phase, setPhase] = useState<'select' | 'interview' | 'summary'>('select')
   const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set())
   const [currentIndex, setCurrentIndex] = useState(0)
   const [scores, setScores] = useState<ScoresState>({})
@@ -221,9 +221,94 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, cate
     )
   }
 
+  // Summary Phase — 면접 완료 후 결과 요약
+  if (phase === 'summary') {
+    const scorePercent = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
+    const scoredCount = Object.keys(scores).length
+
+    // 카테고리별 점수 집계
+    const categoryScores: Record<string, { total: number; max: number; count: number }> = {}
+    interviewQuestions.forEach(q => {
+      const cat = q.category || t('live_other')
+      if (!categoryScores[cat]) categoryScores[cat] = { total: 0, max: 0, count: 0 }
+      categoryScores[cat].count++
+      const s = scores[q.id]
+      if (s) {
+        categoryScores[cat].total += s.totalScore
+        categoryScores[cat].max += s.maxPossibleScore
+      }
+    })
+
+    return (
+      <div className="space-y-6">
+        {/* 총점 헤더 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-1">{t('live_interview_complete')}</h3>
+          <p className="text-sm text-gray-500 mb-6">
+            {t('live_scored_count', { scored: scoredCount, total: interviewQuestions.length })}
+          </p>
+          <div className="text-5xl font-bold text-indigo-600 mb-2">
+            {scorePercent}%
+          </div>
+          <p className="text-sm text-gray-500">
+            {totalScore} / {maxScore} {t('live_points_unit')}
+          </p>
+        </div>
+
+        {/* 카테고리별 점수 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h4 className="text-base font-semibold text-gray-900 mb-4">{t('live_category_scores')}</h4>
+          <div className="space-y-3">
+            {Object.entries(categoryScores).map(([cat, data]) => {
+              const pct = data.max > 0 ? Math.round((data.total / data.max) * 100) : 0
+              return (
+                <div key={cat}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="font-medium text-gray-700">{cat}</span>
+                    <span className="text-gray-500">{data.total}/{data.max} ({pct}%)</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* 액션 버튼 */}
+        <div className="flex justify-center gap-3">
+          <button
+            onClick={() => { setPhase('interview'); setCurrentIndex(0) }}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            {t('live_review_questions')}
+          </button>
+          <button
+            onClick={() => { setPhase('select'); setCurrentIndex(0); setScores({}); setSelectedQuestions(new Set()) }}
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+          >
+            {t('live_new_interview')}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // Interview Phase
   const currentQuestion = interviewQuestions[currentIndex]
   const currentScore = scores[currentQuestion?.id]
+  const isLastQuestion = currentIndex === interviewQuestions.length - 1
 
   if (!currentQuestion) {
     return (
@@ -290,13 +375,21 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, cate
         >
           {t('live_prev_question')}
         </button>
-        <button
-          onClick={() => setCurrentIndex(Math.min(interviewQuestions.length - 1, currentIndex + 1))}
-          disabled={currentIndex === interviewQuestions.length - 1}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {t('live_next_question')}
-        </button>
+        {isLastQuestion ? (
+          <button
+            onClick={() => setPhase('summary')}
+            className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+          >
+            {t('live_finish_interview')}
+          </button>
+        ) : (
+          <button
+            onClick={() => setCurrentIndex(currentIndex + 1)}
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+          >
+            {t('live_next_question')}
+          </button>
+        )}
       </div>
     </div>
   )

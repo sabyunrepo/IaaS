@@ -350,8 +350,20 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
 
 @activity.defn
 @observe_activity(name="revise_questions", phase="question_generation")
-async def revise_questions(questions: list[dict], review_feedback: dict, enriched_input: dict) -> list[dict]:
-    """3h. Quality Review revision — 피드백 기반 질문 수정"""
+async def revise_questions(
+    all_questions: list[dict],
+    flagged_questions: list[dict],
+    review_feedback: dict,
+    enriched_input: dict,
+) -> list[dict]:
+    """3h. Quality Review revision — flagged 질문만 LLM에 전달하여 토큰 절감
+
+    Args:
+        all_questions: 전체 질문 목록 (수정 결과를 병합할 원본)
+        flagged_questions: review에서 문제 있다고 판정된 질문만 (_original_idx 포함)
+        review_feedback: review_questions의 피드백
+        enriched_input: 워크플로우 enriched input
+    """
     from app.services.cached_llm import CachedLLMService
     from app.prompts import get_prompt_with_config
 
@@ -359,45 +371,60 @@ async def revise_questions(questions: list[dict], review_feedback: dict, enriche
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
 
+    logger.info(f"revise_questions: {len(flagged_questions)}/{len(all_questions)} flagged questions to revise")
+
+    # flagged 질문만 LLM에 전달 (토큰 ~84K → ~5-20K)
     prompt_config = get_prompt_with_config(
         "question_generation.yaml", "revise_questions",
         output_language=output_language,
-        questions_json=json.dumps(questions, ensure_ascii=False, default=str),
+        questions_json=json.dumps(flagged_questions, ensure_ascii=False, default=str),
         review_feedback=json.dumps(review_feedback, ensure_ascii=False, default=str),
     )
-    # LLM 호출 중 주기적 heartbeat 전송 (타임아웃 방지)
     result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
 
-    # LLM은 revision diff 목록을 반환 (original_index, revised_question 등)
-    # 이를 원래 질문 객체에 병합해야 함 — diff를 그대로 반환하면 질문 데이터가 소실됨
+    # original_index→_original_idx 매핑 테이블 생성
+    # LLM이 반환하는 original_index는 flagged_questions 배열 내의 인덱스
+    # _original_idx는 all_questions 내의 실제 인덱스
+    idx_map: dict[int, int] = {}
+    for i, fq in enumerate(flagged_questions):
+        if isinstance(fq, dict):
+            orig_idx = fq.get("_original_idx")
+            if isinstance(orig_idx, int):
+                idx_map[i] = orig_idx
+
     if isinstance(result, list):
         applied = 0
         for revision in result:
             if not isinstance(revision, dict):
                 continue
-            idx = revision.get("original_index")
-            if idx is None or not isinstance(idx, int) or idx < 0 or idx >= len(questions):
-                logger.warning(f"revise_questions: invalid original_index={idx}, skipping")
+            flagged_idx = revision.get("original_index")
+            if flagged_idx is None or not isinstance(flagged_idx, int):
+                logger.warning(f"revise_questions: missing original_index, skipping")
                 continue
-            original = questions[idx]
+
+            # flagged 배열 인덱스 → 전체 배열 인덱스로 변환
+            real_idx = idx_map.get(flagged_idx)
+            if real_idx is None or real_idx < 0 or real_idx >= len(all_questions):
+                logger.warning(f"revise_questions: flagged_idx={flagged_idx} → real_idx={real_idx}, skipping")
+                continue
+
+            original = all_questions[real_idx]
             if not isinstance(original, dict):
                 continue
 
-            # question_text를 수정된 텍스트로 업데이트 (핵심 수정)
             revised_text = revision.get("revised_question")
             if revised_text:
                 original["question_text"] = revised_text
                 applied += 1
 
-            # revision 메타데이터를 원래 질문에 기록 (투명성)
             for field in ("revision_type", "revision_rationale", "new_evidence_reference"):
                 if revision.get(field):
                     original[field] = revision[field]
             if revision.get("new_confidence_score") is not None:
                 original["confidence_score"] = revision["new_confidence_score"]
 
-        logger.info(f"revise_questions: applied {applied}/{len(result)} revisions to {len(questions)} questions")
-        return questions
+        logger.info(f"revise_questions: applied {applied}/{len(result)} revisions to {len(all_questions)} questions (flagged: {len(flagged_questions)})")
+        return all_questions
     else:
         logger.warning("revise_questions: LLM did not return a list, returning original questions")
-        return questions
+        return all_questions
