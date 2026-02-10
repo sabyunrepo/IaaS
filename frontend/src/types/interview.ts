@@ -264,11 +264,11 @@ export interface CoverLetterInsight {
   follow_up_opportunity?: string
 }
 
-/** Decision summary */
+/** Decision summary (experience/jd_match/level은 IntelBrief candidate에서 원본 표시, GitHub #270) */
 export interface DecisionSummary {
-  experience: string
-  jd_match: string
-  level: string
+  experience?: string
+  jd_match?: string
+  level?: string
   level_evidence?: string
   strengths: string[]
   concerns: string[]

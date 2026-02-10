@@ -1,34 +1,29 @@
 /**
- * DecisionTab - JD Competency Achievement + Hiring Recommendation
+ * DecisionTab - Hiring Recommendation + Interviewer Guide
+ *
+ * 중복 데이터 정리 (GitHub #270):
+ * - candidate 기본정보 → IntelBriefTab에서만 표시
+ * - riskFlags → DeepAnalysisTab에서만 표시
+ * - categoryWeights → LiveInterviewTab에서만 표시
+ * - dataConfidence → DeepAnalysisTab에서만 표시
+ * - experience/jd_match/level → IntelBriefTab candidate에서만 표시
  */
 import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { DecisionSupport, Candidate, CategoryWeights, RiskFlag } from '../../types/interview'
+import type { DecisionSupport } from '../../types/interview'
 
 interface DecisionTabProps {
   decision: DecisionSupport
-  candidate?: Candidate
-  categoryWeights?: CategoryWeights
-  totalScore?: number
-  maxScore?: number
-  riskFlags?: RiskFlag[]
-  dataConfidence?: 'high' | 'medium' | 'low'
-  dataConfidenceScore?: number
+  overallMatch?: number
 }
 
 export const DecisionTab = memo(function DecisionTab({
   decision,
-  candidate,
-  categoryWeights,
-  totalScore = 0,
-  maxScore = 100,
-  riskFlags,
-  dataConfidence,
+  overallMatch = 0,
 }: DecisionTabProps) {
   const { t } = useTranslation()
   const { summary, interviewer_guide, jd_competency_map } = decision
-  const scorePercent = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
-  const [avatarError, setAvatarError] = useState(false)
+  const scorePercent = Math.round(Math.min(Math.max(overallMatch, 0), 100))
 
   // Determine recommendation based on score
   const getRecommendation = () => {
@@ -39,11 +34,11 @@ export const DecisionTab = memo(function DecisionTab({
   }
 
   const recommendation = getRecommendation()
-  const [guideExpanded, setGuideExpanded] = useState(false)
+  const [guideExpanded, setGuideExpanded] = useState(true)
 
   return (
     <div className="space-y-6">
-      {/* Score Summary Card with Candidate Avatar */}
+      {/* Score Summary Card */}
       <div className={`bg-gradient-to-r ${
         recommendation.color === 'emerald' ? 'from-emerald-500 to-teal-600' :
         recommendation.color === 'green' ? 'from-green-500 to-emerald-600' :
@@ -51,44 +46,14 @@ export const DecisionTab = memo(function DecisionTab({
         'from-red-500 to-rose-600'
       } rounded-xl p-6 text-white shadow-lg`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {candidate && (
-              <div className="hidden sm:block">
-                {candidate.avatar_url && !avatarError ? (
-                  <img
-                    src={candidate.avatar_url}
-                    alt={candidate.name}
-                    className="h-14 w-14 rounded-full object-cover border-2 border-white/30"
-                    onError={() => setAvatarError(true)}
-                  />
-                ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-xl font-bold">
-                    {candidate.initials || candidate.name?.charAt(0) || '?'}
-                  </div>
-                )}
-              </div>
-            )}
-            <div>
-              <h3 className="text-lg font-medium opacity-90">{t('decision_recommendation')}</h3>
-              <p className="text-2xl sm:text-4xl font-bold mt-1">{recommendation.icon} {recommendation.label}</p>
-              <p className="text-sm opacity-70 mt-1">{recommendation.desc}</p>
-              {candidate && (
-                <p className="text-sm opacity-80 mt-2">{candidate.name} · {candidate.role || candidate.current_title}</p>
-              )}
-            </div>
+          <div>
+            <h3 className="text-lg font-medium opacity-90">{t('decision_recommendation')}</h3>
+            <p className="text-2xl sm:text-4xl font-bold mt-1">{recommendation.icon} {recommendation.label}</p>
+            <p className="text-sm opacity-70 mt-1">{recommendation.desc}</p>
           </div>
           <div className="text-right">
             <div className="text-3xl sm:text-5xl font-bold">{scorePercent}%</div>
-            <div className="text-sm opacity-80">{t('decision_points', { score: totalScore, max: maxScore })}</div>
-            {dataConfidence && (
-              <div className={`text-xs font-medium mt-1 ${
-                dataConfidence === 'high' ? 'text-emerald-200'
-                : dataConfidence === 'medium' ? 'text-amber-200'
-                : 'text-red-200'
-              }`}>
-                {t('data_confidence_label')}: {t(`data_confidence_${dataConfidence}`)}
-              </div>
-            )}
+            <div className="text-sm opacity-80">{t('decision_overall_match')}</div>
           </div>
         </div>
       </div>
@@ -141,23 +106,13 @@ export const DecisionTab = memo(function DecisionTab({
           {t('decision_candidate_summary')}
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-500">{t('decision_experience')}</div>
-            <div className="font-semibold text-gray-900">{summary.experience}</div>
+        {/* Level Evidence */}
+        {summary.level_evidence && (
+          <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200 mb-6">
+            <div className="text-sm font-medium text-indigo-900">{t('decision_level_evidence')}</div>
+            <div className="text-sm text-indigo-800 mt-1">{summary.level_evidence}</div>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-500">{t('decision_jd_match')}</div>
-            <div className="font-semibold text-gray-900">{summary.jd_match}</div>
-          </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-500">{t('decision_level')}</div>
-            <div className="font-semibold text-gray-900">{summary.level}</div>
-            {summary.level_evidence && (
-              <div className="text-xs text-gray-500 mt-1">{summary.level_evidence}</div>
-            )}
-          </div>
-        </div>
+        )}
 
         <div className="grid sm:grid-cols-2 gap-6">
           {/* Strengths */}
@@ -191,92 +146,6 @@ export const DecisionTab = memo(function DecisionTab({
           </div>
         </div>
       </div>
-
-      {/* Risk Assessment */}
-      {riskFlags && riskFlags.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            {t('decision_risk_assessment')}
-          </h3>
-          <div className="space-y-3">
-            {riskFlags.map((flag, i) => (
-              <div key={i} className="card-hover p-4 bg-red-50 rounded-lg border border-red-200">
-                <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-sm font-bold">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <div className="font-medium text-red-900">{flag.label}</div>
-                    <div className="text-sm text-red-700 mt-1">{flag.detail}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* JD Competency Map */}
-      {jd_competency_map && jd_competency_map.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            {t('decision_jd_competency')}
-          </h3>
-
-          <div className="space-y-4">
-            {jd_competency_map.map((comp, i) => (
-              <div key={i} className="card-hover p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-gray-900">{comp.competency}</span>
-                  <span className="text-sm text-indigo-600 font-semibold">
-                    {t('decision_weight', { value: Math.round(comp.weight * 100) })}
-                  </span>
-                </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
-                  <div
-                    className="h-full bg-indigo-500 rounded-full"
-                    style={{ width: `${comp.weight * 100}%` }}
-                  />
-                </div>
-                {comp.related_questions.length > 0 && (
-                  <p className="text-xs text-gray-500">
-                    {t('decision_related_questions', { questions: comp.related_questions.join(', Q') })}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Category Weights (if provided separately) */}
-      {categoryWeights && Object.keys(categoryWeights).length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('decision_category_weights')}</h3>
-          <div className="space-y-3">
-            {Object.entries(categoryWeights).map(([cat, weight]) => (
-              <div key={cat} className="flex items-center gap-4">
-                <span className="w-32 text-sm text-gray-600">{cat}</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-indigo-500 rounded-full"
-                    style={{ width: `${weight * 100}%` }}
-                  />
-                </div>
-                <span className="text-sm font-medium text-gray-700 w-12 text-right">
-                  {Math.round(weight * 100)}%
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Interviewer Guide Tips */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -388,6 +257,42 @@ export const DecisionTab = memo(function DecisionTab({
         </div>
         )}
       </div>
+
+      {/* JD Competency Map */}
+      {jd_competency_map && jd_competency_map.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            {t('decision_jd_competency')}
+          </h3>
+
+          <div className="space-y-4">
+            {jd_competency_map.map((comp, i) => (
+              <div key={i} className="card-hover p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-gray-900">{comp.competency}</span>
+                  <span className="text-sm text-indigo-600 font-semibold">
+                    {t('decision_weight', { value: Math.round(comp.weight * 100) })}
+                  </span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                  <div
+                    className="h-full bg-indigo-500 rounded-full"
+                    style={{ width: `${comp.weight * 100}%` }}
+                  />
+                </div>
+                {comp.related_questions.length > 0 && (
+                  <p className="text-xs text-gray-500">
+                    {t('decision_related_questions', { questions: comp.related_questions.join(', Q') })}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 })

@@ -14,6 +14,13 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
   const { t } = useTranslation()
   const { radar_candidate, radar_required, engineering_dna, risk_flags, skill_table, overall_match, score_sources, data_confidence, data_confidence_score } = analysis
   const [showSources, setShowSources] = useState(false)
+  const [showMatchBreakdown, setShowMatchBreakdown] = useState(false)
+  const [showConfidenceDetail, setShowConfidenceDetail] = useState(false)
+
+  // Overall match source is the last item in score_sources (after 5 radar axes)
+  const overallMatchSource = score_sources && score_sources.length > 5 ? score_sources[score_sources.length - 1] : null
+  // Radar sources are the first 5 items
+  const radarSources = score_sources?.slice(0, 5)
 
   const radarAxisConfig = [
     { label: t('deep_role_fit'), desc: t('deep_role_fit_desc') },
@@ -26,24 +33,74 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
     <div className="space-y-6">
       {/* Overall Match Score */}
       {overall_match !== undefined && (
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium text-indigo-100">{t('deep_overall_match')}</h3>
-              <p className="text-2xl sm:text-4xl font-bold mt-1">{overall_match}%</p>
-              {data_confidence && (
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
-                  data_confidence === 'high' ? 'bg-emerald-400/20 text-emerald-100'
-                  : data_confidence === 'medium' ? 'bg-amber-400/20 text-amber-100'
-                  : 'bg-red-400/20 text-red-100'
-                }`}>
-                  {t('data_confidence_label')}: {t(`data_confidence_${data_confidence}`)}
-                  {data_confidence_score != null && ` (${data_confidence_score}%)`}
-                </span>
-              )}
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg overflow-hidden">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium text-indigo-100">{t('deep_overall_match')}</h3>
+                <p className="text-2xl sm:text-4xl font-bold mt-1">{overall_match}%</p>
+                {data_confidence && (
+                  <button
+                    onClick={() => setShowConfidenceDetail(prev => !prev)}
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 transition-colors cursor-pointer ${
+                      data_confidence === 'high' ? 'bg-emerald-400/20 text-emerald-100 hover:bg-emerald-400/30'
+                      : data_confidence === 'medium' ? 'bg-amber-400/20 text-amber-100 hover:bg-amber-400/30'
+                      : 'bg-red-400/20 text-red-100 hover:bg-red-400/30'
+                    }`}
+                  >
+                    {data_confidence === 'high' ? '🟢' : data_confidence === 'medium' ? '🟡' : '🔴'}
+                    {t('data_confidence_label')}: {t(`data_confidence_${data_confidence}`)}
+                    {data_confidence_score != null && ` (${data_confidence_score}%)`}
+                    <svg className={`w-3 h-3 transition-transform ${showConfidenceDetail ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <div className="text-6xl opacity-20">📊</div>
+                {overallMatchSource && (
+                  <button
+                    onClick={() => setShowMatchBreakdown(prev => !prev)}
+                    className="text-xs text-indigo-200 hover:text-white transition-colors flex items-center gap-1"
+                  >
+                    {t('deep_show_breakdown')}
+                    <svg className={`w-3 h-3 transition-transform ${showMatchBreakdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="text-6xl opacity-20">📊</div>
           </div>
+
+          {/* Overall Match Breakdown */}
+          {showMatchBreakdown && overallMatchSource && (
+            <div className="px-6 pb-4 border-t border-white/10 pt-4 animate-fadeIn">
+              <p className="text-sm text-indigo-100 leading-relaxed">{overallMatchSource}</p>
+            </div>
+          )}
+
+          {/* Data Confidence Detail */}
+          {showConfidenceDetail && data_confidence && (
+            <div className="px-6 pb-4 border-t border-white/10 pt-4 animate-fadeIn">
+              <p className="text-xs text-indigo-200 mb-2">{t('deep_confidence_explain')}</p>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-xs">
+                  <span>{data_confidence_score != null && data_confidence_score >= 25 ? '✅' : '❌'}</span>
+                  <span className="text-indigo-100">{t('deep_confidence_resume')}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span>{data_confidence_score != null && data_confidence_score >= 50 ? '✅' : '⚠️'}</span>
+                  <span className="text-indigo-100">{t('deep_confidence_github')}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span>{data_confidence_score != null && data_confidence_score >= 70 ? '✅' : '⚠️'}</span>
+                  <span className="text-indigo-100">{t('deep_confidence_linkedin')}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -70,7 +127,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
               const candidate = radar_candidate?.[i] ?? 0
               const required = radar_required?.[i] ?? 0
               const diff = candidate - required
-              const sourceText = score_sources?.[i]
+              const sourceText = radarSources?.[i]
               const llmExplanation = sourceText?.includes('| LLM:')
                 ? sourceText.split('| LLM:')[1]?.trim()
                 : null
