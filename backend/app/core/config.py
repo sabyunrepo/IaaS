@@ -81,8 +81,10 @@ class Settings(BaseSettings):
     SESSION_SECRET: str = "dev-session-secret-change-in-production"
     GOOGLE_CLIENT_ID: str | None = None
     GOOGLE_CLIENT_SECRET: str | None = None
+    GOOGLE_OAUTH_CALLBACK_URL: str | None = None  # e.g. https://example.com/auth/google/callback
     GITHUB_CLIENT_ID: str | None = None
     GITHUB_CLIENT_SECRET: str | None = None
+    GITHUB_OAUTH_CALLBACK_URL: str | None = None  # e.g. https://example.com/auth/github/callback
     FRONTEND_URL: str = "http://localhost:5173"
     BACKEND_URL: str = "http://localhost:8000"
     # Worker → Backend 내부 통신용 URL (Docker: http://backend:8000)

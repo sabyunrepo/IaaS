@@ -61,6 +61,21 @@ def _get_public_base_url(request: Request) -> str:
     return settings.BACKEND_URL
 
 
+# Provider별 환경변수 콜백 URL 매핑
+_OAUTH_CALLBACK_URLS: dict[str, str | None] = {
+    "google": settings.GOOGLE_OAUTH_CALLBACK_URL,
+    "github": settings.GITHUB_OAUTH_CALLBACK_URL,
+}
+
+
+def _get_callback_url(provider: str, request: Request) -> str:
+    """환경변수 우선, 없으면 동적 생성 fallback."""
+    env_url = _OAUTH_CALLBACK_URLS.get(provider)
+    if env_url:
+        return env_url
+    return f"{_get_public_base_url(request)}/auth/{provider}/callback"
+
+
 # --- Login ---
 
 @router.get("/{provider}/login")
@@ -70,7 +85,7 @@ async def oauth_login(provider: str, request: Request):
         raise ValidationError(f"Unsupported provider: {provider}")
 
     client = OAUTH_CLIENTS[provider]
-    callback_url = f"{_get_public_base_url(request)}/auth/{provider}/callback"
+    callback_url = _get_callback_url(provider, request)
     scopes = OAUTH_SCOPES.get(provider, [])
 
     authorization_url = await client.get_authorization_url(
@@ -95,7 +110,7 @@ async def oauth_callback(
         raise ValidationError(f"Unsupported provider: {provider}")
 
     client = OAUTH_CLIENTS[provider]
-    callback_url = f"{_get_public_base_url(request)}/auth/{provider}/callback"
+    callback_url = _get_callback_url(provider, request)
 
     # 1. code → access_token
     try:

@@ -330,9 +330,9 @@ class InterviewGenerationWorkflow:
                 retry_policy=LLM_RETRY,
             )
 
-            # 4a-1. Revision loop (최대 3회)
+            # 4a-1. Revision loop (최대 1회, flagged 질문만 revise)
             revision_count = 0
-            max_revisions = 3
+            max_revisions = 1
             while (
                 isinstance(review, dict)
                 and review.get("verdict") == "NEEDS_REVISION"
@@ -344,9 +344,38 @@ class InterviewGenerationWorkflow:
                     f"Phase 4: Revision {revision_count}/{max_revisions}",
                     85 + revision_count,
                 )
+
+                # C: flagged 질문만 추출하여 revise에 전달 (토큰 절감)
+                flagged_indices: set[int] = set()
+                for qr in review.get("questions_to_revise", []):
+                    if isinstance(qr, dict):
+                        idx = qr.get("question_index")
+                        if isinstance(idx, int) and 0 <= idx < len(questions):
+                            flagged_indices.add(idx)
+                # hallucination_risk 질문도 포함
+                for issue in review.get("issues", []):
+                    if isinstance(issue, dict) and issue.get("type") == "hallucination_risk":
+                        details = issue.get("details", {})
+                        if isinstance(details, dict):
+                            idx = details.get("question_index")
+                            if isinstance(idx, int) and 0 <= idx < len(questions):
+                                flagged_indices.add(idx)
+
+                # flagged 질문이 없으면 revision 불필요 — 루프 종료
+                if not flagged_indices:
+                    break
+
+                # flagged 질문만 추출 (원본 인덱스를 _original_idx로 보존)
+                flagged_questions = []
+                for idx in sorted(flagged_indices):
+                    q = questions[idx]
+                    if isinstance(q, dict):
+                        q_copy = {**q, "_original_idx": idx}
+                        flagged_questions.append(q_copy)
+
                 questions = await workflow.execute_activity(
                     revise_questions,
-                    args=[questions, review, enriched],
+                    args=[questions, flagged_questions, review, enriched],
                     start_to_close_timeout=timedelta(minutes=7),
                     heartbeat_timeout=timedelta(seconds=120),
                     retry_policy=LLM_RETRY,

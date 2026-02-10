@@ -57,6 +57,58 @@ DEFAULT_GITHUB = "https://github.com/sabyunrepo"
 VALID_LEVELS = ["신입", "주니어", "미들", "시니어", "CTO/VP"]
 
 
+async def upload_resume_to_storage(resume_path: str, user_id: str) -> str:
+    """Resume 파일을 S3 또는 로컬 저장소에 업로드하고 경로를 반환합니다."""
+    import uuid
+    from app.core.config import settings
+
+    resume_file = Path(resume_path)
+    if not resume_file.exists():
+        print(f"Error: Resume file not found: {resume_path}")
+        sys.exit(1)
+
+    content = resume_file.read_bytes()
+    file_id = str(uuid.uuid4())
+    file_ext = resume_file.suffix.lower()
+    file_name = f"{file_id}{file_ext}"
+
+    if settings.STORAGE_BACKEND == "s3":
+        # S3 업로드
+        import aioboto3
+
+        session = aioboto3.Session()
+        async with session.client(
+            "s3",
+            endpoint_url=settings.S3_ENDPOINT_URL,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID or "test",
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY or "test",
+        ) as s3:
+            bucket = settings.S3_BUCKET or "vantict-data"
+            key = f"uploads/{user_id}/resume/{file_name}"
+
+            await s3.put_object(
+                Bucket=bucket,
+                Key=key,
+                Body=content,
+                ContentType="application/pdf",
+            )
+
+            file_path = f"s3://{bucket}/{key}"
+    else:
+        # 로컬 저장소
+        local_path = Path(settings.LOCAL_STORAGE_PATH or "/app/data")
+        upload_dir = local_path / "uploads" / str(user_id) / "resume"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+
+        file_full_path = upload_dir / file_name
+        file_full_path.write_bytes(content)
+
+        file_path = str(file_full_path)
+
+    print(f"Resume uploaded: {file_path}")
+    return file_path
+
+
 async def create_job(args):
     """DB에 직접 Job을 생성하고 Temporal 워크플로우를 트리거합니다."""
     from sqlalchemy import select
@@ -76,37 +128,7 @@ async def create_job(args):
     else:
         jd_text = DEFAULT_JD
 
-    # input_data 구성
-    input_data = {
-        "jd_text": jd_text,
-        "experience_level": args.level,
-        "max_questions": args.questions,
-        "include_expected_answers": True,
-        "language_config": {
-            "output_language": args.lang,
-            "terminology_languages": ["ko", "en"],
-        },
-    }
-
-    if args.linkedin:
-        input_data["linkedin_url"] = args.linkedin
-    if args.github:
-        input_data["git_url"] = args.github
-
-    # Dry run
-    if args.dry_run:
-        print("\n=== DRY RUN ===\n")
-        print(f"Email: {args.email}")
-        print(f"Level: {args.level}")
-        print(f"Language: {args.lang}")
-        print(f"Questions: {args.questions}")
-        print(f"LinkedIn: {args.linkedin or 'N/A'}")
-        print(f"GitHub: {args.github or 'N/A'}")
-        print(f"JD length: {len(jd_text)} chars")
-        print(f"JD preview: {jd_text[:100]}...")
-        return
-
-    # DB에서 유저 조회
+    # DB에서 유저 조회 (resume 업로드를 위해 먼저 조회)
     async with async_session() as db:
         result = await db.execute(
             select(UserDB).where(UserDB.email == args.email)
@@ -121,10 +143,52 @@ async def create_job(args):
                 print(f"  - {row[0]}")
             sys.exit(1)
 
+    # Resume 업로드 (유저 조회 후)
+    resume_path = None
+    if args.resume:
+        resume_path = await upload_resume_to_storage(args.resume, str(user.id))
+
+    # input_data 구성
+    input_data = {
+        "jd_text": jd_text,
+        "experience_level": args.level,
+        "max_questions": args.questions,
+        "include_expected_answers": True,
+        "language_config": {
+            "output_language": args.lang,
+            "terminology_languages": ["ko", "en"],
+        },
+    }
+
+    if resume_path:
+        input_data["resume_path"] = resume_path
+    if args.linkedin:
+        input_data["linkedin_url"] = args.linkedin
+    if args.github:
+        input_data["git_url"] = args.github
+
+    # Dry run
+    if args.dry_run:
+        print("\n=== DRY RUN ===\n")
+        print(f"Email: {args.email}")
+        print(f"Level: {args.level}")
+        print(f"Language: {args.lang}")
+        print(f"Questions: {args.questions}")
+        print(f"Resume: {args.resume or 'N/A'}")
+        print(f"LinkedIn: {args.linkedin or 'N/A'}")
+        print(f"GitHub: {args.github or 'N/A'}")
+        print(f"JD length: {len(jd_text)} chars")
+        print(f"JD preview: {jd_text[:100]}...")
+        return
+
+    # DB에서 유저 조회 후 Job 생성
+    async with async_session() as db:
         print(f"User: {user.email} (id: {user.id})")
         print(f"Level: {args.level}")
         print(f"Language: {args.lang}")
         print(f"Questions: {args.questions}")
+        if resume_path:
+            print(f"Resume: {resume_path}")
 
         # Job 생성 (Temporal 워크플로우 자동 트리거)
         job = await create_job_fn(
@@ -165,6 +229,10 @@ def main():
         type=int,
         default=20,
         help="Max questions (default: 20)",
+    )
+    parser.add_argument(
+        "--resume",
+        help="Path to resume PDF file (e.g., ../resume.pdf for project root)",
     )
     parser.add_argument(
         "--linkedin",
