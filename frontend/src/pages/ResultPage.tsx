@@ -339,13 +339,7 @@ export function ResultPage() {
           {activeTab === 'decision' && script.decision && (
             <DecisionTab
               decision={script.decision}
-              candidate={script.candidate}
-              categoryWeights={script.category_weights}
-              totalScore={hasV2Data && script?.analysis?.overall_match != null ? script.analysis.overall_match : totalScore}
-              maxScore={hasV2Data && script?.analysis?.overall_match != null ? 100 : (maxScore || 100)}
-              riskFlags={script.analysis?.risk_flags}
-              dataConfidence={script.analysis?.data_confidence}
-              dataConfidenceScore={script.analysis?.data_confidence_score}
+              overallMatch={script.analysis?.overall_match}
             />
           )}
         </div>

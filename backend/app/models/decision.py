@@ -6,10 +6,14 @@ from pydantic import BaseModel, Field
 
 
 class DecisionSummary(BaseModel):
-    """후보자 요약"""
-    experience: str
-    jd_match: str
-    level: str
+    """채용 판단 요약
+
+    experience/jd_match/level은 IntelBrief candidate에서 원본 표시 (GitHub #270).
+    백엔드 일관성 검증용으로 유지하되, 프론트엔드 Decision 탭에서는 미표시.
+    """
+    experience: str = ""
+    jd_match: str = ""
+    level: str = ""
     level_evidence: str = ""  # 레벨 분류 근거 (SFIA/Dreyfus 기준 + 데이터 출처)
     strengths: list[str] = Field(default_factory=list)
     concerns: list[str] = Field(default_factory=list)

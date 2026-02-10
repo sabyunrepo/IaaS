@@ -81,6 +81,16 @@ test.describe('ResultPage - 4 Tab UI', () => {
         { skill: 'PostgreSQL', candidate: 'PostgreSQL', type: 'exact', evidence: 'GitHub', confidence: 85 },
       ],
       overall_match: 82,
+      score_sources: [
+        'JD 매칭 70% + 스킬 겹침 30% 기반 역할 적합도',
+        '코드 품질 40% + 기술 폭 30% + 일관성 30% 기반',
+        'SFIA 경험 40% + 커밋 일관성 30% + 코드 볼륨 30%',
+        '문서화 50% + 코드 가독성 50% 기반',
+        'McCabe 복잡도 + 테스트 커버리지 + 유지보수성 기반',
+        '스킬 매칭 35% + 코드 품질 25% + 경력 적합도 25% + JD 매칭 15% 가중 합산',
+      ],
+      data_confidence: 'high',
+      data_confidence_score: 85,
     },
     questions: [
       {
@@ -272,6 +282,9 @@ test.describe('ResultPage - 4 Tab UI', () => {
     // Check skill table
     await expect(page.getByText('Python 3.11')).toBeVisible()
     await expect(page.getByText('FastAPI')).toBeVisible()
+
+    // #270: Data confidence badge should be visible
+    await expect(page.getByText(/high|높음/i)).toBeVisible()
   })
 
   test('Live Interview 탭 - 질문 선택 및 채점 UI', async ({ page }) => {
@@ -293,24 +306,26 @@ test.describe('ResultPage - 4 Tab UI', () => {
     await expect(page.getByText('입사 후 첫 90일 동안')).toBeVisible()
   })
 
-  test('Decision 탭 - 채용 추천 및 가이드 표시', async ({ page }) => {
+  test('Decision 탭 - 채용 추천 및 가이드 표시 (중복 제거 후)', async ({ page }) => {
     await page.waitForLoadState('networkidle')
 
     // Click Decision tab
     const decisionTab = page.getByRole('tab', { name: /decision/i })
     await decisionTab.click()
 
-    // Check candidate summary
-    await expect(page.getByText('5년')).toBeVisible()
-    await expect(page.getByText('높음')).toBeVisible()
-    await expect(page.getByText('시니어')).toBeVisible()
+    // #270: experience/jd_match/level은 IntelBriefTab에서만 표시 — Decision에서 제거됨
+    // 대신 overallMatch 기반 추천 등급이 표시됨
+    await expect(page.getByText(/82%/)).toBeVisible()
 
-    // Check strengths and concerns
+    // Check strengths and concerns (Decision 고유 데이터)
     await expect(page.getByText('Python 전문성')).toBeVisible()
     await expect(page.getByText('프론트엔드 경험 부족')).toBeVisible()
 
-    // Check interviewer guide
+    // Check interviewer guide (default expanded)
     await expect(page.getByText('기술 심층 → 행동 면접 → 문화 적합성')).toBeVisible()
+
+    // Check JD competency map
+    await expect(page.getByText('Python 개발')).toBeVisible()
   })
 
   test('탭 간 전환이 올바르게 작동해야 함', async ({ page }) => {
