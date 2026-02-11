@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 
 class EngineeringDNAItem(BaseModel):
-    """Engineering DNA 항목"""
+    """Engineering DNA 항목 (Deprecated: JIT-12/17에서 프론트엔드·백엔드 모두 제거, 기존 데이터 역직렬화용 유지)"""
     label: str  # 예: "테스트 커버리지"
     value: int  # 퍼센트 (0-100)
     display: str  # 표시 텍스트 (예: "82%", "우수", "미확인")

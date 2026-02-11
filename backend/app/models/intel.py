@@ -23,7 +23,7 @@ class JDSummary(BaseModel):
 
 
 class CompetencyMatch(BaseModel):
-    """JD 역량 vs 후보자 매칭"""
+    """JD 역량 vs 후보자 매칭 (Deprecated: JIT-17에서 생성 로직 제거, 기존 데이터 역직렬화용 유지)"""
     name: str
     match: Literal["strong", "match", "partial", "unknown", "none"]
     match_label: str
