@@ -6,8 +6,11 @@ PyDriller + AST + LLM 기반 코드 분석 파이프라인
 - diff 기반 코드 추출 (토큰 효율적)
 - 분석 기간: GITHUB_ANALYSIS_YEARS 환경변수 (기본 1년)
 - HYBRID 3-Stage Multi-Agent 분석 지원 (Kimi K2.5 비용 최적화)
+- shallow clone 소스 fallback: PyDriller diff가 0일 때 clone 소스 기반 분석
 """
 import logging
+import os
+from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
@@ -221,6 +224,82 @@ class CodeAnalyzer:
             scored.append((score, f))
         scored.sort(key=lambda x: (x[0], x[1].get("filename", "")), reverse=True)
         return [f for _, f in scored[:max_files]]
+
+    def read_source_files_from_clone(
+        self,
+        clone_dir: str,
+        file_types: list[str] | None = None,
+        max_files: int = 30,
+        token_budget: int = 50_000,
+    ) -> list[dict]:
+        """shallow clone 디렉토리에서 소스 파일 읽기 (PyDriller fallback)
+
+        PyDriller diff가 0개일 때 clone 소스 기반 분석용.
+        PyDriller files 형식과 동일한 구조로 반환.
+
+        Args:
+            clone_dir: shallow clone 디렉토리 경로
+            file_types: 분석 대상 파일 확장자 (예: [".py", ".js"])
+            max_files: 최대 파일 수
+            token_budget: 총 토큰 예산 (char//4 추정)
+
+        Returns:
+            [{filename, source, complexity, nloc, methods, added, deleted}]
+        """
+        if not file_types:
+            file_types = [".py"]
+
+        ext_set = set(file_types)
+        candidates: list[tuple[int, str, str]] = []  # (file_size, rel_path, abs_path)
+
+        for root, dirs, filenames in os.walk(clone_dir):
+            # .git, __pycache__, node_modules 등 제외
+            dirs[:] = [d for d in dirs if d not in (".git", "__pycache__", "node_modules", ".venv", "venv")]
+            for fname in filenames:
+                ext = Path(fname).suffix.lower()
+                if ext not in ext_set:
+                    continue
+                abs_path = os.path.join(root, fname)
+                rel_path = os.path.relpath(abs_path, clone_dir)
+                try:
+                    file_size = os.path.getsize(abs_path)
+                except OSError:
+                    continue
+                # 빈 파일이나 너무 큰 파일(>100KB) 제외
+                if file_size == 0 or file_size > 100_000:
+                    continue
+                candidates.append((file_size, rel_path, abs_path))
+
+        # 파일 크기 역순 정렬 (큰 파일 = 더 많은 로직)
+        candidates.sort(key=lambda x: x[0], reverse=True)
+
+        files: list[dict] = []
+        total_tokens = 0
+        for file_size, rel_path, abs_path in candidates[:max_files * 2]:
+            est_tokens = file_size // 4
+            if total_tokens + est_tokens > token_budget:
+                break
+            try:
+                with open(abs_path, "r", encoding="utf-8", errors="ignore") as fh:
+                    source = fh.read()
+            except OSError:
+                continue
+            nloc = sum(1 for line in source.splitlines() if line.strip())
+            files.append({
+                "filename": rel_path,
+                "source": source[:5000],  # 토큰 절약: 상위 5000자
+                "complexity": 0,
+                "nloc": nloc,
+                "methods": 0,
+                "added": nloc,
+                "deleted": 0,
+            })
+            total_tokens += est_tokens
+            if len(files) >= max_files:
+                break
+
+        logger.info(f"Read {len(files)} source files from clone ({total_tokens} est tokens)")
+        return files
 
     async def analyze_ast(
         self,

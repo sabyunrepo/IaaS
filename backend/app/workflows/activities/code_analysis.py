@@ -6,8 +6,13 @@ HYBRID 3-Stage Multi-Agent 아키텍처 지원:
 - Stage 1: Overview Agent (전체 diff 분석, 핵심 파일 선별)
 - Stage 2: Deep Analysis Agents (선별 파일별 심층 분석) [PARALLEL]
 - Stage 3: Synthesis Agent (분석 결과 종합)
+
+shallow clone 통합 (JIT-20):
+- shallow clone을 static analysis와 코드 분석이 공유
+- PyDriller diff가 0일 때 clone 소스 기반 분석으로 자동 fallback
 """
 import asyncio
+import shutil
 
 from temporalio import activity
 
@@ -285,6 +290,10 @@ async def analyze_single_repo(
 
     모든 LLM 호출은 Kimi K2.5 모델 사용 (비용 최적화)
 
+    shallow clone 통합 (JIT-20):
+    - shallow clone을 static analysis와 공유 (중복 clone 방지)
+    - PyDriller diff가 0일 때 clone 소스 기반 분석으로 자동 fallback
+
     Args:
         repo_info: 레포지토리 정보 (url, name, languages 등)
         jd_tech_stack: JD에서 추출한 기술 스택
@@ -295,6 +304,7 @@ async def analyze_single_repo(
         레포지토리 분석 결과 (HYBRID 메타데이터 포함)
     """
     from app.services.code_analyzer import CodeAnalyzer
+    from app.services.static_analysis_runner import StaticAnalysisRunner
 
     analyzer = CodeAnalyzer()
     repo_url = repo_info.get("url", "")
@@ -309,204 +319,246 @@ async def analyze_single_repo(
         })
 
     # ================================================================
-    # Phase 2: PyDriller - diff 추출 (클론 자동 처리)
+    # Phase 1.5: Shallow Clone (공유 — static analysis + source fallback)
     # ================================================================
-    activity.heartbeat(f"Phase 2: PyDriller for {repo_name}")
-    if alog:
-        await alog.progress(f"Phase 2: PyDriller for {repo_name}", {"phase": 2})
+    clone_dir = None
+    runner = StaticAnalysisRunner()
+    try:
+        activity.heartbeat(f"Shallow clone for {repo_name}")
+        clone_dir = await runner.shallow_clone(repo_url)
+    except Exception as e:
+        logger.warning(f"Shallow clone failed for {repo_name} (non-fatal): {e}")
 
-    file_types = _jd_to_file_types(jd_tech_stack)
-    driller_result = await analyzer.analyze_with_pydriller(
-        repo_url=repo_url,
-        job_id=job_id or "",
-        author=candidate_username,
-        since_years=settings.GITHUB_ANALYSIS_YEARS,
-        file_types=file_types,
-    )
-
-    # ================================================================
-    # Phase 2.5: Static Analysis (optional, non-blocking)
-    # shallow clone → 후보자 파일만 Lizard/Semgrep/Radon 분석
-    # ================================================================
-    static_analysis = None
-    candidate_file_paths = [f.get("filename", "") for f in driller_result.get("files", []) if f.get("filename")]
-    if candidate_file_paths:
-        activity.heartbeat(f"Phase 2.5: Static analysis for {repo_name}")
+    try:
+        # ================================================================
+        # Phase 2: PyDriller - diff 추출 (클론 자동 처리)
+        # ================================================================
+        activity.heartbeat(f"Phase 2: PyDriller for {repo_name}")
         if alog:
-            await alog.progress(f"Phase 2.5: Static analysis for {repo_name}", {
-                "phase": 2.5,
-                "target_files_count": len(candidate_file_paths),
-            })
-        try:
-            from app.services.static_analysis_runner import StaticAnalysisRunner
-            runner = StaticAnalysisRunner()
-            static_result = await runner.run_analysis(
-                repo_url=repo_url,
-                target_files=candidate_file_paths,
+            await alog.progress(f"Phase 2: PyDriller for {repo_name}", {"phase": 2})
+
+        file_types = _jd_to_file_types(jd_tech_stack)
+        driller_result = await analyzer.analyze_with_pydriller(
+            repo_url=repo_url,
+            job_id=job_id or "",
+            author=candidate_username,
+            since_years=settings.GITHUB_ANALYSIS_YEARS,
+            file_types=file_types,
+        )
+
+        # ================================================================
+        # Phase 2.1: PyDriller 빈 결과 → clone 소스 fallback (JIT-20)
+        # ================================================================
+        used_clone_fallback = False
+        driller_files = driller_result.get("files", [])
+        if not driller_files and clone_dir:
+            activity.heartbeat(f"Clone source fallback for {repo_name}")
+            if alog:
+                await alog.progress(f"Clone source fallback for {repo_name}", {
+                    "phase": "2.1",
+                    "reason": "PyDriller returned 0 files",
+                })
+            clone_files = analyzer.read_source_files_from_clone(
+                clone_dir=clone_dir,
+                file_types=file_types,
+                max_files=30,
+                token_budget=50_000,
             )
-            static_analysis = static_result.model_dump()
-            activity.heartbeat("Static analysis completed")
-        except Exception as e:
-            logger.warning(f"Static analysis failed for {repo_name} (non-fatal): {e}")
+            if clone_files:
+                driller_result["files"] = clone_files
+                driller_result["stats"]["total_additions"] = sum(f.get("nloc", 0) for f in clone_files)
+                used_clone_fallback = True
+                logger.info(f"Clone fallback: {len(clone_files)} files for {repo_name}")
 
-    # ================================================================
-    # Phase 3: AST 분석
-    # ================================================================
-    activity.heartbeat(f"Phase 3: AST for {repo_name}")
-    if alog:
-        await alog.progress(f"Phase 3: AST for {repo_name}", {
-            "phase": 3,
-            "files_count": len(driller_result.get("files", [])),
-        })
+        # ================================================================
+        # Phase 2.5: Static Analysis (optional, non-blocking)
+        # clone_dir 공유 — 중복 clone 방지
+        # ================================================================
+        static_analysis = None
+        candidate_file_paths = [f.get("filename", "") for f in driller_result.get("files", []) if f.get("filename")]
+        if candidate_file_paths:
+            activity.heartbeat(f"Phase 2.5: Static analysis for {repo_name}")
+            if alog:
+                await alog.progress(f"Phase 2.5: Static analysis for {repo_name}", {
+                    "phase": 2.5,
+                    "target_files_count": len(candidate_file_paths),
+                })
+            try:
+                static_result = await runner.run_analysis(
+                    repo_url=repo_url,
+                    target_files=candidate_file_paths,
+                    clone_dir=clone_dir,
+                    cleanup=False,
+                )
+                static_analysis = static_result.model_dump()
+                activity.heartbeat("Static analysis completed")
+            except Exception as e:
+                logger.warning(f"Static analysis failed for {repo_name} (non-fatal): {e}")
 
-    primary_lang = max(
-        repo_info.get("languages", {}),
-        key=repo_info.get("languages", {}).get,
-        default=None
-    )
-    top_files = analyzer.select_top_files(
-        files=driller_result["files"],
-        jd_tech_stack=jd_tech_stack,
-        max_files=20,
-    )
-    ast_result = await analyzer.analyze_ast(files=top_files, primary_language=primary_lang)
+        # ================================================================
+        # Phase 3: AST 분석
+        # ================================================================
+        activity.heartbeat(f"Phase 3: AST for {repo_name}")
+        if alog:
+            await alog.progress(f"Phase 3: AST for {repo_name}", {
+                "phase": 3,
+                "files_count": len(driller_result.get("files", [])),
+            })
 
-    # ================================================================
-    # Phase 4: HYBRID 3-Stage LLM 분석 (Kimi Coder 모델 사용)
-    # ================================================================
+        primary_lang = max(
+            repo_info.get("languages", {}),
+            key=repo_info.get("languages", {}).get,
+            default=None
+        )
+        top_files = analyzer.select_top_files(
+            files=driller_result["files"],
+            jd_tech_stack=jd_tech_stack,
+            max_files=20,
+        )
+        ast_result = await analyzer.analyze_ast(files=top_files, primary_language=primary_lang)
 
-    # ---- Stage 1: Overview Agent ----
-    activity.heartbeat(f"Stage 1: Overview Agent for {repo_name}")
-    if alog:
-        await alog.progress(f"Stage 1: Overview Agent for {repo_name}", {
-            "stage": 1,
-            "model": KIMI_CODER_MODEL,
-        })
+        # ================================================================
+        # Phase 4: HYBRID 3-Stage LLM 분석 (Kimi Coder 모델 사용)
+        # ================================================================
 
-    overview_result = await analyzer.llm_overview_analysis(
-        files=driller_result["files"],
-        commit_diffs=driller_result.get("commit_diffs", []),
-        ast_summary=ast_result,
-        jd_tech_stack=jd_tech_stack,
-        model=KIMI_CODER_MODEL,
-    )
+        # ---- Stage 1: Overview Agent ----
+        activity.heartbeat(f"Stage 1: Overview Agent for {repo_name}")
+        if alog:
+            await alog.progress(f"Stage 1: Overview Agent for {repo_name}", {
+                "stage": 1,
+                "model": KIMI_CODER_MODEL,
+            })
 
-    # 핵심 파일 추출 (최대 10개)
-    key_files = overview_result.get("key_files", [])[:10]
-    if not key_files:
-        # Fallback: Overview 실패 시 상위 파일 사용
-        key_files = [
-            {"path": f.get("filename"), "relevance_score": 0.5, "reason": "Top by complexity"}
-            for f in top_files[:5]
-        ]
-
-    # ---- Stage 2: Deep Analysis Agents (PARALLEL) ----
-    activity.heartbeat(f"Stage 2: Deep Analysis ({len(key_files)} files) for {repo_name}")
-    if alog:
-        await alog.progress(f"Stage 2: Deep Analysis for {repo_name}", {
-            "stage": 2,
-            "key_files_count": len(key_files),
-        })
-
-    deep_analysis_tasks = []
-    for file_info in key_files:
-        file_path = file_info.get("path", file_info.get("filename", ""))
-        commit_history = _get_file_commits(driller_result, file_path)
-
-        # 파일 diff 정보 추가
-        enriched_file_info = {
-            **file_info,
-            "diff": next(
-                (f.get("diff", "") for f in driller_result["files"]
-                 if f.get("filename") == file_path),
-                ""
-            ),
-        }
-
-        task = analyzer.llm_deep_file_analysis(
-            file_info=enriched_file_info,
-            commit_history=commit_history,
+        overview_result = await analyzer.llm_overview_analysis(
+            files=driller_result["files"],
+            commit_diffs=driller_result.get("commit_diffs", []),
+            ast_summary=ast_result,
             jd_tech_stack=jd_tech_stack,
             model=KIMI_CODER_MODEL,
         )
-        deep_analysis_tasks.append(task)
 
-    # 병렬 실행 (asyncio.gather)
-    deep_results = await asyncio.gather(*deep_analysis_tasks, return_exceptions=True)
+        # 핵심 파일 추출 (최대 10개)
+        key_files = overview_result.get("key_files", [])[:10]
+        if not key_files:
+            # Fallback: Overview 실패 시 상위 파일 사용
+            key_files = [
+                {"path": f.get("filename"), "relevance_score": 0.5, "reason": "Top by complexity"}
+                for f in top_files[:5]
+            ]
 
-    # 실패한 분석 필터링
-    successful_analyses = [
-        r for r in deep_results
-        if not isinstance(r, Exception) and isinstance(r, dict)
-    ]
-    failed_count = len(deep_results) - len(successful_analyses)
-    if failed_count > 0:
-        logger.warning(f"{failed_count} deep analyses failed for {repo_name}")
+        # ---- Stage 2: Deep Analysis Agents (PARALLEL) ----
+        activity.heartbeat(f"Stage 2: Deep Analysis ({len(key_files)} files) for {repo_name}")
+        if alog:
+            await alog.progress(f"Stage 2: Deep Analysis for {repo_name}", {
+                "stage": 2,
+                "key_files_count": len(key_files),
+            })
 
-    # ---- Stage 3: Synthesis Agent ----
-    activity.heartbeat(f"Stage 3: Synthesis Agent for {repo_name}")
-    if alog:
-        await alog.progress(f"Stage 3: Synthesis Agent for {repo_name}", {
-            "stage": 3,
-            "successful_analyses": len(successful_analyses),
-        })
+        deep_analysis_tasks = []
+        for file_info in key_files:
+            file_path = file_info.get("path", file_info.get("filename", ""))
+            commit_history = _get_file_commits(driller_result, file_path)
 
-    synthesis_result = await analyzer.llm_synthesize_analysis(
-        overview=overview_result,
-        deep_analyses=successful_analyses,
-        repo_info=repo_info,
-        jd_tech_stack=jd_tech_stack,
-        model=KIMI_CODER_MODEL,
-    )
+            # 파일 소스/diff 정보 추가
+            enriched_file_info = {
+                **file_info,
+                "diff": next(
+                    (f.get("diff", "") or f.get("source", "") for f in driller_result["files"]
+                     if f.get("filename") == file_path),
+                    ""
+                ),
+            }
 
-    # ================================================================
-    # 결과 조립
-    # ================================================================
-    # Build quality_metrics from static analysis (if available)
-    quality_metrics = {}
-    if static_analysis:
-        quality_metrics["security_score"] = static_analysis.get("security_score", 100)
-        quality_metrics["documentation_ratio"] = static_analysis.get("documentation_ratio", 0.0)
-        quality_metrics["test_coverage"] = static_analysis.get("test_to_code_ratio", 0) * 100
-        if static_analysis.get("maintainability_index") is not None:
-            quality_metrics["maintainability_index"] = static_analysis["maintainability_index"]
-        # Lizard multi-language CC takes precedence over PyDriller Python-only CC
-        if static_analysis.get("overall_avg_cc", 0) > 0:
-            quality_metrics["avg_cc"] = static_analysis["overall_avg_cc"]
+            task = analyzer.llm_deep_file_analysis(
+                file_info=enriched_file_info,
+                commit_history=commit_history,
+                jd_tech_stack=jd_tech_stack,
+                model=KIMI_CODER_MODEL,
+            )
+            deep_analysis_tasks.append(task)
 
-    result = {
-        "repo_url": repo_url,
-        "repo_name": repo_name,
-        "language": primary_lang,
-        "candidate_commits": driller_result["stats"]["total_commits"],
-        "candidate_additions": driller_result["stats"]["total_additions"],
-        "avg_complexity": driller_result["stats"]["avg_complexity"],
-        "monthly_contributions": driller_result.get("monthly_contributions", []),
-        "ast_analysis": ast_result,
-        "analysis": synthesis_result,
-        "notable_implementations": synthesis_result.get("notable_implementations", []),
-        "quality_metrics": quality_metrics,
-        # 정적 분석 결과 (KG/Scoring에서 활용)
-        "static_analysis": static_analysis,
-        # HYBRID 분석 메타데이터
-        "hybrid_metadata": {
-            "key_files_count": len(key_files),
-            "deep_analyses_count": len(successful_analyses),
-            "failed_analyses_count": failed_count,
-            "model_used": KIMI_CODER_MODEL,
-            "has_static_analysis": static_analysis is not None,
-        },
-    }
+        # 병렬 실행 (asyncio.gather)
+        deep_results = await asyncio.gather(*deep_analysis_tasks, return_exceptions=True)
 
-    if alog:
-        await alog.result(f"Completed {repo_name} (HYBRID)", {
-            "commits": result["candidate_commits"],
-            "notables": len(result["notable_implementations"]),
-            "key_files": len(key_files),
-            "quality_score": synthesis_result.get("quality_score", 0),
-        })
+        # 실패한 분석 필터링
+        successful_analyses = [
+            r for r in deep_results
+            if not isinstance(r, Exception) and isinstance(r, dict)
+        ]
+        failed_count = len(deep_results) - len(successful_analyses)
+        if failed_count > 0:
+            logger.warning(f"{failed_count} deep analyses failed for {repo_name}")
 
-    return result
+        # ---- Stage 3: Synthesis Agent ----
+        activity.heartbeat(f"Stage 3: Synthesis Agent for {repo_name}")
+        if alog:
+            await alog.progress(f"Stage 3: Synthesis Agent for {repo_name}", {
+                "stage": 3,
+                "successful_analyses": len(successful_analyses),
+            })
+
+        synthesis_result = await analyzer.llm_synthesize_analysis(
+            overview=overview_result,
+            deep_analyses=successful_analyses,
+            repo_info=repo_info,
+            jd_tech_stack=jd_tech_stack,
+            model=KIMI_CODER_MODEL,
+        )
+
+        # ================================================================
+        # 결과 조립
+        # ================================================================
+        # Build quality_metrics from static analysis (if available)
+        quality_metrics = {}
+        if static_analysis:
+            quality_metrics["security_score"] = static_analysis.get("security_score", 100)
+            quality_metrics["documentation_ratio"] = static_analysis.get("documentation_ratio", 0.0)
+            quality_metrics["test_coverage"] = static_analysis.get("test_to_code_ratio", 0) * 100
+            if static_analysis.get("maintainability_index") is not None:
+                quality_metrics["maintainability_index"] = static_analysis["maintainability_index"]
+            # Lizard multi-language CC takes precedence over PyDriller Python-only CC
+            if static_analysis.get("overall_avg_cc", 0) > 0:
+                quality_metrics["avg_cc"] = static_analysis["overall_avg_cc"]
+
+        result = {
+            "repo_url": repo_url,
+            "repo_name": repo_name,
+            "language": primary_lang,
+            "candidate_commits": driller_result["stats"]["total_commits"],
+            "candidate_additions": driller_result["stats"]["total_additions"],
+            "avg_complexity": driller_result["stats"]["avg_complexity"],
+            "monthly_contributions": driller_result.get("monthly_contributions", []),
+            "ast_analysis": ast_result,
+            "analysis": synthesis_result,
+            "notable_implementations": synthesis_result.get("notable_implementations", []),
+            "quality_metrics": quality_metrics,
+            # 정적 분석 결과 (KG/Scoring에서 활용)
+            "static_analysis": static_analysis,
+            # HYBRID 분석 메타데이터
+            "hybrid_metadata": {
+                "key_files_count": len(key_files),
+                "deep_analyses_count": len(successful_analyses),
+                "failed_analyses_count": failed_count,
+                "model_used": KIMI_CODER_MODEL,
+                "has_static_analysis": static_analysis is not None,
+                "used_clone_fallback": used_clone_fallback,
+            },
+        }
+
+        if alog:
+            await alog.result(f"Completed {repo_name} (HYBRID)", {
+                "commits": result["candidate_commits"],
+                "notables": len(result["notable_implementations"]),
+                "key_files": len(key_files),
+                "quality_score": synthesis_result.get("quality_score", 0),
+                "used_clone_fallback": used_clone_fallback,
+            })
+
+        return result
+
+    finally:
+        if clone_dir:
+            shutil.rmtree(clone_dir, ignore_errors=True)
 
 
 @activity.defn

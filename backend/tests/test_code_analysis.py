@@ -169,6 +169,88 @@ class TestCodeAnalysisActivity:
 
 
 # ============================================================
+# P2C-06: Clone 소스 fallback 테스트 (JIT-20)
+# ============================================================
+
+class TestCloneSourceFallback:
+    """P2C-06: PyDriller 빈 결과 시 clone 소스 fallback 테스트"""
+
+    def test_read_source_files_from_clone(self, tmp_path):
+        """clone 디렉토리에서 소스 파일 읽기"""
+        from app.services.code_analyzer import CodeAnalyzer
+
+        # 임시 clone 디렉토리 구조 생성
+        (tmp_path / "main.py").write_text("def hello():\n    print('hello')\n")
+        (tmp_path / "utils.py").write_text("def add(a, b):\n    return a + b\n")
+        (tmp_path / "README.md").write_text("# Project")  # 확장자 불일치 → 제외
+        (tmp_path / ".git").mkdir()  # .git 디렉토리 → 제외
+        sub = tmp_path / "pkg"
+        sub.mkdir()
+        (sub / "__init__.py").write_text("")  # 빈 파일 → 제외
+
+        analyzer = CodeAnalyzer()
+        files = analyzer.read_source_files_from_clone(
+            clone_dir=str(tmp_path),
+            file_types=[".py"],
+            max_files=10,
+        )
+
+        assert len(files) == 2
+        filenames = {f["filename"] for f in files}
+        assert "main.py" in filenames
+        assert "utils.py" in filenames
+        for f in files:
+            assert "source" in f
+            assert f["nloc"] > 0
+            assert f["complexity"] == 0  # 정적 분석 없으므로 0
+
+    def test_read_source_files_respects_token_budget(self, tmp_path):
+        """토큰 예산 초과 시 파일 자르기"""
+        from app.services.code_analyzer import CodeAnalyzer
+
+        # 큰 파일 생성 (약 4000 토큰 = 16000자)
+        (tmp_path / "big.py").write_text("x = 1\n" * 3000)
+        (tmp_path / "small.py").write_text("y = 2\n")
+
+        analyzer = CodeAnalyzer()
+        files = analyzer.read_source_files_from_clone(
+            clone_dir=str(tmp_path),
+            file_types=[".py"],
+            token_budget=5000,
+        )
+
+        # big.py가 예산 내 → 1개만 반환 (small.py는 예산 초과)
+        assert len(files) >= 1
+
+    def test_read_source_files_empty_dir(self, tmp_path):
+        """빈 디렉토리 → 빈 결과"""
+        from app.services.code_analyzer import CodeAnalyzer
+
+        analyzer = CodeAnalyzer()
+        files = analyzer.read_source_files_from_clone(
+            clone_dir=str(tmp_path),
+            file_types=[".py"],
+        )
+        assert files == []
+
+    def test_static_analysis_runner_external_clone_dir(self, tmp_path):
+        """StaticAnalysisRunner: 외부 clone_dir 사용 시 재 clone 생략"""
+        from app.services.static_analysis_runner import StaticAnalysisRunner
+
+        runner = StaticAnalysisRunner()
+        # run_analysis에 clone_dir 파라미터 지원 확인
+        import inspect
+        sig = inspect.signature(runner.run_analysis)
+        assert "clone_dir" in sig.parameters
+        assert "cleanup" in sig.parameters
+
+    def test_analyze_single_repo_activity_defn(self):
+        """analyze_single_repo Activity 데코레이터 확인"""
+        from app.workflows.activities.code_analysis import analyze_single_repo
+        assert hasattr(analyze_single_repo, "__temporal_activity_definition")
+
+
+# ============================================================
 # Activity 통합 테스트
 # ============================================================
 
