@@ -309,6 +309,15 @@ async def analyze_single_repo(
     analyzer = CodeAnalyzer()
     repo_url = repo_info.get("url", "")
     repo_name = repo_info.get("name", "unknown")
+    candidate_name = repo_info.get("_candidate_name")  # git log fallback용
+
+    # 후보자 식별 메타데이터 초기화
+    candidate_identification = {
+        "method": "provided" if candidate_username else "none",
+        "confidence": "high" if candidate_username else "low",
+        "original_username": candidate_username,
+        "resolved_username": candidate_username,
+    }
 
     # Activity Logger 초기화
     alog = ActivityLogger(job_id, "analyze_single_repo", "analyzing") if job_id else None
@@ -330,6 +339,50 @@ async def analyze_single_repo(
         logger.warning(f"Shallow clone failed for {repo_name} (non-fatal): {e}")
 
     try:
+        # ================================================================
+        # Stage 4: Git log fallback — candidate_username 미제공 시
+        # ================================================================
+        if not candidate_username and candidate_name and clone_dir:
+            activity.heartbeat(f"Git log fallback for {repo_name}")
+            try:
+                from app.services.github_service import GitHubService
+                github_svc = GitHubService()
+                git_match = await github_svc.match_candidate_from_git_log(
+                    clone_dir=clone_dir,
+                    candidate_name=candidate_name,
+                )
+                if git_match:
+                    # PyDriller author 필터용: author name 사용
+                    candidate_username = git_match["name"]
+                    candidate_identification = {
+                        "method": "git_log",
+                        "confidence": "medium",
+                        "original_username": None,
+                        "resolved_username": git_match.get("username"),
+                        "matched_author": git_match["name"],
+                        "matched_email": git_match["email"],
+                        "matched_commits": git_match["commits"],
+                    }
+                    logger.info(
+                        f"Git log fallback matched: {git_match['name']} "
+                        f"for {repo_name}"
+                    )
+            except Exception as e:
+                logger.warning(f"Git log fallback failed for {repo_name}: {e}")
+
+        # Stage 5: 모든 식별 실패 시 → 전체 분석
+        if not candidate_username:
+            candidate_identification = {
+                "method": "none",
+                "confidence": "low",
+                "original_username": None,
+                "resolved_username": None,
+            }
+            logger.warning(
+                f"No candidate identified for {repo_name} — "
+                f"analyzing all commits (confidence: low)"
+            )
+
         # ================================================================
         # Phase 2: PyDriller - diff 추출 (클론 자동 처리)
         # ================================================================
@@ -534,6 +587,8 @@ async def analyze_single_repo(
             "quality_metrics": quality_metrics,
             # 정적 분석 결과 (KG/Scoring에서 활용)
             "static_analysis": static_analysis,
+            # 후보자 식별 메타데이터
+            "candidate_identification": candidate_identification,
             # HYBRID 분석 메타데이터
             "hybrid_metadata": {
                 "key_files_count": len(key_files),
