@@ -5,9 +5,21 @@ AST 구조 분석 (Python: ast, JS/TS: tree-sitter, fallback)
 Extracted from code_analyzer.py for SRP compliance.
 """
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
+# 디렉토리 순회 시 건너뛸 디렉토리명
+_SKIP_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", ".tox", ".mypy_cache"}
+
+# 확장자 → 언어 매핑
+_EXT_TO_LANG: dict[str, str] = {
+    ".py": "python",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".ts": "typescript",
+    ".tsx": "typescript",
+}
 
 async def analyze_ast(
     files: list[dict],
@@ -199,3 +211,294 @@ def _walk_ts_node(
 
     for child in node.children:
         _walk_ts_node(child, functions, classes, imports, file_info)
+
+
+# ============================================================
+# analyze_directory — clone 디렉토리에서 직접 파싱 [JIT-21]
+# ============================================================
+
+async def analyze_directory(
+    clone_dir: str,
+    file_types: list[str],
+) -> dict:
+    """clone 디렉토리의 소스 파일을 직접 파싱하여 함수/클래스 청크 + 메타데이터 추출.
+
+    Args:
+        clone_dir: clone된 레포 디렉토리 경로
+        file_types: 파싱할 파일 확장자 목록 (예: [".py", ".js", ".ts"])
+
+    Returns:
+        {"chunks": [ChunkDict, ...]}
+        ChunkDict keys: name, type, identifiers, imports, decorators,
+                        source_code, char_count, file_path
+    """
+    chunks: list[dict] = []
+
+    for root, dirs, filenames in os.walk(clone_dir):
+        # 숨김 디렉토리 및 불필요한 디렉토리 제외
+        dirs[:] = [d for d in dirs if d not in _SKIP_DIRS and not d.startswith(".")]
+
+        for filename in filenames:
+            ext = os.path.splitext(filename)[1]
+            if ext not in file_types:
+                continue
+
+            filepath = os.path.join(root, filename)
+            rel_path = os.path.relpath(filepath, clone_dir)
+
+            try:
+                with open(filepath, encoding="utf-8", errors="replace") as fh:
+                    source = fh.read()
+            except (OSError, UnicodeDecodeError):
+                continue
+
+            if not source.strip():
+                continue
+
+            lang = _EXT_TO_LANG.get(ext)
+            if lang == "python":
+                _parse_python_chunks(source, rel_path, chunks)
+            elif lang in ("javascript", "typescript"):
+                _parse_ts_chunks(source, rel_path, lang, chunks)
+
+    return {"chunks": chunks}
+
+
+def _parse_python_chunks(
+    source: str,
+    file_path: str,
+    chunks: list[dict],
+) -> None:
+    """Python 소스에서 함수/클래스 청크를 추출하여 chunks 리스트에 추가."""
+    import ast as ast_mod
+
+    # 파일 전체의 import 문 추출
+    file_imports: list[str] = []
+    try:
+        tree = ast_mod.parse(source)
+    except SyntaxError:
+        return
+
+    for node in ast_mod.walk(tree):
+        if isinstance(node, ast_mod.Import):
+            for alias in node.names:
+                file_imports.append(f"import {alias.name}")
+        elif isinstance(node, ast_mod.ImportFrom):
+            module = node.module or ""
+            names = ", ".join(a.name for a in node.names)
+            file_imports.append(f"from {module} import {names}")
+
+    source_lines = source.splitlines()
+
+    for node in ast_mod.iter_child_nodes(tree):
+        if isinstance(node, ast_mod.FunctionDef) or isinstance(node, ast_mod.AsyncFunctionDef):
+            chunk_source = ast_mod.get_source_segment(source, node) or _get_lines(source_lines, node)
+            identifiers = _extract_python_identifiers(node)
+            decorators = _extract_python_decorators(node)
+
+            chunks.append({
+                "name": node.name,
+                "type": "function",
+                "identifiers": identifiers,
+                "imports": list(file_imports),
+                "decorators": decorators,
+                "source_code": chunk_source,
+                "char_count": len(chunk_source),
+                "file_path": file_path,
+            })
+
+        elif isinstance(node, ast_mod.ClassDef):
+            chunk_source = ast_mod.get_source_segment(source, node) or _get_lines(source_lines, node)
+            identifiers = _extract_python_identifiers(node)
+            decorators = _extract_python_decorators(node)
+
+            chunks.append({
+                "name": node.name,
+                "type": "class",
+                "identifiers": identifiers,
+                "imports": list(file_imports),
+                "decorators": decorators,
+                "source_code": chunk_source,
+                "char_count": len(chunk_source),
+                "file_path": file_path,
+            })
+
+
+def _extract_python_identifiers(node) -> list[str]:
+    """AST 노드에서 사용된 변수/함수명(Name 노드)을 추출."""
+    import ast as ast_mod
+
+    identifiers: set[str] = set()
+    for child in ast_mod.walk(node):
+        if isinstance(child, ast_mod.Name):
+            identifiers.add(child.id)
+        elif isinstance(child, ast_mod.arg):
+            identifiers.add(child.arg)
+    return sorted(identifiers)
+
+
+def _extract_python_decorators(node) -> list[str]:
+    """AST 노드의 데코레이터 리스트를 문자열로 추출."""
+    import ast as ast_mod
+
+    decorators: list[str] = []
+    for d in getattr(node, "decorator_list", []):
+        if isinstance(d, ast_mod.Name):
+            decorators.append(d.id)
+        elif isinstance(d, ast_mod.Attribute):
+            # @pytest.fixture → "pytest.fixture"
+            parts = []
+            current = d
+            while isinstance(current, ast_mod.Attribute):
+                parts.append(current.attr)
+                current = current.value
+            if isinstance(current, ast_mod.Name):
+                parts.append(current.id)
+            decorators.append(".".join(reversed(parts)))
+        elif isinstance(d, ast_mod.Call):
+            # @app.get("/path") → 함수 부분만 추출
+            func = d.func
+            if isinstance(func, ast_mod.Name):
+                decorators.append(func.id)
+            elif isinstance(func, ast_mod.Attribute):
+                parts = []
+                current = func
+                while isinstance(current, ast_mod.Attribute):
+                    parts.append(current.attr)
+                    current = current.value
+                if isinstance(current, ast_mod.Name):
+                    parts.append(current.id)
+                decorators.append(".".join(reversed(parts)))
+    return decorators
+
+
+def _get_lines(source_lines: list[str], node) -> str:
+    """ast 노드의 소스 코드를 줄 번호로 추출 (get_source_segment fallback)."""
+    start = getattr(node, "lineno", 1) - 1
+    end = getattr(node, "end_lineno", start + 1)
+    return "\n".join(source_lines[start:end])
+
+
+def _parse_ts_chunks(
+    source: str,
+    file_path: str,
+    lang: str,
+    chunks: list[dict],
+) -> None:
+    """JS/TS 소스에서 함수/클래스 청크를 추출하여 chunks 리스트에 추가."""
+    try:
+        import tree_sitter_javascript as ts_js
+        import tree_sitter_typescript as ts_ts
+        from tree_sitter import Language, Parser
+    except ImportError:
+        raise ImportError("tree-sitter JS/TS bindings not installed")
+
+    if lang == "typescript":
+        language = Language(ts_ts.language_typescript())
+    else:
+        language = Language(ts_js.language())
+
+    ts_parser = Parser(language)
+
+    try:
+        tree = ts_parser.parse(source.encode("utf-8"))
+    except Exception:
+        return
+
+    # 파일 전체의 import 추출
+    file_imports: list[str] = []
+    _collect_ts_imports(tree.root_node, file_imports)
+
+    # 최상위 함수/클래스 추출
+    _collect_ts_chunks(tree.root_node, file_path, file_imports, source, chunks)
+
+
+def _collect_ts_imports(node, file_imports: list[str]) -> None:
+    """tree-sitter 루트 노드에서 import 문을 수집."""
+    for child in node.children:
+        if child.type == "import_statement":
+            file_imports.append(child.text.decode("utf-8"))
+        elif child.type == "import_declaration":
+            file_imports.append(child.text.decode("utf-8"))
+
+
+def _collect_ts_chunks(
+    node,
+    file_path: str,
+    file_imports: list[str],
+    source: str,
+    chunks: list[dict],
+) -> None:
+    """tree-sitter 노드를 순회하며 함수/클래스 청크를 수집."""
+    for child in node.children:
+        ntype = child.type
+
+        if ntype in ("function_declaration", "method_definition"):
+            name_node = child.child_by_field_name("name")
+            chunk_source = child.text.decode("utf-8")
+            identifiers = _collect_ts_identifiers(child)
+
+            chunks.append({
+                "name": name_node.text.decode("utf-8") if name_node else "<anonymous>",
+                "type": "function",
+                "identifiers": sorted(identifiers),
+                "imports": list(file_imports),
+                "decorators": [],
+                "source_code": chunk_source,
+                "char_count": len(chunk_source),
+                "file_path": file_path,
+            })
+
+        elif ntype == "lexical_declaration":
+            # const foo = () => {} 패턴
+            for decl in child.children:
+                if decl.type == "variable_declarator":
+                    value = decl.child_by_field_name("value")
+                    if value and value.type == "arrow_function":
+                        name_node = decl.child_by_field_name("name")
+                        chunk_source = child.text.decode("utf-8")
+                        identifiers = _collect_ts_identifiers(value)
+
+                        chunks.append({
+                            "name": name_node.text.decode("utf-8") if name_node else "<arrow>",
+                            "type": "function",
+                            "identifiers": sorted(identifiers),
+                            "imports": list(file_imports),
+                            "decorators": [],
+                            "source_code": chunk_source,
+                            "char_count": len(chunk_source),
+                            "file_path": file_path,
+                        })
+
+        elif ntype == "class_declaration":
+            name_node = child.child_by_field_name("name")
+            chunk_source = child.text.decode("utf-8")
+            identifiers = _collect_ts_identifiers(child)
+
+            chunks.append({
+                "name": name_node.text.decode("utf-8") if name_node else "<anonymous>",
+                "type": "class",
+                "identifiers": sorted(identifiers),
+                "imports": list(file_imports),
+                "decorators": [],
+                "source_code": chunk_source,
+                "char_count": len(chunk_source),
+                "file_path": file_path,
+            })
+
+        elif ntype == "export_statement":
+            # export function / export class 패턴
+            _collect_ts_chunks(child, file_path, file_imports, source, chunks)
+
+
+def _collect_ts_identifiers(node) -> set[str]:
+    """tree-sitter 노드에서 identifier를 재귀적으로 수집."""
+    identifiers: set[str] = set()
+
+    if node.type == "identifier":
+        identifiers.add(node.text.decode("utf-8"))
+
+    for child in node.children:
+        identifiers.update(_collect_ts_identifiers(child))
+
+    return identifiers
