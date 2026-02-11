@@ -35,14 +35,32 @@ async def run_parallel_code_analysis(
     Step 4: 실패한 레포 재분석 (최대 1회)
     Step 5: 결과 집계
     """
-    github_urls = enriched.get("github_urls", [])
-    if not github_urls:
+    # 버그 수정: enriched에서 candidate_github_username 읽기 (기존: raw_input에서 읽어 누락)
+    candidate_username = enriched.get("candidate_github_username")
+    candidate_name = enriched.get("candidate_name")
+
+    # enriched_input_data 구성: raw_input + enriched에서 추론된 username 병합
+    enriched_input_data = {**raw_input, "candidate_github_username": candidate_username}
+
+    # org repos 병합: personal repos + candidate 식별된 org repos
+    personal_github_urls = enriched.get("github_urls", [])
+    org_repo_entries = enriched.get("org_github_urls", [])
+    org_repo_urls = [r["url"] for r in org_repo_entries if r.get("url")]
+    all_github_urls = personal_github_urls + org_repo_urls
+
+    # per-repo candidate_username 매핑 (org repos는 개별 username 사용)
+    repo_candidate_map = {}
+    for entry in org_repo_entries:
+        if entry.get("url") and entry.get("candidate_username"):
+            repo_candidate_map[entry["url"]] = entry["candidate_username"]
+
+    if not all_github_urls:
         return {"repositories": [], "top_question_candidates": []}
 
     # Step 1: Manager가 레포 필터링 + 분석
     manager_result = await workflow.execute_activity(
         analyze_code,
-        args=[github_urls, raw_input, execution_plan],
+        args=[all_github_urls, enriched_input_data, execution_plan],
         start_to_close_timeout=timedelta(minutes=15),
         heartbeat_timeout=timedelta(seconds=120),
         retry_policy=EXTERNAL_API_RETRY,
@@ -62,14 +80,23 @@ async def run_parallel_code_analysis(
         return manager_result
 
     jd_tech_stack = manager_result.get("jd_tech_stack", [])
-    candidate_username = manager_result.get("candidate_username")
+    # manager_result의 candidate_username보다 enriched에서 추론된 것이 우선
+    if not candidate_username:
+        candidate_username = manager_result.get("candidate_username")
 
     # Step 2: 각 레포 병렬 분석 (Sub-Agents)
     repo_tasks = []
     for repo in target_repos:
+        # per-repo candidate_username 적용 (org repos는 개별 username 사용)
+        repo_url = repo.get("url", "")
+        per_repo_username = repo_candidate_map.get(repo_url, candidate_username)
+
+        # _candidate_name 주입 → git log fallback용
+        repo_with_meta = {**repo, "_candidate_name": candidate_name}
+
         task = workflow.execute_activity(
             analyze_single_repo,
-            args=[repo, jd_tech_stack, candidate_username, job_id],
+            args=[repo_with_meta, jd_tech_stack, per_repo_username, job_id],
             start_to_close_timeout=timedelta(minutes=10),
             heartbeat_timeout=timedelta(seconds=120),
             retry_policy=RetryPolicy(

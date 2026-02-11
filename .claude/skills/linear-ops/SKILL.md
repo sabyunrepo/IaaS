@@ -119,12 +119,20 @@ docker compose exec backend pytest --cov=app --cov-report=term-missing
 
 ### 조건: 모든 테스트 통과 시에만 진행
 
-### 3-1. 티켓 업데이트
+### 3-1. 티켓 업데이트 (코멘트 추가)
 
-`mcp__linear__update_issue(issueId, description)` 호출하여 결과 섹션 추가:
+`linear_add_comment`로 구현 결과를 코멘트로 추가:
 
+```bash
+# 직접 본문 전달
+linear_add_comment "$ISSUE_ID" "## 구현 완료 리뷰\n\n### 수정 파일\n- file1.py — 변경 요약"
+
+# 파일에서 읽기 (@경로 형식)
+linear_add_comment "$ISSUE_ID" @/tmp/review_comment.md
+```
+
+코멘트 본문 템플릿:
 ```markdown
----
 ## 구현 결과
 
 ### [Summary]
@@ -137,16 +145,16 @@ docker compose exec backend pytest --cov=app --cov-report=term-missing
 ### [Test Result]
 - 명령어: `pytest tests/test_feature.py -v`
 - 결과: ALL PASSED (X passed, 0 failed)
-- 커버리지: XX%
 
 ### [Commit]
 - 브랜치: `feat/VAN-{N}-slug`
 - 커밋: `{커밋 해시}`
----
 ```
 
+> **참고**: 본문에 마크다운 특수문자(`!`, `` ` ``, `"` 등)가 많을 경우 파일 기반 입력(`@/tmp/file.md`)을 사용할 것.
+
 ### 3-2. 상태 업데이트
-- `mcp__linear__update_issue(issueId, status: "In Review")`
+- `linear_update_status "$ISSUE_ID" in_review`
 
 ### 3-3. Git 커밋 및 PR
 1. 커밋 메시지에 티켓 ID 포함: `feat: {설명} [VAN-{N}]`

@@ -126,11 +126,17 @@ async def enrich_input(input_data: dict) -> dict:
             extracted_urls["github"].add(linkedin_profile["github_url"])
             extraction_sources.setdefault("github_urls", []).append("linkedin")
 
-    # 6. GitHub username 확인 (개인 계정만, Organization은 무시)
+    # 6. GitHub username 확인 (개인 계정 + 조직 레포 기여자 매칭)
     github_urls = list(extracted_urls["github"])
     candidate_username = input_data.get("candidate_github_username")
     username_inference = None
     personal_github_urls = []  # code_analysis에 실제 사용할 URL
+    org_github_urls = []  # candidate가 식별된 org repos
+
+    # candidate_name 추출 (LinkedIn full_name → git log fallback용)
+    candidate_name = None
+    if linkedin_profile:
+        candidate_name = linkedin_profile.get("full_name") or linkedin_profile.get("name")
 
     if github_urls:
         activity.heartbeat("Validating GitHub URLs (User vs Organization)...")
@@ -140,7 +146,7 @@ async def enrich_input(input_data: dict) -> dict:
 
             username_inference = await github_svc.infer_candidate_username(
                 github_urls=github_urls,
-                candidate_name=linkedin_profile.get("full_name") if linkedin_profile else None,
+                candidate_name=candidate_name,
             )
 
             # 개인 레포 URL만 사용
@@ -150,10 +156,19 @@ async def enrich_input(input_data: dict) -> dict:
             if not candidate_username:
                 candidate_username = username_inference.get("username")
 
+            # 조직 레포 중 candidate가 식별된 것들 수집
+            for org_repo in username_inference.get("org_repos", []):
+                if org_repo.get("candidate_username"):
+                    org_github_urls.append(org_repo)
+
             # 건너뛴 조직 레포 로깅
             skipped = username_inference.get("skipped_org_repos", [])
             if skipped:
-                logger.info(f"Skipped {len(skipped)} organization repos (no inference)")
+                matched_count = len(org_github_urls)
+                logger.info(
+                    f"Organization repos: {len(skipped)} total, "
+                    f"{matched_count} with candidate match"
+                )
 
         except Exception as e:
             logger.warning(f"GitHub URL validation failed: {e}")
@@ -164,19 +179,22 @@ async def enrich_input(input_data: dict) -> dict:
     available = ["jd_analysis"]  # JD는 항상
     if any(input_data.get(k) for k in ("resume_path", "portfolio_path", "cover_letter_path")) or linkedin_profile:
         available.append("document_analysis")
-    # code_analysis는 개인 레포가 있을 때만 (조직 레포만 있으면 제외)
-    if personal_github_urls:
+    # code_analysis: 개인 레포가 있거나 org repos에 candidate가 식별되면 활성화
+    if personal_github_urls or org_github_urls:
         available.append("code_analysis")
 
     # Debug logging for troubleshooting
     logger.info(f"[Enrichment] personal_github_urls: {personal_github_urls}")
+    logger.info(f"[Enrichment] org_github_urls: {org_github_urls}")
     logger.info(f"[Enrichment] available_analyses: {available}")
 
     return {
         "raw_input": input_data,
-        "github_urls": personal_github_urls,  # 개인 레포만 (조직 레포 제외)
+        "github_urls": personal_github_urls,  # 개인 레포만
+        "org_github_urls": org_github_urls,  # candidate 식별된 org repos
         "all_extracted_github_urls": github_urls,  # 원본 전체 (로깅/디버깅용)
         "candidate_github_username": candidate_username,
+        "candidate_name": candidate_name,  # git log fallback용
         "github_validation": username_inference,  # 검증 상세 정보
         "linkedin_profile": linkedin_profile,
         "extraction_sources": extraction_sources,

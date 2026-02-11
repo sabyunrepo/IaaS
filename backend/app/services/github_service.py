@@ -2,6 +2,7 @@
 backend/app/services/github_service.py
 GitHub API 서비스 (PyGithub 기반)
 """
+import asyncio
 import logging
 import re
 
@@ -292,24 +293,22 @@ class GitHubService:
         candidate_name: str | None = None,
     ) -> dict:
         """
-        GitHub URL들에서 후보자 개인 username 확인
-
-        ⚠️ 개인 계정(User) URL만 사용. Organization URL은 무시.
-        임의 추론(기여자 분석)은 하지 않음 - 신뢰성 문제.
+        GitHub URL들에서 후보자 개인 username 확인 + 조직 레포 기여자 매칭
 
         Strategy:
         1. URL에서 owner 추출
         2. owner가 User인지 Organization인지 확인
-        3. User 계정만 유효한 것으로 처리
-        4. Organization URL은 건너뜀 (code_analysis 대상에서 제외)
+        3. Organization → Contributors API로 candidate_name 매칭 (Stage 3)
+        4. 매칭 성공 시 confidence: "medium", 실패 시 confidence: "low"
 
         Returns:
             {
                 "username": str | None,
-                "confidence": "high" | "none",
+                "confidence": "high" | "medium" | "low" | "none",
                 "source": str,
-                "personal_repos": list[str],  # 개인 레포 URL만
-                "skipped_org_repos": list[str],  # 건너뛴 조직 레포
+                "personal_repos": list[str],
+                "skipped_org_repos": list[str],  # 하위 호환
+                "org_repos": list[dict],  # [{"url", "candidate_username", "confidence"}]
             }
         """
         if not github_urls:
@@ -319,10 +318,12 @@ class GitHubService:
                 "source": "no_urls",
                 "personal_repos": [],
                 "skipped_org_repos": [],
+                "org_repos": [],
             }
 
         personal_repos = []
         skipped_org_repos = []
+        org_repos = []
         found_username = None
 
         for url in github_urls[:10]:  # 최대 10개 URL 처리
@@ -333,22 +334,58 @@ class GitHubService:
             account_info = await self.get_account_type(owner)
 
             if account_info["type"] == "User":
-                # 개인 계정 → 유효
+                # Stage 1-2: 개인 계정 → 유효
                 personal_repos.append(url)
                 if not found_username:
                     found_username = owner
                     logger.info(f"Found personal GitHub account: {owner} from {url}")
 
             elif account_info["type"] == "Organization":
-                # 조직 계정 → 건너뜀 (임의 추론 안 함)
-                skipped_org_repos.append(url)
-                logger.info(f"Skipping organization repo (no inference): {owner} from {url}")
+                # Stage 3: 조직 레포 → Contributors API 매칭 시도
+                skipped_org_repos.append(url)  # 하위 호환 유지
+                org_entry = {
+                    "url": url,
+                    "candidate_username": None,
+                    "confidence": "low",
+                }
+
+                if candidate_name:
+                    try:
+                        match = await self.infer_candidate_from_contributors(
+                            repo_url=url,
+                            candidate_name=candidate_name,
+                        )
+                        if match:
+                            org_entry["candidate_username"] = match["username"]
+                            org_entry["confidence"] = "medium"
+                            org_entry["contributions"] = match["contributions"]
+                            if not found_username:
+                                found_username = match["username"]
+                            logger.info(
+                                f"Org repo contributor match: {match['username']} "
+                                f"in {url} ({match['contributions']} contributions)"
+                            )
+                        else:
+                            logger.info(
+                                f"No contributor match for '{candidate_name}' in {url}"
+                            )
+                    except Exception as e:
+                        logger.warning(
+                            f"Contributor matching failed for {url}: {e}"
+                        )
+                else:
+                    logger.info(
+                        f"Skipping org repo (no candidate_name for matching): {url}"
+                    )
+
+                org_repos.append(org_entry)
 
             else:
                 # unknown (API 실패 등) → 건너뜀
                 skipped_org_repos.append(url)
                 logger.warning(f"Unknown account type for {owner}, skipping: {url}")
 
+        # 결과 결정
         if found_username and personal_repos:
             return {
                 "username": found_username,
@@ -356,6 +393,20 @@ class GitHubService:
                 "source": f"personal_repo:{personal_repos[0]}",
                 "personal_repos": personal_repos,
                 "skipped_org_repos": skipped_org_repos,
+                "org_repos": org_repos,
+            }
+
+        if found_username and org_repos:
+            matched_org = next(
+                (r for r in org_repos if r["candidate_username"]), None
+            )
+            return {
+                "username": found_username,
+                "confidence": "medium",
+                "source": f"org_contributor:{matched_org['url']}" if matched_org else "org_repo",
+                "personal_repos": personal_repos,
+                "skipped_org_repos": skipped_org_repos,
+                "org_repos": org_repos,
             }
 
         return {
@@ -364,6 +415,7 @@ class GitHubService:
             "source": "no_personal_repos",
             "personal_repos": [],
             "skipped_org_repos": skipped_org_repos,
+            "org_repos": org_repos,
         }
 
     def _extract_owner(self, url: str) -> str | None:
@@ -417,3 +469,146 @@ class GitHubService:
                 return True
 
         return False
+
+    async def infer_candidate_from_contributors(
+        self,
+        repo_url: str,
+        candidate_name: str,
+    ) -> dict | None:
+        """
+        레포 Contributors API에서 후보자 이름 매칭
+
+        Args:
+            repo_url: GitHub 레포 URL
+            candidate_name: 후보자 이름 (LinkedIn full_name 등)
+
+        Returns:
+            매칭 시: {"username": str, "contributions": int}
+            미매칭 시: None
+        """
+        import httpx
+
+        contributors = await self.get_repo_contributors(repo_url, limit=10)
+        if not contributors:
+            return None
+
+        for contrib in contributors:
+            username = contrib.get("username")
+            if not username:
+                continue
+
+            # GitHub 프로필에서 display name 조회
+            try:
+                g = self._get_github()
+                user = g.get_user(username)
+                display_name = user.name
+            except Exception:
+                # Fallback: 인증 없이 조회
+                try:
+                    async with httpx.AsyncClient(timeout=5.0) as client:
+                        resp = await client.get(
+                            f"https://api.github.com/users/{username}",
+                            headers={"Accept": "application/vnd.github.v3+json"},
+                        )
+                        if resp.status_code == 200:
+                            display_name = resp.json().get("name")
+                        else:
+                            display_name = None
+                except Exception:
+                    display_name = None
+
+            if display_name and self._names_match(candidate_name, display_name):
+                logger.info(
+                    f"Contributor match: {username} ({display_name}) "
+                    f"≈ {candidate_name} in {repo_url}"
+                )
+                return {
+                    "username": username,
+                    "contributions": contrib.get("contributions", 0),
+                }
+
+        return None
+
+    @staticmethod
+    async def extract_git_authors(clone_dir: str, limit: int = 20) -> list[dict]:
+        """
+        git shortlog에서 커밋 작성자 목록 추출
+
+        Args:
+            clone_dir: shallow clone 디렉토리 경로
+            limit: 최대 반환 수
+
+        Returns:
+            [{"name": str, "email": str, "commits": int}, ...]
+        """
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "git", "-C", clone_dir, "shortlog", "-sne", "--all",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=10)
+            if proc.returncode != 0:
+                return []
+
+            authors = []
+            for line in stdout.decode("utf-8", errors="replace").strip().splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                # 형식: "  123\tName <email>"
+                match = re.match(r'(\d+)\t(.+?)\s+<(.+?)>', line)
+                if match:
+                    authors.append({
+                        "name": match.group(2).strip(),
+                        "email": match.group(3).strip(),
+                        "commits": int(match.group(1)),
+                    })
+            return authors[:limit]
+        except Exception as e:
+            logger.warning(f"extract_git_authors failed for {clone_dir}: {e}")
+            return []
+
+    async def match_candidate_from_git_log(
+        self,
+        clone_dir: str,
+        candidate_name: str,
+    ) -> dict | None:
+        """
+        git log 작성자에서 후보자 이름 매칭
+
+        Args:
+            clone_dir: shallow clone 디렉토리 경로
+            candidate_name: 후보자 이름
+
+        Returns:
+            매칭 시: {"name": str, "email": str, "commits": int, "username": str | None}
+            미매칭 시: None
+        """
+        authors = await self.extract_git_authors(clone_dir)
+        if not authors:
+            return None
+
+        for author in authors:
+            if self._names_match(candidate_name, author["name"]):
+                # noreply email에서 username 추출 시도
+                username = None
+                email = author.get("email", "")
+                noreply_match = re.match(
+                    r'(\d+\+)?(.+?)@users\.noreply\.github\.com', email
+                )
+                if noreply_match:
+                    username = noreply_match.group(2)
+
+                logger.info(
+                    f"Git log match: {author['name']} <{email}> "
+                    f"≈ {candidate_name} (username={username})"
+                )
+                return {
+                    "name": author["name"],
+                    "email": email,
+                    "commits": author["commits"],
+                    "username": username,
+                }
+
+        return None
