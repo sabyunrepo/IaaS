@@ -51,7 +51,6 @@ const resources = {
       export_json: 'JSON 내보내기',
       view_job_status: 'Job 상세',
       print_pdf: 'PDF 인쇄',
-      glossary: '용어집',
       result_error: '결과를 불러올 수 없습니다.',
       // Categories
       cat_all: '전체',
@@ -236,7 +235,6 @@ const resources = {
       // ResultPage - header & common
       result_question_count: '{{count}}개 질문',
       result_back_to_list: '목록으로 돌아가기',
-      result_terms_count: '{{count}}개 용어',
       // ResultPage - v2 tabs
       result_tab_intel_brief: '인텔 브리프',
       result_tab_analysis: '심층 분석',
@@ -550,7 +548,6 @@ const resources = {
       export_json: 'Export JSON',
       view_job_status: 'Job Details',
       print_pdf: 'Print PDF',
-      glossary: 'Glossary',
       result_error: 'Failed to load result.',
       // Categories
       cat_all: 'All',
@@ -735,7 +732,6 @@ const resources = {
       // ResultPage - header & common
       result_question_count: '{{count}} questions',
       result_back_to_list: 'Back to List',
-      result_terms_count: '{{count}} terms',
       // ResultPage - v2 tabs
       result_tab_intel_brief: 'Intel Brief',
       result_tab_analysis: 'Deep Analysis',
