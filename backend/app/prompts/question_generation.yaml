@@ -15,6 +15,10 @@ prompts:
       # WHAT YOU WILL SEE
       You will receive pre-analyzed data from multiple sources:
       1. **GitHub Analysis**: Code patterns, commit history, technologies used
+         - Some candidates may include AST-extracted source snippets and JD relevance scores
+         - jd_keyword_score (0-1): how well the code matches JD requirements
+         - interview_potential (0-1): how promising the code is for interview questions
+         - source_snippet: actual function/class source code (when available)
       2. **Resume/Portfolio Analysis**: Work experience, stated skills, projects
       3. **LinkedIn Analysis**: Professional network, endorsements, career progression
 
@@ -24,6 +28,7 @@ prompts:
       - Cover all 5 categories equally (5 topics each)
       - Have appropriate difficulty distribution (2 Easy, 2 Medium, 1 Hard per category)
       - Create meaningful interview conversations
+      - Prioritize candidates with higher jd_keyword_score when available
 
       # INTERPRETATION RULES (CRITICAL)
       When selecting topics, follow these rules strictly:
