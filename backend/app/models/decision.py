@@ -41,7 +41,7 @@ class InterviewerGuideTips(BaseModel):
 
 
 class JDCompetencyWeight(BaseModel):
-    """JD 역량 가중치"""
+    """JD 역량 가중치 (Deprecated: JIT-17에서 related_questions를 skill_table로 이전, 기존 데이터 역직렬화용 유지)"""
     competency: str
     weight: float
     related_questions: list[int] = Field(default_factory=list)
