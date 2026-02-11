@@ -1,29 +1,61 @@
 #!/usr/bin/env bash
-# Linear GraphQL API 래퍼 — MCP 대체
+# Linear GraphQL API 래퍼
 # 사용법: source .claude/skills/linear-ops/linear-api.sh && linear_get_issue "issue-uuid"
 #
 # 함수 목록:
-#   linear_get_issue       "issue-uuid"
+#   linear_get_issue       "issue-id" (UUID 또는 JIT-26 형식)
 #   linear_search_issues   "검색어" [limit]
 #   linear_list_issues     [team-uuid] [limit]
-#   linear_update_status   "issue-uuid" "backlog|todo|in_progress|in_review|done|canceled"
-#   linear_update_description "issue-uuid" "설명"
+#   linear_update_status   "issue-id" "backlog|todo|in_progress|in_review|done|canceled"
+#   linear_update_description "issue-id" "설명"
 #   linear_create_issue    "제목" "team-uuid" ["설명"] [priority]
-#   linear_add_comment     "issue-uuid" "본문" | @/path/to/file.md
+#   linear_add_comment     "issue-id" "본문" | @/path/to/file.md
 #   linear_list_teams
 #   linear_list_projects   [limit]
 #
-# 필수 환경변수: LINEAR_API_KEY 또는 LINEAR_API_TOKEN
+# API 키 우선순위: LINEAR_API_KEY > LINEAR_API_TOKEN > settings.local.json 자동 감지
 
 set -euo pipefail
 
 LINEAR_ENDPOINT="https://api.linear.app/graphql"
 
 _linear_key() {
-  echo "${LINEAR_API_KEY:-${LINEAR_API_TOKEN:-}}"
+  # 1. 환경변수 확인
+  if [[ -n "${LINEAR_API_KEY:-}" ]]; then
+    echo "$LINEAR_API_KEY"
+    return
+  fi
+  if [[ -n "${LINEAR_API_TOKEN:-}" ]]; then
+    echo "$LINEAR_API_TOKEN"
+    return
+  fi
+
+  # 2. settings.local.json에서 자동 추출
+  local settings_file="${CLAUDE_SETTINGS_PATH:-/Users/sabyun/goinfre/IaaS/.claude/settings.local.json}"
+  if [[ -f "$settings_file" ]]; then
+    local key
+    key=$(grep -o 'LINEAR_API_KEY=\\"[^"]*\\"' "$settings_file" 2>/dev/null | head -1 | sed 's/LINEAR_API_KEY=\\"//' | sed 's/\\"//')
+    if [[ -n "$key" ]]; then
+      export LINEAR_API_KEY="$key"
+      echo "$key"
+      return
+    fi
+  fi
+
+  echo ""
+}
+
+_linear_ensure_key() {
+  local key
+  key=$(_linear_key)
+  if [[ -z "$key" ]]; then
+    echo "ERROR: LINEAR_API_KEY 미설정. 환경변수를 설정하거나 settings.local.json을 확인하세요." >&2
+    return 1
+  fi
 }
 
 _linear_gql() {
+  _linear_ensure_key || return 1
   # 멀티라인 GraphQL → 한 줄로 압축 후 JSON 전송
   local query
   query=$(echo "$1" | tr '\n' ' ' | sed 's/  */ /g')
@@ -34,6 +66,27 @@ _linear_gql() {
     -H "Content-Type: application/json" \
     -H "Authorization: $(_linear_key)" \
     --data "$payload"
+}
+
+# Issue identifier (JIT-26) → UUID 변환
+_linear_resolve_id() {
+  local input="$1"
+  # UUID 형식이면 그대로 반환
+  if [[ "$input" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+    echo "$input"
+    return
+  fi
+  # JIT-26 같은 identifier → search로 UUID 추출
+  local result
+  result=$(linear_search_issues "$input" 1)
+  local uuid
+  uuid=$(echo "$result" | jq -r '.data.searchIssues.nodes[0].id // empty' 2>/dev/null)
+  if [[ -n "$uuid" ]]; then
+    echo "$uuid"
+  else
+    echo "ERROR: '$input' 이슈를 찾을 수 없습니다." >&2
+    return 1
+  fi
 }
 
 # ── Jittda 팀 워크플로우 상태 UUID ──
@@ -53,7 +106,9 @@ _linear_state_id() {
 # ── API 함수 ──
 
 linear_get_issue() {
-  local issue_id="$1"
+  local input="$1"
+  local issue_id
+  issue_id=$(_linear_resolve_id "$input") || return 1
   _linear_gql '
     query($id: String!) {
       issue(id: $id) {
@@ -122,8 +177,10 @@ linear_list_issues() {
 }
 
 linear_update_status() {
-  local issue_id="$1"
+  local input="$1"
   local status_key="$2"  # backlog|todo|in_progress|in_review|done|canceled 또는 UUID
+  local issue_id
+  issue_id=$(_linear_resolve_id "$input") || return 1
   local state_id
   state_id=$(_linear_state_id "$status_key")
   _linear_gql '
@@ -137,8 +194,10 @@ linear_update_status() {
 }
 
 linear_update_description() {
-  local issue_id="$1"
+  local input="$1"
   local description="$2"
+  local issue_id
+  issue_id=$(_linear_resolve_id "$input") || return 1
   _linear_gql '
     mutation($id: String!, $desc: String!) {
       issueUpdate(id: $id, input: { description: $desc }) {
@@ -166,10 +225,12 @@ linear_create_issue() {
 
 linear_add_comment() {
   # 이슈에 코멘트 추가
-  # 사용법: linear_add_comment "issue-uuid" "코멘트 본문"
-  #         linear_add_comment "issue-uuid" @/tmp/comment.md  (파일에서 읽기)
-  local issue_id="$1"
+  # 사용법: linear_add_comment "JIT-26" "코멘트 본문"
+  #         linear_add_comment "JIT-26" @/tmp/comment.md  (파일에서 읽기)
+  local input="$1"
   local body="$2"
+  local issue_id
+  issue_id=$(_linear_resolve_id "$input") || return 1
 
   # @파일경로 형식이면 파일에서 읽기
   if [[ "$body" == @* ]]; then
