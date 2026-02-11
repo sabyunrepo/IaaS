@@ -122,44 +122,35 @@ class TestGeminiOCR:
         assert result.metadata.get("ocr") is True
 
     @pytest.mark.asyncio
-    async def test_pymupdf_used_when_sufficient(self, tmp_path, monkeypatch):
-        """pymupdf4llm 결과가 충분히 길면 그대로 사용"""
+    async def test_gemini_used_when_api_key_present(self, tmp_path, monkeypatch):
+        """GEMINI_API_KEY 설정 시 Gemini-only 파싱 사용"""
         from unittest.mock import AsyncMock
         import app.services.document_parser as dp
 
         pdf_file = tmp_path / "test.pdf"
         pdf_file.write_bytes(b"%PDF-1.4 fake pdf content")
 
-        long_text = "A" * 500  # 충분히 긴 텍스트
-        monkeypatch.setattr(dp, "_extract_with_pymupdf", AsyncMock(return_value=long_text))
+        gemini_text = "A" * 500  # Gemini가 반환하는 텍스트
 
         class MockSettings:
             GEMINI_API_KEY = "fake-key"
             PDF_PARSER_MIN_CHARS = 200
 
         monkeypatch.setattr("app.core.config.settings", MockSettings())
+        monkeypatch.setattr(dp, "_extract_with_gemini", AsyncMock(return_value=gemini_text))
 
         result = await dp._parse_pdf(str(pdf_file))
-        assert result.parser_used == "pymupdf4llm"
+        assert result.parser_used == "gemini-2.5-flash"
         assert len(result.text) == 500
+        assert result.metadata.get("ocr") is True
 
     @pytest.mark.asyncio
-    async def test_gemini_skipped_when_no_api_key(self, tmp_path, monkeypatch):
-        """GEMINI_API_KEY 미설정 시 Gemini 스킵"""
-        from unittest.mock import AsyncMock
+    async def test_gemini_raises_when_no_api_key(self, tmp_path, monkeypatch):
+        """GEMINI_API_KEY 미설정 시 ValueError 발생"""
         import app.services.document_parser as dp
 
         pdf_file = tmp_path / "test.pdf"
         pdf_file.write_bytes(b"%PDF-1.4 fake pdf content")
-
-        # pymupdf4llm 짧은 결과
-        monkeypatch.setattr(dp, "_extract_with_pymupdf", AsyncMock(return_value="short"))
-
-        # Docling도 실패
-        monkeypatch.setattr(
-            dp, "_extract_with_docling",
-            AsyncMock(side_effect=Exception("Docling failed"))
-        )
 
         class MockSettings:
             GEMINI_API_KEY = None  # 미설정
@@ -167,10 +158,8 @@ class TestGeminiOCR:
 
         monkeypatch.setattr("app.core.config.settings", MockSettings())
 
-        # 최종 결과는 짧은 pymupdf4llm 결과
-        result = await dp._parse_pdf(str(pdf_file))
-        assert result.parser_used == "pymupdf4llm"
-        assert result.metadata.get("quality") == "low"
+        with pytest.raises(ValueError, match="Gemini API key is not configured"):
+            await dp._parse_pdf(str(pdf_file))
 
 
 class TestDocumentAnalysisActivity:

@@ -413,8 +413,12 @@ class TestReviseQuestions:
         """피드백 기반 질문 수정"""
         from app.workflows.activities.question_generation import revise_questions
 
-        questions = [
+        all_questions = [
             {"question_text": "Python 경험을 설명해주세요.", "category": "technical_depth"},
+        ]
+
+        flagged_questions = [
+            {"question_text": "Python 경험을 설명해주세요.", "category": "technical_depth", "_original_idx": 0},
         ]
 
         review_feedback = {
@@ -422,7 +426,7 @@ class TestReviseQuestions:
         }
 
         mock_revised = [
-            {"question_text": "Python으로 해결한 가장 복잡한 문제는 무엇인가요?", "category": "technical_depth"},
+            {"question_text": "Python으로 해결한 가장 복잡한 문제는 무엇인가요?", "category": "technical_depth", "original_index": 0},
         ]
 
         async def mock_llm_run(prompt_config, **kwargs):
@@ -430,7 +434,7 @@ class TestReviseQuestions:
 
         with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
              patch(HEARTBEAT_PATCH):
-            result = await revise_questions(questions, review_feedback, mock_enriched_input)
+            result = await revise_questions(all_questions, flagged_questions, review_feedback, mock_enriched_input)
 
             assert isinstance(result, list)
             assert len(result) > 0
@@ -444,12 +448,16 @@ class TestReviseQuestions:
             {"question_text": "Original question", "category": "technical_depth"},
         ]
 
+        flagged_questions = [
+            {"question_text": "Original question", "category": "technical_depth", "_original_idx": 0},
+        ]
+
         async def mock_llm_run(prompt_config, **kwargs):
             return "Not a list"
 
         with patch(LLM_RUN_PATCH, side_effect=mock_llm_run), \
              patch(HEARTBEAT_PATCH):
-            result = await revise_questions(original_questions, {}, mock_enriched_input)
+            result = await revise_questions(original_questions, flagged_questions, {}, mock_enriched_input)
 
             # 원본 반환
             assert result == original_questions
