@@ -69,11 +69,7 @@ test.describe('ResultPage - 4 Tab UI', () => {
     analysis: {
       radar_candidate: [85, 80, 75, 70, 65],
       radar_required: [80, 75, 70, 75, 60],
-      engineering_dna: [
-        { label: '테스트 커버리지', value: 82, display: '82%', color: 'emerald', note: '우수', tooltip: '단위 테스트 커버리지' },
-        { label: '코드 리뷰 참여', value: 90, display: '90%', color: 'emerald', note: '우수', tooltip: 'PR 리뷰 참여율' },
-        { label: '문서화', value: 65, display: '65%', color: 'amber', note: '보통', tooltip: 'README 및 API 문서화' },
-      ],
+      engineering_dna: [],
       risk_flags: [],
       skill_table: [
         { skill: 'Python', candidate: 'Python 3.11', type: 'exact', evidence: 'GitHub', confidence: 95 },
@@ -167,14 +163,11 @@ test.describe('ResultPage - 4 Tab UI', () => {
         concerns: ['프론트엔드 경험 부족', '대기업 경험 없음'],
       },
       interviewer_guide: {
-        interview_flow: '기술 심층 → 행동 면접 → 문화 적합성',
-        time_allocation: { '기술 심층': '40분', '행동 면접': '15분', '문화 적합성': '5분' },
         resume_based_tips: [
           { section: '경력', insight: 'API 설계 경험 심층 확인', question_link: 'Q2 참조' },
         ],
         cover_letter_insights: [],
         red_flags_to_watch: ['기술 깊이 부족 시 추가 검증'],
-        positive_signals: ['구체적 수치 기반 답변', '팀 협업 사례'],
       },
       jd_competency_map: [
         { competency: 'Python 개발', weight: 0.3, related_questions: [2] },
@@ -182,21 +175,6 @@ test.describe('ResultPage - 4 Tab UI', () => {
         { competency: '팀 협업', weight: 0.2, related_questions: [1] },
       ],
     },
-    category_weights: {
-      technical: 0.4,
-      behavioral: 0.3,
-      cultural: 0.15,
-      problem_solving: 0.15,
-    },
-    interviewer_guide: {
-      preparation: '이력서 기반 질문 준비',
-      time_per_question: '5분',
-      evaluation_criteria: '구체성, 논리성, 실무 경험',
-    },
-    full_glossary: [
-      { term: 'API', definition: 'Application Programming Interface' },
-      { term: 'CDN', definition: 'Content Delivery Network' },
-    ],
     metadata: {
       version: 'v2',
       generated_by: 'test',
@@ -275,10 +253,6 @@ test.describe('ResultPage - 4 Tab UI', () => {
     // Check radar chart exists (SVG)
     await expect(page.locator('svg').first()).toBeVisible()
 
-    // Check engineering DNA items
-    await expect(page.getByText('테스트 커버리지')).toBeVisible()
-    await expect(page.getByText('코드 리뷰 참여')).toBeVisible()
-
     // Check skill table
     await expect(page.getByText('Python 3.11')).toBeVisible()
     await expect(page.getByText('FastAPI')).toBeVisible()
@@ -321,8 +295,8 @@ test.describe('ResultPage - 4 Tab UI', () => {
     await expect(page.getByText('Python 전문성')).toBeVisible()
     await expect(page.getByText('프론트엔드 경험 부족')).toBeVisible()
 
-    // Check interviewer guide (default expanded)
-    await expect(page.getByText('기술 심층 → 행동 면접 → 문화 적합성')).toBeVisible()
+    // Check interviewer guide — resume based tips
+    await expect(page.getByText('API 설계 경험 심층 확인')).toBeVisible()
 
     // Check JD competency map
     await expect(page.getByText('Python 개발')).toBeVisible()
@@ -334,7 +308,7 @@ test.describe('ResultPage - 4 Tab UI', () => {
     // Navigate through all tabs
     const tabs = [
       { name: /intel brief/i, content: '백엔드 개발자' },
-      { name: /deep analysis/i, content: '테스트 커버리지' },
+      { name: /deep analysis/i, content: 'Python 3.11' },
       { name: /live interview/i, content: '첫 90일 우선순위' },
       { name: /decision/i, content: 'Python 전문성' },
     ]
@@ -397,10 +371,6 @@ test.describe('ResultPage - v1 Fallback', () => {
       current_title: '개발자',
       years_experience: 3,
     },
-    interviewer_guide: {
-      preparation: '준비 사항',
-    },
-    full_glossary: [],
     metadata: { version: 'v1' },
   }
 
