@@ -332,7 +332,6 @@ export function ResultPage() {
           {activeTab === 'interview' && (
             <LiveInterviewTab
               questions={questions as InterviewQuestion[]}
-              categoryWeights={script.category_weights}
             />
           )}
 

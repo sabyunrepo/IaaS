@@ -53,11 +53,6 @@ export function InterviewQuestionCard({
               {t(`evidence_${question.evidence_quality}`)}
             </span>
           )}
-          {question.time_allocation_minutes && (
-            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-              {question.time_allocation_minutes}{t('live_minutes')}
-            </span>
-          )}
         </div>
         <p className="text-lg text-gray-900">{question.question_text}</p>
       </div>

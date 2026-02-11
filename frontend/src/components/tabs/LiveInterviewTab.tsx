@@ -6,17 +6,15 @@ import { useTranslation } from 'react-i18next'
 import type {
   InterviewQuestion,
   ScenarioLevelType,
-  ScoresState,
-  CategoryWeights
+  ScoresState
 } from '../../types/interview'
 import { InterviewQuestionCard } from './InterviewQuestionCard'
 
 interface LiveInterviewTabProps {
   questions: InterviewQuestion[]
-  categoryWeights?: CategoryWeights
 }
 
-export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, categoryWeights }: LiveInterviewTabProps) {
+export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: LiveInterviewTabProps) {
   const { t } = useTranslation()
 
   // Deduplicate questions by ID — backend generates UUID-based IDs,
@@ -137,16 +135,6 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, cate
             </div>
           </div>
 
-          {/* Category Weights */}
-          {categoryWeights && (
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(categoryWeights).map(([cat, weight]) => (
-                <span key={cat} className="px-2 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-full">
-                  {cat}: {Math.round(weight * 100)}%
-                </span>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Questions by Category */}
@@ -195,11 +183,6 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions, cate
                       }`}>
                         {q.difficulty}
                       </span>
-                      {q.time_allocation_minutes && (
-                        <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
-                          {q.time_allocation_minutes} {t('live_minutes')}
-                        </span>
-                      )}
                       {q.evidence_quality && (
                         <span className={`px-1.5 py-0.5 text-xs rounded ${
                           q.evidence_quality === 'high' ? 'bg-emerald-100 text-emerald-700' :
