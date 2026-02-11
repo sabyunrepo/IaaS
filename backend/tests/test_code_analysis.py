@@ -283,3 +283,238 @@ class TestCodeAnalysisIntegration:
 
             assert "repositories" in result
             assert "top_question_candidates" in result
+
+
+# ============================================================
+# P2C-07: validate_code_analysis 테스트 (JIT-26)
+# ============================================================
+
+@patch("app.core.observability.is_langfuse_enabled", return_value=False)
+class TestValidateCodeAnalysis:
+    """validate_code_analysis Activity 테스트"""
+
+    @pytest.mark.asyncio
+    async def test_valid_result(self, _mock_langfuse):
+        """정상 결과 → valid=True"""
+        from app.workflows.activities.code_analysis import validate_code_analysis
+
+        repo_result = {
+            "repo_name": "test-repo",
+            "candidate_commits": 50,
+            "ast_analysis": {
+                "functions": [{"name": "func1"}],
+                "classes": [{"name": "Class1"}],
+                "parser_used": "ast",
+            },
+            "analysis": {
+                "patterns": ["Repository"],
+                "quality_score": 0.7,
+            },
+            "notable_implementations": [{"title": "Async engine"}],
+            "hybrid_metadata": {
+                "key_files_count": 3,
+                "deep_analyses_count": 3,
+            },
+        }
+
+        with patch("app.workflows.activities.code_analysis.activity") as mock_activity:
+            mock_activity.heartbeat = MagicMock()
+            result = await validate_code_analysis(repo_result)
+
+        assert result["valid"] is True
+        assert result["issues"] == []
+        assert result["repo_name"] == "test-repo"
+
+    @pytest.mark.asyncio
+    async def test_low_commits(self, _mock_langfuse):
+        """커밋 0개 → valid=False"""
+        from app.workflows.activities.code_analysis import validate_code_analysis
+
+        repo_result = {
+            "repo_name": "empty-repo",
+            "candidate_commits": 0,
+            "ast_analysis": {"functions": [{"name": "f"}], "classes": []},
+            "analysis": {"patterns": ["Singleton"], "quality_score": 0.5},
+            "notable_implementations": [],
+            "hybrid_metadata": {},
+        }
+
+        with patch("app.workflows.activities.code_analysis.activity") as mock_activity:
+            mock_activity.heartbeat = MagicMock()
+            result = await validate_code_analysis(repo_result, min_commits=1)
+
+        assert result["valid"] is False
+        assert any("커밋 수 부족" in issue for issue in result["issues"])
+
+    @pytest.mark.asyncio
+    async def test_no_ast_findings(self, _mock_langfuse):
+        """함수/클래스 없음 → 이슈"""
+        from app.workflows.activities.code_analysis import validate_code_analysis
+
+        repo_result = {
+            "repo_name": "no-ast",
+            "candidate_commits": 10,
+            "ast_analysis": {"functions": [], "classes": []},
+            "analysis": {"patterns": [], "quality_score": 0.5},
+            "notable_implementations": [],
+            "hybrid_metadata": {},
+        }
+
+        with patch("app.workflows.activities.code_analysis.activity") as mock_activity:
+            mock_activity.heartbeat = MagicMock()
+            result = await validate_code_analysis(repo_result)
+
+        assert result["valid"] is False
+        assert any("AST" in issue for issue in result["issues"])
+
+    @pytest.mark.asyncio
+    async def test_low_notables(self, _mock_langfuse):
+        """notable=0, min_notables=1 → 이슈"""
+        from app.workflows.activities.code_analysis import validate_code_analysis
+
+        repo_result = {
+            "repo_name": "low-notables",
+            "candidate_commits": 20,
+            "ast_analysis": {"functions": [{"name": "f"}], "classes": []},
+            "analysis": {"patterns": ["Factory"], "quality_score": 0.6},
+            "notable_implementations": [],
+            "hybrid_metadata": {},
+        }
+
+        with patch("app.workflows.activities.code_analysis.activity") as mock_activity:
+            mock_activity.heartbeat = MagicMock()
+            result = await validate_code_analysis(repo_result, min_notables=1)
+
+        assert result["valid"] is False
+        assert any("notable" in issue for issue in result["issues"])
+
+    @pytest.mark.asyncio
+    async def test_deep_analysis_failure(self, _mock_langfuse):
+        """deep_analyses=0, key_files>0 → 이슈"""
+        from app.workflows.activities.code_analysis import validate_code_analysis
+
+        repo_result = {
+            "repo_name": "deep-fail",
+            "candidate_commits": 30,
+            "ast_analysis": {"functions": [{"name": "f"}], "classes": []},
+            "analysis": {"patterns": ["Singleton"], "quality_score": 0.5},
+            "notable_implementations": [],
+            "hybrid_metadata": {
+                "key_files_count": 5,
+                "deep_analyses_count": 0,
+            },
+        }
+
+        with patch("app.workflows.activities.code_analysis.activity") as mock_activity:
+            mock_activity.heartbeat = MagicMock()
+            result = await validate_code_analysis(repo_result)
+
+        assert result["valid"] is False
+        assert any("Deep Analysis" in issue for issue in result["issues"])
+
+    @pytest.mark.asyncio
+    async def test_low_quality_with_many_commits(self, _mock_langfuse):
+        """quality=0.2, commits=50 → 이슈"""
+        from app.workflows.activities.code_analysis import validate_code_analysis
+
+        repo_result = {
+            "repo_name": "low-quality",
+            "candidate_commits": 50,
+            "ast_analysis": {"functions": [{"name": "f"}], "classes": []},
+            "analysis": {"patterns": ["Factory"], "quality_score": 0.2},
+            "notable_implementations": [{"title": "Something"}],
+            "hybrid_metadata": {},
+        }
+
+        with patch("app.workflows.activities.code_analysis.activity") as mock_activity:
+            mock_activity.heartbeat = MagicMock()
+            result = await validate_code_analysis(repo_result)
+
+        assert result["valid"] is False
+        assert any("품질 점수" in issue for issue in result["issues"])
+
+    @pytest.mark.asyncio
+    async def test_all_issues_combined(self, _mock_langfuse):
+        """복합 실패 → 복수 이슈"""
+        from app.workflows.activities.code_analysis import validate_code_analysis
+
+        repo_result = {
+            "repo_name": "many-issues",
+            "candidate_commits": 0,
+            "ast_analysis": {"functions": [], "classes": []},
+            "analysis": {"patterns": [], "quality_score": 0.0},
+            "notable_implementations": [],
+            "hybrid_metadata": {
+                "key_files_count": 3,
+                "deep_analyses_count": 0,
+            },
+        }
+
+        with patch("app.workflows.activities.code_analysis.activity") as mock_activity:
+            mock_activity.heartbeat = MagicMock()
+            result = await validate_code_analysis(repo_result, min_commits=1, min_notables=1)
+
+        assert result["valid"] is False
+        assert len(result["issues"]) >= 3
+
+
+# ============================================================
+# P2C-08: _get_file_commits 테스트 (JIT-26)
+# ============================================================
+
+class TestGetFileCommits:
+    """_get_file_commits — 특정 파일의 커밋 이력 추출"""
+
+    def test_extracts_matching_commits(self):
+        """file_path 매칭 커밋 필터"""
+        from app.workflows.activities.code_analysis import _get_file_commits
+
+        driller_result = {
+            "commit_diffs": [
+                {"file_path": "main.py", "commit_hash": "aaa", "message": "feat", "date": "2025-01", "additions": 10, "deletions": 2},
+                {"file_path": "utils.py", "commit_hash": "bbb", "message": "fix", "date": "2025-02", "additions": 5, "deletions": 1},
+                {"file_path": "main.py", "commit_hash": "ccc", "message": "refactor", "date": "2025-03", "additions": 20, "deletions": 5},
+            ]
+        }
+
+        commits = _get_file_commits(driller_result, "main.py")
+
+        assert len(commits) == 2
+        assert all(c["commit_hash"] in ("aaa", "ccc") for c in commits)
+
+    def test_limits_to_10(self):
+        """15개 커밋 → max 10 반환"""
+        from app.workflows.activities.code_analysis import _get_file_commits
+
+        driller_result = {
+            "commit_diffs": [
+                {"file_path": "app.py", "commit_hash": f"h{i}", "message": f"commit {i}", "date": f"2025-{i:02d}", "additions": i, "deletions": 0}
+                for i in range(15)
+            ]
+        }
+
+        commits = _get_file_commits(driller_result, "app.py")
+
+        assert len(commits) == 10
+
+
+# ============================================================
+# P2C-09: calculate_dynamic_token_budget 테스트 (JIT-26)
+# ============================================================
+
+class TestCalculateDynamicTokenBudget:
+    """CodeAnalyzer.calculate_dynamic_token_budget — 동적 토큰 예산"""
+
+    def test_minimum_20k(self):
+        """nloc=100 → 20,000 (최소값)"""
+        from app.services.code_analyzer import CodeAnalyzer
+
+        budget = CodeAnalyzer.calculate_dynamic_token_budget(100)
+        assert budget == 20_000
+
+    def test_maximum_50k(self):
+        """nloc=100,000 → 50,000 (최대값)"""
+        from app.services.code_analyzer import CodeAnalyzer
+
+        budget = CodeAnalyzer.calculate_dynamic_token_budget(100_000)
+        assert budget == 50_000
