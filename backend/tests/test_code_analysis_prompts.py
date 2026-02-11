@@ -1,11 +1,11 @@
 """
 backend/tests/test_code_analysis_prompts.py
-프롬프트 빌더 함수 단위 테스트 (JIT-26)
+프롬프트 빌더 함수 단위 테스트 (JIT-26, JIT-28)
 
 테스트 항목:
 - build_overview_prompt(): Overview Agent 프롬프트
-- build_deep_analysis_prompt(): Deep Analysis Agent 프롬프트
-- build_synthesis_prompt(): Synthesis Agent 프롬프트
+- build_deep_analysis_prompt(): Deep Analysis Agent 프롬프트 + 토큰 예산 동적화
+- build_synthesis_prompt(): Synthesis Agent 프롬프트 + JD relevance score
 """
 import pytest
 
@@ -154,8 +154,8 @@ class TestBuildDeepAnalysisPrompt:
         assert "app.get" in prompt
         assert "JD Relevance" in prompt
 
-    def test_source_truncation(self):
-        """8000자 초과 소스 절삭"""
+    def test_source_truncation_default(self):
+        """기본 8000자 예산으로 소스 절삭"""
         long_source = "x = 1\n" * 2000  # ~12K chars
         prompt = build_deep_analysis_prompt(
             file_info={
@@ -167,8 +167,73 @@ class TestBuildDeepAnalysisPrompt:
         )
 
         # 프롬프트 내 소스코드가 8000자 이하로 잘림
-        # (프롬프트 전체 길이가 아닌, 소스코드 부분만)
         assert len(prompt) < len(long_source) + 2000  # 프롬프트 오버헤드 감안
+
+    def test_token_budget_20k(self):
+        """JIT-28: token_budget=20000 → 20K자까지 허용"""
+        long_source = "y = 2\n" * 5000  # ~25K chars
+        prompt = build_deep_analysis_prompt(
+            file_info={
+                "path": "big.py",
+                "source_code": long_source,
+            },
+            commit_history=[],
+            jd_tech_stack=[],
+            token_budget=20_000,
+        )
+
+        # 20K 예산: 소스가 20000자로 절삭되어야 함
+        assert "y = 2" in prompt
+        # 25K 원본보다 짧아야 함 (20K + 오버헤드)
+        assert len(prompt) < 23_000
+
+    def test_token_budget_50k(self):
+        """JIT-28: token_budget=50000 → 50K자까지 허용"""
+        long_source = "z = 3\n" * 12000  # ~60K chars
+        prompt = build_deep_analysis_prompt(
+            file_info={
+                "path": "huge.py",
+                "source_code": long_source,
+            },
+            commit_history=[],
+            jd_tech_stack=[],
+            token_budget=50_000,
+        )
+
+        # 50K 예산: 60K 원본이 50K로 절삭
+        assert len(prompt) < 53_000
+
+    def test_token_budget_clamp_minimum(self):
+        """JIT-28: token_budget < 2000 → 2000으로 클램핑"""
+        source = "a = 1\n" * 1000  # ~6K chars
+        prompt = build_deep_analysis_prompt(
+            file_info={
+                "path": "small.py",
+                "source_code": source,
+            },
+            commit_history=[],
+            jd_tech_stack=[],
+            token_budget=500,  # 2000 미만 → 2000으로 클램핑
+        )
+
+        # 2000자 + 오버헤드 이내
+        assert len(prompt) < 5000
+
+    def test_token_budget_clamp_maximum(self):
+        """JIT-28: token_budget > 50000 → 50000으로 클램핑"""
+        long_source = "b = 1\n" * 20000  # ~100K chars
+        prompt = build_deep_analysis_prompt(
+            file_info={
+                "path": "massive.py",
+                "source_code": long_source,
+            },
+            commit_history=[],
+            jd_tech_stack=[],
+            token_budget=100_000,  # 50000 초과 → 50000으로 클램핑
+        )
+
+        # 50K 클램핑 + 오버헤드 이내
+        assert len(prompt) < 53_000
 
 
 # ============================================================
@@ -207,3 +272,101 @@ class TestBuildSynthesisPrompt:
         assert "FastAPI backend service" in prompt
         assert "Repository" in prompt
         assert "main.py" in prompt
+
+    def test_jd_relevance_in_deep_analyses(self):
+        """JIT-28: deep_analyses에 relevance_score → JD Relevance 라인 포함"""
+        prompt = build_synthesis_prompt(
+            overview={
+                "tech_overview": "API service",
+                "primary_languages": ["Python"],
+                "frameworks_detected": [],
+                "key_files": [],
+            },
+            deep_analyses=[
+                {
+                    "file_path": "api/handler.py",
+                    "patterns_found": ["Factory"],
+                    "algorithms_used": [],
+                    "code_quality_score": 0.9,
+                    "notable_aspects": ["Clean error handling"],
+                    "question_candidates": ["Q1"],
+                    "relevance_score": {
+                        "jd_keyword_score": 0.85,
+                        "interview_potential": 0.7,
+                        "confidence": "high",
+                    },
+                }
+            ],
+            repo_info={"name": "api-repo"},
+            jd_tech_stack=["Python"],
+        )
+
+        assert "JD Relevance" in prompt
+        assert "keyword=0.85" in prompt
+        assert "interview_potential=0.70" in prompt
+        assert "confidence=high" in prompt
+
+    def test_jd_relevance_ranking_section(self):
+        """JIT-28: overview의 key_files → JD Relevance Ranking 섹션"""
+        prompt = build_synthesis_prompt(
+            overview={
+                "tech_overview": "Backend",
+                "primary_languages": ["Python"],
+                "frameworks_detected": [],
+                "key_files": [
+                    {"path": "models.py", "relevance_score": 0.9, "reason": "Core data models"},
+                    {"path": "routes.py", "relevance_score": 0.7, "reason": "API endpoints"},
+                ],
+            },
+            deep_analyses=[],
+            repo_info={"name": "test"},
+            jd_tech_stack=["Python"],
+        )
+
+        assert "JD Relevance Ranking" in prompt
+        assert "models.py" in prompt
+        assert "relevance=0.9" in prompt
+        assert "Core data models" in prompt
+
+    def test_no_relevance_score_graceful(self):
+        """JIT-28: relevance_score 없는 deep_analyses → JD Relevance 라인 생략"""
+        prompt = build_synthesis_prompt(
+            overview={
+                "tech_overview": "Service",
+                "primary_languages": [],
+                "frameworks_detected": [],
+                "key_files": [],
+            },
+            deep_analyses=[
+                {
+                    "file_path": "util.py",
+                    "patterns_found": [],
+                    "algorithms_used": [],
+                    "code_quality_score": 0.5,
+                    "notable_aspects": [],
+                    "question_candidates": [],
+                    # relevance_score 없음
+                }
+            ],
+            repo_info={"name": "test"},
+            jd_tech_stack=[],
+        )
+
+        assert "JD Relevance" not in prompt
+        assert "JD Relevance Ranking" not in prompt
+
+    def test_empty_key_files_no_ranking_section(self):
+        """JIT-28: key_files=[] → JD Relevance Ranking 섹션 생략"""
+        prompt = build_synthesis_prompt(
+            overview={
+                "tech_overview": "Service",
+                "primary_languages": [],
+                "frameworks_detected": [],
+                "key_files": [],
+            },
+            deep_analyses=[],
+            repo_info={"name": "test"},
+            jd_tech_stack=[],
+        )
+
+        assert "JD Relevance Ranking" not in prompt

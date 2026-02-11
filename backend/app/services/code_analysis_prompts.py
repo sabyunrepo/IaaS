@@ -103,20 +103,30 @@ def build_deep_analysis_prompt(
     file_info: dict,
     commit_history: list[dict],
     jd_tech_stack: list[str],
+    token_budget: int = 8000,
 ) -> str:
     """Stage 2: Deep Analysis Agent 프롬프트 생성
 
     JIT-24: source_code 필드 우선 사용 (완전한 함수/클래스 코드).
     fallback: diff → diff_preview (기존 호환).
+
+    Args:
+        file_info: 분석할 파일 정보 (path, source_code, diff 등)
+        commit_history: 해당 파일의 커밋 이력
+        jd_tech_stack: JD에서 추출한 기술 스택
+        token_budget: 소스코드 최대 문자 수 (20K~50K 범위, 기본 8000)
     """
     file_path = file_info.get("path", file_info.get("filename", "unknown"))
+
+    # JIT-28: 토큰 예산 경계 클램핑 (최소 2000, 최대 50000)
+    effective_budget = max(2000, min(50_000, token_budget))
 
     # JIT-24: 완전한 소스코드 우선, diff fallback
     source_code = file_info.get("source_code", "")
     if not source_code:
         source_code = file_info.get("diff", file_info.get("diff_preview", ""))
-    # 소스코드는 최대 8000자 (기존 2000자에서 확대)
-    source_code = source_code[:8000] if source_code else ""
+    # JIT-28: 동적 토큰 예산 적용 (기존 8000자 하드코딩 → 파라미터)
+    source_code = source_code[:effective_budget] if source_code else ""
 
     commit_info = "\n".join([
         f"- {c.get('commit_hash', '')} ({c.get('date', '')}): {c.get('message', '')[:100]}"
@@ -203,15 +213,39 @@ Frameworks: {', '.join(overview.get('frameworks_detected', []))}
 Key Files Analyzed: {len(overview.get('key_files', []))}
 """
 
+    # JIT-28: Overview key_files에서 JD relevance 정보 추출
+    jd_relevance_section = ""
+    key_files = overview.get("key_files", [])
+    if key_files:
+        jd_lines = []
+        for kf in key_files[:10]:
+            path = kf.get("path", "unknown")
+            score = kf.get("relevance_score", 0)
+            reason = kf.get("reason", "")
+            jd_lines.append(f"- `{path}`: relevance={score}, {reason}")
+        jd_relevance_section = f"""
+## JD Relevance Ranking
+{chr(10).join(jd_lines)}
+"""
+
     deep_summaries = []
     for i, da in enumerate(deep_analyses[:10], 1):
+        # JIT-28: JD relevance score 반영
+        relevance = da.get("relevance_score", {})
+        jd_score_line = ""
+        if isinstance(relevance, dict) and relevance:
+            jd_kw = relevance.get("jd_keyword_score", 0)
+            interview_pot = relevance.get("interview_potential", 0)
+            confidence = relevance.get("confidence", "N/A")
+            jd_score_line = f"\n- JD Relevance: keyword={jd_kw:.2f}, interview_potential={interview_pot:.2f}, confidence={confidence}"
+
         deep_summaries.append(f"""
 ### File {i}: {da.get('file_path', 'unknown')}
 - Patterns: {', '.join(da.get('patterns_found', [])) or 'None'}
 - Algorithms: {', '.join(da.get('algorithms_used', [])) or 'None'}
 - Quality Score: {da.get('code_quality_score', 'N/A')}
 - Notable: {', '.join(da.get('notable_aspects', [])[:3]) or 'None'}
-- Questions: {len(da.get('question_candidates', []))} candidates
+- Questions: {len(da.get('question_candidates', []))} candidates{jd_score_line}
 """)
 
     return f"""Synthesize all analysis results for repository: {repo_name}
@@ -221,15 +255,14 @@ Key Files Analyzed: {len(overview.get('key_files', []))}
 
 ## Overview Analysis
 {overview_summary}
-
-## Deep Analysis Results
+{jd_relevance_section}## Deep Analysis Results
 {''.join(deep_summaries) if deep_summaries else 'No deep analysis results'}
 
 ## Your Task
 1. Synthesize all findings into a coherent assessment
-2. Rank notable implementations by interview question potential
+2. Rank notable implementations by interview question potential (prioritize higher JD relevance scores)
 3. Deduplicate and prioritize patterns/algorithms
-4. Generate top 10 interview questions
+4. Generate top 10 interview questions (weight JD-relevant files higher)
 5. Provide overall quality and candidate assessment
 
 Respond in JSON format:

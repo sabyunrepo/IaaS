@@ -561,6 +561,7 @@ async def _analyze_single_repo_impl(
 
         # JIT-24: AST 파이프라인 — clone_dir에서 직접 청크 추출 + JD 스코어링
         ranked_chunks: list[dict] = []
+        token_budget = 8000  # JIT-28: 기본값 (AST 파이프라인 비활성 시)
         if use_ast_pipeline and clone_dir:
             activity.heartbeat(f"Phase 3.5: AST chunk extraction + JD scoring for {repo_name}")
             if alog:
@@ -665,11 +666,14 @@ async def _analyze_single_repo_impl(
                     ),
                 }
 
+            # JIT-28: 동적 토큰 예산 전달 (AST 파이프라인 시 레포 크기 비례)
+            file_token_budget = token_budget if use_ast_pipeline else 8000
             task = analyzer.llm_deep_file_analysis(
                 file_info=enriched_file_info,
                 commit_history=commit_history,
                 jd_tech_stack=jd_tech_stack,
                 model=KIMI_CODER_MODEL,
+                token_budget=file_token_budget,
             )
             deep_analysis_tasks.append(task)
 

@@ -543,6 +543,7 @@ Based on the code above, respond ONLY with a valid JSON object (no markdown, no 
         commit_history: list[dict],
         jd_tech_stack: list[str],
         model: str | None = None,
+        token_budget: int = 8000,
     ) -> dict:
         """Stage 2: Deep Analysis Agent - 단일 파일 심층 분석
 
@@ -551,17 +552,20 @@ Based on the code above, respond ONLY with a valid JSON object (no markdown, no 
             commit_history: 해당 파일의 커밋 이력
             jd_tech_stack: JD에서 추출한 기술 스택
             model: 사용할 LLM 모델 (기본: GLM)
+            token_budget: 소스코드 최대 문자 수 (JIT-28: 동적 토큰 예산)
 
         Returns:
             DeepAnalysisResult 형식의 딕셔너리
         """
         model = model or KIMI_CODER_MODEL
-        prompt = build_deep_analysis_prompt(file_info, commit_history, jd_tech_stack)
+        prompt = build_deep_analysis_prompt(file_info, commit_history, jd_tech_stack, token_budget)
 
         from app.services.cached_llm import CachedLLMService
         llm = CachedLLMService()
 
         file_path = file_info.get("path", file_info.get("filename", "unknown"))
+        # JIT-28: AST 파이프라인에서 계산된 JD relevance score 패스스루
+        input_relevance = file_info.get("relevance_score", {})
 
         try:
             result = await llm.run(
@@ -571,9 +575,14 @@ Based on the code above, respond ONLY with a valid JSON object (no markdown, no 
                 result_type=DeepAnalysisResult,
             )
             if isinstance(result, dict):
+                if input_relevance:
+                    result["relevance_score"] = input_relevance
                 return result
             if hasattr(result, "model_dump"):
-                return result.model_dump()
+                dumped = result.model_dump()
+                if input_relevance:
+                    dumped["relevance_score"] = input_relevance
+                return dumped
             return {
                 "file_path": file_path,
                 "patterns_found": [],
@@ -583,6 +592,7 @@ Based on the code above, respond ONLY with a valid JSON object (no markdown, no 
                 "question_candidates": [],
                 "notable_aspects": [],
                 "complexity_assessment": "",
+                "relevance_score": input_relevance,
             }
         except Exception as e:
             logger.warning(f"Deep analysis failed for {file_path}: {e}")
@@ -595,6 +605,7 @@ Based on the code above, respond ONLY with a valid JSON object (no markdown, no 
                 "question_candidates": [],
                 "notable_aspects": [],
                 "complexity_assessment": "Failed",
+                "relevance_score": input_relevance,
             }
 
     async def llm_synthesize_analysis(
