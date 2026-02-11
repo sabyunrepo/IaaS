@@ -7,17 +7,36 @@ allowed-tools: Read, Grep, Bash, Write, Edit, Glob
 
 # Linear-Ops Skill
 
-> Linear MCP 도구 + 로컬 셸을 결합하여 **[티켓 분석 → 코드 수정 → 테스트 검증 → 결과 보고]**를 하나의 트랜잭션으로 처리한다.
+> linear-api.sh 셸 함수를 활용하여 **[티켓 분석 → 코드 수정 → 테스트 검증 → 결과 보고]**를 하나의 트랜잭션으로 처리한다.
 
 ---
 
 ## 사용법
 
 ```
-/linear-ops VAN-123              # 기존 티켓 작업 시작
-/linear-ops create "제목"         # 새 티켓 생성 후 작업
-/linear-ops list                  # 할당된 이슈 목록 조회
-/linear-ops search "키워드"       # 이슈 검색
+/linear-ops JIT-26              # 기존 티켓 작업 시작 (identifier 자동 resolve)
+/linear-ops create "제목"        # 새 티켓 생성 후 작업
+/linear-ops list                 # 할당된 이슈 목록 조회
+/linear-ops search "키워드"      # 이슈 검색
+```
+
+---
+
+## Linear API 셋업
+
+모든 Linear 호출은 linear-api.sh를 source하여 사용한다.
+API 키는 자동으로 settings.local.json에서 감지된다.
+
+```bash
+source /Users/sabyun/goinfre/IaaS/.claude/skills/linear-ops/linear-api.sh
+
+# 주요 함수 (JIT-26 형식 identifier 또는 UUID 모두 지원)
+linear_search_issues "JIT-26" 5       # 이슈 검색
+linear_get_issue "JIT-26"             # 이슈 상세 조회
+linear_update_status "JIT-26" done    # 상태 변경
+linear_add_comment "JIT-26" "본문"    # 코멘트 추가
+linear_create_issue "제목" "팀ID"     # 이슈 생성
+linear_list_teams                     # 팀 목록
 ```
 
 ---
@@ -25,16 +44,16 @@ allowed-tools: Read, Grep, Bash, Write, Edit, Glob
 ## Phase 1: Initialize (작업 시작 및 컨텍스트 동기화)
 
 ### 기존 티켓 작업 시
-1. `mcp__linear__get_issue(issueId)` → 최신 본문, 라벨, 우선순위 읽기
+1. `linear_get_issue "JIT-N"` → 최신 본문, 라벨, 우선순위 읽기
 2. 티켓 본문에서 **수락 기준(Acceptance Criteria)** 추출
 3. 수락 기준이 없을 경우 → 사용자에게 "수락 기준을 먼저 정의할까요?" 확인
 4. 코드베이스에서 수정 필요 지점 분석 → 사용자에게 영향 범위 출력
-5. `mcp__linear__update_issue(issueId, status: "In Progress")` → 상태 변경
-6. Git 브랜치 생성: `git checkout -b feat/VAN-{N}-{slug}` 또는 `fix/VAN-{N}-{slug}`
+5. `linear_update_status "JIT-N" in_progress` → 상태 변경
+6. Git 브랜치 생성: `git checkout -b feat/JIT-{N}-{slug}` 또는 `fix/JIT-{N}-{slug}`
 
 ### 새 티켓 생성 시
-1. `mcp__linear__list_teams()` → 팀 ID 확인
-2. `mcp__linear__create_issue(title, teamId, description, priority)` → 이슈 생성
+1. `linear_list_teams` → 팀 ID 확인
+2. `linear_create_issue "제목" "팀ID" "설명" priority` → 이슈 생성
 3. description에 반드시 아래 섹션 포함:
    ```markdown
    ## 수락 기준 (Acceptance Criteria)
@@ -45,11 +64,11 @@ allowed-tools: Read, Grep, Bash, Write, Edit, Glob
    - [ ] 시나리오 1: [입력] → [기대 결과]
    - [ ] 시나리오 2: [엣지 케이스] → [기대 결과]
    ```
-4. 생성된 이슈를 `In Progress`로 변경 후 Phase 2 진입
+4. 생성된 이슈를 In Progress로 변경 후 Phase 2 진입
 
 ### 목록/검색
-- `list`: `mcp__linear__list_issues()` 호출 → 상태별 정리하여 출력
-- `search`: `mcp__linear__search_issues(query)` 호출 → 결과 테이블 출력
+- list: `linear_list_issues` → 상태별 정리하여 출력
+- search: `linear_search_issues "키워드"` → 결과 테이블 출력
 
 ---
 
@@ -121,14 +140,14 @@ docker compose exec backend pytest --cov=app --cov-report=term-missing
 
 ### 3-1. 티켓 업데이트 (코멘트 추가)
 
-`linear_add_comment`로 구현 결과를 코멘트로 추가:
+코멘트 본문에 마크다운 특수문자가 많으면 파일 기반 입력을 사용한다:
 
 ```bash
 # 직접 본문 전달
-linear_add_comment "$ISSUE_ID" "## 구현 완료 리뷰\n\n### 수정 파일\n- file1.py — 변경 요약"
+linear_add_comment "JIT-N" "## 구현 완료\n\n### 수정 파일\n- file1.py"
 
-# 파일에서 읽기 (@경로 형식)
-linear_add_comment "$ISSUE_ID" @/tmp/review_comment.md
+# 파일에서 읽기 (권장 — 특수문자 안전)
+linear_add_comment "JIT-N" @/tmp/review_comment.md
 ```
 
 코멘트 본문 템플릿:
@@ -139,31 +158,27 @@ linear_add_comment "$ISSUE_ID" @/tmp/review_comment.md
 {구현된 기능의 기술적 요약}
 
 ### [Files Changed]
-- `path/to/file1.py` — 변경 내용 요약
-- `path/to/file2.tsx` — 변경 내용 요약
+- path/to/file1.py — 변경 내용 요약
 
 ### [Test Result]
-- 명령어: `pytest tests/test_feature.py -v`
 - 결과: ALL PASSED (X passed, 0 failed)
 
 ### [Commit]
-- 브랜치: `feat/VAN-{N}-slug`
-- 커밋: `{커밋 해시}`
+- 브랜치: feat/JIT-{N}-slug
+- 커밋: {커밋 해시}
 ```
 
-> **참고**: 본문에 마크다운 특수문자(`!`, `` ` ``, `"` 등)가 많을 경우 파일 기반 입력(`@/tmp/file.md`)을 사용할 것.
-
 ### 3-2. 상태 업데이트
-- `linear_update_status "$ISSUE_ID" in_review`
+- `linear_update_status "JIT-N" in_review`
 
 ### 3-3. Git 커밋 및 PR
-1. 커밋 메시지에 티켓 ID 포함: `feat: {설명} [VAN-{N}]`
+1. 커밋 메시지에 티켓 ID 포함: `feat: {설명} [JIT-{N}]`
 2. `git push -u origin {branch}`
-3. `gh pr create --title "feat: {설명} [VAN-{N}]" --body "..."`
+3. `gh pr create --title "feat: {설명} [JIT-{N}]" --body "..."`
 4. PR 본문에 Linear 티켓 링크 포함
 
 ### 3-4. 완료 시 (--close 플래그)
-- `mcp__linear__update_issue(issueId, status: "Done")`
+- `linear_update_status "JIT-N" done`
 
 ---
 
@@ -171,10 +186,10 @@ linear_add_comment "$ISSUE_ID" @/tmp/review_comment.md
 
 | 상황 | 대응 |
 |------|------|
-| Linear API 권한 오류 | 즉시 사용자에게 알림 → Personal Access Token 확인 요청 |
+| Linear API 권한 오류 | 즉시 사용자에게 알림 → API Key 확인 요청 |
 | 수락 기준 없는 티켓 | 작업 시작 전 "수락 기준을 먼저 정의할까요?" 확인 |
 | 테스트 실패 | Linear 업데이트 금지, 에러 분석 후 재시도 또는 사용자 리포트 |
-| 티켓 ID 미발견 | `mcp__linear__search_issues`로 유사 이슈 검색 후 제안 |
+| 티켓 ID 미발견 | linear_search_issues로 유사 이슈 검색 후 제안 |
 | 모호한 요구사항 | 사용자에게 구체화 질문 후 진행 |
 | 커버리지 감소 | 추가 테스트 작성 후 재검증 |
 
@@ -183,28 +198,28 @@ linear_add_comment "$ISSUE_ID" @/tmp/review_comment.md
 ## 워크플로우 다이어그램
 
 ```
-/linear-ops VAN-123
-    │
-    ├─ Phase 1: Initialize
-    │   ├─ get_issue → 티켓 읽기
-    │   ├─ 수락 기준 확인 (없으면 → 사용자 확인)
-    │   ├─ 코드베이스 영향 분석
-    │   ├─ update_issue → "In Progress"
-    │   └─ git checkout -b feat/VAN-123-slug
-    │
-    ├─ Phase 2: TDD Implementation
-    │   ├─ 수락 기준 → 테스트 케이스 도출
-    │   ├─ 테스트 작성 (Red)
-    │   ├─ 코드 구현 (Green)
-    │   ├─ 리팩토링 (Refactor)
-    │   ├─ 전체 테스트 실행
-    │   └─ [실패 시] 재수정 루프 (최대 3회)
-    │
-    └─ Phase 3: Finalize (테스트 통과 시만)
-        ├─ update_issue → 결과 기록
-        ├─ update_issue → "In Review"
-        ├─ git commit + push
-        └─ gh pr create
+/linear-ops JIT-26
+    |
+    +- Phase 1: Initialize
+    |   +- linear_get_issue → 티켓 읽기
+    |   +- 수락 기준 확인 (없으면 → 사용자 확인)
+    |   +- 코드베이스 영향 분석
+    |   +- linear_update_status → in_progress
+    |   +- git checkout -b feat/JIT-26-slug
+    |
+    +- Phase 2: TDD Implementation
+    |   +- 수락 기준 → 테스트 케이스 도출
+    |   +- 테스트 작성 (Red)
+    |   +- 코드 구현 (Green)
+    |   +- 리팩토링 (Refactor)
+    |   +- 전체 테스트 실행
+    |   +- [실패 시] 재수정 루프 (최대 3회)
+    |
+    +- Phase 3: Finalize (테스트 통과 시만)
+        +- linear_add_comment → 결과 기록
+        +- linear_update_status → in_review
+        +- git commit + push
+        +- gh pr create
 ```
 
 ---
@@ -213,10 +228,9 @@ linear_add_comment "$ISSUE_ID" @/tmp/review_comment.md
 
 | 서버 | 용도 |
 |------|------|
-| `linear` | 이슈 CRUD, 상태 관리, 팀/프로젝트 조회 |
-| `sequential` | 복잡한 티켓 분석, 수정 영향 범위 추론 |
-| `context7` | 프레임워크/라이브러리 공식 문서 참조 |
-| `docker` | 컨테이너 내 테스트 실행 |
+| sequential | 복잡한 티켓 분석, 수정 영향 범위 추론 |
+| context7 | 프레임워크/라이브러리 공식 문서 참조 |
+| docker | 컨테이너 내 테스트 실행 |
 
 ---
 
@@ -224,30 +238,30 @@ linear_add_comment "$ISSUE_ID" @/tmp/review_comment.md
 
 ### 작업 시작 시
 ```
-[Linear-Ops] VAN-123 작업 시작
+[Linear-Ops] JIT-26 작업 시작
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 제목: {title}
 우선순위: {priority}
 상태: → In Progress
 
 수락 기준:
-  ✅ 기준 1
-  ✅ 기준 2
+  - 기준 1
+  - 기준 2
 
 영향 파일:
-  📄 backend/app/services/foo.py (L45-78)
-  📄 frontend/src/components/Bar.tsx (L12-30)
+  backend/app/services/foo.py (L45-78)
+  frontend/src/components/Bar.tsx (L12-30)
 
-브랜치: feat/VAN-123-slug
+브랜치: feat/JIT-26-slug
 ```
 
 ### 작업 완료 시
 ```
-[Linear-Ops] VAN-123 작업 완료
+[Linear-Ops] JIT-26 작업 완료
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 수정 파일: 3개
 테스트: 12 passed, 0 failed
 커버리지: 85% (변동 없음)
 상태: → In Review
-PR: #270 (feat: 설명 [VAN-123])
+PR: #270 (feat: 설명 [JIT-26])
 ```
