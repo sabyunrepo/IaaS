@@ -125,6 +125,44 @@ def mock_enriched_input(sample_input_data, sample_linkedin_profile):
 
 
 # ============================================================
+# JIT-26: Code Analysis Pipeline Fixtures
+# ============================================================
+
+@pytest.fixture
+def sample_jd_tech_stack():
+    """JD 기술 스택 샘플"""
+    return ["Python", "FastAPI", "PostgreSQL"]
+
+
+@pytest.fixture
+def valid_repo_result():
+    """정상 레포 분석 결과 (validate_code_analysis 통과용)"""
+    return {
+        "repo_name": "test-repo",
+        "candidate_commits": 50,
+        "ast_analysis": {
+            "functions": [{"name": "main"}, {"name": "helper"}],
+            "classes": [{"name": "UserService"}],
+            "parser_used": "ast",
+        },
+        "analysis": {
+            "patterns": ["Repository", "Factory"],
+            "quality_score": 0.7,
+            "notable_implementations": [
+                {"title": "Async workflow engine", "question_potential": 0.9},
+            ],
+        },
+        "notable_implementations": [
+            {"title": "Async workflow engine", "question_potential": 0.9},
+        ],
+        "hybrid_metadata": {
+            "key_files_count": 3,
+            "deep_analyses_count": 3,
+        },
+    }
+
+
+# ============================================================
 # Mock Services
 # ============================================================
 
