@@ -43,6 +43,8 @@ class StaticAnalysisRunner:
         repo_url: str,
         target_files: list[str] | None = None,
         token: str | None = None,
+        clone_dir: str | None = None,
+        cleanup: bool = True,
     ) -> StaticAnalysisResult:
         """후보자 파일 대상 정적 분석 파이프라인
 
@@ -52,11 +54,15 @@ class StaticAnalysisRunner:
                           지정 시 해당 파일만 분석 (남의 코드 분석 방지).
                           미지정 시 전체 레포 분석 (fallback).
             token: GitHub OAuth token for private repos
+            clone_dir: 이미 clone된 디렉토리 경로. 지정 시 재 clone 생략.
+            cleanup: True면 분석 후 clone_dir 삭제 (기본값). 외부에서 관리할 경우 False.
 
         Returns:
             StaticAnalysisResult
         """
-        clone_dir = await self._shallow_clone(repo_url, token)
+        owned_clone = clone_dir is None
+        if owned_clone:
+            clone_dir = await self.shallow_clone(repo_url, token)
         try:
             results = await asyncio.gather(
                 self._run_lizard(clone_dir, target_files),
@@ -76,9 +82,10 @@ class StaticAnalysisRunner:
 
             return self._aggregate(clone_dir, lizard_result, semgrep_result, radon_result, target_files)
         finally:
-            shutil.rmtree(clone_dir, ignore_errors=True)
+            if cleanup and owned_clone:
+                shutil.rmtree(clone_dir, ignore_errors=True)
 
-    async def _shallow_clone(self, repo_url: str, token: str | None) -> str:
+    async def shallow_clone(self, repo_url: str, token: str | None = None) -> str:
         """git clone --depth=1 → temp dir"""
         clone_dir = tempfile.mkdtemp(prefix="static_analysis_")
 
