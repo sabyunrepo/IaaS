@@ -5,7 +5,7 @@ import { apiFetch } from '../lib/api'
 import type { InterviewScript, ResultTab, InterviewQuestion } from '../types/interview'
 import { IntelBriefTab, DeepAnalysisTab, LiveInterviewTab, DecisionTab, V1SummaryTab, V1GuideTab } from '../components/tabs'
 import { QuestionCard, type Question } from '../components/QuestionCard'
-import { GlossarySection } from '../components/GlossarySection'
+
 
 function downloadJSON(data: unknown, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -380,11 +380,6 @@ export function ResultPage() {
             <V1GuideTab guide={guide} />
           )}
         </>
-      )}
-
-      {/* Glossary (shown on all tabs) */}
-      {script.full_glossary && script.full_glossary.length > 0 && (
-        <GlossarySection glossary={script.full_glossary} />
       )}
 
       {/* Back to list link */}
