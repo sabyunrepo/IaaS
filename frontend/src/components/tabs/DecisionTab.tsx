@@ -166,28 +166,6 @@ export const DecisionTab = memo(function DecisionTab({
 
         {guideExpanded && (
         <div className="px-6 pb-6 space-y-6 animate-fadeIn">
-        {/* Interview Flow */}
-        {interviewer_guide.interview_flow && (
-          <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-            <h4 className="text-sm font-semibold text-indigo-900 mb-2">{t('decision_interview_flow')}</h4>
-            <p className="text-sm text-indigo-800">{interviewer_guide.interview_flow}</p>
-          </div>
-        )}
-
-        {/* Time Allocation */}
-        {interviewer_guide.time_allocation && Object.keys(interviewer_guide.time_allocation).length > 0 && (
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('decision_time_allocation')}</h4>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(interviewer_guide.time_allocation).map(([phase, time]) => (
-                <span key={phase} className="px-3 py-1 bg-gray-100 rounded-full text-sm">
-                  {phase}: {time}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Resume Tips */}
         {interviewer_guide.resume_based_tips && interviewer_guide.resume_based_tips.length > 0 && (
           <div className="mb-6">
@@ -224,36 +202,20 @@ export const DecisionTab = memo(function DecisionTab({
           </div>
         )}
 
-        {/* Red/Green Flags */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          {interviewer_guide.positive_signals && interviewer_guide.positive_signals.length > 0 && (
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-              <h4 className="text-sm font-semibold text-green-900 mb-2">✅ {t('decision_positive_signals')}</h4>
-              <ul className="space-y-1">
-                {interviewer_guide.positive_signals.map((signal, i) => (
-                  <li key={i} className="text-sm text-green-800 flex items-start gap-2">
-                    <span className="text-green-500">•</span>
-                    {signal}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {interviewer_guide.red_flags_to_watch && interviewer_guide.red_flags_to_watch.length > 0 && (
-            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-              <h4 className="text-sm font-semibold text-red-900 mb-2">🚩 {t('decision_red_flags')}</h4>
-              <ul className="space-y-1">
-                {interviewer_guide.red_flags_to_watch.map((flag, i) => (
-                  <li key={i} className="text-sm text-red-800 flex items-start gap-2">
-                    <span className="text-red-500">•</span>
-                    {flag}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+        {/* Red Flags */}
+        {interviewer_guide.red_flags_to_watch && interviewer_guide.red_flags_to_watch.length > 0 && (
+          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+            <h4 className="text-sm font-semibold text-red-900 mb-2">🚩 {t('decision_red_flags')}</h4>
+            <ul className="space-y-1">
+              {interviewer_guide.red_flags_to_watch.map((flag, i) => (
+                <li key={i} className="text-sm text-red-800 flex items-start gap-2">
+                  <span className="text-red-500">•</span>
+                  {flag}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         </div>
         )}
       </div>
