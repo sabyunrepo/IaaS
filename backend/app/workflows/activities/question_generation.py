@@ -165,10 +165,18 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
         topic = impl.get("title", "unknown")
         if any(c["topic"] == topic for c in candidates):
             continue
+        # JIT-29: AST 소스 스니펫 + JD relevance score 포함 (backward compatible)
+        evidence = dict(impl)
+        relevance = impl.get("relevance_score", {})
+        if relevance:
+            evidence["jd_keyword_score"] = relevance.get("jd_keyword_score", 0)
+            evidence["interview_potential"] = relevance.get("interview_potential", 0)
+        if impl.get("source_snippet"):
+            evidence["source_snippet"] = impl["source_snippet"][:500]
         candidates.append({
             "source": "code",
             "topic": topic,
-            "evidence": impl,
+            "evidence": evidence,
             "score": impl.get("question_potential", 0.5),
         })
 
@@ -351,7 +359,7 @@ async def craft_question(
         file_path = evidence.get("file_path", "")
         description = evidence.get("description", "")
         why_notable = evidence.get("why_notable", "")
-        snippet = evidence.get("code_snippet", "")
+        snippet = evidence.get("code_snippet", "") or evidence.get("source_snippet", "")
 
         evidence_context = f"\n\nCode-based evidence:\n"
         if file_path:
@@ -360,10 +368,15 @@ async def craft_question(
             evidence_context += f"- Description: {description}\n"
         if why_notable:
             evidence_context += f"- Why notable: {why_notable}\n"
+        # JIT-29: JD relevance 점수 포함 (AST 파이프라인에서 제공 시)
+        jd_kw_score = evidence.get("jd_keyword_score", 0)
+        interview_pot = evidence.get("interview_potential", 0)
+        if jd_kw_score or interview_pot:
+            evidence_context += f"- JD Relevance: keyword={jd_kw_score:.2f}, interview_potential={interview_pot:.2f}\n"
         if snippet:
-            truncated_snippet = snippet[:300]
+            truncated_snippet = snippet[:500]
             evidence_context += f"```\n{truncated_snippet}\n```\n"
-            if len(snippet) > 300:
+            if len(snippet) > 500:
                 evidence_context += f"[TRUNCATED — showing {len(truncated_snippet)}/{len(snippet)} chars. Do NOT assume content beyond this excerpt.]\n"
 
         # Build code_reference for frontend display

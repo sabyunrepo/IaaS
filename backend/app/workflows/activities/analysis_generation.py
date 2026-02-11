@@ -69,12 +69,23 @@ async def _llm_calculate_radar_scores(
         # 요약 데이터 준비
         code_summary = _t("no_code_analysis_data", output_language)
         if code_analysis:
-            code_summary = json.dumps({
+            # JIT-29: AST/JD-Aware 신포맷 필드 추가 (backward compatible)
+            summary_data = {
                 "tech_stack": code_analysis.get("tech_stack", [])[:10],
                 "quality_metrics": code_analysis.get("quality_metrics", {}),
                 "risk_flags_count": len(code_analysis.get("risk_flags", [])),
                 "repos_count": len(code_analysis.get("repositories", [])),
-            }, ensure_ascii=False, default=str)
+            }
+            # 신포맷 필드 — 있을 때만 추가
+            if code_analysis.get("jd_relevance_scores"):
+                summary_data["jd_relevance_scores"] = code_analysis["jd_relevance_scores"]
+            if code_analysis.get("ast_chunk_count"):
+                summary_data["ast_chunk_count"] = code_analysis["ast_chunk_count"]
+            if code_analysis.get("analyzed_functions_count"):
+                summary_data["analyzed_functions_count"] = code_analysis["analyzed_functions_count"]
+            if code_analysis.get("hybrid_metadata"):
+                summary_data["hybrid_metadata"] = code_analysis["hybrid_metadata"]
+            code_summary = json.dumps(summary_data, ensure_ascii=False, default=str)
 
         raw_skills = document_analysis.get("profile", {}).get("skills", [])
         skills_to_summarize = []
@@ -255,13 +266,27 @@ async def _llm_build_skill_table(
             for skill in skill_list
         ] if isinstance(raw_candidate_skills, dict) else list(raw_candidate_skills or [])
         code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
+        # JIT-29: JD relevance scores가 있으면 스킬에 매칭 점수 보강
+        jd_relevance = code_analysis.get("jd_relevance_scores", {}) if code_analysis else {}
 
         jd_text = json.dumps(
             [{"skill": r.get("skill", r.get("text", "")), "category": r.get("category", "우대")} for r in sorted_requirements[:15]],
             ensure_ascii=False,
         )
         candidate_text = json.dumps(candidate_skills[:15], ensure_ascii=False) if candidate_skills else "[]"
-        code_text = json.dumps(list(code_skills)[:15], ensure_ascii=False) if code_skills else "[]"
+        # JIT-29: jd_relevance 있으면 스킬 + 점수 형태로 전달 (backward compatible)
+        if jd_relevance and code_skills:
+            enriched_skills = []
+            for skill in list(code_skills)[:15]:
+                skill_str = str(skill)
+                score = jd_relevance.get(skill_str, {})
+                if isinstance(score, dict):
+                    enriched_skills.append({"skill": skill_str, "jd_score": score.get("score", 0)})
+                else:
+                    enriched_skills.append(skill_str)
+            code_text = json.dumps(enriched_skills, ensure_ascii=False)
+        else:
+            code_text = json.dumps(list(code_skills)[:15], ensure_ascii=False) if code_skills else "[]"
 
         prompt_config = get_prompt_with_config(
             "v2_generation.yaml", "skill_matching",

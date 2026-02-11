@@ -32,6 +32,13 @@ prompts:
 
       ## Analyzer 2: Code Analysis (GitHub)
       {{code_analysis}}
+      NOTE: Code analysis may include extended fields from AST/JD-Aware pipeline:
+      - quality_metrics: code quality scores (test_coverage, complexity, documentation)
+      - jd_relevance_scores: per-file JD keyword match scores
+      - hybrid_metadata: pipeline type info (clone-based vs diff-based)
+      - ast_chunk_count / analyzed_functions_count: analysis scope indicators
+      Use these fields to strengthen evidence-based assessment when available.
+      If absent, rely on existing tech_stack/repositories data as before.
 
       ## Analyzer 3: LinkedIn Profile
       {{linkedin_profile}}

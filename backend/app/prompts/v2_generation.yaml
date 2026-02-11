@@ -55,6 +55,13 @@ prompts:
 
       Code Analysis:
       {{code_analysis_summary}}
+      NOTE: Code analysis may include extended fields from AST/JD-Aware pipeline:
+      - jd_relevance_scores: per-file JD keyword match and interview potential scores
+      - ast_chunk_count: number of AST-extracted code chunks analyzed
+      - analyzed_functions_count: total functions/classes analyzed
+      - hybrid_metadata: pipeline metadata (clone-based vs diff-based)
+      If these fields are present, use them to strengthen scoring evidence.
+      If absent, rely on existing tech_stack/quality_metrics as before.
 
       Document Analysis:
       {{document_analysis_summary}}
