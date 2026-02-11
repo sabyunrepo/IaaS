@@ -196,14 +196,14 @@ def _is_native_pydantic_ai_model(model_name: str) -> bool:
 
 
 def get_llm_agent(
-    result_type: Any = None,
+    output_type: Any = None,
     system_prompt: str = "",
     model: str | None = None,
 ):
     """Pydantic AI Agent 생성
 
     Args:
-        result_type: Pydantic 모델 (구조화 출력용)
+        output_type: Pydantic 모델 (구조화 출력용, pydantic-ai v1.x)
         system_prompt: 시스템 프롬프트
         model: LLM 모델명 (기본값: settings.LLM_MODEL)
 
@@ -236,8 +236,8 @@ def get_llm_agent(
             model_instance = model_name
 
     kwargs = {"model": model_instance}
-    if result_type:
-        kwargs["result_type"] = result_type
+    if output_type:
+        kwargs["output_type"] = output_type
     if system_prompt:
         kwargs["system_prompt"] = system_prompt
 

@@ -382,7 +382,7 @@ class CachedLLMService:
 
         ms = self._model_settings(model, override_max_tokens, temperature=temperature)
         try:
-            agent = get_llm_agent(result_type=result_type, model=model)
+            agent = get_llm_agent(output_type=result_type, model=model)
             run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
         except asyncio.CancelledError:
             logger.warning(f"LLM call cancelled for model {model}")
@@ -393,7 +393,7 @@ class CachedLLMService:
                 logger.warning(f"Primary LLM ({model}) failed: {primary_err}. Trying fallback: {fallback_model}")
                 if trace_meta:
                     self._log_fallback_event(model, fallback_model, trace_meta)
-                agent = get_llm_agent(result_type=result_type, model=fallback_model)
+                agent = get_llm_agent(output_type=result_type, model=fallback_model)
                 run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
             else:
                 raise
