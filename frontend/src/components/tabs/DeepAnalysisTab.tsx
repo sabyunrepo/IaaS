@@ -1,10 +1,10 @@
 /**
- * DeepAnalysisTab - Radar Chart + Engineering DNA + Skill Matching Table
+ * DeepAnalysisTab - Radar Chart + Skill Matching Table
  */
 import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DeepAnalysis } from '../../types/interview'
-import { RadarChart, ProgressBarGroup } from '../charts'
+import { RadarChart } from '../charts'
 
 interface DeepAnalysisTabProps {
   analysis: DeepAnalysis
@@ -12,7 +12,7 @@ interface DeepAnalysisTabProps {
 
 export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepAnalysisTabProps) {
   const { t } = useTranslation()
-  const { radar_candidate, radar_required, engineering_dna, risk_flags, skill_table, overall_match, score_sources, data_confidence, data_confidence_score } = analysis
+  const { radar_candidate, radar_required, risk_flags, skill_table, overall_match, score_sources, data_confidence, data_confidence_score } = analysis
   const [showSources, setShowSources] = useState(false)
   const [showMatchBreakdown, setShowMatchBreakdown] = useState(false)
   const [showConfidenceDetail, setShowConfidenceDetail] = useState(false)
@@ -202,21 +202,6 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
             </div>
           )}
         </div>
-      )}
-
-      {/* Engineering DNA */}
-      {engineering_dna && engineering_dna.length > 0 && (
-        <ProgressBarGroup
-          title={t('engineering_dna')}
-          items={engineering_dna.map(item => ({
-            label: item.label,
-            value: item.value,
-            display: item.display,
-            color: item.color,
-            note: item.note,
-            tooltip: item.tooltip
-          }))}
-        />
       )}
 
       {/* Risk Flags */}
