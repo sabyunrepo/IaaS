@@ -178,11 +178,8 @@ const resources = {
       decision_concerns: '우려 사항',
 
       decision_interviewer_guide: '면접관 가이드',
-      decision_interview_flow: '면접 진행',
-      decision_time_allocation: '시간 배분',
       decision_resume_tips: '이력서 기반 팁',
       decision_cover_letter_insights: '자기소개서 인사이트',
-      decision_positive_signals: '긍정 신호',
       decision_red_flags: '주의 사항',
       // Result tabs - Live Interview
       live_other: '기타',
@@ -680,11 +677,8 @@ const resources = {
       decision_concerns: 'Concerns',
 
       decision_interviewer_guide: 'Interviewer Guide',
-      decision_interview_flow: 'Interview Flow',
-      decision_time_allocation: 'Time Allocation',
       decision_resume_tips: 'Resume-Based Tips',
       decision_cover_letter_insights: 'Cover Letter Insights',
-      decision_positive_signals: 'Positive Signals',
       decision_red_flags: 'Red Flags',
       // Result tabs - Live Interview
       live_other: 'Other',
