@@ -3,6 +3,8 @@ backend/app/services/code_analysis_prompts.py
 HYBRID 3-Stage Multi-Agent 분석용 프롬프트 빌더
 
 Extracted from code_analyzer.py for SRP compliance.
+
+JIT-24: AST 청크 메타데이터 + 완전한 소스코드 입력 지원
 """
 
 
@@ -11,8 +13,17 @@ def build_overview_prompt(
     commit_diffs: list[dict],
     ast_summary: dict,
     jd_tech_stack: list[str],
+    ranked_chunks: list[dict] | None = None,
 ) -> str:
-    """Stage 1: Overview Agent 프롬프트 생성"""
+    """Stage 1: Overview Agent 프롬프트 생성
+
+    Args:
+        files: PyDriller로 추출한 파일 목록
+        commit_diffs: 커밋별 diff 데이터
+        ast_summary: AST 분석 결과
+        jd_tech_stack: JD에서 추출한 기술 스택
+        ranked_chunks: JD-Aware 랭킹된 청크 리스트 (JIT-24, optional)
+    """
     file_summary = "\n".join([
         f"- {f.get('filename', 'unknown')}: {f.get('added', 0)} additions, complexity={f.get('complexity', 0)}"
         for f in files[:30]
@@ -30,6 +41,32 @@ def build_overview_prompt(
         f"Parser: {ast_summary.get('parser_used', 'N/A')}"
     )
 
+    # JIT-24: 청크 메타데이터 섹션 (AST 파이프라인 활성 시)
+    chunk_section = ""
+    if ranked_chunks:
+        chunk_lines = []
+        for c in ranked_chunks[:15]:
+            score_info = c.get("relevance_score", {})
+            total = score_info.get("total_score", 0) if isinstance(score_info, dict) else 0
+            jd_score = score_info.get("jd_keyword_score", 0) if isinstance(score_info, dict) else 0
+            chunk_lines.append(
+                f"- **{c.get('name', '?')}** ({c.get('type', '?')}) "
+                f"in `{c.get('file_path', '?')}` — "
+                f"JD={jd_score:.2f}, Total={total:.2f}, "
+                f"{c.get('char_count', 0)} chars"
+            )
+            # 식별자/import 힌트
+            idents = c.get("identifiers", [])[:5]
+            imps = c.get("imports", [])[:3]
+            if idents:
+                chunk_lines.append(f"  identifiers: {', '.join(idents)}")
+            if imps:
+                chunk_lines.append(f"  imports: {', '.join(imps)}")
+        chunk_section = f"""
+## JD-Ranked Code Chunks ({len(ranked_chunks)} selected)
+{chr(10).join(chunk_lines)}
+"""
+
     return f"""Analyze this repository to identify key files for technical interview preparation.
 
 ## Target Tech Stack (from Job Description)
@@ -43,7 +80,7 @@ def build_overview_prompt(
 
 ## AST Summary
 {ast_info}
-
+{chunk_section}
 ## Your Task
 1. Select 5-10 key files that best demonstrate the candidate's technical skills matching the JD tech stack
 2. Provide a technical overview of the repository
@@ -67,14 +104,52 @@ def build_deep_analysis_prompt(
     commit_history: list[dict],
     jd_tech_stack: list[str],
 ) -> str:
-    """Stage 2: Deep Analysis Agent 프롬프트 생성"""
+    """Stage 2: Deep Analysis Agent 프롬프트 생성
+
+    JIT-24: source_code 필드 우선 사용 (완전한 함수/클래스 코드).
+    fallback: diff → diff_preview (기존 호환).
+    """
     file_path = file_info.get("path", file_info.get("filename", "unknown"))
-    diff_content = file_info.get("diff", file_info.get("diff_preview", ""))[:2000]
+
+    # JIT-24: 완전한 소스코드 우선, diff fallback
+    source_code = file_info.get("source_code", "")
+    if not source_code:
+        source_code = file_info.get("diff", file_info.get("diff_preview", ""))
+    # 소스코드는 최대 8000자 (기존 2000자에서 확대)
+    source_code = source_code[:8000] if source_code else ""
 
     commit_info = "\n".join([
         f"- {c.get('commit_hash', '')} ({c.get('date', '')}): {c.get('message', '')[:100]}"
         for c in commit_history[:5]
     ])
+
+    # JIT-24: 청크 메타데이터 (identifiers, imports, decorators)
+    metadata_section = ""
+    identifiers = file_info.get("identifiers", [])
+    imports = file_info.get("imports", [])
+    decorators = file_info.get("decorators", [])
+    relevance_score = file_info.get("relevance_score", {})
+
+    if identifiers or imports or decorators:
+        parts = []
+        if identifiers:
+            parts.append(f"Identifiers: {', '.join(identifiers[:20])}")
+        if imports:
+            parts.append(f"Imports: {', '.join(imports[:10])}")
+        if decorators:
+            parts.append(f"Decorators: {', '.join(decorators[:5])}")
+        if isinstance(relevance_score, dict) and relevance_score:
+            parts.append(
+                f"JD Relevance: {relevance_score.get('jd_keyword_score', 0):.2f}, "
+                f"Interview Potential: {relevance_score.get('interview_potential', 0):.2f}"
+            )
+        metadata_section = f"""
+## Code Metadata (AST-extracted)
+{chr(10).join(parts)}
+"""
+
+    # 코드 블록 라벨
+    code_label = "Source Code" if file_info.get("source_code") else "Code/Diff Content"
 
     return f"""Perform deep analysis on this file for technical interview preparation.
 
@@ -82,10 +157,10 @@ def build_deep_analysis_prompt(
 
 ## Target Tech Stack
 {', '.join(jd_tech_stack) if jd_tech_stack else 'Not specified'}
-
-## Code/Diff Content
+{metadata_section}
+## {code_label}
 ```
-{diff_content}
+{source_code}
 ```
 
 ## Commit History
@@ -95,7 +170,7 @@ def build_deep_analysis_prompt(
 1. Identify design patterns used
 2. Identify algorithms implemented
 3. Assess code quality (0.0-1.0 scale)
-4. Generate potential interview questions
+4. Generate potential interview questions based on this specific code
 5. Note any remarkable implementation aspects
 
 Respond in JSON format:

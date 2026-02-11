@@ -21,6 +21,8 @@ from app.models.analysis import (
 )
 from app.services.llm_config import KIMI_CODER_MODEL
 from app.services.ast_analyzer import analyze_ast as _analyze_ast_standalone
+from app.services.ast_analyzer import analyze_directory as _analyze_directory
+from app.services.chunk_scorer import rank_chunks_by_relevance
 from app.services.code_analysis_prompts import (
     build_overview_prompt,
     build_deep_analysis_prompt,
@@ -315,7 +317,7 @@ class CodeAnalyzer:
         jd_tech_stack: list[str],
         token_budget: int = 30_000,
     ) -> list[dict]:
-        """토큰 예산 내 파일 랭킹"""
+        """토큰 예산 내 파일 랭킹 (레거시 — USE_AST_PIPELINE=False 시 사용)"""
         top = self.select_top_files(files, jd_tech_stack, max_files=50)
         selected = []
         total_tokens = 0
@@ -327,6 +329,40 @@ class CodeAnalyzer:
             selected.append(f)
             total_tokens += est_tokens
         return selected
+
+    def select_top_chunks(
+        self,
+        chunks: list[dict],
+        jd_tech_stack: list[str],
+        token_budget: int = 50_000,
+        contributor_ratio: float | None = None,
+    ) -> list[dict]:
+        """JD-Aware 청크 선별 (JIT-22 rank_chunks_by_relevance 위임)"""
+        return rank_chunks_by_relevance(
+            chunks=chunks,
+            jd_tech_stack=jd_tech_stack,
+            token_budget=token_budget,
+            contributor_ratio=contributor_ratio,
+        )
+
+    def analyze_directory(
+        self,
+        clone_dir: str,
+        file_types: list[str] | None = None,
+        max_files: int = 50,
+    ) -> list[dict]:
+        """clone_dir에서 AST 파싱 + 청크 메타데이터 추출 (JIT-21)"""
+        return _analyze_directory(
+            clone_dir=clone_dir,
+            file_types=file_types,
+            max_files=max_files,
+        )
+
+    @staticmethod
+    def calculate_dynamic_token_budget(total_nloc: int) -> int:
+        """레포 크기에 비례한 동적 토큰 예산 (20K~50K)"""
+        budget = max(20_000, min(50_000, total_nloc * 5))
+        return budget
 
     async def llm_analyze_code(
         self,
@@ -458,6 +494,7 @@ Based on the code above, respond ONLY with a valid JSON object (no markdown, no 
         ast_summary: dict,
         jd_tech_stack: list[str],
         model: str | None = None,
+        ranked_chunks: list[dict] | None = None,
     ) -> dict:
         """Stage 1: Overview Agent - 전체 diff 분석, 핵심 파일 선별
 
@@ -467,12 +504,13 @@ Based on the code above, respond ONLY with a valid JSON object (no markdown, no 
             ast_summary: AST 분석 결과
             jd_tech_stack: JD에서 추출한 기술 스택
             model: 사용할 LLM 모델 (기본: GLM)
+            ranked_chunks: JD-Aware 랭킹된 청크 리스트 (JIT-24, optional)
 
         Returns:
             OverviewAnalysisResult 형식의 딕셔너리
         """
         model = model or KIMI_CODER_MODEL
-        prompt = build_overview_prompt(files, commit_diffs, ast_summary, jd_tech_stack)
+        prompt = build_overview_prompt(files, commit_diffs, ast_summary, jd_tech_stack, ranked_chunks)
 
         from app.services.cached_llm import CachedLLMService
         llm = CachedLLMService()

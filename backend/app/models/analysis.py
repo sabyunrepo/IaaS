@@ -328,6 +328,20 @@ class HybridAnalysisMetadata(BaseModel):
     analysis_duration_ms: int | None = Field(default=None, description="분석 소요 시간 (밀리초)")
 
 
+class ChunkRelevanceScore(BaseModel):
+    """JD-Aware 청크 관련성 점수 (JIT-22)"""
+    chunk_name: str = Field(description="청크 이름 (함수/클래스명)")
+    chunk_type: str = Field(default="function", description="청크 타입 (function/class)")
+    file_path: str = Field(default="", description="파일 경로")
+    jd_keyword_score: float = Field(ge=0.0, le=1.0, description="JD 키워드 매칭 점수")
+    complexity_score: float = Field(ge=0.0, le=1.0, description="구조적 복잡도 점수")
+    interview_potential: float = Field(ge=0.0, le=1.0, description="면접 잠재력 점수")
+    contributor_score: float = Field(ge=0.0, le=1.0, description="후보자 기여 점수")
+    total_score: float = Field(ge=0.0, le=1.0, description="가중 합산 총점")
+    char_count: int = Field(default=0, description="소스 코드 문자 수")
+    evidence: list[str] = Field(default_factory=list, description="점수 근거")
+
+
 class CodeAnalysisValidation(BaseModel):
     """코드 분석 결과 품질 검증"""
     valid: bool = Field(description="검증 통과 여부")
