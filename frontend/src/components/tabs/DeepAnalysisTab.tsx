@@ -257,6 +257,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_candidate_skill')}</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_match_type')}</th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_evidence')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_related_questions')}</th>
                   <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('deep_confidence')}</th>
                 </tr>
               </thead>
@@ -293,6 +294,19 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                            row.confidence >= 50 ? t('confidence_tooltip_medium') : t('confidence_tooltip_low')}
                         </span>
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {row.related_questions && row.related_questions.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {row.related_questions.map((qNum) => (
+                            <span key={qNum} className="inline-flex items-center px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-medium">
+                              Q{qNum}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">

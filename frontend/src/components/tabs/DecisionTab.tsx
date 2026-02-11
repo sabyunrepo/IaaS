@@ -22,7 +22,7 @@ export const DecisionTab = memo(function DecisionTab({
   overallMatch = 0,
 }: DecisionTabProps) {
   const { t } = useTranslation()
-  const { summary, interviewer_guide, jd_competency_map } = decision
+  const { summary, interviewer_guide } = decision
   const scorePercent = Math.round(Math.min(Math.max(overallMatch, 0), 100))
 
   // Determine recommendation based on score
@@ -258,41 +258,6 @@ export const DecisionTab = memo(function DecisionTab({
         )}
       </div>
 
-      {/* JD Competency Map */}
-      {jd_competency_map && jd_competency_map.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            {t('decision_jd_competency')}
-          </h3>
-
-          <div className="space-y-4">
-            {jd_competency_map.map((comp, i) => (
-              <div key={i} className="card-hover p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-gray-900">{comp.competency}</span>
-                  <span className="text-sm text-indigo-600 font-semibold">
-                    {t('decision_weight', { value: Math.round(comp.weight * 100) })}
-                  </span>
-                </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
-                  <div
-                    className="h-full bg-indigo-500 rounded-full"
-                    style={{ width: `${comp.weight * 100}%` }}
-                  />
-                </div>
-                {comp.related_questions.length > 0 && (
-                  <p className="text-xs text-gray-500">
-                    {t('decision_related_questions', { questions: comp.related_questions.join(', Q') })}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 })
