@@ -35,13 +35,15 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Langfuse-first) 
 | React, UI, Tailwind | context7, magic | /implement --type component |
 | quality, eval, 환각 | context7, sequential | - |
 | LLM, prompt, 질문 생성 | context7, sequential | - |
-| bug, error, debug | sequential | /troubleshoot |
+| 코드 검색, 구현 위치, 사용처, 호출 관계 | qmd | - |
+| bug, error, debug | sequential, qmd | /troubleshoot |
 | 조사, research | brave-search, context7 | /research |
-| 아키텍처, design | sequential, context7 | /design |
+| 아키텍처, design | sequential, context7, qmd | /design |
 | security, 보안 | sequential, context7 | /analyze --focus security |
 | 성능, optimize | sequential, playwright | /improve --perf |
 | 스크린샷, 크롤링 | playwright | - |
 | 이전 대화, 기억 | claude-mem | - |
+| 프로젝트, 기획, lifecycle | linear, sequential | - |
 
 상세 라우팅 프로토콜 → `.claude/skills/routing/SKILL.md`
 
@@ -60,4 +62,7 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Langfuse-first) 
 | A/B 테스트 전략 | `.claude/skills/ab-testing/SKILL.md` |
 | 디자인 패턴 | `docs/claude-references/` (기존) |
 | E2E 테스트 전략 | `docs/claude-references/playwright-e2e-strategy.md` |
+| 프로젝트 생애주기 | `docs/claude-refs/project-lifecycle.md` |
+| 프로젝트 컨텍스트 | `docs/projects/{slug}/CONTEXT.md` |
+| QMD 코드 검색 | `.claude/skills/qmd-search/SKILL.md` |
 | 아키텍처 문서 | `docs/architecture/*.md` |

@@ -19,6 +19,8 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #4797 | 10:00 AM | ✅ | QMD bash permission added to settings.local.json allow list | ~385 |
+| #4770 | 9:52 AM | 🔵 | Existing Claude Code settings reveal comprehensive MCP and hooks configuration | ~707 |
 | #4670 | 8:52 AM | 🔵 | IaaS Project Token Usage Structure and Optimization Analysis | ~1341 |
 | #4661 | 8:50 AM | 🔵 | MCP Server Token Cost Analysis Completed | ~710 |
 | #4640 | 8:17 AM | 🔵 | Linear API Token Found in Local Settings Permissions | ~490 |

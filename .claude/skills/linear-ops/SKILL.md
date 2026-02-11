@@ -1,0 +1,245 @@
+---
+name: linear-ops
+description: Linear 티켓 기반 개발 워크플로우. 티켓 분석 → 코드 수정 → 테스트 검증 → 결과 보고를 하나의 트랜잭션으로 처리.
+argument-hint: [ticket-id | "create" title] [--tdd] [--close]
+allowed-tools: Read, Grep, Bash, Write, Edit, Glob
+---
+
+# Linear-Ops Skill
+
+> Linear MCP 도구 + 로컬 셸을 결합하여 **[티켓 분석 → 코드 수정 → 테스트 검증 → 결과 보고]**를 하나의 트랜잭션으로 처리한다.
+
+---
+
+## 사용법
+
+```
+/linear-ops VAN-123              # 기존 티켓 작업 시작
+/linear-ops create "제목"         # 새 티켓 생성 후 작업
+/linear-ops list                  # 할당된 이슈 목록 조회
+/linear-ops search "키워드"       # 이슈 검색
+```
+
+---
+
+## Phase 1: Initialize (작업 시작 및 컨텍스트 동기화)
+
+### 기존 티켓 작업 시
+1. `mcp__linear__get_issue(issueId)` → 최신 본문, 라벨, 우선순위 읽기
+2. 티켓 본문에서 **수락 기준(Acceptance Criteria)** 추출
+3. 수락 기준이 없을 경우 → 사용자에게 "수락 기준을 먼저 정의할까요?" 확인
+4. 코드베이스에서 수정 필요 지점 분석 → 사용자에게 영향 범위 출력
+5. `mcp__linear__update_issue(issueId, status: "In Progress")` → 상태 변경
+6. Git 브랜치 생성: `git checkout -b feat/VAN-{N}-{slug}` 또는 `fix/VAN-{N}-{slug}`
+
+### 새 티켓 생성 시
+1. `mcp__linear__list_teams()` → 팀 ID 확인
+2. `mcp__linear__create_issue(title, teamId, description, priority)` → 이슈 생성
+3. description에 반드시 아래 섹션 포함:
+   ```markdown
+   ## 수락 기준 (Acceptance Criteria)
+   - [ ] 기준 1
+   - [ ] 기준 2
+
+   ## 테스트 시나리오
+   - [ ] 시나리오 1: [입력] → [기대 결과]
+   - [ ] 시나리오 2: [엣지 케이스] → [기대 결과]
+   ```
+4. 생성된 이슈를 `In Progress`로 변경 후 Phase 2 진입
+
+### 목록/검색
+- `list`: `mcp__linear__list_issues()` 호출 → 상태별 정리하여 출력
+- `search`: `mcp__linear__search_issues(query)` 호출 → 결과 테이블 출력
+
+---
+
+## Phase 2: TDD Implementation (티켓 기반 테스트 주도 개발)
+
+### 2-1. 테스트 먼저 (Test First)
+
+수락 기준에서 테스트 케이스를 도출하고, **코드 수정 전에 테스트를 먼저 작성/업데이트**한다.
+
+**Backend (pytest):**
+```
+backend/tests/test_{feature}.py  → 신규 기능 테스트
+backend/tests/                   → 기존 테스트 업데이트
+```
+- 실행: `docker compose exec backend pytest tests/test_{feature}.py -v --tb=short`
+- 실패 확인 후 구현 진행 (Red → Green → Refactor)
+
+**Frontend (vitest/playwright):**
+```
+frontend/src/**/*.test.ts        → 단위 테스트
+frontend/e2e/*.spec.ts           → E2E 테스트
+```
+- 단위: `docker compose exec frontend npx vitest run --reporter=verbose`
+- E2E: `cd frontend && npx playwright test`
+
+### 2-2. 구현 (Implementation)
+
+1. 수정 파일별 변경 사항 적용
+2. 프로젝트 네이밍/배치 규칙 준수 (CLAUDE.md 참조)
+3. 파일 300줄 초과 시 분리 검토
+
+### 2-3. 테스트 실행 및 검증
+
+```
+# Backend 전체 테스트
+docker compose exec backend pytest --tb=short -q
+
+# Frontend 단위 테스트
+docker compose exec frontend npx vitest run
+
+# 실패한 테스트만 재실행
+docker compose exec backend pytest --last-failed -v
+
+# 커버리지 확인
+docker compose exec backend pytest --cov=app --cov-report=term-missing
+```
+
+### 2-4. 테스트 실패 대응
+
+테스트 실패 시 **절대 Linear 티켓을 업데이트하지 않는다.**
+
+1. 에러 로그 분석 → 근본 원인 식별
+2. 코드 재수정 → 테스트 재실행
+3. 3회 실패 시 → 사용자에게 에러 리포트:
+   ```
+   [Test Failure Report]
+   - 실패 테스트: test_name
+   - 에러 메시지: ...
+   - 시도한 수정: ...
+   - 제안: ...
+   ```
+4. 전체 테스트 커버리지가 감소하지 않았는지 확인
+
+---
+
+## Phase 3: Finalize (결과 보고 및 클로징)
+
+### 조건: 모든 테스트 통과 시에만 진행
+
+### 3-1. 티켓 업데이트
+
+`mcp__linear__update_issue(issueId, description)` 호출하여 결과 섹션 추가:
+
+```markdown
+---
+## 구현 결과
+
+### [Summary]
+{구현된 기능의 기술적 요약}
+
+### [Files Changed]
+- `path/to/file1.py` — 변경 내용 요약
+- `path/to/file2.tsx` — 변경 내용 요약
+
+### [Test Result]
+- 명령어: `pytest tests/test_feature.py -v`
+- 결과: ALL PASSED (X passed, 0 failed)
+- 커버리지: XX%
+
+### [Commit]
+- 브랜치: `feat/VAN-{N}-slug`
+- 커밋: `{커밋 해시}`
+---
+```
+
+### 3-2. 상태 업데이트
+- `mcp__linear__update_issue(issueId, status: "In Review")`
+
+### 3-3. Git 커밋 및 PR
+1. 커밋 메시지에 티켓 ID 포함: `feat: {설명} [VAN-{N}]`
+2. `git push -u origin {branch}`
+3. `gh pr create --title "feat: {설명} [VAN-{N}]" --body "..."`
+4. PR 본문에 Linear 티켓 링크 포함
+
+### 3-4. 완료 시 (--close 플래그)
+- `mcp__linear__update_issue(issueId, status: "Done")`
+
+---
+
+## 예외 처리 (Guardrails)
+
+| 상황 | 대응 |
+|------|------|
+| Linear API 권한 오류 | 즉시 사용자에게 알림 → Personal Access Token 확인 요청 |
+| 수락 기준 없는 티켓 | 작업 시작 전 "수락 기준을 먼저 정의할까요?" 확인 |
+| 테스트 실패 | Linear 업데이트 금지, 에러 분석 후 재시도 또는 사용자 리포트 |
+| 티켓 ID 미발견 | `mcp__linear__search_issues`로 유사 이슈 검색 후 제안 |
+| 모호한 요구사항 | 사용자에게 구체화 질문 후 진행 |
+| 커버리지 감소 | 추가 테스트 작성 후 재검증 |
+
+---
+
+## 워크플로우 다이어그램
+
+```
+/linear-ops VAN-123
+    │
+    ├─ Phase 1: Initialize
+    │   ├─ get_issue → 티켓 읽기
+    │   ├─ 수락 기준 확인 (없으면 → 사용자 확인)
+    │   ├─ 코드베이스 영향 분석
+    │   ├─ update_issue → "In Progress"
+    │   └─ git checkout -b feat/VAN-123-slug
+    │
+    ├─ Phase 2: TDD Implementation
+    │   ├─ 수락 기준 → 테스트 케이스 도출
+    │   ├─ 테스트 작성 (Red)
+    │   ├─ 코드 구현 (Green)
+    │   ├─ 리팩토링 (Refactor)
+    │   ├─ 전체 테스트 실행
+    │   └─ [실패 시] 재수정 루프 (최대 3회)
+    │
+    └─ Phase 3: Finalize (테스트 통과 시만)
+        ├─ update_issue → 결과 기록
+        ├─ update_issue → "In Review"
+        ├─ git commit + push
+        └─ gh pr create
+```
+
+---
+
+## 활용 MCP 서버
+
+| 서버 | 용도 |
+|------|------|
+| `linear` | 이슈 CRUD, 상태 관리, 팀/프로젝트 조회 |
+| `sequential` | 복잡한 티켓 분석, 수정 영향 범위 추론 |
+| `context7` | 프레임워크/라이브러리 공식 문서 참조 |
+| `docker` | 컨테이너 내 테스트 실행 |
+
+---
+
+## 출력 포맷
+
+### 작업 시작 시
+```
+[Linear-Ops] VAN-123 작업 시작
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+제목: {title}
+우선순위: {priority}
+상태: → In Progress
+
+수락 기준:
+  ✅ 기준 1
+  ✅ 기준 2
+
+영향 파일:
+  📄 backend/app/services/foo.py (L45-78)
+  📄 frontend/src/components/Bar.tsx (L12-30)
+
+브랜치: feat/VAN-123-slug
+```
+
+### 작업 완료 시
+```
+[Linear-Ops] VAN-123 작업 완료
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+수정 파일: 3개
+테스트: 12 passed, 0 failed
+커버리지: 85% (변동 없음)
+상태: → In Review
+PR: #270 (feat: 설명 [VAN-123])
+```
