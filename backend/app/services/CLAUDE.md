@@ -29,6 +29,21 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #4050 | 6:20 AM | 🔵 | Backend Performance Audit Completed for IaaS Application | ~552 |
+
+### Feb 9, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4369 | 1:38 PM | 🔵 | Entity Extractors Modular Architecture | ~458 |
+| #4367 | " | 🔵 | Dual-Mode File Extraction - Diff vs Source Code Strategy | ~556 |
+| #4366 | " | 🔵 | Scoring Formula Quality Metrics Structure and Extension Points | ~545 |
+| #4361 | 1:36 PM | 🔵 | Knowledge Graph, Vector Store, and Scoring System Integration Architecture | ~834 |
+| #4359 | 1:35 PM | 🔵 | PyDriller Integration - Commit Traversal with Heartbeat Monitoring | ~530 |
+| #4355 | " | 🔵 | Profile Scoring Adapter - Canonical Skill Matching with Implied Relationships | ~574 |
+| #4348 | 1:34 PM | 🔵 | Vector Store Service - pgvector-Based Semantic Search | ~553 |
+| #4346 | " | 🔵 | Evidence-Based Scoring Formula System with Industry References | ~634 |
+| #4332 | 1:33 PM | 🔵 | Code Analyzer Service Architecture - Hybrid 3-Stage Multi-Agent Pipeline | ~696 |
+| #4329 | 1:27 PM | 🔵 | Multi-Language Static Analysis Tools Research Completed | ~499 |
 </claude-mem-context>
 
 # backend/app/services/

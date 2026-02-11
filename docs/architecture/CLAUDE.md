@@ -24,17 +24,6 @@
 | #45 | " | 🔵 | Category Weighting System by Experience Level | ~507 |
 | #44 | " | 🔵 | Output Spec Defines Interviewer Note Structure and Decision Guide | ~477 |
 | #43 | " | ✅ | Enhanced Experience Level and Question Count Limits | ~387 |
-| #42 | 5:59 AM | ✅ | Updated max_questions Default from 10 to 25 in Data Models | ~341 |
-| #41 | " | ✅ | Experience Level Enum Extended with CTO/VP Tier | ~375 |
-| #40 | 5:57 AM | 🔵 | Architecture Documentation Comprehensive Review Completed | ~611 |
-| #39 | 5:55 AM | 🔵 | RESTful API Specification with Checkpoint Recovery | ~598 |
-| #38 | " | 🔵 | Comprehensive Data Models Architecture Specification | ~629 |
-| #28 | 5:30 AM | 🔵 | Complete Architecture Documentation Confirms 25-Question Specification with 8-Agent Pipeline | ~1180 |
-| #23 | 5:27 AM | 🔵 | Comprehensive Data Models Specification for Multi-Phase Pipeline | ~873 |
-| #21 | 5:25 AM | 🔵 | Architecture-Implementation Gap Analysis Revealed Critical Misalignments | ~991 |
-| #17 | 5:24 AM | 🔵 | Comprehensive Output Specification with Multi-Agent Question Generation Pipeline | ~887 |
-| #16 | 5:23 AM | 🔵 | Smart Input Extraction Phase 0 Architecture | ~624 |
-| #15 | " | 🔵 | Vantict Sniper v4.0 Architecture: Local-First AI Interview Script Generator | ~618 |
 
 ### Feb 3, 2026
 
@@ -47,6 +36,12 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #1112 | 3:13 AM | 🔵 | Comprehensive CLAUDE.md Documentation Files Created Throughout Codebase | ~614 |
+
+### Feb 9, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4358 | 1:35 PM | 🔵 | IaaS Data Models and Job Lifecycle Architecture | ~516 |
 </claude-mem-context>
 
 # docs/architecture/

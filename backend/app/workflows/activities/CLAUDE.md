@@ -34,6 +34,13 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #4050 | 6:20 AM | 🔵 | Backend Performance Audit Completed for IaaS Application | ~552 |
+
+### Feb 9, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4361 | 1:36 PM | 🔵 | Knowledge Graph, Vector Store, and Scoring System Integration Architecture | ~834 |
+| #4351 | 1:35 PM | 🔵 | Code Analysis Activity - 4-Phase GitHub Analysis Pipeline | ~661 |
 </claude-mem-context>
 
 # backend/app/workflows/activities/
