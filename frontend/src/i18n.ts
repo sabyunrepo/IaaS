@@ -327,7 +327,6 @@ const resources = {
       live_followup_poor: '주의 답변',
       live_followup_pts: '점',
       // DeepAnalysisTab
-      engineering_dna: 'Engineering DNA',
       data_confidence_label: '데이터 신뢰도',
       data_confidence_high: '높음',
       data_confidence_medium: '보통',
@@ -831,7 +830,6 @@ const resources = {
       live_followup_poor: 'Poor',
       live_followup_pts: 'pts',
       // DeepAnalysisTab
-      engineering_dna: 'Engineering DNA',
       data_confidence_label: 'Data Confidence',
       data_confidence_high: 'High',
       data_confidence_medium: 'Medium',
