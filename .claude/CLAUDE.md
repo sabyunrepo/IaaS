@@ -14,4 +14,12 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #4114 | 9:59 AM | 🔵 | Analyzed IaaS project's comprehensive permission configuration | ~711 |
+
+### Feb 11, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4670 | 8:52 AM | 🔵 | IaaS Project Token Usage Structure and Optimization Analysis | ~1341 |
+| #4661 | 8:50 AM | 🔵 | MCP Server Token Cost Analysis Completed | ~710 |
+| #4640 | 8:17 AM | 🔵 | Linear API Token Found in Local Settings Permissions | ~490 |
 </claude-mem-context>
