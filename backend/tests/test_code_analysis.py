@@ -124,7 +124,7 @@ class TestCodeAnalysisActivity:
 
     @pytest.mark.asyncio
     async def test_analyze_code_with_repos(self):
-        """레포가 있을 때 분석 수행"""
+        """레포가 있을 때 HYBRID 분석 수행 (JIT-30)"""
         from app.workflows.activities.code_analysis import analyze_code
         from unittest.mock import patch
 
@@ -133,28 +133,23 @@ class TestCodeAnalysisActivity:
                 {"url": "https://github.com/user/repo", "name": "repo", "languages": {"Python": 80000}}
             ]
 
-        async def mock_pydriller(repo_url, job_id, author, since_years, file_types):
+        async def mock_run_hybrid(repo_info, jd_tech_stack, candidate_username, job_id):
             return {
-                "files": [{"path": "main.py", "content": "print('hello')"}],
-                "stats": {"total_commits": 10, "total_additions": 500, "avg_complexity": 5.0},
+                "repo_url": repo_info["url"],
+                "repo_name": repo_info["name"],
+                "language": "Python",
+                "candidate_commits": 10,
+                "candidate_additions": 500,
+                "avg_complexity": 5.0,
+                "monthly_contributions": [0] * 12,
+                "ast_analysis": {"functions": [], "classes": []},
+                "analysis": {"notable_implementations": [{"title": "Main function"}], "tech_stack": ["Python"]},
+                "notable_implementations": [{"title": "Main function"}],
             }
-
-        async def mock_ast_analyze(files, primary_language):
-            return {"functions": 5, "classes": 2}
-
-        def mock_rank_files(files, jd_tech_stack, token_budget):
-            return files
-
-        async def mock_llm_analyze(ranked_files, ast_context):
-            return {"notable_implementations": [{"title": "Main function", "complexity": "low"}]}
 
         with patch("app.workflows.activities.code_analysis.activity") as mock_activity, \
              patch("app.services.github_service.GitHubService.filter_repos_by_language", side_effect=mock_filter_repos), \
-             patch("app.services.code_analyzer.CodeAnalyzer.analyze_with_pydriller", side_effect=mock_pydriller), \
-             patch("app.services.code_analyzer.CodeAnalyzer.select_top_files", return_value=[]), \
-             patch("app.services.code_analyzer.CodeAnalyzer.analyze_ast", side_effect=mock_ast_analyze), \
-             patch("app.services.code_analyzer.CodeAnalyzer.rank_files_for_llm", side_effect=mock_rank_files), \
-             patch("app.services.code_analyzer.CodeAnalyzer.llm_analyze_code", side_effect=mock_llm_analyze):
+             patch("app.workflows.activities.code_analysis._run_single_repo_hybrid", side_effect=mock_run_hybrid):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -166,6 +161,7 @@ class TestCodeAnalysisActivity:
             assert len(result["repositories"]) == 1
             assert result["repositories"][0]["repo_name"] == "repo"
             assert result["repositories"][0]["candidate_commits"] == 10
+            assert result["pipeline_type"] == "clone_based"
 
 
 # ============================================================
