@@ -10,7 +10,7 @@ from temporalio import activity
 
 from app.core.observability import observe_activity
 from app.models.deep_analysis import (
-    DeepAnalysis, EngineeringDNAItem, RiskFlag, SkillMatchRow,
+    DeepAnalysis, RiskFlag, SkillMatchRow,
 )
 
 logger = logging.getLogger(__name__)
@@ -156,114 +156,6 @@ async def _llm_calculate_radar_scores(
         return None
 
 
-async def _llm_analyze_engineering_dna(code_analysis: dict | None, output_language: str = "ko", job_id: str | None = None) -> list[EngineeringDNAItem] | None:
-    """LLM 기반 Engineering DNA 분석 (실패 시 None 반환)"""
-    if not code_analysis:
-        return None
-
-    try:
-        from app.services.cached_llm import CachedLLMService
-        from app.prompts import get_prompt_with_config
-        from app.workflows.utils import run_llm_with_prompt_config_heartbeat
-
-        # VectorStore 코드 패턴 검색
-        kg_context = ""
-        if job_id:
-            try:
-                from app.services.vector_store import get_vector_store
-                vs = get_vector_store(job_id)
-                for query in ["test coverage", "code quality", "architecture patterns"][:3]:
-                    results = await vs.search_code(query, limit=2)
-                    for r in results:
-                        if r["similarity"] >= 0.5:
-                            kg_context += f"- {query}: {r['content_text'][:100]} (sim={r['similarity']:.2f})\n"
-            except Exception as e:
-                logger.debug(f"Vector code enrichment failed for engineering DNA: {e}")
-
-        code_data = json.dumps({
-            "quality_metrics": code_analysis.get("quality_metrics", {}),
-            "tech_stack": code_analysis.get("tech_stack", [])[:10],
-            "patterns": code_analysis.get("patterns", [])[:5] if isinstance(code_analysis.get("patterns"), list) else [],
-            "risk_flags": code_analysis.get("risk_flags", [])[:5],
-        }, ensure_ascii=False, default=str)
-
-        prompt_config = get_prompt_with_config(
-            "v2_generation.yaml", "engineering_dna",
-            code_analysis=code_data,
-            output_language=output_language,
-            kg_context=kg_context,
-        )
-
-        llm = CachedLLMService()
-        result = await run_llm_with_prompt_config_heartbeat(llm, prompt_config, interval=30.0)
-
-        if not isinstance(result, list):
-            return None
-
-        from app.services.match_config import sanitize_color
-
-        # 실제 코드 메트릭으로 note 검증/보강
-        actual_metrics = code_analysis.get("quality_metrics", {})
-        metric_map = {
-            "test": f"test_coverage: {actual_metrics.get('test_coverage', 0)}% (GitHub)",
-            "doc": f"documentation_score: {actual_metrics.get('documentation_score', 0)}% (GitHub)",
-            "iac": f"iac_score: {actual_metrics.get('iac_score', 0)}% (GitHub)",
-            "complex": f"complexity_score: {actual_metrics.get('complexity_score', 0)} (GitHub)",
-        }
-
-        items = []
-        for item in result[:6]:
-            if not isinstance(item, dict):
-                continue
-            color = sanitize_color(item.get("color", "slate"))
-            note = item.get("note")
-            # LLM note가 없거나 빈 경우, 실제 메트릭에서 보강
-            label_lower = item.get("label", "").lower()
-            if not note:
-                for key, metric_note in metric_map.items():
-                    if key in label_lower:
-                        note = metric_note
-                        break
-            items.append(EngineeringDNAItem(
-                label=item.get("label", ""),
-                value=max(0, min(100, int(item.get("value", 0)))),
-                display=item.get("display", ""),
-                color=color,
-                note=note,
-                tooltip=item.get("tooltip"),
-            ))
-
-        if items:
-            # === Post-processing 품질 검증 ===
-            no_note = sum(1 for i in items if not i.note or len(str(i.note).strip()) < 5)
-            no_tooltip = sum(1 for i in items if not i.tooltip or len(str(i.tooltip).strip()) < 10)
-            zero_value = sum(
-                1 for i in items
-                if i.value == 0 and i.note
-                and "not available" not in str(i.note).lower()
-                and "이용할 수 없" not in str(i.note)
-            )
-            if no_note > 0:
-                logger.warning(
-                    f"Engineering DNA: {no_note}/{len(items)} items have empty/short note — metric citation missing"
-                )
-            if no_tooltip > 0:
-                logger.warning(
-                    f"Engineering DNA: {no_tooltip}/{len(items)} items have empty/short tooltip — non-tech explanation missing"
-                )
-            if zero_value > 0:
-                logger.warning(
-                    f"Engineering DNA: {zero_value}/{len(items)} items have value=0 but note doesn't say 'not available'"
-                )
-            logger.info(f"LLM engineering DNA: {len(items)} items")
-            return items
-        return None
-
-    except Exception as e:
-        logger.warning(f"LLM engineering DNA failed, using fallback: {e}")
-        return None
-
-
 def _calculate_radar_scores(
     jd_analysis: dict,
     code_analysis: dict | None,
@@ -294,70 +186,6 @@ def _calculate_radar_scores(
         candidate_profile=candidate_profile,
     )
     return radar.candidate, radar.required, radar.sources, radar.confidence, radar.human_sources
-
-
-def _analyze_engineering_dna(code_analysis: dict | None, lang: str = "ko") -> list[EngineeringDNAItem]:
-    """Engineering DNA 분석"""
-    from app.services.i18n_labels import _t
-
-    items = []
-
-    if not code_analysis:
-        items.append(EngineeringDNAItem(
-            label=_t("code_analysis", lang),
-            value=0,
-            display=_t("unconfirmed", lang),
-            color="slate",
-            note=_t("no_github_data", lang),
-        ))
-        return items
-
-    quality = code_analysis.get("quality_metrics", {})
-
-    # 테스트 커버리지
-    test_coverage = quality.get("test_coverage", 0)
-    items.append(EngineeringDNAItem(
-        label=_t("test_coverage", lang),
-        value=test_coverage,
-        display=f"{test_coverage}%",
-        color="emerald" if test_coverage >= 70 else "amber" if test_coverage >= 40 else "red",
-        note=f"test_coverage: {test_coverage}% (GitHub)",
-    ))
-
-    # 문서화 품질
-    doc_score = quality.get("documentation_score", 0)
-    doc_display = _t("excellent", lang) if doc_score >= 80 else _t("moderate", lang) if doc_score >= 50 else _t("poor", lang)
-    items.append(EngineeringDNAItem(
-        label=_t("doc_quality", lang),
-        value=doc_score,
-        display=doc_display,
-        color="blue" if doc_score >= 80 else "amber" if doc_score >= 50 else "red",
-        note=f"documentation_score: {doc_score}% (GitHub)",
-    ))
-
-    # IaC 사용 여부
-    iac_score = quality.get("iac_score", 0)
-    items.append(EngineeringDNAItem(
-        label=_t("iac", lang),
-        value=iac_score,
-        display=_t("confirmed", lang) if iac_score >= 50 else _t("unconfirmed", lang),
-        color="emerald" if iac_score >= 50 else "red",
-        note=f"iac_score: {iac_score}% (GitHub)" if iac_score >= 50 else _t("iac_not_found", lang),
-        tooltip=_t("iac_tooltip", lang),
-    ))
-
-    # 코드 복잡도
-    complexity = quality.get("complexity_score", 50)
-    complexity_display = _t("low", lang) if complexity <= 30 else _t("moderate", lang) if complexity <= 70 else _t("high", lang)
-    items.append(EngineeringDNAItem(
-        label=_t("code_complexity", lang),
-        value=complexity,
-        display=complexity_display,
-        color="emerald" if complexity <= 30 else "amber" if complexity <= 70 else "red",
-        note=f"complexity_score: {complexity} (GitHub)",
-    ))
-
-    return items
 
 
 def _extract_risk_flags(

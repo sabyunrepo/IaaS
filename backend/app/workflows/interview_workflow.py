@@ -530,11 +530,6 @@ class InterviewGenerationWorkflow:
                 final_script["decision"] = decision_support
                 if candidate_profile:
                     final_script["candidate_profile"] = candidate_profile
-                # Category weights for scoring — 경험 레벨별 차등 배분
-                exp_level = input_data.get("experience_level", "미들")
-                final_script["category_weights"] = CATEGORY_WEIGHTS_BY_LEVEL.get(
-                    exp_level, CATEGORY_WEIGHTS_BY_LEVEL["미들"]
-                )
 
                 # 교차 일관성 검증 (Intel ↔ Deep Analysis ↔ Decision)
                 inconsistencies = []
