@@ -106,8 +106,10 @@ class TestLinkedInServiceNormalization:
 
         normalized = service._normalize_profile(raw_data, "https://linkedin.com/in/byun")
 
-        # null 처리 확인
-        assert normalized["experiences"] == []
+        # experience=None이지만 current_company fallback으로 1개 생성
+        assert len(normalized["experiences"]) == 1
+        assert normalized["experiences"][0]["company"] == "MoriAI"
+        # education=None → 빈 리스트
         assert normalized["education"] == []
 
         # 다른 데이터는 정상 추출
