@@ -277,12 +277,9 @@ export interface DecisionSummary {
 
 /** Interviewer guide tips */
 export interface InterviewerGuideTips {
-  interview_flow: string
-  time_allocation: Record<string, string>
   resume_based_tips: ResumeTip[]
   cover_letter_insights: CoverLetterInsight[]
   red_flags_to_watch: string[]
-  positive_signals: string[]
 }
 
 /** JD competency weight */

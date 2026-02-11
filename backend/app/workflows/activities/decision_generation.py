@@ -188,7 +188,7 @@ async def _llm_generate_interviewer_tips(
                     follow_up_opportunity=ins.get("follow_up_opportunity"),
                 ))
 
-        # red_flags/positive_signals 소스 태그 자동 보강
+        # red_flags 소스 태그 자동 보강
         SOURCE_TAGS = ("(Resume)", "(GitHub)", "(LinkedIn)", "(Resume + GitHub)", "(Multi-source)")
 
         def _enrich_source_tag(items: list) -> list:
@@ -206,14 +206,11 @@ async def _llm_generate_interviewer_tips(
             return enriched
 
         tips = InterviewerGuideTips(
-            interview_flow=result.get("interview_flow", ""),
-            time_allocation=result.get("time_allocation", {}),
             resume_based_tips=resume_tips,
             cover_letter_insights=cl_insights,
             red_flags_to_watch=_enrich_source_tag(result.get("red_flags_to_watch", [])),
-            positive_signals=_enrich_source_tag(result.get("positive_signals", [])),
         )
-        logger.info(f"LLM interviewer tips: {len(resume_tips)} tips, {len(tips.positive_signals)} signals")
+        logger.info(f"LLM interviewer tips: {len(resume_tips)} tips, {len(tips.red_flags_to_watch)} red flags")
         return tips
 
     except Exception as e:
@@ -342,25 +339,6 @@ def _build_interviewer_tips(
     """면접관 팁 구성"""
     from app.services.i18n_labels import _t
 
-    # 시간 배분 계산
-    category_counts = {}
-    for q in questions:
-        cat = q.get("category", _t("other", lang))
-        category_counts[cat] = category_counts.get(cat, 0) + 1
-
-    total_time = 60  # 기본 60분
-    time_allocation = {}
-    for cat, count in category_counts.items():
-        cat_time = int((count / len(questions)) * total_time) if questions else 10
-        time_allocation[cat] = _t("minutes_n", lang, n=cat_time)
-
-    # 면접 진행 순서
-    category_order = ["role_fit", "technical_depth", "execution_ownership", "communication", "risk_flags"]
-    existing_cats = [c for c in category_order if c in category_counts]
-    interview_flow = " → ".join(
-        f"{cat}({time_allocation.get(cat, _t('minutes_n', lang, n=10))})" for cat in existing_cats
-    )
-
     # 이력서 기반 팁
     resume_tips = []
     profile = document_analysis.get("profile", {})
@@ -411,20 +389,10 @@ def _build_interviewer_tips(
         if flag_text:
             red_flags.append(flag_text)
 
-    # Positive signals
-    positive_signals = [
-        _t("positive_quantified_achievements", lang),
-        _t("positive_failure_learning", lang),
-        _t("positive_team_collaboration", lang),
-    ]
-
     return InterviewerGuideTips(
-        interview_flow=interview_flow,
-        time_allocation=time_allocation,
         resume_based_tips=resume_tips[:5],
         cover_letter_insights=cover_letter_insights[:3],
         red_flags_to_watch=red_flags[:5],
-        positive_signals=positive_signals,
     )
 
 
@@ -588,7 +556,7 @@ async def generate_decision_support(
             f"but strengths({strengths_count}) >> concerns({concerns_count})"
         )
 
-    # Interviewer Guide: red_flags/positive_signals 소스 어노테이션 확인
+    # Interviewer Guide: red_flags 소스 어노테이션 확인
     if interviewer_guide.red_flags_to_watch:
         flags_with_source = sum(1 for f in interviewer_guide.red_flags_to_watch if "(Resume)" in f or "(GitHub)" in f or "(LinkedIn)" in f)
         if flags_with_source < len(interviewer_guide.red_flags_to_watch) // 2:

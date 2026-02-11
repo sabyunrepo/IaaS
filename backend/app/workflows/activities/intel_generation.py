@@ -390,13 +390,8 @@ async def generate_intel_brief(
     jd_summary = _extract_jd_summary(jd_analysis, lang=output_language)
     activity.heartbeat()
 
-    # 2. 역량 매칭 분석 (LLM 우선, 규칙 기반 fallback) — LinkedIn 스킬 포함
-    competencies = await _llm_match_competencies(
-        jd_analysis, document_analysis, code_analysis, output_language,
-        job_id=job_id, linkedin_profile=linkedin_profile,
-    )
-    if competencies is None:
-        competencies = _match_competencies(jd_analysis, document_analysis, code_analysis, lang=output_language)
+    # 2. 역량 매칭 분석 (규칙 기반 — JIT-16: LLM competency_matching 프롬프트 제거)
+    competencies = _match_competencies(jd_analysis, document_analysis, code_analysis, lang=output_language)
     activity.heartbeat()
 
     # 2b. candidate_profile 있으면 역량 매칭 보강 (정규화 스킬 + implied 관계)

@@ -1,74 +1,4 @@
 prompts:
-  competency_matching:
-    description: "JD 역량과 후보자 시맨틱 매칭 분석 (근거 기반)"
-    template: |
-      # CRITICAL OUTPUT RULES
-      - Return ONLY raw JSON, NO markdown formatting
-      - Start your response with [ and end with ]
-
-      # ROLE
-      You are an expert technical recruiter analyzing candidate-job fit with evidence-based assessment.
-
-      # TASK
-      Compare each JD requirement against the candidate's skills from resume and code analysis.
-      Determine match level using semantic understanding, not just keyword matching.
-      EVERY match_label MUST cite the specific evidence source (Resume skill list, GitHub tech stack, etc.).
-
-      # OUTPUT LANGUAGE (CRITICAL)
-      Write ALL output text in {{output_language}}.
-      The fields "name", "match_label", "desc", and "why" MUST be written in {{output_language}}.
-      JSON keys must remain in English. The "match" field must be one of: strong|partial|unknown|none.
-      Even if the input data is in another language, ALL output values MUST be in {{output_language}}.
-
-      # MATCH LEVELS AND EVIDENCE REQUIREMENTS
-      - "strong": Candidate has direct, proven experience — MUST cite specific skill from Resume OR GitHub
-        Example match_label: "Resume에서 Python 3년 확인 + GitHub에서 FastAPI 프로젝트 탐지"
-      - "partial": Candidate has related but not exact experience — cite the related skill
-        Example match_label: "Resume에서 Django 경험 확인 (Flask 요구사항과 유사 프레임워크)"
-      - "unknown": Cannot determine from available data — explain what data is missing
-        Example match_label: "이력서/GitHub에서 관련 경험 확인 불가"
-      - "none": No evidence of this skill — state clearly
-        Example match_label: "제공된 데이터에서 해당 스킬 근거 없음"
-
-      # ANTI-HALLUCINATION RULES
-      - NEVER claim the candidate has a skill that is not in the provided input data
-      - If a skill is not listed in Resume skills OR GitHub code_skills, it is "unknown" or "none"
-      - Do NOT infer skills from job titles alone — only use the explicit skill lists provided
-
-      # INPUT
-      JD Requirements:
-      {{jd_requirements}}
-
-      Candidate Skills (Resume):
-      {{candidate_skills}}
-
-      Candidate Skills (GitHub):
-      {{code_skills}}
-
-      # ADDITIONAL CONTEXT (may be empty)
-      {{kg_context}}
-
-      # FORBIDDEN PATTERNS (will cause rejection)
-      - NEVER write vague match_labels like "관련 경험 있음", "적합해 보임", "가능성 높음", "충분한 역량", "다양한 경험"
-      - EVERY match_label MUST name the specific skill/technology found in the data
-      - match_label for "strong"/"partial" MUST be ≥15 characters with concrete skill name
-      - If evidence_source is "none", match MUST be "unknown" or "none" (never "strong" or "partial")
-      - "why" field MUST explain the business impact in ≥10 characters — NEVER leave empty or generic
-      - "why" REJECTED examples: "중요함", "필요함", "essential" ← too vague
-      - "why" ACCEPTED example: "실시간 데이터 처리가 핵심이므로 Kafka 경험이 서비스 안정성에 직결" ← specific
-
-      # OUTPUT FORMAT (JSON array)
-      [
-        {{
-          "name": "requirement name in {{output_language}}",
-          "match": "strong|partial|unknown|none",
-          "match_label": "evidence-cited explanation in {{output_language}} — MUST name specific skill from Resume/GitHub",
-          "desc": "requirement description in {{output_language}}",
-          "why": "why this matters for the role in {{output_language}}",
-          "evidence_source": "resume|github|resume+github|vector_store|none — MUST be exactly one of these values"
-        }}
-      ]
-
   radar_analysis:
     description: "5축 레이더 차트 점수 산출 (LLM 기반, 공식 기준 참조)"
     template: |
@@ -223,77 +153,6 @@ prompts:
         }}
       ]
 
-  engineering_dna:
-    description: "Engineering DNA 심층 분석 (메트릭 기반)"
-    template: |
-      # CRITICAL OUTPUT RULES
-      - Return ONLY raw JSON array, NO markdown formatting
-      - Start your response with [ and end with ]
-
-      # ROLE
-      You are a senior engineering manager assessing a candidate's engineering practices based on code metrics.
-
-      # TASK
-      Analyze the candidate's code metrics to assess their engineering DNA.
-      Scores MUST be derived from the actual metrics in the input data, not general impressions.
-      If a metric is not available, set value to 0 and note "Data not available".
-
-      # OUTPUT LANGUAGE (CRITICAL)
-      Write ALL output text in {{output_language}}.
-      The fields "label", "display", "note", and "tooltip" MUST be written in {{output_language}}.
-      JSON keys must remain in English.
-      Even if the input data is in another language, ALL output values MUST be in {{output_language}}.
-
-      # INPUT
-      Code Analysis Data:
-      {{code_analysis}}
-
-      # ADDITIONAL CONTEXT (may be empty)
-      {{kg_context}}
-
-      # DIMENSIONS AND SCORING CRITERIA
-      1. Test Coverage — Use test_coverage metric directly
-         - ≥70: emerald, "Excellent" | 40-69: amber, "Moderate" | <40: red, "Poor"
-      2. Documentation Quality — Use documentation_score metric
-         - ≥80: blue, "Excellent" | 50-79: amber, "Moderate" | <50: red, "Poor"
-      3. IaC Usage — Check for infrastructure patterns (Dockerfile, CI/CD, Terraform)
-         - ≥50: emerald, "Confirmed" | <50: red, "Not detected"
-      4. Code Complexity — Use complexity_score (lower is better for readability)
-         - ≤30: emerald, "Low" | 31-70: amber, "Moderate" | >70: red, "High"
-      5. Design Patterns — Assess from code structure if detectable
-         - Only score if patterns are detectable in the data, otherwise value=0 color="slate"
-
-      # COLOR RULES
-      - emerald: Good/positive metric
-      - blue: Informational/good documentation
-      - amber: Moderate/needs improvement
-      - red: Poor/concerning
-      - slate: Data unavailable or not applicable
-
-      # tooltip FIELD
-      The "tooltip" field is for non-technical users. Explain what this metric means in simple terms.
-      Example: "Test coverage measures how much of the code is verified by automated tests — higher is better"
-
-      # FORBIDDEN PATTERNS (will cause rejection)
-      - note without specific metric: "좋은 품질" ← REJECTED (no metric citation)
-      - note without source: "테스트가 잘 작성됨" ← REJECTED (no parenthesized source)
-      - EVERY note MUST cite the actual metric value + (GitHub): "test_coverage: 72% (GitHub)" ← ACCEPTED
-      - If metric is unavailable, note MUST say: "Data not available" ← ACCEPTED
-      - tooltip that repeats label: "테스트 커버리지는 테스트 커버리지입니다" ← REJECTED
-      - EVERY tooltip MUST explain the metric in non-technical terms for HR managers
-
-      # OUTPUT FORMAT (JSON array)
-      [
-        {{
-          "label": "dimension label in {{output_language}}",
-          "value": 0-100,
-          "display": "quality rating in {{output_language}} following the criteria above",
-          "color": "emerald|blue|amber|red|slate",
-          "note": "specific metric citation in {{output_language}} (e.g., 'test_coverage: 72%') or null",
-          "tooltip": "non-tech explanation in {{output_language}} or null"
-        }}
-      ]
-
   decision_summary:
     description: "후보자 Decision Summary 생성 (근거 기반 레벨/강점/우려사항)"
     template: |
@@ -399,19 +258,16 @@ prompts:
 
       # OUTPUT LANGUAGE (CRITICAL)
       Write ALL output text in {{output_language}}.
-      ALL fields (interview_flow, time_allocation, resume_based_tips, cover_letter_insights, red_flags_to_watch, positive_signals) MUST be in {{output_language}}.
+      ALL fields (resume_based_tips, cover_letter_insights, red_flags_to_watch) MUST be in {{output_language}}.
       JSON keys must remain in English.
       Even if the input data is in another language, ALL output values MUST be in {{output_language}}.
 
       # TASK
       Based on the candidate's profile and generated questions, create:
-      1. Recommended interview flow (category order with time allocation)
-      2. Resume-based verification tips (specific claims to verify)
-      3. Cover letter insights (claims to validate)
-      4. Red flags to watch for during interview — each MUST include the data source in parentheses
+      1. Resume-based verification tips (specific claims to verify)
+      2. Cover letter insights (claims to validate)
+      3. Red flags to watch for during interview — each MUST include the data source in parentheses
          Example: "GitHub 활동이 최근 6개월간 없음 (GitHub)" or "이력서 경력 갭 2023-2024 (Resume)"
-      5. Positive signals indicating strong fit — each MUST include the data source in parentheses
-         Example: "12개 레포에서 일관된 코드 품질 (GitHub)" or "Google 3년 재직 (Resume)"
 
       # INPUT
       Questions:
@@ -431,20 +287,15 @@ prompts:
 
       # FORBIDDEN PATTERNS (will cause rejection)
       - Red flags WITHOUT data source: "기술 부족 우려" ← REJECTED (no parenthesized source)
-      - Positive signals WITHOUT data source: "훌륭한 경력" ← REJECTED (no evidence)
       - EVERY red flag MUST end with (Resume), (GitHub), or (LinkedIn): "경력 갭 2023-2024 (Resume)" ← ACCEPTED
-      - EVERY positive signal MUST end with source: "12개 레포에서 일관된 코드 품질 (GitHub)" ← ACCEPTED
 
       # OUTPUT FORMAT
       {{
-        "interview_flow": "category1(time) → category2(time) → ... (in {{output_language}})",
-        "time_allocation": {{"category": "time in {{output_language}} (e.g., '10 min')"}},
         "resume_based_tips": [
           {{"section": "area to verify in {{output_language}}", "insight": "specific verification method in {{output_language}}", "question_link": "related question ref (e.g., Q1, Q3) or null"}}
         ],
         "cover_letter_insights": [
           {{"highlight": "key claim in {{output_language}}", "interpretation": "verification question in {{output_language}}", "follow_up_opportunity": "follow-up opportunity in {{output_language}} or null"}}
         ],
-        "red_flags_to_watch": ["concern1 in {{output_language}}", "concern2"],
-        "positive_signals": ["positive signal1 in {{output_language}}", "positive signal2"]
+        "red_flags_to_watch": ["concern1 in {{output_language}}", "concern2"]
       }}

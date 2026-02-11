@@ -34,13 +34,10 @@ class CoverLetterInsight(BaseModel):
 
 
 class InterviewerGuideTips(BaseModel):
-    """면접관 가이드 팁"""
-    interview_flow: str
-    time_allocation: dict[str, str] = Field(default_factory=dict)
+    """면접관 가이드 팁 (JIT-14/16: interview_flow, time_allocation, positive_signals 제거)"""
     resume_based_tips: list[ResumeTip] = Field(default_factory=list)
     cover_letter_insights: list[CoverLetterInsight] = Field(default_factory=list)
     red_flags_to_watch: list[str] = Field(default_factory=list)
-    positive_signals: list[str] = Field(default_factory=list)
 
 
 class JDCompetencyWeight(BaseModel):

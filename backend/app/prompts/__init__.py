@@ -328,9 +328,7 @@ def _prompt_key_to_activity_name(filename: str, key: str) -> str:
         ("finalization.yaml", "generate_intel_brief"): "generate_intel_brief",
         ("finalization.yaml", "generate_deep_analysis"): "generate_deep_analysis",
         ("finalization.yaml", "generate_decision_support"): "generate_decision_support",
-        ("v2_generation.yaml", "competency_matching"): "intel_competency_matching",
         ("v2_generation.yaml", "radar_analysis"): "radar_analysis",
-        ("v2_generation.yaml", "engineering_dna"): "engineering_dna",
         ("v2_generation.yaml", "decision_summary"): "decision_summary",
         ("v2_generation.yaml", "interviewer_tips"): "interviewer_tips",
     }

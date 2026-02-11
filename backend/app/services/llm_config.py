@@ -97,9 +97,7 @@ ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     "generate_decision_support": KIMI_CHAT_MODEL,      # v2 Decision Support 생성
 
     # Phase 4: v2 Generation (Intel/Analysis/Decision) - Kimi K2
-    "intel_competency_matching": KIMI_CHAT_MODEL,
     "radar_analysis": KIMI_CHAT_MODEL,
-    "engineering_dna": KIMI_CHAT_MODEL,
     "skill_matching": KIMI_CHAT_MODEL,
     "decision_summary": KIMI_CHAT_MODEL,
     "interviewer_tips": KIMI_CHAT_MODEL,

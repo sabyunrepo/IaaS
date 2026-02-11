@@ -668,10 +668,8 @@ async def generate_deep_analysis(
             score_sources.extend(axis_sources)
     activity.heartbeat()
 
-    # 2. Engineering DNA 분석 (LLM 우선, 규칙 기반 fallback)
-    engineering_dna = await _llm_analyze_engineering_dna(code_analysis, output_language, job_id=job_id)
-    if engineering_dna is None:
-        engineering_dna = _analyze_engineering_dna(code_analysis, lang=output_language)
+    # 2. Engineering DNA — JIT-16: 프론트엔드에서 제거됨, 빈 리스트 반환
+    engineering_dna: list = []
     activity.heartbeat()
 
     # 3. 리스크 플래그 추출

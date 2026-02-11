@@ -89,25 +89,20 @@ class TestV2ActivitySignatures:
 class TestV2LLMFallbackPattern:
     """v2 Activity들이 LLM + fallback 패턴을 따르는지 검증"""
 
-    def test_intel_generation_has_llm_and_fallback(self):
+    def test_intel_generation_has_rule_based_competency_matching(self):
         from app.workflows.activities import intel_generation
         source = inspect.getsource(intel_generation)
-        # LLM 함수 존재
-        assert "_llm_match_competencies" in source
-        # 규칙 기반 fallback 존재
+        # 규칙 기반 매칭 함수 존재 (JIT-16: LLM 제거, rules-only)
         assert "_match_competencies" in source
-        # fallback 패턴 (LLM 실패 시 규칙 기반)
-        assert "if competencies is None:" in source
 
     def test_analysis_generation_has_llm_and_fallback(self):
         from app.workflows.activities import analysis_generation
         source = inspect.getsource(analysis_generation)
         # LLM 함수 존재
         assert "_llm_calculate_radar_scores" in source
-        assert "_llm_analyze_engineering_dna" in source
         # 규칙 기반 fallback 존재
         assert "_calculate_radar_scores" in source
-        assert "_analyze_engineering_dna" in source
+        # JIT-16: engineering_dna는 빈 리스트로 대체됨
 
     def test_decision_generation_has_llm_and_fallback(self):
         from app.workflows.activities import decision_generation
@@ -140,9 +135,7 @@ class TestV2PromptTemplates:
 
         prompts = data.get("prompts", {})
         expected_keys = [
-            "competency_matching",
             "radar_analysis",
-            "engineering_dna",
             "decision_summary",
             "interviewer_tips",
         ]
