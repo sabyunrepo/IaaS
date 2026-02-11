@@ -340,17 +340,7 @@ async def finalize_output(
 
     activity.heartbeat("Generating candidate summary...")
 
-    # 1. 용어집 통합
-    all_terms = []
-    seen_terms = set()
-    for q in questions:
-        for term in q.get("terminology", []):
-            term_name = term.get("term", "") if isinstance(term, dict) else str(term)
-            if term_name and term_name not in seen_terms:
-                all_terms.append(term if isinstance(term, dict) else {"term": term_name})
-                seen_terms.add(term_name)
-
-    # 2. 후보자 요약 (LinkedIn 프로필 포함)
+    # 1. 후보자 요약 (LinkedIn 프로필 포함)
     linkedin_profile = enriched_input.get("linkedin_profile") or {}
     linkedin_summary = _format_linkedin_summary(linkedin_profile)
 
@@ -414,7 +404,6 @@ async def finalize_output(
         "candidate_summary": candidate_summary,
         "questions": questions,
         "interviewer_guide": interviewer_guide,
-        "full_glossary": all_terms,
         "linkedin_profile": {
             "name": linkedin_profile.get("full_name") or linkedin_profile.get("name"),
             "headline": linkedin_profile.get("headline"),
@@ -434,7 +423,7 @@ async def finalize_output(
         "metadata": {
             "total_questions": len(questions),
             "language": output_language,
-            "terminology_count": len(all_terms),
+            "terminology_count": 0,
             "experience_level": raw_input.get("experience_level", "미들"),
             "has_linkedin_data": bool(linkedin_profile),
             "has_code_analysis": bool(analysis.get("code_analysis")),

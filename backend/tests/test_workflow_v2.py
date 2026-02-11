@@ -89,11 +89,13 @@ class TestV2ActivitySignatures:
 class TestV2LLMFallbackPattern:
     """v2 Activity들이 LLM + fallback 패턴을 따르는지 검증"""
 
-    def test_intel_generation_has_rule_based_competency_matching(self):
+    def test_intel_generation_has_essential_functions(self):
         from app.workflows.activities import intel_generation
         source = inspect.getsource(intel_generation)
-        # 규칙 기반 매칭 함수 존재 (JIT-16: LLM 제거, rules-only)
-        assert "_match_competencies" in source
+        # JIT-17: competency matching 제거, 핵심 함수만 확인
+        assert "_extract_jd_summary" in source
+        assert "_extract_github_summary" in source
+        assert "generate_intel_brief" in source
 
     def test_analysis_generation_has_llm_and_fallback(self):
         from app.workflows.activities import analysis_generation
