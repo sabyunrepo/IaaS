@@ -103,6 +103,7 @@ export interface SkillMatchRow {
   type: SkillMatchType
   evidence: string
   confidence: number
+  related_questions?: number[]
 }
 
 /** Deep Analysis tab data */

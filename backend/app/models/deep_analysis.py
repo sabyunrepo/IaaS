@@ -30,6 +30,7 @@ class SkillMatchRow(BaseModel):
     type: Literal["exact", "similar", "partial", "none"]
     evidence: str  # 증거 출처
     confidence: int  # 신뢰도 (0-100)
+    related_questions: list[int] = Field(default_factory=list)  # 관련 질문 번호 (JIT-11)
 
 
 class DeepAnalysis(BaseModel):

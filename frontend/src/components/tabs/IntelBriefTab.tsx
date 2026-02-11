@@ -15,7 +15,7 @@ interface IntelBriefTabProps {
 
 export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, techStack, linkedinProfile }: IntelBriefTabProps) {
   const { t } = useTranslation()
-  const { jd_summary, jd_full, competencies, github, linkedin, linkedin_warning } = intel
+  const { jd_summary, jd_full, github, linkedin, linkedin_warning } = intel
   const [avatarError, setAvatarError] = useState(false)
   const [jdFullExpanded, setJdFullExpanded] = useState(false)
 
@@ -159,76 +159,6 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
           )}
         </div>
       )}
-
-      {/* Competency Matching */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {t('intel_competency_matching')}
-        </h3>
-
-        {competencies.length > 0 ? (
-          <div className="space-y-4">
-            {competencies.map((comp, i) => (
-              <div
-                key={i}
-                className={`card-hover p-4 rounded-lg border ${
-                  comp.color === 'emerald' ? 'bg-emerald-50 border-emerald-200' :
-                  comp.color === 'amber' ? 'bg-amber-50 border-amber-200' :
-                  comp.color === 'red' ? 'bg-red-50 border-red-200' :
-                  comp.color === 'slate' ? 'bg-slate-50 border-slate-200' :
-                  'bg-gray-50 border-gray-200'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{comp.icon}</span>
-                    <span className="font-semibold text-gray-900">{comp.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {comp.evidence_source && comp.evidence_source !== 'none' && (
-                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-                        comp.evidence_source === 'github' ? 'bg-gray-800 text-white' :
-                        comp.evidence_source === 'resume' ? 'bg-blue-100 text-blue-700' :
-                        comp.evidence_source === 'vector_store' ? 'bg-purple-100 text-purple-700' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>
-                        {t(`evidence_src_${comp.evidence_source}`)}
-                      </span>
-                    )}
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      comp.color === 'emerald' ? 'bg-emerald-200 text-emerald-800' :
-                      comp.color === 'amber' ? 'bg-amber-200 text-amber-800' :
-                      comp.color === 'red' ? 'bg-red-200 text-red-800' :
-                      comp.color === 'slate' ? 'bg-slate-200 text-slate-800' :
-                      'bg-gray-200 text-gray-800'
-                    }`}>
-                      {comp.match_label}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">{comp.desc}</p>
-                <p className={`text-sm font-medium ${
-                  comp.color === 'emerald' ? 'text-emerald-700' :
-                  comp.color === 'amber' ? 'text-amber-700' :
-                  comp.color === 'red' ? 'text-red-700' :
-                  comp.color === 'slate' ? 'text-slate-700' :
-                  'text-gray-700'
-                }`}>
-                  💡 {comp.why}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
-            <p className="text-sm text-gray-500">{t('intel_no_competency')}</p>
-            <p className="text-xs text-gray-400 mt-1">{t('intel_no_competency_hint')}</p>
-          </div>
-        )}
-      </div>
 
       {/* GitHub Summary */}
       {github && (

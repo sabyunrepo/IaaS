@@ -496,6 +496,33 @@ class InterviewGenerationWorkflow:
             deep_analysis = intel_analysis_results[1]
             decision_support = intel_analysis_results[2]
 
+            # JIT-11: jd_competency_map의 related_questions를 skill_table에 흡수
+            if isinstance(deep_analysis, dict) and isinstance(decision_support, dict):
+                skill_table = deep_analysis.get("skill_table", [])
+                jd_comp_map = decision_support.get("jd_competency_map", [])
+                if isinstance(skill_table, list) and isinstance(jd_comp_map, list):
+                    # competency → related_questions 매핑 구축
+                    comp_questions: dict[str, list[int]] = {}
+                    for comp in jd_comp_map:
+                        if isinstance(comp, dict):
+                            name = comp.get("competency", "").lower().strip()
+                            rqs = comp.get("related_questions", [])
+                            if name and isinstance(rqs, list):
+                                comp_questions[name] = [q for q in rqs if isinstance(q, int)]
+                    # skill_table 각 행에 매핑
+                    for row in skill_table:
+                        if isinstance(row, dict) and not row.get("related_questions"):
+                            skill_name = row.get("skill", "").lower().strip()
+                            # 정확 매칭 → 부분 매칭 순서
+                            matched = comp_questions.get(skill_name)
+                            if not matched:
+                                for comp_name, rqs in comp_questions.items():
+                                    if skill_name in comp_name or comp_name in skill_name:
+                                        matched = rqs
+                                        break
+                            if matched:
+                                row["related_questions"] = matched
+
             # Attach v2 data to final script
             if isinstance(final_script, dict):
                 final_script["intel"] = intel_brief
