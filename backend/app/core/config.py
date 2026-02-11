@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     # GitHub
     GITHUB_TOKEN: str | None = None
     GITHUB_ANALYSIS_YEARS: int = 1  # 분석 기간 (기본 1년, 최대 3년 권장)
+    USE_AST_PIPELINE: bool = True  # JIT-24: AST+JD 파이프라인 (False면 기존 diff 기반)
 
     # LLM
     OPENAI_API_KEY: str | None = None

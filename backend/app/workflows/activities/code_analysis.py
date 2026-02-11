@@ -449,26 +449,61 @@ async def analyze_single_repo(
                 logger.warning(f"Static analysis failed for {repo_name} (non-fatal): {e}")
 
         # ================================================================
-        # Phase 3: AST 분석
+        # Phase 3: AST 분석 + JD Scoring (JIT-24: feature flag 분기)
         # ================================================================
-        activity.heartbeat(f"Phase 3: AST for {repo_name}")
-        if alog:
-            await alog.progress(f"Phase 3: AST for {repo_name}", {
-                "phase": 3,
-                "files_count": len(driller_result.get("files", [])),
-            })
-
         primary_lang = max(
             repo_info.get("languages", {}),
             key=repo_info.get("languages", {}).get,
             default=None
         )
+        use_ast_pipeline = settings.USE_AST_PIPELINE
+
+        # 공통: AST 분석 (기존 호환용)
+        activity.heartbeat(f"Phase 3: AST for {repo_name}")
+        if alog:
+            await alog.progress(f"Phase 3: AST for {repo_name}", {
+                "phase": 3,
+                "files_count": len(driller_result.get("files", [])),
+                "use_ast_pipeline": use_ast_pipeline,
+            })
+
         top_files = analyzer.select_top_files(
             files=driller_result["files"],
             jd_tech_stack=jd_tech_stack,
             max_files=20,
         )
         ast_result = await analyzer.analyze_ast(files=top_files, primary_language=primary_lang)
+
+        # JIT-24: AST 파이프라인 — clone_dir에서 직접 청크 추출 + JD 스코어링
+        ranked_chunks: list[dict] = []
+        if use_ast_pipeline and clone_dir:
+            activity.heartbeat(f"Phase 3.5: AST chunk extraction + JD scoring for {repo_name}")
+            if alog:
+                await alog.progress(f"Phase 3.5: JD-Aware chunk scoring for {repo_name}", {
+                    "phase": 3.5,
+                })
+
+            file_types = _jd_to_file_types(jd_tech_stack)
+            all_chunks = analyzer.analyze_directory(
+                clone_dir=clone_dir,
+                file_types=file_types,
+                max_files=50,
+            )
+
+            # 동적 토큰 예산 (레포 크기 비례)
+            total_nloc = driller_result["stats"].get("total_additions", 0)
+            token_budget = analyzer.calculate_dynamic_token_budget(total_nloc)
+
+            ranked_chunks = analyzer.select_top_chunks(
+                chunks=all_chunks,
+                jd_tech_stack=jd_tech_stack,
+                token_budget=token_budget,
+            )
+
+            logger.info(
+                f"JIT-24 AST pipeline: {len(all_chunks)} chunks → "
+                f"{len(ranked_chunks)} selected (budget={token_budget}) for {repo_name}"
+            )
 
         # ================================================================
         # Phase 4: HYBRID 3-Stage LLM 분석 (Kimi Coder 모델 사용)
@@ -488,6 +523,7 @@ async def analyze_single_repo(
             ast_summary=ast_result,
             jd_tech_stack=jd_tech_stack,
             model=KIMI_CODER_MODEL,
+            ranked_chunks=ranked_chunks if use_ast_pipeline else None,
         )
 
         # 핵심 파일 추출 (최대 10개)
@@ -505,22 +541,44 @@ async def analyze_single_repo(
             await alog.progress(f"Stage 2: Deep Analysis for {repo_name}", {
                 "stage": 2,
                 "key_files_count": len(key_files),
+                "use_ast_pipeline": use_ast_pipeline,
             })
+
+        # JIT-24: 청크 기반 소스코드 매핑 (AST 파이프라인)
+        chunk_by_file: dict[str, dict] = {}
+        if use_ast_pipeline and ranked_chunks:
+            for chunk in ranked_chunks:
+                fp = chunk.get("file_path", "")
+                # 파일별 가장 큰(고점수) 청크를 우선 매핑
+                if fp not in chunk_by_file:
+                    chunk_by_file[fp] = chunk
 
         deep_analysis_tasks = []
         for file_info in key_files:
             file_path = file_info.get("path", file_info.get("filename", ""))
             commit_history = _get_file_commits(driller_result, file_path)
 
-            # 파일 소스/diff 정보 추가
-            enriched_file_info = {
-                **file_info,
-                "diff": next(
-                    (f.get("diff", "") or f.get("source", "") for f in driller_result["files"]
-                     if f.get("filename") == file_path),
-                    ""
-                ),
-            }
+            # JIT-24: AST 청크에서 완전한 소스코드 + 메타데이터 가져오기
+            if use_ast_pipeline and file_path in chunk_by_file:
+                chunk = chunk_by_file[file_path]
+                enriched_file_info = {
+                    **file_info,
+                    "source_code": chunk.get("source_code", ""),
+                    "identifiers": chunk.get("identifiers", []),
+                    "imports": chunk.get("imports", []),
+                    "decorators": chunk.get("decorators", []),
+                    "relevance_score": chunk.get("relevance_score", {}),
+                }
+            else:
+                # 레거시 경로: diff 기반
+                enriched_file_info = {
+                    **file_info,
+                    "diff": next(
+                        (f.get("diff", "") or f.get("source", "") for f in driller_result["files"]
+                         if f.get("filename") == file_path),
+                        ""
+                    ),
+                }
 
             task = analyzer.llm_deep_file_analysis(
                 file_info=enriched_file_info,
@@ -597,6 +655,8 @@ async def analyze_single_repo(
                 "model_used": KIMI_CODER_MODEL,
                 "has_static_analysis": static_analysis is not None,
                 "used_clone_fallback": used_clone_fallback,
+                "use_ast_pipeline": use_ast_pipeline,
+                "ranked_chunks_count": len(ranked_chunks),
             },
         }
 
@@ -607,6 +667,8 @@ async def analyze_single_repo(
                 "key_files": len(key_files),
                 "quality_score": synthesis_result.get("quality_score", 0),
                 "used_clone_fallback": used_clone_fallback,
+                "use_ast_pipeline": use_ast_pipeline,
+                "ranked_chunks_count": len(ranked_chunks),
             })
 
         return result
