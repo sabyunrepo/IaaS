@@ -420,7 +420,8 @@ async def craft_question(
     # 카테고리별 특화 프롬프트 선택 (fallback → 범용 craft_question)
     category = topic.get("category", "technical_depth")
     category_prompt_key = f"craft_question_{category}"
-    candidate_context = build_candidate_context(analysis, enriched_input)
+    # 카테고리별 데이터 소스 필터링 — 불필요한 데이터 제외 (토큰 절감 + 품질 향상)
+    candidate_context = build_candidate_context(analysis, enriched_input, category=category)
     try:
         prompt_config = get_prompt_with_config(
             "question_generation.yaml", category_prompt_key,
