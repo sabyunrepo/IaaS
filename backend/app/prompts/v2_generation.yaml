@@ -66,6 +66,18 @@ prompts:
       Document Analysis:
       {{document_analysis_summary}}
 
+      LinkedIn Profile Data:
+      {{linkedin_context}}
+      NOTE: LinkedIn provides verified employment history and skill endorsements.
+      If present, use for experience validation and skill cross-referencing.
+      If empty, do not penalize — not all candidates have LinkedIn profiles.
+
+      Unified Candidate Skills (multi-source):
+      {{unified_skills_context}}
+      NOTE: Skills merged from Resume, GitHub, LinkedIn, and Cover Letter with source tracking.
+      If present, use as primary skill evidence. Each entry includes which sources confirmed the skill.
+      If empty, rely on Document Analysis skills above.
+
       # ADDITIONAL CONTEXT (may be empty)
       {{kg_context}}
 
@@ -73,6 +85,8 @@ prompts:
       Each axis reasoning MUST include at least ONE specific numeric data point from the input.
       FORBIDDEN: "후보자는 기술력이 높음", "전반적으로 우수함", "경험이 풍부함" (too vague)
       REQUIRED: "test_coverage 72%, documentation_score 65% (GitHub)" (specific metrics with source)
+      When LinkedIn data is available, cite it: "경력 5년, Senior Engineer @ TechCorp (LinkedIn)"
+      When unified skills are available, cite source count: "Python — Resume + GitHub + LinkedIn 3개 소스 확인"
 
       # FORBIDDEN PATTERNS (will cause rejection)
       - Reasoning without numeric data: "기술력이 우수함" ← REJECTED (no metric)
