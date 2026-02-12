@@ -792,6 +792,69 @@ class GitHubService:
             cross_repo_verified=cross_verified,
         )
 
+    @staticmethod
+    def validate_repo_contributions(
+        repo_result: dict,
+    ) -> dict:
+        """
+        레포 기여도 정합성 검증 (JIT-39)
+
+        1. contributions vs 실제 커밋 수 일치 확인
+        2. 불일치 시 실제 커밋 수로 보정
+        3. zero-contribution 여부 판별
+
+        Args:
+            repo_result: analyze_single_repo 결과 dict
+
+        Returns:
+            {
+                "is_zero_contribution": bool,
+                "original_contributions": int,
+                "validated_contributions": int,
+                "correction_applied": bool,
+                "correction_reason": str | None,
+                "repo_name": str,
+            }
+        """
+        repo_name = repo_result.get("repo_name", "unknown")
+        commit_count = repo_result.get("candidate_commits", 0)
+        # monthly_contributions 합산 = 실제 커밋 SHA 기반 수치
+        monthly = repo_result.get("monthly_contributions", [])
+        actual_commit_sum = sum(monthly) if monthly else commit_count
+
+        correction_applied = False
+        correction_reason = None
+
+        # 정합성 검증: contributions와 실제 커밋 수 비교
+        if commit_count != actual_commit_sum and actual_commit_sum > 0:
+            correction_applied = True
+            correction_reason = (
+                f"contributions mismatch: reported={commit_count}, "
+                f"actual_sha_count={actual_commit_sum}"
+            )
+            logger.warning(
+                f"[JIT-39] {repo_name}: {correction_reason} — "
+                f"correcting to {actual_commit_sum}"
+            )
+
+        validated = actual_commit_sum if correction_applied else commit_count
+        is_zero = validated == 0
+
+        if is_zero:
+            logger.info(
+                f"[JIT-39] repo {repo_name} excluded: "
+                f"zero contributions after author filtering"
+            )
+
+        return {
+            "is_zero_contribution": is_zero,
+            "original_contributions": commit_count,
+            "validated_contributions": validated,
+            "correction_applied": correction_applied,
+            "correction_reason": correction_reason,
+            "repo_name": repo_name,
+        }
+
     async def match_candidate_from_git_log(
         self,
         clone_dir: str,

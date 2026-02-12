@@ -224,6 +224,59 @@ async def analyze_code(
     for repo in repositories:
         repo.pop("_identity_result", None)
 
+    # ================================================================
+    # JIT-39: Zero-Contribution 레포 필터링 + 기여도 정합성 검증
+    # ================================================================
+    from app.services.github_service import GitHubService as _GHSvc
+
+    repo_contribution_breakdown: list[dict] = []
+    filtered_repositories: list[dict] = []
+    zero_excluded_count = 0
+
+    for repo in repositories:
+        validation = _GHSvc.validate_repo_contributions(repo)
+        repo_contribution_breakdown.append(validation)
+
+        if validation["is_zero_contribution"]:
+            zero_excluded_count += 1
+            logger.info(
+                f"[JIT-39] Excluding {validation['repo_name']}: "
+                f"zero contributions after author filtering"
+            )
+            continue
+
+        # 기여도 보정 적용
+        if validation["correction_applied"]:
+            repo["candidate_commits"] = validation["validated_contributions"]
+            repo["commit_count"] = validation["validated_contributions"]
+
+        filtered_repositories.append(repo)
+
+    # 전체 레포 Zero인 경우 → 원본 유지 + 경고
+    if not filtered_repositories and repositories:
+        logger.warning(
+            "[JIT-39] All repos have zero contributions — "
+            "keeping original results as fallback"
+        )
+        filtered_repositories = repositories
+
+    if zero_excluded_count > 0:
+        logger.info(
+            f"[JIT-39] Filtered {zero_excluded_count} zero-contribution repos "
+            f"({len(filtered_repositories)} remaining)"
+        )
+
+    repositories = filtered_repositories
+
+    # Langfuse span에 repo_contribution_breakdown 기록
+    try:
+        from langfuse.decorators import langfuse_context
+        langfuse_context.update_current_observation(
+            metadata={"repo_contribution_breakdown": repo_contribution_breakdown}
+        )
+    except Exception:
+        pass  # Langfuse 비활성 환경에서 무시
+
     # Aggregate
     all_notables = []
     for repo in repositories:
@@ -258,6 +311,9 @@ async def analyze_code(
         "monthly_contributions": aggregated_monthly,
         # JIT-25: 파이프라인 메타데이터
         "pipeline_type": "clone_based" if use_clone_based else "legacy",
+        # JIT-39: Zero-contribution 필터링 메타데이터
+        "zero_contribution_excluded": zero_excluded_count,
+        "repo_contribution_breakdown": repo_contribution_breakdown,
     }
 
     # JIT-25: A/B 비교 메트릭 로깅
@@ -369,6 +425,13 @@ def _log_pipeline_metrics(result: dict, use_clone_based: bool) -> None:
     author_match_method = method_counter.most_common(1)[0][0] if method_counter else "none"
     author_avg_confidence = round(sum(confidences) / len(confidences), 2) if confidences else 0.0
 
+    # JIT-39: Zero-contribution 메트릭
+    zero_excluded = result.get("zero_contribution_excluded", 0)
+    corrections = sum(
+        1 for b in result.get("repo_contribution_breakdown", [])
+        if b.get("correction_applied")
+    )
+
     logger.info(
         f"[A/B] pipeline={pipeline_label} "
         f"repos={len(repos)} "
@@ -380,7 +443,9 @@ def _log_pipeline_metrics(result: dict, use_clone_based: bool) -> None:
         f"hybrid_deep={hybrid_deep} "
         f"author_method={author_match_method} "
         f"author_avg_confidence={author_avg_confidence} "
-        f"cross_repo_match={cross_repo_count}"
+        f"cross_repo_match={cross_repo_count} "
+        f"zero_excluded={zero_excluded} "
+        f"contribution_corrections={corrections}"
     )
 
 
