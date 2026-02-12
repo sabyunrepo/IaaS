@@ -143,10 +143,16 @@ prompts:
       JD Requirements (top 6):
       {{jd_requirements}}
 
-      Candidate Skills (Resume):
+      Candidate Skills (Multi-source Unified — PRIMARY):
+      {{unified_skills}}
+      NOTE: Unified skills are merged from Resume, GitHub, LinkedIn, and Cover Letter.
+      Each skill includes "sources" (which data sources confirmed it) and "category" (language/framework/tool/platform/concept).
+      If unified_skills is empty [], fall back to Resume + GitHub skills below.
+
+      Candidate Skills (Resume — FALLBACK):
       {{candidate_skills}}
 
-      Candidate Skills (GitHub code analysis):
+      Candidate Skills (GitHub code analysis — FALLBACK):
       {{code_skills}}
 
       # OUTPUT FORMAT (JSON array, one per JD requirement)

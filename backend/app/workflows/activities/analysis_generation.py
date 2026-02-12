@@ -242,6 +242,7 @@ async def _llm_build_skill_table(
     document_analysis: dict,
     output_language: str = "ko",
     job_id: str | None = None,
+    candidate_profile: dict | None = None,
 ) -> list[SkillMatchRow] | None:
     """LLM 기반 시맨틱 스킬 매칭 (실패 시 None 반환)"""
     try:
@@ -259,12 +260,19 @@ async def _llm_build_skill_table(
             key=lambda r: 0 if r.get("category") in ("필수", "required", "must") else 1,
         )
 
-        raw_candidate_skills = document_analysis.get("profile", {}).get("skills", [])
-        candidate_skills = [
-            skill
-            for skill_list in raw_candidate_skills.values()
-            for skill in skill_list
-        ] if isinstance(raw_candidate_skills, dict) else list(raw_candidate_skills or [])
+        # JIT-41: candidate_profile.skills → primary, document_analysis → fallback
+        unified_skills = []
+        if candidate_profile and candidate_profile.get("skills"):
+            unified_skills = candidate_profile["skills"]
+            candidate_skills = [s.get("canonical_name", s) if isinstance(s, dict) else s for s in unified_skills]
+        else:
+            raw_candidate_skills = document_analysis.get("profile", {}).get("skills", [])
+            candidate_skills = [
+                skill
+                for skill_list in raw_candidate_skills.values()
+                for skill in skill_list
+            ] if isinstance(raw_candidate_skills, dict) else list(raw_candidate_skills or [])
+
         code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
         # JIT-29: JD relevance scores가 있으면 스킬에 매칭 점수 보강
         jd_relevance = code_analysis.get("jd_relevance_scores", {}) if code_analysis else {}
@@ -288,11 +296,27 @@ async def _llm_build_skill_table(
         else:
             code_text = json.dumps(list(code_skills)[:15], ensure_ascii=False) if code_skills else "[]"
 
+        # JIT-41: multi-source unified skills → 프롬프트에 전달
+        unified_skills_text = "[]"
+        if unified_skills:
+            unified_skills_text = json.dumps(
+                [
+                    {
+                        "skill": s.get("canonical_name", "") if isinstance(s, dict) else str(s),
+                        "sources": s.get("sources", []) if isinstance(s, dict) else [],
+                        "category": s.get("category", "") if isinstance(s, dict) else "",
+                    }
+                    for s in unified_skills[:15]
+                ],
+                ensure_ascii=False,
+            )
+
         prompt_config = get_prompt_with_config(
             "v2_generation.yaml", "skill_matching",
             jd_requirements=jd_text,
             candidate_skills=candidate_text,
             code_skills=code_text,
+            unified_skills=unified_skills_text,
             output_language=output_language,
         )
 
@@ -355,19 +379,35 @@ def _build_skill_table(
     code_analysis: dict | None,
     document_analysis: dict,
     lang: str = "ko",
+    candidate_profile: dict | None = None,
 ) -> list[SkillMatchRow]:
     """스킬 매칭 테이블 생성 (규칙 기반 fallback)"""
     rows = []
 
     jd_requirements = jd_analysis.get("requirements", [])
-    raw_candidate_skills = document_analysis.get("profile", {}).get("skills", [])
-    raw_code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
 
-    candidate_skills = [
-        skill
-        for skill_list in raw_candidate_skills.values()
-        for skill in skill_list
-    ] if isinstance(raw_candidate_skills, dict) else list(raw_candidate_skills or [])
+    # JIT-41: candidate_profile.skills → primary, document_analysis → fallback
+    unified_skill_sources: dict[str, list[str]] = {}
+    if candidate_profile and candidate_profile.get("skills"):
+        unified_skills_raw = candidate_profile["skills"]
+        candidate_skills = [
+            s.get("canonical_name", s) if isinstance(s, dict) else s
+            for s in unified_skills_raw
+        ]
+        unified_skill_sources = {
+            (s.get("canonical_name", "").lower() if isinstance(s, dict) else str(s).lower()):
+            (s.get("sources", []) if isinstance(s, dict) else [])
+            for s in unified_skills_raw
+        }
+    else:
+        raw_candidate_skills = document_analysis.get("profile", {}).get("skills", [])
+        candidate_skills = [
+            skill
+            for skill_list in raw_candidate_skills.values()
+            for skill in skill_list
+        ] if isinstance(raw_candidate_skills, dict) else list(raw_candidate_skills or [])
+
+    raw_code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
 
     code_skills = [
         skill
@@ -394,24 +434,31 @@ def _build_skill_table(
         evidence = _t("no_evidence", lang)
         confidence = 0
 
-        # 1단계: 이력서 스킬에서 매칭
+        # 1단계: 후보자 스킬에서 매칭 (JIT-41: unified profile → multi-source evidence)
         resume_source = ""
         for cs in candidate_skills:
             cs_lower = cs.lower()
+            # unified_skill_sources에서 multi-source 태그 생성
+            sources = unified_skill_sources.get(cs_lower, [])
+            source_tag = " + ".join(s.capitalize() for s in sources) if sources else "Resume"
+
             if skill_lower == cs_lower:
                 match_type, candidate_skill = "exact", cs
-                resume_source = f"Resume: {cs} listed"
-                evidence, confidence = resume_source, 95
+                resume_source = f"{source_tag}: {cs} listed"
+                confidence = min(95 + len(sources) * 2, 100) if sources else 95
+                evidence = resume_source
                 break
             elif len(cs_lower) >= 3 and cs_lower in skill_lower:
                 match_type, candidate_skill = "similar", cs
-                resume_source = f"Resume: {cs} (similar)"
-                evidence, confidence = resume_source, 75
+                resume_source = f"{source_tag}: {cs} (similar)"
+                confidence = min(75 + len(sources) * 2, 89) if sources else 75
+                evidence = resume_source
                 break
             elif len(skill_lower) >= 3 and skill_lower in cs_lower:
                 match_type, candidate_skill = "similar", cs
-                resume_source = f"Resume: {cs} (related)"
-                evidence, confidence = resume_source, 70
+                resume_source = f"{source_tag}: {cs} (related)"
+                confidence = min(70 + len(sources) * 2, 89) if sources else 70
+                evidence = resume_source
                 break
 
         # 2단계: 코드 분석 tech_stack에서 매칭 (보강 또는 신규)
@@ -530,12 +577,17 @@ async def generate_deep_analysis(
     activity.heartbeat()
 
     # 4. 스킬 매칭 테이블 생성 (LLM 우선, 규칙 기반 fallback)
+    # JIT-41: candidate_profile 전달 → unified skills를 primary source로 사용
     skill_table = await _llm_build_skill_table(
         jd_analysis, code_analysis, document_analysis,
         output_language=output_language, job_id=job_id,
+        candidate_profile=candidate_profile,
     )
     if skill_table is None:
-        skill_table = _build_skill_table(jd_analysis, code_analysis, document_analysis, lang=output_language)
+        skill_table = _build_skill_table(
+            jd_analysis, code_analysis, document_analysis,
+            lang=output_language, candidate_profile=candidate_profile,
+        )
     activity.heartbeat()
 
     # 5. 전체 매칭 점수 계산 (Evidence-Based Weighted Composite)
