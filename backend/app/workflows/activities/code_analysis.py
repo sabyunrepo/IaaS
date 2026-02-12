@@ -720,11 +720,13 @@ async def _analyze_single_repo_impl(
             if static_analysis.get("overall_avg_cc", 0) > 0:
                 quality_metrics["avg_cc"] = static_analysis["overall_avg_cc"]
 
+        total_commits = driller_result["stats"]["total_commits"]
         result = {
             "repo_url": repo_url,
             "repo_name": repo_name,
             "language": primary_lang,
-            "candidate_commits": driller_result["stats"]["total_commits"],
+            "candidate_commits": total_commits,
+            "commit_count": total_commits,
             "candidate_additions": driller_result["stats"]["total_additions"],
             "avg_complexity": driller_result["stats"]["avg_complexity"],
             "monthly_contributions": driller_result.get("monthly_contributions", []),
