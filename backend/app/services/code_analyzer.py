@@ -39,7 +39,7 @@ class CodeAnalyzer:
         self,
         repo_url: str,
         job_id: str,
-        author: str | None = None,
+        author: str | list[str] | None = None,
         since_years: int | None = None,
         file_types: list[str] | None = None,
         extract_diff: bool = True,  # diff 기반 추출 (기본값)
@@ -50,7 +50,7 @@ class CodeAnalyzer:
         Args:
             repo_url: GitHub 레포 URL
             job_id: Job ID (로깅용)
-            author: 후보자 username (커밋 필터)
+            author: 후보자 식별자 — str, list[str], 또는 None (JIT-36: 다중 author 지원)
             since_years: 분석 기간 (None이면 GITHUB_ANALYSIS_YEARS 환경변수 사용)
             file_types: 분석 대상 파일 확장자
             extract_diff: True면 diff만, False면 source_code 추출 (기존 호환)
@@ -67,7 +67,15 @@ class CodeAnalyzer:
         if since_years is None:
             since_years = settings.GITHUB_ANALYSIS_YEARS
 
-        logger.info(f"PyDriller analysis: {repo_url} (author={author}, years={since_years}, diff={extract_diff})")
+        # JIT-36: author 정규화 — str → list[str], 빈 리스트 → None
+        if isinstance(author, str):
+            author_list = [author]
+        elif isinstance(author, list):
+            author_list = [a for a in author if a]  # falsy 제거
+        else:
+            author_list = []
+
+        logger.info(f"PyDriller analysis: {repo_url} (authors={author_list or None}, years={since_years}, diff={extract_diff})")
 
         # PyDriller import (heavy dependency, lazy load)
         from pydriller import Repository
@@ -77,6 +85,7 @@ class CodeAnalyzer:
         commits = []
         files = {}
         commit_diffs = []  # diff 기반 데이터
+        seen_shas: set[str] = set()  # JIT-36: 중복 SHA 제거
         total_additions = 0
         total_deletions = 0
 
@@ -97,9 +106,13 @@ class CodeAnalyzer:
             for commit in Repository(
                 repo_url,
                 since=since,
-                only_authors=[author] if author else None,
+                only_authors=author_list if author_list else None,
                 only_modifications_with_file_types=file_types,
             ).traverse_commits():
+                # JIT-36: 중복 SHA 제거 (다중 author 시 동일 커밋 방지)
+                if commit.hash in seen_shas:
+                    continue
+                seen_shas.add(commit.hash)
                 # 20개 커밋마다 heartbeat (Temporal 타임아웃 방지)
                 commit_count += 1
                 if commit_count % 20 == 0:
