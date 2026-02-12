@@ -187,6 +187,43 @@ async def analyze_code(
                 "notable_implementations": analysis.get("notable_implementations", []),
             })
 
+    # ================================================================
+    # JIT-37: Cross-Repo 검증 — 모든 레포 분석 완료 후
+    # ================================================================
+    if use_clone_based and len(repositories) >= 2:
+        activity.heartbeat("Cross-repo author verification...")
+        try:
+            from app.services.github_service import GitHubService
+            results_by_repo = {}
+            for repo in repositories:
+                ir = repo.get("_identity_result")
+                if ir is not None:
+                    results_by_repo[repo["repo_name"]] = ir
+
+            if len(results_by_repo) >= 2:
+                cross_result = GitHubService.verify_cross_repo(results_by_repo)
+                # 검증 결과를 각 repo의 candidate_identification에 반영
+                for repo in repositories:
+                    ci = repo.get("candidate_identification", {})
+                    ci["cross_repo_verified"] = cross_result.cross_repo_verified
+                    if cross_result.best_match:
+                        ci["cross_repo_best_author"] = cross_result.best_match.name
+                        ci["cross_repo_confidence"] = cross_result.best_match.confidence
+                        ci["cross_repo_repos_matched"] = cross_result.best_match.repos_matched
+                    repo["candidate_identification"] = ci
+
+                logger.info(
+                    f"Cross-repo verification: verified={cross_result.cross_repo_verified}, "
+                    f"best={cross_result.best_match.name if cross_result.best_match else None}, "
+                    f"repos_matched={len(results_by_repo)}"
+                )
+        except Exception as e:
+            logger.warning(f"Cross-repo verification failed (non-fatal): {e}")
+
+    # JIT-37: _identity_result 내부 필드 제거 (외부 결과에 포함시키지 않음)
+    for repo in repositories:
+        repo.pop("_identity_result", None)
+
     # Aggregate
     all_notables = []
     for repo in repositories:
@@ -292,7 +329,7 @@ def _jd_to_file_types(jd_tech_stack: list[str]) -> list[str]:
 
 
 def _log_pipeline_metrics(result: dict, use_clone_based: bool) -> None:
-    """JIT-25: A/B 비교용 파이프라인 메트릭 로깅"""
+    """JIT-25/37: A/B 비교용 파이프라인 메트릭 로깅"""
     repos = result.get("repositories", [])
     pipeline_label = "HYBRID" if use_clone_based else "LEGACY"
 
@@ -311,6 +348,27 @@ def _log_pipeline_metrics(result: dict, use_clone_based: bool) -> None:
             hybrid_chunks += meta.get("ranked_chunks_count", 0)
             hybrid_deep += meta.get("deep_analyses_count", 0)
 
+    # JIT-37: author 식별 메트릭
+    from collections import Counter
+    methods = []
+    confidences = []
+    cross_repo_count = 0
+    for repo in repos:
+        ci = repo.get("candidate_identification", {})
+        method = ci.get("method", "none")
+        if "/" in method:
+            method = method.split("/")[-1]  # "git_author_validation/name_exact" → "name_exact"
+        methods.append(method)
+        score = ci.get("confidence_score")
+        if score is not None:
+            confidences.append(score)
+        if ci.get("cross_repo_verified"):
+            cross_repo_count += 1
+
+    method_counter = Counter(methods)
+    author_match_method = method_counter.most_common(1)[0][0] if method_counter else "none"
+    author_avg_confidence = round(sum(confidences) / len(confidences), 2) if confidences else 0.0
+
     logger.info(
         f"[A/B] pipeline={pipeline_label} "
         f"repos={len(repos)} "
@@ -319,7 +377,10 @@ def _log_pipeline_metrics(result: dict, use_clone_based: bool) -> None:
         f"tech={tech_count} "
         f"question_candidates={question_candidates} "
         f"hybrid_chunks={hybrid_chunks} "
-        f"hybrid_deep={hybrid_deep}"
+        f"hybrid_deep={hybrid_deep} "
+        f"author_method={author_match_method} "
+        f"author_avg_confidence={author_avg_confidence} "
+        f"cross_repo_match={cross_repo_count}"
     )
 
 
@@ -470,12 +531,14 @@ async def _analyze_single_repo_impl(
                 logger.warning(f"Git log fallback failed for {repo_name}: {e}")
 
         # ================================================================
-        # Stage 4.5: GitHub username → git author 검증 (JIT-35)
+        # Stage 4.5: GitHub username → git author 검증 (JIT-35/37)
         # 7단계 휴리스틱 + AuthorIdentityResult 배열 반환.
-        # top_committer_fallback 삭제, confidence 0.0~1.0 수치 반환.
+        # JIT-37: confidence < 0.5 → author 필터 비적용 (전체 커밋 수집)
         # ================================================================
         # JIT-36: 다중 author 목록 (PyDriller에 list[str]로 전달)
         candidate_author_names: list[str] = []
+        # JIT-37: cross-repo 검증용 identity_result 보존
+        repo_identity_result = None
 
         if candidate_username and clone_dir:
             try:
@@ -487,39 +550,59 @@ async def _analyze_single_repo_impl(
                         identity_result = GitHubService.resolve_author_by_identity(
                             candidate_username, git_authors, repo_name=repo_name,
                         )
+                        repo_identity_result = identity_result  # JIT-37: cross-repo용 보존
+
                         if identity_result.best_match:
                             best = identity_result.best_match
-                            original = candidate_username
-                            candidate_username = best.name
-                            confidence = (
-                                "high" if best.confidence >= 0.9
-                                else "medium" if best.confidence >= 0.6
-                                else "low"
-                            )
-                            # JIT-36: identity-linked 매칭에서 모든 author name 수집
-                            candidate_author_names = list(dict.fromkeys(
-                                m.name for m in identity_result.matches
-                                if m.method != "commit_pattern_analysis"
-                            ))
-                            candidate_identification = {
-                                "method": f"git_author_validation/{best.method}",
-                                "confidence": confidence,
-                                "confidence_score": best.confidence,
-                                "original_username": original,
-                                "resolved_username": candidate_username,
-                                "matched_author": best.name,
-                                "matched_email": best.email,
-                                "matched_commits": best.commits,
-                                "match_candidates": len(identity_result.matches),
-                                "author_names": candidate_author_names,
-                            }
-                            logger.info(
-                                f"Git author resolved: {original} → "
-                                f"{candidate_username} for {repo_name} "
-                                f"(method={best.method}, "
-                                f"confidence={best.confidence}, "
-                                f"all_authors={candidate_author_names})"
-                            )
+
+                            # JIT-37: confidence < 0.5 → author 필터 비적용
+                            if best.confidence < 0.5:
+                                logger.warning(
+                                    f"Low confidence ({best.confidence}) for "
+                                    f"{candidate_username} in {repo_name} — "
+                                    f"skipping author filter (full commit collection)"
+                                )
+                                candidate_username = None
+                                candidate_identification = {
+                                    "method": f"git_author_validation/{best.method}",
+                                    "confidence": "low",
+                                    "confidence_score": best.confidence,
+                                    "original_username": candidate_username,
+                                    "resolved_username": None,
+                                    "skipped_low_confidence": True,
+                                }
+                            else:
+                                original = candidate_username
+                                candidate_username = best.name
+                                confidence = (
+                                    "high" if best.confidence >= 0.9
+                                    else "medium" if best.confidence >= 0.6
+                                    else "low"
+                                )
+                                # JIT-36: identity-linked 매칭에서 모든 author name 수집
+                                candidate_author_names = list(dict.fromkeys(
+                                    m.name for m in identity_result.matches
+                                    if m.method != "commit_pattern_analysis"
+                                ))
+                                candidate_identification = {
+                                    "method": f"git_author_validation/{best.method}",
+                                    "confidence": confidence,
+                                    "confidence_score": best.confidence,
+                                    "original_username": original,
+                                    "resolved_username": candidate_username,
+                                    "matched_author": best.name,
+                                    "matched_email": best.email,
+                                    "matched_commits": best.commits,
+                                    "match_candidates": len(identity_result.matches),
+                                    "author_names": candidate_author_names,
+                                }
+                                logger.info(
+                                    f"Git author resolved: {original} → "
+                                    f"{candidate_username} for {repo_name} "
+                                    f"(method={best.method}, "
+                                    f"confidence={best.confidence}, "
+                                    f"all_authors={candidate_author_names})"
+                                )
             except Exception as e:
                 logger.warning(f"Git author validation failed for {repo_name}: {e}")
 
@@ -808,6 +891,8 @@ async def _analyze_single_repo_impl(
             "static_analysis": static_analysis,
             # 후보자 식별 메타데이터
             "candidate_identification": candidate_identification,
+            # JIT-37: cross-repo 검증용 identity_result (내부 전용, 최종 결과에서 제거)
+            "_identity_result": repo_identity_result,
             # HYBRID 분석 메타데이터
             "hybrid_metadata": {
                 "key_files_count": len(key_files),
