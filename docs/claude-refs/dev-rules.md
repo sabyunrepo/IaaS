@@ -32,6 +32,13 @@ frontend/e2e/                      → Playwright E2E 테스트
 - 한 파일에 한 컴포넌트 (SRP)
 - 새 파일 생성 시 기존 파일과 책임 중복 금지
 
+## Langfuse-First 프롬프트 규칙
+
+🔴 **YAML 프롬프트 수정 시 Langfuse 업로드 필수**:
+1. `backend/app/prompts/*.yaml` 수정 후 반드시 Langfuse에 업로드
+2. `docker compose exec backend python scripts/upload_prompts_to_langfuse.py --production`
+3. Langfuse가 runtime에서 우선 적용되므로, YAML만 수정하고 업로드하지 않으면 변경이 반영되지 않음
+
 ## Utility Scripts
 
 | 스크립트 | 사용법 |
