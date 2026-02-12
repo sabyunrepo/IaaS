@@ -95,11 +95,15 @@ class UnifiedCandidateProfile(BaseModel):
     # 커버레터 인사이트
     cover_letter_insights: CoverLetterProfile | None = None
 
-    # LinkedIn 확장 데이터 (현재 미사용 → 활용)
+    # LinkedIn 확장 데이터
     linkedin_activity_summary: str | None = None
     linkedin_projects: list[dict] = Field(default_factory=list)
     linkedin_honors: list[dict] = Field(default_factory=list)
+    linkedin_recommendations: list[dict] = Field(default_factory=list)
+    linkedin_volunteer_experience: list[dict] = Field(default_factory=list)
     recommendations_count: int = 0
+    recommendations_summary: str | None = None      # LLM 서머리 (JIT-48)
+    volunteer_summary: str | None = None             # LLM 서머리 (JIT-48)
 
     # 탐색 포인트
     areas_to_probe: list[str] = Field(default_factory=list)

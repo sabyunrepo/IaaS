@@ -92,6 +92,24 @@ class LinkedInActivity(BaseModel):
     link: str | None = None
 
 
+class LinkedInRecommendation(BaseModel):
+    """LinkedIn 추천서"""
+    from_user: str
+    text: str | None = None
+    date: str | None = None
+    relationship: str | None = None  # "managed directly", "worked together"
+
+
+class LinkedInVolunteer(BaseModel):
+    """LinkedIn 봉사활동"""
+    organization: str
+    role: str | None = None
+    cause: str | None = None
+    starts_at: str | None = None
+    ends_at: str | None = None
+    description: str | None = None
+
+
 class LinkedInProfile(BaseModel):
     """Bright Data Web Scraper API 응답에서 추출한 LinkedIn 프로필
 
@@ -126,6 +144,10 @@ class LinkedInProfile(BaseModel):
 
     # 활동 (새로 추가)
     activity: list[LinkedInActivity] = Field(default_factory=list)
+
+    # 추천서/봉사활동 (JIT-47)
+    recommendations: list[LinkedInRecommendation] = Field(default_factory=list)
+    volunteer_experience: list[LinkedInVolunteer] = Field(default_factory=list)
 
     # 연결
     followers: int | None = None

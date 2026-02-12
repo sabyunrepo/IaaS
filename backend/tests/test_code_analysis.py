@@ -35,7 +35,7 @@ class TestJdMatchingRepoFilter:
             return {}
 
         async def mock_get_repo_info(url):
-            return {"url": url, "name": url.split("/")[-1]}
+            return {"url": url, "name": url.split("/")[-1], "size": 5000}
 
         with patch.object(svc, "get_repo_languages", side_effect=mock_get_repo_languages), \
              patch.object(svc, "get_repo_info", side_effect=mock_get_repo_info):
@@ -106,11 +106,11 @@ class TestCodeAnalysisActivity:
         from app.workflows.activities.code_analysis import analyze_code
         from unittest.mock import patch
 
-        async def mock_filter_repos(github_urls, target_languages, min_language_ratio):
+        async def mock_select_repos(github_urls, target_languages, min_language_ratio=0.2, jd_text="", jd_keywords=None):
             return []  # 매칭되는 레포 없음
 
         with patch("app.workflows.activities.code_analysis.activity") as mock_activity, \
-             patch("app.services.github_service.GitHubService.filter_repos_by_language", side_effect=mock_filter_repos):
+             patch("app.services.github_service.GitHubService.select_relevant_repos", side_effect=mock_select_repos):
 
             mock_activity.heartbeat = MagicMock()
 
@@ -128,9 +128,9 @@ class TestCodeAnalysisActivity:
         from app.workflows.activities.code_analysis import analyze_code
         from unittest.mock import patch
 
-        async def mock_filter_repos(github_urls, target_languages, min_language_ratio):
+        async def mock_select_repos(github_urls, target_languages, min_language_ratio=0.2, jd_text="", jd_keywords=None):
             return [
-                {"url": "https://github.com/user/repo", "name": "repo", "languages": {"Python": 80000}}
+                {"url": "https://github.com/user/repo", "name": "repo", "languages": {"Python": 80000}, "size": 5000}
             ]
 
         async def mock_pydriller(repo_url, job_id, author, since_years, file_types):
@@ -140,7 +140,7 @@ class TestCodeAnalysisActivity:
             }
 
         async def mock_ast_analyze(files, primary_language):
-            return {"functions": 5, "classes": 2}
+            return {"functions": [], "classes": [], "parser_used": "mock"}
 
         def mock_rank_files(files, jd_tech_stack, token_budget):
             return files
@@ -148,13 +148,21 @@ class TestCodeAnalysisActivity:
         async def mock_llm_analyze(ranked_files, ast_context):
             return {"notable_implementations": [{"title": "Main function", "complexity": "low"}]}
 
+        async def mock_overview(files, commit_diffs, ast_summary, jd_tech_stack, model, ranked_chunks=None):
+            return {"key_files": [], "patterns": [], "tech_stack": ["Python"]}
+
+        async def mock_synthesize(overview, deep_analyses, repo_info, jd_tech_stack, model):
+            return {"notable_implementations": [{"title": "Main function", "complexity": "low"}], "patterns": [], "tech_stack": ["Python"], "quality_score": 0.7}
+
         with patch("app.workflows.activities.code_analysis.activity") as mock_activity, \
-             patch("app.services.github_service.GitHubService.filter_repos_by_language", side_effect=mock_filter_repos), \
+             patch("app.services.github_service.GitHubService.select_relevant_repos", side_effect=mock_select_repos), \
              patch("app.services.code_analyzer.CodeAnalyzer.analyze_with_pydriller", side_effect=mock_pydriller), \
              patch("app.services.code_analyzer.CodeAnalyzer.select_top_files", return_value=[]), \
              patch("app.services.code_analyzer.CodeAnalyzer.analyze_ast", side_effect=mock_ast_analyze), \
              patch("app.services.code_analyzer.CodeAnalyzer.rank_files_for_llm", side_effect=mock_rank_files), \
-             patch("app.services.code_analyzer.CodeAnalyzer.llm_analyze_code", side_effect=mock_llm_analyze):
+             patch("app.services.code_analyzer.CodeAnalyzer.llm_analyze_code", side_effect=mock_llm_analyze), \
+             patch("app.services.code_analyzer.CodeAnalyzer.llm_overview_analysis", side_effect=mock_overview), \
+             patch("app.services.code_analyzer.CodeAnalyzer.llm_synthesize_analysis", side_effect=mock_synthesize):
 
             mock_activity.heartbeat = MagicMock()
 

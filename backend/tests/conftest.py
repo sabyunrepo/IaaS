@@ -267,3 +267,152 @@ def mock_aggregated_analysis():
             "company_culture": [],
         },
     }
+
+
+# ============================================================
+# JIT-41~44: Integration Test Fixtures
+# ============================================================
+
+@pytest.fixture
+def candidate_profile_with_skills():
+    """JIT-41/42/43: UnifiedCandidateProfile (multi-source skills)"""
+    return {
+        "name": "Test User",
+        "skills": [
+            {"canonical_name": "Python", "sources": ["resume", "github"], "category": "language", "confidence": 1.0, "proficiency_signals": {}, "implied_skills": [], "aliases": [], "domain": "backend"},
+            {"canonical_name": "FastAPI", "sources": ["resume", "github", "linkedin"], "category": "framework", "confidence": 1.0, "proficiency_signals": {}, "implied_skills": [], "aliases": [], "domain": "backend"},
+            {"canonical_name": "TypeScript", "sources": ["resume"], "category": "language", "confidence": 0.9, "proficiency_signals": {}, "implied_skills": [], "aliases": [], "domain": "frontend"},
+            {"canonical_name": "PostgreSQL", "sources": ["github", "linkedin"], "category": "tool", "confidence": 0.8, "proficiency_signals": {}, "implied_skills": [], "aliases": [], "domain": "backend"},
+        ],
+        "experiences": [
+            {"company": "TechCorp", "title": "Senior Engineer", "duration": "3 years"},
+        ],
+        "linkedin_experiences": [
+            {"title": "Senior Engineer", "company": "TechCorp", "description": "Building AI systems", "starts_at": "2022-01"},
+        ],
+        "linkedin_honors": [{"title": "Top Contributor 2024", "issuer": "TechConf"}],
+        "linkedin_projects": [{"title": "AI Interview Generator"}],
+        "areas_to_probe": ["Distributed system experience gap", "No team leadership evidence"],
+        "data_completeness": 0.85,
+        "data_sources": ["resume", "github", "linkedin"],
+        "confidence_level": "high",
+        "experience_years": 5,
+        "experience_level": "시니어",
+    }
+
+
+@pytest.fixture
+def empty_candidate_profile():
+    """시나리오 4: candidate_profile 없을 때"""
+    return None
+
+
+@pytest.fixture
+def code_analysis_hybrid():
+    """JIT-44: HYBRID 파이프라인 코드 분석 결과"""
+    return {
+        "repositories": [
+            {
+                "repo_name": "test-repo",
+                "candidate_commits": 150,
+                "ast_analysis": {
+                    "functions": [{"name": "main"}, {"name": "process_data"}, {"name": "validate_input"}],
+                    "classes": [{"name": "UserService"}],
+                },
+                "hybrid_metadata": {
+                    "key_files_count": 5,
+                    "deep_analyses_count": 4,
+                    "ranked_chunks_count": 12,
+                    "model_used": "moonshot-v1-128k",
+                    "use_ast_pipeline": True,
+                    "used_clone_fallback": False,
+                },
+            },
+            {
+                "repo_name": "test-lib",
+                "candidate_commits": 80,
+                "ast_analysis": {
+                    "functions": [{"name": "helper_fn"}, {"name": "util_fn"}],
+                    "classes": [],
+                },
+                "hybrid_metadata": {
+                    "key_files_count": 3,
+                    "deep_analyses_count": 2,
+                    "ranked_chunks_count": 8,
+                    "model_used": "moonshot-v1-128k",
+                    "use_ast_pipeline": True,
+                    "used_clone_fallback": False,
+                },
+            },
+        ],
+        "tech_stack": ["Python", "FastAPI", "PostgreSQL"],
+        "combined_tech_stack": ["Python", "FastAPI", "PostgreSQL"],
+        "pipeline_type": "clone_based",
+        "ast_chunk_count": 20,
+        "analyzed_functions_count": 5,
+        "hybrid_metadata": {
+            "method": "hybrid",
+            "total_repos": 2,
+            "total_ast_chunks": 20,
+            "total_deep_analyses": 6,
+        },
+        "monthly_contributions": [10, 15, 20, 25, 30, 20, 15, 10, 5, 0, 0, 0],
+        "quality_metrics": {"test_coverage": 0.7},
+        "risk_flags": [],
+    }
+
+
+@pytest.fixture
+def code_analysis_legacy():
+    """JIT-44: LEGACY 파이프라인 (HYBRID 필드 없음)"""
+    return {
+        "repositories": [
+            {"repo_name": "old-repo", "candidate_commits": 50, "ast_analysis": {"functions": [], "classes": []}},
+        ],
+        "tech_stack": ["Python"],
+        "pipeline_type": "legacy",
+        "monthly_contributions": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+        "quality_metrics": {},
+        "risk_flags": [],
+    }
+
+
+@pytest.fixture
+def document_analysis_with_skills():
+    """document_analysis with profile.skills (fallback 용)"""
+    return {
+        "profile": {
+            "name": "Test User",
+            "skills": ["Python", "JavaScript", "Docker"],
+            "experience_years": 5,
+            "experiences": [{"company": "OldCorp", "title": "Developer", "duration": "2 years"}],
+        },
+        "jd_match_score": 0.7,
+    }
+
+
+@pytest.fixture
+def document_analysis_empty_skills():
+    """document_analysis with empty skills"""
+    return {
+        "profile": {"name": "Test User", "skills": [], "experience_years": 0},
+        "jd_match_score": 0.3,
+    }
+
+
+@pytest.fixture
+def jd_analysis_fixture():
+    """JD 분석 결과"""
+    return {
+        "job_title": "Backend Engineer",
+        "company_name": "TechCorp",
+        "company_context": "AI 스타트업",
+        "requirements": [
+            {"skill": "Python", "category": "필수", "description": "Python 3년 이상"},
+            {"skill": "FastAPI", "category": "필수", "description": "FastAPI 경험"},
+            {"skill": "PostgreSQL", "category": "우대", "description": "DB 설계"},
+            {"skill": "Kubernetes", "category": "우대", "description": "컨테이너 오케스트레이션"},
+        ],
+        "responsibilities": ["백엔드 개발", "API 설계"],
+        "success_metrics": [],
+    }

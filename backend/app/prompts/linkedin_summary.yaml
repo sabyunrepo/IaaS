@@ -1,0 +1,45 @@
+prompts:
+  recommendations_summary:
+    description: "LinkedIn 추천서 분석 및 서머리 생성"
+    template: |
+      # ROLE
+      You are an expert HR analyst. Analyze LinkedIn recommendations to extract hiring insights.
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output in {{output_language}}.
+
+      # INPUT
+      Below are LinkedIn recommendations for a candidate:
+
+      {{recommendations}}
+
+      # TASK
+      Summarize in 2-3 sentences:
+      1. Recommenders' relationships (supervisor/colleague/subordinate)
+      2. Commonly mentioned strengths
+      3. Notable specific achievements
+
+      # OUTPUT FORMAT
+      Return ONLY the summary text, no JSON wrapping.
+
+  volunteer_summary:
+    description: "LinkedIn 봉사활동 분석 및 서머리 생성"
+    template: |
+      # ROLE
+      You are an expert HR analyst. Analyze volunteer experience to assess values and leadership.
+
+      # LANGUAGE REQUIREMENT
+      Write ALL output in {{output_language}}.
+
+      # INPUT
+      Below are volunteer activities for a candidate:
+
+      {{volunteer_activities}}
+
+      # TASK
+      Summarize in 1-2 sentences:
+      1. Main areas of activity and roles
+      2. Consistency and dedication level
+
+      # OUTPUT FORMAT
+      Return ONLY the summary text, no JSON wrapping.

@@ -389,6 +389,24 @@ export interface InterviewerGuide {
   green_flags_summary?: string[]
 }
 
+/** LinkedIn recommendation */
+export interface LinkedInRecommendation {
+  from_user: string
+  text?: string
+  date?: string
+  relationship?: string
+}
+
+/** LinkedIn volunteer experience */
+export interface LinkedInVolunteer {
+  organization: string
+  role?: string
+  cause?: string
+  starts_at?: string
+  ends_at?: string
+  description?: string
+}
+
 /** LinkedIn profile (legacy structure) */
 export interface LinkedInProfile {
   name?: string
@@ -403,6 +421,10 @@ export interface LinkedInProfile {
   profile_url?: string
   projects?: Array<{ title: string; description?: string }>
   honors_and_awards?: Array<{ title: string; issuer?: string; description?: string }>
+  recommendations?: LinkedInRecommendation[]
+  volunteer_experience?: LinkedInVolunteer[]
+  recommendations_summary?: string
+  volunteer_summary?: string
 }
 
 /** Interview script metadata */

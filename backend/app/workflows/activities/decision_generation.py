@@ -98,6 +98,11 @@ async def _llm_generate_decision_summary(
             candidate_profile_data["linkedin_experiences"] = linkedin_experiences
         if candidate_profile and candidate_profile.get("data_completeness"):
             candidate_profile_data["data_completeness"] = candidate_profile["data_completeness"]
+        # JIT-50: 추천서/봉사활동 서머리
+        if candidate_profile and candidate_profile.get("recommendations_summary"):
+            candidate_profile_data["recommendations_summary"] = candidate_profile["recommendations_summary"]
+        if candidate_profile and candidate_profile.get("volunteer_summary"):
+            candidate_profile_data["volunteer_summary"] = candidate_profile["volunteer_summary"]
 
         prompt_config = get_prompt_with_config(
             "v2_generation.yaml", "decision_summary",
@@ -230,6 +235,11 @@ async def _llm_generate_interviewer_tips(
                 candidate_profile_data["linkedin_experiences"] = candidate_profile["linkedin_experiences"][:3]
             if candidate_profile.get("linkedin_honors"):
                 candidate_profile_data["linkedin_honors"] = candidate_profile["linkedin_honors"][:3]
+            # JIT-50: 추천서/봉사활동 서머리 주입
+            if candidate_profile.get("recommendations_summary"):
+                candidate_profile_data["recommendations_summary"] = candidate_profile["recommendations_summary"]
+            if candidate_profile.get("volunteer_summary"):
+                candidate_profile_data["volunteer_summary"] = candidate_profile["volunteer_summary"]
 
         prompt_config = get_prompt_with_config(
             "v2_generation.yaml", "interviewer_tips",

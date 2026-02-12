@@ -265,6 +265,28 @@ def _format_linkedin_summary(profile: dict) -> str:
     if skills:
         parts.append(f"스킬: {', '.join(skills[:15])}")
 
+    # 추천서 (JIT-50)
+    recommendations = profile.get("recommendations", [])
+    if recommendations:
+        rec_lines = ["추천서:"]
+        for r in recommendations[:5]:
+            if isinstance(r, dict):
+                from_user = r.get("from_user", "익명")
+                text = (r.get("text") or "")[:200]
+                rec_lines.append(f"  - {from_user}: {text}")
+        parts.append("\n".join(rec_lines))
+
+    # 봉사활동 (JIT-50)
+    volunteer = profile.get("volunteer_experience", [])
+    if volunteer:
+        vol_lines = ["봉사활동:"]
+        for v in volunteer[:5]:
+            if isinstance(v, dict):
+                org = v.get("organization", "")
+                role = v.get("role", "")
+                vol_lines.append(f"  - {org}: {role}")
+        parts.append("\n".join(vol_lines))
+
     return "\n\n".join(parts) if parts else "LinkedIn 프로필 정보 제한적"
 
 

@@ -331,6 +331,8 @@ def _prompt_key_to_activity_name(filename: str, key: str) -> str:
         ("v2_generation.yaml", "radar_analysis"): "radar_analysis",
         ("v2_generation.yaml", "decision_summary"): "decision_summary",
         ("v2_generation.yaml", "interviewer_tips"): "interviewer_tips",
+        ("linkedin_summary.yaml", "recommendations_summary"): "profile_builder",
+        ("linkedin_summary.yaml", "volunteer_summary"): "profile_builder",
     }
 
     mapping_key = (filename, key)

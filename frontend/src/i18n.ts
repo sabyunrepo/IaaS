@@ -145,6 +145,8 @@ const resources = {
       intel_certifications: '자격증',
       intel_projects: '프로젝트',
       intel_honors: '수상 및 성과',
+      intel_recommendations: '추천서',
+      intel_volunteer: '봉사활동',
       intel_languages: '사용 언어',
       intel_linkedin_profile: 'LinkedIn 프로필 보기',
       // Result tabs - Deep Analysis
@@ -642,6 +644,8 @@ const resources = {
       intel_certifications: 'Certifications',
       intel_projects: 'Projects',
       intel_honors: 'Honors & Awards',
+      intel_recommendations: 'Recommendations',
+      intel_volunteer: 'Volunteer Experience',
       intel_languages: 'Languages',
       intel_linkedin_profile: 'View LinkedIn Profile',
       // Result tabs - Deep Analysis
