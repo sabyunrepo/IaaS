@@ -103,7 +103,11 @@ def build_candidate_context(analysis: dict, enriched_input: dict) -> str:
             parts.append(f"Summary: {profile['summary'][:200]}")
         skills = profile.get("skills", [])
         if skills:
-            parts.append(f"Skills: {', '.join(skills[:15])}")
+            if isinstance(skills, dict):
+                skills = list(skills.keys())
+            elif not isinstance(skills, list):
+                skills = [str(skills)]
+            parts.append(f"Skills: {', '.join(str(s) for s in skills[:15])}")
         experience = profile.get("work_experience") or profile.get("experience", [])
         if experience and isinstance(experience, list):
             exp_lines = []

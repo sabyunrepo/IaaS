@@ -139,6 +139,20 @@ async def analyze_code(
                 file_types=file_types,
             )
 
+            # JIT-34: Legacy fallback — GitHub username ≠ git author 시 재시도
+            if driller_result["stats"]["total_commits"] == 0 and candidate_username:
+                logger.warning(
+                    f"Legacy: 0 commits for {repo_name} with author={candidate_username}, "
+                    f"retrying without author filter"
+                )
+                driller_result = await analyzer.analyze_with_pydriller(
+                    repo_url=repo_url,
+                    job_id="",
+                    author=None,
+                    since_years=settings.GITHUB_ANALYSIS_YEARS,
+                    file_types=file_types,
+                )
+
             # Phase 3: AST (deprecated)
             activity.heartbeat(f"Phase 3: AST analysis for {repo_name}...")
             top_files = analyzer.select_top_files(
@@ -454,6 +468,50 @@ async def _analyze_single_repo_impl(
                     )
             except Exception as e:
                 logger.warning(f"Git log fallback failed for {repo_name}: {e}")
+
+        # ================================================================
+        # Stage 4.5: GitHub username → git author 검증 (JIT-35)
+        # 7단계 휴리스틱 + AuthorIdentityResult 배열 반환.
+        # top_committer_fallback 삭제, confidence 0.0~1.0 수치 반환.
+        # ================================================================
+        if candidate_username and clone_dir:
+            try:
+                from app.services.github_service import GitHubService
+                git_authors = await GitHubService.extract_git_authors(clone_dir)
+                if git_authors:
+                    author_names = [a["name"] for a in git_authors]
+                    if candidate_username not in author_names:
+                        identity_result = GitHubService.resolve_author_by_identity(
+                            candidate_username, git_authors, repo_name=repo_name,
+                        )
+                        if identity_result.best_match:
+                            best = identity_result.best_match
+                            original = candidate_username
+                            candidate_username = best.name
+                            confidence = (
+                                "high" if best.confidence >= 0.9
+                                else "medium" if best.confidence >= 0.6
+                                else "low"
+                            )
+                            candidate_identification = {
+                                "method": f"git_author_validation/{best.method}",
+                                "confidence": confidence,
+                                "confidence_score": best.confidence,
+                                "original_username": original,
+                                "resolved_username": candidate_username,
+                                "matched_author": best.name,
+                                "matched_email": best.email,
+                                "matched_commits": best.commits,
+                                "match_candidates": len(identity_result.matches),
+                            }
+                            logger.info(
+                                f"Git author resolved: {original} → "
+                                f"{candidate_username} for {repo_name} "
+                                f"(method={best.method}, "
+                                f"confidence={best.confidence})"
+                            )
+            except Exception as e:
+                logger.warning(f"Git author validation failed for {repo_name}: {e}")
 
         # Stage 5: 모든 식별 실패 시 → 전체 분석
         if not candidate_username:
