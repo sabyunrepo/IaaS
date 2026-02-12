@@ -41,25 +41,40 @@ services:
     env_file:
       - .env
     environment:
+      # === 기본 설정 ===
       - ENV=local
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/vantict
       - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       - TEMPORAL_HOST=temporal:7233
       - STORAGE_BACKEND=local
       - LOCAL_STORAGE_PATH=/app/data
+      # === LLM API Keys ===
       - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-placeholder}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - ZAI_API_KEY=${ZAI_API_KEY:-}
       - MOONSHOT_API_KEY=${MOONSHOT_API_KEY:-}
+      # === LLM 모델 설정 ===
       - LLM_MODEL=${LLM_MODEL:-openai:gpt-4o}
       - LLM_FALLBACK_MODEL=${LLM_FALLBACK_MODEL:-anthropic:claude-3-5-sonnet-20241022}
+      - GLM_MODEL=${GLM_MODEL:-}
+      - GLM_CODER_MODEL=${GLM_CODER_MODEL:-}
+      - LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-8192}
+      - LLM_CACHE_ENABLED=${LLM_CACHE_ENABLED:-true}
+      # === GitHub 분석 ===
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITHUB_ANALYSIS_YEARS=${GITHUB_ANALYSIS_YEARS:-1}
+      - USE_AST_PIPELINE=${USE_AST_PIPELINE:-true}
+      - USE_CLONE_BASED_ANALYSIS=${USE_CLONE_BASED_ANALYSIS:-false}
+      # === LinkedIn (Bright Data) ===
       - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN:-}
+      # === Observability ===
       - LANGFUSE_HOST=${LANGFUSE_HOST:-}
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
+      - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:6006
+      # === 보안 & OAuth ===
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
       - OAUTH_TOKEN_ENCRYPTION_KEY=${OAUTH_TOKEN_ENCRYPTION_KEY:-dev-key-generate-with-fernet}
       - SESSION_SECRET=${SESSION_SECRET:-dev-session-secret}
@@ -67,11 +82,10 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      # === URLs ===
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
       - BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
       - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev-internal-token}
-      - LLM_CACHE_ENABLED=${LLM_CACHE_ENABLED:-true}
-      - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:6006
     volumes:
       - ./backend:/app
       - backend_venv:/app/.venv
@@ -110,30 +124,43 @@ services:
     env_file:
       - .env
     environment:
+      # === 기본 설정 ===
       - ENV=local
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/vantict
       - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       - TEMPORAL_HOST=temporal:7233
       - STORAGE_BACKEND=local
       - LOCAL_STORAGE_PATH=/app/data
+      # === LLM API Keys ===
       - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-placeholder}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - ZAI_API_KEY=${ZAI_API_KEY:-}
       - MOONSHOT_API_KEY=${MOONSHOT_API_KEY:-}
+      # === LLM 모델 설정 ===
       - LLM_MODEL=${LLM_MODEL:-openai:gpt-4o}
       - LLM_FALLBACK_MODEL=${LLM_FALLBACK_MODEL:-anthropic:claude-3-5-sonnet-20241022}
+      - GLM_MODEL=${GLM_MODEL:-}
+      - GLM_CODER_MODEL=${GLM_CODER_MODEL:-}
+      - LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-8192}
+      - LLM_CACHE_ENABLED=${LLM_CACHE_ENABLED:-true}
+      # === GitHub 분석 ===
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITHUB_ANALYSIS_YEARS=${GITHUB_ANALYSIS_YEARS:-1}
+      - USE_AST_PIPELINE=${USE_AST_PIPELINE:-true}
+      - USE_CLONE_BASED_ANALYSIS=${USE_CLONE_BASED_ANALYSIS:-false}
+      # === LinkedIn (Bright Data) ===
       - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN:-}
+      # === Observability ===
       - LANGFUSE_HOST=${LANGFUSE_HOST:-}
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
+      - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:6006
+      # === 내부 통신 ===
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
       - INTERNAL_API_URL=http://backend:8000
       - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev-internal-token}
-      - LLM_CACHE_ENABLED=${LLM_CACHE_ENABLED:-true}
-      - PHOENIX_COLLECTOR_ENDPOINT=http://phoenix:6006
     volumes:
       - ./backend:/app
       - backend_venv:/app/.venv
