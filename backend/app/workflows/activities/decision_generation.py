@@ -24,6 +24,7 @@ async def _llm_generate_decision_summary(
     output_language: str = "ko",
     job_id: str | None = None,
     candidate_profile: dict | None = None,
+    code_analysis: dict | None = None,
 ) -> DecisionSummary | None:
     """LLM 기반 Decision Summary 생성 (실패 시 None 반환)"""
     try:
@@ -76,6 +77,14 @@ async def _llm_generate_decision_summary(
         if candidate_profile and candidate_profile.get("experiences"):
             experiences = candidate_profile["experiences"][:3]
 
+        # JIT-44: HYBRID 코드 분석 깊이 컨텍스트
+        code_depth_context = ""
+        if code_analysis:
+            ast_chunks = code_analysis.get("ast_chunk_count", 0)
+            fn_count = code_analysis.get("analyzed_functions_count", 0)
+            if ast_chunks > 0:
+                code_depth_context = f"Code analysis depth: {fn_count} functions analyzed across {ast_chunks} AST chunks (direct code analysis)"
+
         candidate_profile_data = {
             "experience_years": profile.get("experience_years", 0),
             "experiences": experiences,
@@ -83,6 +92,8 @@ async def _llm_generate_decision_summary(
             "skill_sources": skill_sources,
             "areas_to_probe": profile.get("areas_to_probe", [])[:3],
         }
+        if code_depth_context:
+            candidate_profile_data["code_depth_context"] = code_depth_context
         if linkedin_experiences:
             candidate_profile_data["linkedin_experiences"] = linkedin_experiences
         if candidate_profile and candidate_profile.get("data_completeness"):
@@ -101,6 +112,7 @@ async def _llm_generate_decision_summary(
             jd_match_score=document_analysis.get("jd_match_score", 0.5),
             output_language=output_language,
             kg_context=kg_context,
+            code_depth_context=code_depth_context,
         )
 
         llm = CachedLLMService()
@@ -523,6 +535,7 @@ async def generate_decision_support(
     output_language: str = "ko",
     experience_level: str = "미들",
     candidate_profile: dict | None = None,
+    code_analysis: dict | None = None,
 ) -> dict:
     """Decision Support 생성
 
@@ -573,6 +586,7 @@ async def generate_decision_support(
     summary = await _llm_generate_decision_summary(
         candidate_summary, jd_analysis, document_analysis, output_language,
         job_id=job_id, candidate_profile=candidate_profile,
+        code_analysis=code_analysis,
     )
     if summary is None:
         summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis, lang=output_language, experience_level=experience_level)

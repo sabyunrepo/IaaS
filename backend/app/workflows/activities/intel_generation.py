@@ -58,16 +58,34 @@ def _extract_github_summary(code_analysis: dict | None, lang: str = "ko") -> Git
     if len(chart_data) < 12:
         chart_data = chart_data + [0] * (12 - len(chart_data))
 
+    # JIT-44: HYBRID 분석 깊이 정보
+    ast_chunks = code_analysis.get("ast_chunk_count")
+    analyzed_fns = code_analysis.get("analyzed_functions_count")
+    pipeline_type = code_analysis.get("pipeline_type", "legacy")
+    analysis_method = "hybrid" if pipeline_type == "clone_based" else None
+
+    # tech_match_note: HYBRID일 때 분석 깊이 표시
+    if analysis_method == "hybrid" and ast_chunks:
+        tech_match_note = _t("tech_stack_confirmed_hybrid", lang,
+                             n=len(tech_stack), fn_count=analyzed_fns or 0)
+    elif tech_stack:
+        tech_match_note = _t("tech_stack_confirmed", lang, n=len(tech_stack))
+    else:
+        tech_match_note = _t("no_code_data", lang)
+
     return GitHubSummary(
         contributions=total_commits,
         repos=len(repos),
         main_languages=", ".join(tech_stack[:3]) if tech_stack else "N/A",
         tech_match=_t("high", lang) if tech_stack else _t("unconfirmed", lang),
-        tech_match_note=_t("tech_stack_confirmed", lang, n=len(tech_stack)) if tech_stack else _t("no_code_data", lang),
+        tech_match_note=tech_match_note,
         tenure_pattern=code_analysis.get("tenure_pattern", _t("unconfirmed", lang)),
         tenure_note=code_analysis.get("tenure_note", ""),
         activity_gap=code_analysis.get("activity_gap"),
         chart_data=chart_data[:12],
+        ast_analysis_depth=ast_chunks,
+        functions_analyzed=analyzed_fns,
+        analysis_method=analysis_method,
     )
 
 

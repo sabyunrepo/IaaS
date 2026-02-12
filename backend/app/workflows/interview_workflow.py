@@ -484,6 +484,7 @@ class InterviewGenerationWorkflow:
                         output_language,
                         input_data.get("experience_level", "미들"),
                         candidate_profile,
+                        code_analysis_data,
                     ],
                     start_to_close_timeout=timedelta(minutes=5),
                     heartbeat_timeout=timedelta(seconds=120),

@@ -26,8 +26,7 @@ T = TypeVar('T', bound=BaseModel)
 # 모델 선택 기준:
 # - 전체 Activity: Kimi K2 (256K context, $0.60/$2.50 per 1M USD, 캐시 시 $0.15 input)
 # - 코드 분석: Kimi K2 (enhanced agentic coding, context 이해 향상)
-# - Fallback: GPT-4o → Claude Sonnet (settings.LLM_FALLBACK_MODEL)
-# - GLM 무료 모델: 동시 요청 1개 제한으로 병렬 Activity 타임아웃 발생 → 전면 제거
+# - Fallback: GLM-4.5-flash 무료 모델 (settings.LLM_FALLBACK_MODEL)
 # =============================================================================
 
 # Z.AI GLM 모델 (Zhipu AI)
