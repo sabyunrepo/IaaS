@@ -200,6 +200,76 @@ async def _download_and_store_avatar(avatar_url: str, job_id: str) -> str | None
         return None
 
 
+def _compact_code_analysis(code_analysis: dict) -> dict:
+    """LLM summary 입력용 code_analysis 지능적 압축
+
+    관련성 높은 레포 우선 포함, 불필요한 상세 데이터 제거.
+    - repositories: 관련성 높은 순 정렬 → 요약 필드만 유지
+    - target_repos, hybrid_metadata 등 메타만 유지
+    """
+    if not code_analysis:
+        return {}
+
+    compact = {}
+    # 필수 메타 필드 복사
+    for key in (
+        "combined_tech_stack", "tech_stack", "jd_tech_stack",
+        "total_patterns", "total_notable_implementations",
+        "monthly_contributions", "pipeline_type",
+        "candidate_username", "kg_entity_count",
+    ):
+        if key in code_analysis:
+            compact[key] = code_analysis[key]
+
+    # top_question_candidates (상위 10개만)
+    candidates = code_analysis.get("top_question_candidates", [])
+    compact["top_question_candidates"] = candidates[:10]
+
+    # repositories: 관련성 높은 순 정렬 + 요약 필드만 유지
+    repos = code_analysis.get("repositories", [])
+    # target_repos에서 관련성 스코어 추출
+    target_repos = code_analysis.get("target_repos", [])
+    relevance_map = {}
+    for tr in target_repos:
+        name = tr.get("name", "")
+        relevance_map[name] = tr.get("relevance_score", 0)
+
+    # 관련성 순 정렬
+    sorted_repos = sorted(
+        repos,
+        key=lambda r: relevance_map.get(r.get("repo_name", ""), 0),
+        reverse=True,
+    )
+
+    compact_repos = []
+    for repo in sorted_repos:
+        compact_repo = {
+            "repo_name": repo.get("repo_name"),
+            "repo_url": repo.get("repo_url"),
+            "language": repo.get("language"),
+            "commit_count": repo.get("commit_count") or repo.get("candidate_commits"),
+            "relevance_score": relevance_map.get(repo.get("repo_name", ""), 0),
+        }
+        # HYBRID 분석 요약 포함 (상세 코드 제외)
+        if repo.get("hybrid_metadata"):
+            meta = repo["hybrid_metadata"]
+            compact_repo["analysis_summary"] = meta.get("analysis_summary", "")
+            compact_repo["deep_analyses_count"] = meta.get("deep_analyses_count", 0)
+        # 레거시 분석 요약
+        analysis = repo.get("analysis", {})
+        if analysis and isinstance(analysis, dict):
+            patterns = analysis.get("patterns", [])
+            compact_repo["patterns_count"] = len(patterns)
+            compact_repo["patterns"] = [
+                p.get("name", str(p)) if isinstance(p, dict) else str(p)
+                for p in patterns[:5]
+            ]
+        compact_repos.append(compact_repo)
+
+    compact["repositories"] = compact_repos
+    return compact
+
+
 def _format_linkedin_summary(profile: dict) -> str:
     """LinkedIn 프로필을 프롬프트용 요약 텍스트로 변환"""
     if not profile:
@@ -367,10 +437,11 @@ async def finalize_output(
     linkedin_summary = _format_linkedin_summary(linkedin_profile)
 
     from app.prompts import get_prompt_with_config
-    # 분석 데이터 직렬화 + 절단 (LLM 컨텍스트 제한)
-    MAX_ANALYSIS_CHARS = 2000
+    # 분석 데이터 직렬화 (지능적 압축 후 절단)
+    MAX_ANALYSIS_CHARS = 5000
     doc_json = json.dumps(analysis.get("document_analysis", {}), default=str)
-    code_json = json.dumps(analysis.get("code_analysis", {}), default=str)
+    code_compact = _compact_code_analysis(analysis.get("code_analysis", {}))
+    code_json = json.dumps(code_compact, default=str)
     doc_truncated = len(doc_json) > MAX_ANALYSIS_CHARS
     code_truncated = len(code_json) > MAX_ANALYSIS_CHARS
     if doc_truncated:
