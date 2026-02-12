@@ -203,8 +203,8 @@ def _merge_work_history(
     for exp in (resume_history or []):
         if not isinstance(exp, dict):
             continue
-        company = exp.get("company", "").strip()
-        position = exp.get("position", exp.get("title", "")).strip()
+        company = (exp.get("company") or "").strip()
+        position = (exp.get("position") or exp.get("title") or "").strip()
         key = f"{company.lower()}|{position.lower()}"
         if key in seen_keys:
             continue
@@ -212,7 +212,7 @@ def _merge_work_history(
         merged.append(UnifiedWorkExperience(
             company=company,
             position=position,
-            period=exp.get("period", ""),
+            period=exp.get("period") or "",
             description=exp.get("description"),
             tech_stack=exp.get("tech_stack", []),
             source="resume",
@@ -222,8 +222,8 @@ def _merge_work_history(
     for exp in (linkedin_history or []):
         if not isinstance(exp, dict):
             continue
-        company = exp.get("company", "").strip()
-        position = exp.get("title", exp.get("position", "")).strip()
+        company = (exp.get("company") or "").strip()
+        position = (exp.get("title") or exp.get("position") or "").strip()
         key = f"{company.lower()}|{position.lower()}"
         if key in seen_keys:
             continue
@@ -231,7 +231,7 @@ def _merge_work_history(
         merged.append(UnifiedWorkExperience(
             company=company,
             position=position,
-            period=exp.get("period", ""),
+            period=exp.get("period") or "",
             location=exp.get("location"),
             description=exp.get("description"),
             source="linkedin",
@@ -253,7 +253,7 @@ def _merge_education(
     for edu in (resume_education or []):
         if not isinstance(edu, dict):
             continue
-        institution = edu.get("institution", edu.get("school", "")).strip()
+        institution = (edu.get("institution") or edu.get("school") or "").strip()
         key = institution.lower()
         if key in seen:
             continue
@@ -269,7 +269,7 @@ def _merge_education(
     for edu in (linkedin_education or []):
         if not isinstance(edu, dict):
             continue
-        institution = edu.get("school", edu.get("institution", "")).strip()
+        institution = (edu.get("school") or edu.get("institution") or "").strip()
         key = institution.lower()
         if key in seen:
             continue

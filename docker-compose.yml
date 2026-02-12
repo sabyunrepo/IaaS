@@ -66,7 +66,7 @@ services:
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - GITHUB_ANALYSIS_YEARS=${GITHUB_ANALYSIS_YEARS:-1}
       - USE_AST_PIPELINE=${USE_AST_PIPELINE:-true}
-      - USE_CLONE_BASED_ANALYSIS=${USE_CLONE_BASED_ANALYSIS:-false}
+      - USE_CLONE_BASED_ANALYSIS=${USE_CLONE_BASED_ANALYSIS:-true}
       # === LinkedIn (Bright Data) ===
       - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN:-}
       # === Observability ===
@@ -149,7 +149,7 @@ services:
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - GITHUB_ANALYSIS_YEARS=${GITHUB_ANALYSIS_YEARS:-1}
       - USE_AST_PIPELINE=${USE_AST_PIPELINE:-true}
-      - USE_CLONE_BASED_ANALYSIS=${USE_CLONE_BASED_ANALYSIS:-false}
+      - USE_CLONE_BASED_ANALYSIS=${USE_CLONE_BASED_ANALYSIS:-true}
       # === LinkedIn (Bright Data) ===
       - BRIGHTDATA_API_TOKEN=${BRIGHTDATA_API_TOKEN:-}
       # === Observability ===

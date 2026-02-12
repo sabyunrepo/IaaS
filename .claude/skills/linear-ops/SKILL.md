@@ -171,14 +171,14 @@ linear_add_comment "JIT-N" @/tmp/review_comment.md
 ### 3-2. 상태 업데이트
 - `linear_update_status "JIT-N" in_review`
 
-### 3-3. Git 커밋 및 PR
+### 3-3. Git 커밋, PR, 머지 및 완료
 1. 커밋 메시지에 티켓 ID 포함: `feat: {설명} [JIT-{N}]`
 2. `git push -u origin {branch}`
 3. `gh pr create --title "feat: {설명} [JIT-{N}]" --body "..."`
 4. PR 본문에 Linear 티켓 링크 포함
-
-### 3-4. 완료 시 (--close 플래그)
-- `linear_update_status "JIT-N" done`
+5. `gh pr merge --merge` → PR 머지
+6. `git checkout main && git pull` → main 브랜치 동기화
+7. `linear_update_status "JIT-N" done` → 티켓 완료 처리
 
 ---
 
@@ -220,6 +220,9 @@ linear_add_comment "JIT-N" @/tmp/review_comment.md
         +- linear_update_status → in_review
         +- git commit + push
         +- gh pr create
+        +- gh pr merge --merge
+        +- git checkout main && git pull
+        +- linear_update_status → done
 ```
 
 ---
