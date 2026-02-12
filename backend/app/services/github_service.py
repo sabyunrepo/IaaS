@@ -573,33 +573,45 @@ class GitHubService:
     def resolve_author_by_identity(
         github_username: str,
         git_authors: list[dict],
-    ) -> tuple[dict | None, str]:
+        repo_name: str = "",
+    ) -> "AuthorIdentityResult":
         """
-        GitHub username을 기반으로 git author 식별 (다중 휴리스틱).
+        GitHub username을 기반으로 git author 식별 (7단계 휴리스틱).
 
         매칭 전략 (우선순위 순):
-        1. name 완전 일치 (github_username == author.name)
-        2. noreply email에서 GitHub username 추출 후 일치
-        3. email 접두어 휴리스틱 (id@gmail.com, id@company.com → 접두어 비교)
-        4. name에 username 포함 (substring match)
-        5. 최다 커밋 작성자 fallback (3명 이하 개인 레포)
+        1. name_exact — name 완전 일치 (confidence=1.0)
+        2. noreply_email — noreply email 매칭 (confidence=0.95)
+        3. email_prefix — email 접두어 일치 (confidence=0.9)
+        4. name_substring — name에 username 포함, ≥3자 (confidence=0.7)
+        5. email_domain_match — 동일 커스텀 도메인 이메일 (confidence=0.6)
+        6. commit_pattern_analysis — 커밋 빈도/점유율 분석 (confidence=0.5)
+        7. top_committer_fallback — 삭제 (JIT-35)
 
         Args:
             github_username: GitHub 프로필 username
             git_authors: extract_git_authors() 반환값
+            repo_name: 레포 이름 (cross-repo 검증용)
 
         Returns:
-            (matched_author, match_method) or (None, "")
+            AuthorIdentityResult (matches 배열 + best_match)
         """
+        from app.models.author_identity import AuthorIdentityResult, AuthorMatch
+
         if not github_username or not git_authors:
-            return None, ""
+            return AuthorIdentityResult()
 
         username_lower = github_username.lower()
+        matches: list[AuthorMatch] = []
+        repos = [repo_name] if repo_name else []
 
         # 1) name 완전 일치
         for a in git_authors:
             if a["name"].lower() == username_lower:
-                return a, "name_exact"
+                matches.append(AuthorMatch(
+                    name=a["name"], email=a.get("email", ""),
+                    commits=a["commits"], confidence=1.0,
+                    method="name_exact", repos_matched=repos,
+                ))
 
         # 2) noreply email 매칭
         #    형태: "12345+username@users.noreply.github.com"
@@ -607,35 +619,178 @@ class GitHubService:
             email = a.get("email", "")
             m = re.match(r'(\d+\+)?(.+?)@users\.noreply\.github\.com', email)
             if m and m.group(2).lower() == username_lower:
-                return a, "noreply_email"
+                if not any(am.name == a["name"] and am.email == email for am in matches):
+                    matches.append(AuthorMatch(
+                        name=a["name"], email=email,
+                        commits=a["commits"], confidence=0.95,
+                        method="noreply_email", repos_matched=repos,
+                    ))
 
         # 3) email 접두어 휴리스틱
-        #    id@gmail.com, id@company.com 등에서 접두어가 username과 일치
         for a in git_authors:
             email = a.get("email", "")
             if email and "@" in email:
                 prefix = email.split("@")[0].lower()
-                # "user+tag@domain" 형태 정리
                 if "+" in prefix:
                     prefix = prefix.split("+")[-1]
                 if prefix == username_lower:
-                    return a, "email_prefix"
+                    if not any(am.name == a["name"] and am.email == email for am in matches):
+                        matches.append(AuthorMatch(
+                            name=a["name"], email=email,
+                            commits=a["commits"], confidence=0.9,
+                            method="email_prefix", repos_matched=repos,
+                        ))
 
-        # 4) name에 username 포함 (substring match)
-        #    예: username="sabyun", author.name="sabyun-dev"
+        # 4) name substring 매칭 (≥3자)
         for a in git_authors:
             name_lower = a["name"].lower()
             if len(username_lower) >= 3 and (
                 username_lower in name_lower or name_lower in username_lower
             ):
-                return a, "name_substring"
+                if not any(am.name == a["name"] for am in matches):
+                    matches.append(AuthorMatch(
+                        name=a["name"], email=a.get("email", ""),
+                        commits=a["commits"], confidence=0.7,
+                        method="name_substring", repos_matched=repos,
+                    ))
 
-        # 5) 최다 커밋 작성자 fallback (개인 레포 가정, 3명 이하)
-        if len(git_authors) <= 3:
-            top = max(git_authors, key=lambda a: a["commits"])
-            return top, "top_committer_fallback"
+        # 5) email domain 매칭 (동일 커스텀 도메인)
+        #    gmail.com 등 공개 도메인은 제외
+        public_domains = {
+            "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
+            "users.noreply.github.com", "naver.com", "daum.net",
+            "protonmail.com", "icloud.com", "me.com",
+            "github.com", "localhost",
+        }
+        # 인프라/자동생성 도메인 TLD 차단
+        infra_tlds = {".internal", ".local", ".localdomain", ".arpa"}
 
-        return None, ""
+        def _is_infra_domain(domain: str) -> bool:
+            return any(domain.endswith(tld) for tld in infra_tlds)
+
+        candidate_domains: set[str] = set()
+        for a in git_authors:
+            email = a.get("email", "")
+            if email and "@" in email:
+                domain = email.split("@")[1].lower()
+                if domain not in public_domains and not _is_infra_domain(domain):
+                    candidate_domains.add(domain)
+
+        if candidate_domains:
+            for a in git_authors:
+                email = a.get("email", "")
+                if email and "@" in email:
+                    domain = email.split("@")[1].lower()
+                    if domain in candidate_domains and domain not in public_domains:
+                        if not any(am.name == a["name"] for am in matches):
+                            matches.append(AuthorMatch(
+                                name=a["name"], email=email,
+                                commits=a["commits"], confidence=0.6,
+                                method="email_domain_match", repos_matched=repos,
+                            ))
+
+        # 6) commit_pattern_analysis — 커밋 점유율 기반
+        #    총 커밋의 50% 이상 + 절대 커밋 수 10+ 인 author
+        total_commits = sum(a["commits"] for a in git_authors)
+        if total_commits > 0:
+            for a in git_authors:
+                share = a["commits"] / total_commits
+                if share >= 0.5 and a["commits"] >= 10:
+                    if not any(am.name == a["name"] for am in matches):
+                        matches.append(AuthorMatch(
+                            name=a["name"], email=a.get("email", ""),
+                            commits=a["commits"], confidence=0.5,
+                            method="commit_pattern_analysis", repos_matched=repos,
+                        ))
+
+        # best_match = identity-linked 매칭만 (commit_pattern_analysis 제외)
+        #   commit_pattern_analysis는 username 연관 없이 커밋 점유율만 보는
+        #   약한 신호이므로, best_match 후보에서 제외하여 fork 방어
+        identity_matches = [
+            m for m in matches if m.method != "commit_pattern_analysis"
+        ]
+        best = (
+            max(identity_matches, key=lambda m: (m.confidence, m.commits))
+            if identity_matches
+            else None
+        )
+
+        return AuthorIdentityResult(
+            matches=matches,
+            best_match=best,
+            cross_repo_verified=False,
+        )
+
+    @staticmethod
+    def verify_cross_repo(
+        results_by_repo: dict[str, "AuthorIdentityResult"],
+    ) -> "AuthorIdentityResult":
+        """
+        복수 레포의 AuthorIdentityResult를 종합하여 cross-repo 검증 수행.
+
+        - 2+ 레포에서 동일 author 매칭 → confidence *= 1.3 (cap 1.0)
+        - 1개 레포에서만 매칭 + 다른 레포 기여 0 → confidence *= 0.5
+
+        Args:
+            results_by_repo: {repo_name: AuthorIdentityResult}
+
+        Returns:
+            종합 AuthorIdentityResult
+        """
+        from app.models.author_identity import AuthorIdentityResult, AuthorMatch
+
+        if not results_by_repo:
+            return AuthorIdentityResult()
+
+        # author name → 매칭된 레포들 수집
+        author_repos: dict[str, list[str]] = {}
+        author_matches: dict[str, list[AuthorMatch]] = {}
+
+        for repo_name, result in results_by_repo.items():
+            for m in result.matches:
+                key = m.name.lower()
+                author_repos.setdefault(key, []).append(repo_name)
+                author_matches.setdefault(key, []).append(m)
+
+        total_repos = len(results_by_repo)
+        merged: list[AuthorMatch] = []
+
+        for author_key, repo_list in author_repos.items():
+            all_matches = author_matches[author_key]
+            # 최고 confidence 매치 기준
+            best_of_author = max(all_matches, key=lambda m: (m.confidence, m.commits))
+            repos_matched = sorted(set(repo_list))
+            n_repos = len(repos_matched)
+
+            base_confidence = best_of_author.confidence
+
+            if n_repos >= 2:
+                # cross-repo 부스트
+                adjusted = min(base_confidence * 1.3, 1.0)
+            elif total_repos >= 2 and n_repos == 1:
+                # 1개만 매칭 + 다른 레포 존재 → 패널티
+                adjusted = base_confidence * 0.5
+            else:
+                adjusted = base_confidence
+
+            total_commits = sum(m.commits for m in all_matches)
+            merged.append(AuthorMatch(
+                name=best_of_author.name,
+                email=best_of_author.email,
+                commits=total_commits,
+                confidence=round(adjusted, 2),
+                method=best_of_author.method,
+                repos_matched=repos_matched,
+            ))
+
+        cross_verified = any(len(repos) >= 2 for repos in author_repos.values())
+        best = max(merged, key=lambda m: (m.confidence, m.commits)) if merged else None
+
+        return AuthorIdentityResult(
+            matches=merged,
+            best_match=best,
+            cross_repo_verified=cross_verified,
+        )
 
     async def match_candidate_from_git_log(
         self,

@@ -470,14 +470,9 @@ async def _analyze_single_repo_impl(
                 logger.warning(f"Git log fallback failed for {repo_name}: {e}")
 
         # ================================================================
-        # Stage 4.5: GitHub username → git author 검증 (JIT-34)
-        # GitHub username(예: "sabyunrepo")이 git author(예: "sabyun")와
-        # 다를 수 있음. 다중 휴리스틱으로 보정:
-        #   1. name 완전 일치
-        #   2. noreply email GitHub username 매칭
-        #   3. email 접두어 휴리스틱 (id@gmail/company/noreply)
-        #   4. name substring 매칭
-        #   5. 최다 커밋 작성자 fallback (≤3명)
+        # Stage 4.5: GitHub username → git author 검증 (JIT-35)
+        # 7단계 휴리스틱 + AuthorIdentityResult 배열 반환.
+        # top_committer_fallback 삭제, confidence 0.0~1.0 수치 반환.
         # ================================================================
         if candidate_username and clone_dir:
             try:
@@ -485,34 +480,35 @@ async def _analyze_single_repo_impl(
                 git_authors = await GitHubService.extract_git_authors(clone_dir)
                 if git_authors:
                     author_names = [a["name"] for a in git_authors]
-                    # GitHub username이 git author 목록에 없으면 보정 필요
                     if candidate_username not in author_names:
-                        resolved_author, match_method = (
-                            GitHubService.resolve_author_by_identity(
-                                candidate_username, git_authors
-                            )
+                        identity_result = GitHubService.resolve_author_by_identity(
+                            candidate_username, git_authors, repo_name=repo_name,
                         )
-                        if resolved_author:
+                        if identity_result.best_match:
+                            best = identity_result.best_match
                             original = candidate_username
-                            candidate_username = resolved_author["name"]
+                            candidate_username = best.name
                             confidence = (
-                                "high" if match_method in (
-                                    "name_exact", "noreply_email", "email_prefix"
-                                ) else "medium"
+                                "high" if best.confidence >= 0.9
+                                else "medium" if best.confidence >= 0.6
+                                else "low"
                             )
                             candidate_identification = {
-                                "method": f"git_author_validation/{match_method}",
+                                "method": f"git_author_validation/{best.method}",
                                 "confidence": confidence,
+                                "confidence_score": best.confidence,
                                 "original_username": original,
                                 "resolved_username": candidate_username,
-                                "matched_author": resolved_author["name"],
-                                "matched_email": resolved_author.get("email", ""),
-                                "matched_commits": resolved_author["commits"],
+                                "matched_author": best.name,
+                                "matched_email": best.email,
+                                "matched_commits": best.commits,
+                                "match_candidates": len(identity_result.matches),
                             }
                             logger.info(
                                 f"Git author resolved: {original} → "
                                 f"{candidate_username} for {repo_name} "
-                                f"(method={match_method})"
+                                f"(method={best.method}, "
+                                f"confidence={best.confidence})"
                             )
             except Exception as e:
                 logger.warning(f"Git author validation failed for {repo_name}: {e}")
