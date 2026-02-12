@@ -220,12 +220,25 @@ prompts:
       - Medium: jd_match_score 0.50-0.74
       - Low: jd_match_score < 0.50
 
+      # MULTI-SOURCE DATA (JIT-43)
+      The candidate_profile may contain enriched multi-source data:
+      - "skills" with "skill_sources" mapping: shows which sources confirmed each skill (resume, github, linkedin)
+      - "linkedin_experiences": LinkedIn-sourced career history (cross-reference with resume experiences)
+      - "data_completeness": 0.0-1.0 score indicating how much data is available
+      When multi-source data is available:
+      - Prefer "(Multi-source)" tag for skills confirmed by 2+ sources
+      - Use "(LinkedIn)" for LinkedIn-only data points
+      - Cross-reference resume vs LinkedIn experiences for consistency checks
+
       # EVIDENCE RULES FOR STRENGTHS
       Each strength MUST end with a source tag in parentheses:
       - "(Resume)" — from candidate profile/skills
       - "(GitHub)" — from code analysis
       - "(Resume + GitHub)" — confirmed in both
+      - "(LinkedIn)" — from LinkedIn profile data
+      - "(Multi-source)" — confirmed across 2+ sources (resume, GitHub, LinkedIn)
       Example: "Python 5년 경험, FastAPI 프로젝트 3개 (Resume + GitHub)"
+      Example: "AWS 인프라 운영 3년 (Multi-source)" — when confirmed in resume + LinkedIn
 
       # EVIDENCE RULES FOR CONCERNS
       Each concern MUST reference what triggered it:
@@ -295,6 +308,17 @@ prompts:
       2. Cover letter insights (claims to validate)
       3. Red flags to watch for during interview — each MUST include the data source in parentheses
          Example: "GitHub 활동이 최근 6개월간 없음 (GitHub)" or "이력서 경력 갭 2023-2024 (Resume)"
+
+      # MULTI-SOURCE DATA (JIT-43)
+      The candidate_profile may contain enriched multi-source data:
+      - "unified_skills": skills with source attribution (resume, github, linkedin)
+      - "linkedin_experiences": LinkedIn career history for cross-referencing with resume
+      - "linkedin_honors": certifications, awards from LinkedIn
+      When multi-source data is available:
+      - Cross-reference resume claims with LinkedIn data for verification tips
+      - Note discrepancies between resume and LinkedIn as red flags
+      - Use LinkedIn honors/certifications as positive verification points
+      - Tag red flags with the specific source: "(Resume)", "(GitHub)", "(LinkedIn)", "(Resume vs LinkedIn)"
 
       # INPUT
       Questions:

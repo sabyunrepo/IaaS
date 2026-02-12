@@ -23,6 +23,7 @@ async def _llm_generate_decision_summary(
     document_analysis: dict,
     output_language: str = "ko",
     job_id: str | None = None,
+    candidate_profile: dict | None = None,
 ) -> DecisionSummary | None:
     """LLM 기반 Decision Summary 생성 (실패 시 None 반환)"""
     try:
@@ -51,18 +52,49 @@ async def _llm_generate_decision_summary(
                 logger.debug(f"KG enrichment failed for decision summary: {e}")
 
         profile = document_analysis.get("profile", {})
+
+        # JIT-43: candidate_profile 통합 데이터 → primary, document_analysis → fallback
+        if candidate_profile and candidate_profile.get("skills"):
+            skills_data = [s["canonical_name"] for s in candidate_profile["skills"][:15] if isinstance(s, dict) and s.get("canonical_name")]
+            skill_sources = {
+                s["canonical_name"]: s.get("sources", [])
+                for s in candidate_profile["skills"][:15]
+                if isinstance(s, dict) and s.get("canonical_name")
+            }
+        else:
+            raw_skills = profile.get("skills", [])
+            skills_data = raw_skills[:10] if isinstance(raw_skills, list) else list(raw_skills.keys())[:10]
+            skill_sources = {}
+
+        # LinkedIn 경력 데이터 enrichment
+        linkedin_experiences = []
+        if candidate_profile and candidate_profile.get("linkedin_experiences"):
+            linkedin_experiences = candidate_profile["linkedin_experiences"][:3]
+
+        # 경력 데이터: candidate_profile → profile fallback
+        experiences = profile.get("experiences", [])[:3]
+        if candidate_profile and candidate_profile.get("experiences"):
+            experiences = candidate_profile["experiences"][:3]
+
+        candidate_profile_data = {
+            "experience_years": profile.get("experience_years", 0),
+            "experiences": experiences,
+            "skills": skills_data,
+            "skill_sources": skill_sources,
+            "areas_to_probe": profile.get("areas_to_probe", [])[:3],
+        }
+        if linkedin_experiences:
+            candidate_profile_data["linkedin_experiences"] = linkedin_experiences
+        if candidate_profile and candidate_profile.get("data_completeness"):
+            candidate_profile_data["data_completeness"] = candidate_profile["data_completeness"]
+
         prompt_config = get_prompt_with_config(
             "v2_generation.yaml", "decision_summary",
             jd_analysis=json.dumps({
                 "job_title": jd_analysis.get("job_title", ""),
                 "requirements": jd_analysis.get("requirements", [])[:5],
             }, ensure_ascii=False, default=str),
-            candidate_profile=json.dumps({
-                "experience_years": profile.get("experience_years", 0),
-                "experiences": profile.get("experiences", [])[:3],
-                "skills": profile.get("skills", [])[:10] if isinstance(profile.get("skills"), list) else list(profile.get("skills", {}).keys())[:10],
-                "areas_to_probe": profile.get("areas_to_probe", [])[:3],
-            }, ensure_ascii=False, default=str),
+            candidate_profile=json.dumps(candidate_profile_data, ensure_ascii=False, default=str),
             candidate_summary=json.dumps({
                 "key_strengths": candidate_summary.get("key_strengths", [])[:3] if isinstance(candidate_summary, dict) else [],
             }, ensure_ascii=False, default=str),
@@ -86,8 +118,21 @@ async def _llm_generate_decision_summary(
                 s_lower = s.lower()
                 if any(w in s_lower for w in ["github", "레포", "repo", "커밋", "commit", "코드"]):
                     s = f"{s} (GitHub)"
+                elif any(w in s_lower for w in ["linkedin", "링크드인"]):
+                    s = f"{s} (LinkedIn)"
                 elif any(w in s_lower for w in ["resume", "이력서", "경력", "경험"]):
-                    s = f"{s} (Resume)"
+                    # JIT-43: skill_sources에서 multi-source 여부 확인
+                    if skill_sources:
+                        matched_skill = next(
+                            (sk for sk in skill_sources if sk.lower() in s_lower),
+                            None,
+                        )
+                        if matched_skill and len(skill_sources[matched_skill]) > 1:
+                            s = f"{s} (Multi-source)"
+                        else:
+                            s = f"{s} (Resume)"
+                    else:
+                        s = f"{s} (Resume)"
                 else:
                     s = f"{s} (Resume)"
             enriched_strengths.append(s)
@@ -114,6 +159,7 @@ async def _llm_generate_interviewer_tips(
     jd_analysis: dict,
     output_language: str = "ko",
     job_id: str | None = None,
+    candidate_profile: dict | None = None,
 ) -> InterviewerGuideTips | None:
     """LLM 기반 면접관 팁 생성 (실패 시 None 반환)"""
     try:
@@ -146,13 +192,37 @@ async def _llm_generate_interviewer_tips(
             for i, q in enumerate(questions[:10])
         ]
 
+        # JIT-43: candidate_profile 통합 데이터 → primary, document_analysis → fallback
+        experiences = profile.get("experiences", [])[:3]
+        if candidate_profile and candidate_profile.get("experiences"):
+            experiences = candidate_profile["experiences"][:3]
+
+        areas_to_probe = profile.get("areas_to_probe", [])[:3]
+        if candidate_profile and candidate_profile.get("areas_to_probe"):
+            areas_to_probe = candidate_profile["areas_to_probe"][:3]
+
+        candidate_profile_data = {
+            "experiences": experiences,
+            "areas_to_probe": areas_to_probe,
+        }
+
+        # LinkedIn 통합 데이터 추가
+        if candidate_profile:
+            if candidate_profile.get("skills"):
+                candidate_profile_data["unified_skills"] = [
+                    {"name": s["canonical_name"], "sources": s.get("sources", [])}
+                    for s in candidate_profile["skills"][:10]
+                    if isinstance(s, dict) and s.get("canonical_name")
+                ]
+            if candidate_profile.get("linkedin_experiences"):
+                candidate_profile_data["linkedin_experiences"] = candidate_profile["linkedin_experiences"][:3]
+            if candidate_profile.get("linkedin_honors"):
+                candidate_profile_data["linkedin_honors"] = candidate_profile["linkedin_honors"][:3]
+
         prompt_config = get_prompt_with_config(
             "v2_generation.yaml", "interviewer_tips",
             questions=json.dumps(question_summary, ensure_ascii=False, default=str),
-            candidate_profile=json.dumps({
-                "experiences": profile.get("experiences", [])[:3],
-                "areas_to_probe": profile.get("areas_to_probe", [])[:3],
-            }, ensure_ascii=False, default=str),
+            candidate_profile=json.dumps(candidate_profile_data, ensure_ascii=False, default=str),
             cover_letter=json.dumps(
                 document_analysis.get("cover_letter_analysis", {}),
                 ensure_ascii=False, default=str,
@@ -500,13 +570,19 @@ async def generate_decision_support(
             logger.debug(f"KG evidence collection failed (non-fatal): {e}")
 
     # 1. 후보자 요약 생성 (LLM 우선, 규칙 기반 fallback)
-    summary = await _llm_generate_decision_summary(candidate_summary, jd_analysis, document_analysis, output_language, job_id=job_id)
+    summary = await _llm_generate_decision_summary(
+        candidate_summary, jd_analysis, document_analysis, output_language,
+        job_id=job_id, candidate_profile=candidate_profile,
+    )
     if summary is None:
         summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis, lang=output_language, experience_level=experience_level)
     activity.heartbeat()
 
     # 2. 면접관 가이드 팁 생성 (LLM 우선, 규칙 기반 fallback)
-    interviewer_guide = await _llm_generate_interviewer_tips(questions, document_analysis, jd_analysis, output_language, job_id=job_id)
+    interviewer_guide = await _llm_generate_interviewer_tips(
+        questions, document_analysis, jd_analysis, output_language,
+        job_id=job_id, candidate_profile=candidate_profile,
+    )
     if interviewer_guide is None:
         interviewer_guide = _build_interviewer_tips(questions, document_analysis, jd_analysis, lang=output_language)
     activity.heartbeat()
