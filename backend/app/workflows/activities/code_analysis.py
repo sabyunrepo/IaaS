@@ -48,6 +48,7 @@ async def analyze_code(
 
     jd_tech_stack = (execution_plan or {}).get("jd_tech_stack") or input_data.get("jd_tech_stack", [])
     candidate_username = input_data.get("candidate_github_username")
+    jd_text = input_data.get("jd_text", "") or (execution_plan or {}).get("jd_text", "")
 
     # Initialize activity logger
     job_id = input_data.get("job_id")
@@ -68,10 +69,11 @@ async def analyze_code(
             "target_languages": jd_tech_stack,
         })
 
-    target_repos = await github.filter_repos_by_language(
+    target_repos = await github.select_relevant_repos(
         github_urls=github_urls,
         target_languages=jd_tech_stack,
-        min_language_ratio=0.3,
+        min_language_ratio=0.2,
+        jd_text=jd_text,
     )
 
     if not target_repos:

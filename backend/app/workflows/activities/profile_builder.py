@@ -6,6 +6,7 @@ Profile Builder Activity — Phase 2.5
 UnifiedCandidateProfile로 통합.
 
 SkillNormalizer로 스킬 정규화 + 중복 제거 + implies 관계 추적.
+추천서/봉사활동 LLM 서머리 생성 (JIT-48).
 """
 import logging
 from datetime import datetime
@@ -13,6 +14,66 @@ from datetime import datetime
 from temporalio import activity
 
 logger = logging.getLogger(__name__)
+
+
+async def _summarize_recommendations(
+    recommendations: list[dict],
+    output_language: str = "ko",
+) -> str | None:
+    """추천서 전문을 LLM으로 서머리: 추천인 관계, 핵심 평가, 공통 테마"""
+    if not recommendations:
+        return None
+
+    rec_text = "\n".join([
+        f"- {r.get('from_user', '익명')} ({r.get('relationship', '')}): {r.get('text', '')}"
+        for r in recommendations[:10]
+    ])
+
+    try:
+        from app.prompts import get_prompt_with_config
+        from app.services.cached_llm import CachedLLMService
+
+        prompt_config = get_prompt_with_config(
+            "linkedin_summary.yaml", "recommendations_summary",
+            recommendations=rec_text,
+            output_language=output_language,
+        )
+        llm = CachedLLMService()
+        result = await llm.run_with_prompt_config(prompt_config)
+        return result.strip() if result else None
+    except Exception as e:
+        logger.warning(f"Recommendations summary failed: {e}")
+        return None
+
+
+async def _summarize_volunteer(
+    volunteer: list[dict],
+    output_language: str = "ko",
+) -> str | None:
+    """봉사활동 내역을 LLM으로 서머리: 활동 분야, 역할, 지속성"""
+    if not volunteer:
+        return None
+
+    vol_text = "\n".join([
+        f"- {v.get('organization', '')} | {v.get('role', '')} | {v.get('cause', '')} | {v.get('description', '')}"
+        for v in volunteer[:10]
+    ])
+
+    try:
+        from app.prompts import get_prompt_with_config
+        from app.services.cached_llm import CachedLLMService
+
+        prompt_config = get_prompt_with_config(
+            "linkedin_summary.yaml", "volunteer_summary",
+            volunteer_activities=vol_text,
+            output_language=output_language,
+        )
+        llm = CachedLLMService()
+        result = await llm.run_with_prompt_config(prompt_config)
+        return result.strip() if result else None
+    except Exception as e:
+        logger.warning(f"Volunteer summary failed: {e}")
+        return None
 
 
 @activity.defn
@@ -120,7 +181,27 @@ async def build_candidate_profile(
             linkedin_honors = []
         linkedin_activity = linkedin_profile.get("activity", [])
         activity_summary = _summarize_activities(linkedin_activity)
-        recommendations = linkedin_profile.get("connections", 0) or 0
+
+        # 추천서/봉사활동 (JIT-47)
+        linkedin_recommendations = linkedin_profile.get("recommendations", [])
+        if not isinstance(linkedin_recommendations, list):
+            linkedin_recommendations = []
+        linkedin_volunteer = linkedin_profile.get("volunteer_experience", [])
+        if not isinstance(linkedin_volunteer, list):
+            linkedin_volunteer = []
+        # 버그 수정: connections가 아닌 실제 recommendations 배열 길이 사용
+        recommendations_count = len(linkedin_recommendations)
+
+        # 7.5. 추천서/봉사활동 LLM 서머리 생성 (JIT-48)
+        output_language = enriched.get("raw_input", {}).get("language_config", {}).get("output_language", "ko")
+        if not isinstance(output_language, str):
+            output_language = "ko"
+        recommendations_summary = await _summarize_recommendations(
+            linkedin_recommendations, output_language,
+        )
+        volunteer_summary = await _summarize_volunteer(
+            linkedin_volunteer, output_language,
+        )
 
         # 8. 경력 연수 계산
         experience_years = profile.get("experience_years", 0) or 0
@@ -171,7 +252,11 @@ async def build_candidate_profile(
             linkedin_activity_summary=activity_summary,
             linkedin_projects=[p if isinstance(p, dict) else {"title": str(p)} for p in linkedin_projects],
             linkedin_honors=[h if isinstance(h, dict) else {"title": str(h)} for h in linkedin_honors],
-            recommendations_count=recommendations,
+            linkedin_recommendations=[r if isinstance(r, dict) else {"from_user": str(r)} for r in linkedin_recommendations],
+            linkedin_volunteer_experience=[v if isinstance(v, dict) else {"organization": str(v)} for v in linkedin_volunteer],
+            recommendations_count=recommendations_count,
+            recommendations_summary=recommendations_summary,
+            volunteer_summary=volunteer_summary,
             areas_to_probe=areas_to_probe,
             data_sources=data_sources,
             data_completeness=completeness,

@@ -200,6 +200,20 @@ async def generate_intel_brief(
             result["linkedin_projects"] = linkedin_projects[:5]
         if linkedin_honors:
             result["linkedin_honors"] = linkedin_honors[:5]
+        # 추천서/봉사활동 서머리 (JIT-50)
+        recommendations_summary = candidate_profile.get("recommendations_summary")
+        if recommendations_summary:
+            result["recommendations_summary"] = recommendations_summary
+        volunteer_summary = candidate_profile.get("volunteer_summary")
+        if volunteer_summary:
+            result["volunteer_summary"] = volunteer_summary
+        # 추천서/봉사활동 원본 데이터 (프론트 표시용)
+        recs = candidate_profile.get("linkedin_recommendations", [])
+        if recs:
+            result["linkedin_recommendations"] = recs[:10]
+        vol = candidate_profile.get("linkedin_volunteer_experience", [])
+        if vol:
+            result["linkedin_volunteer_experience"] = vol[:10]
         # Cover letter insights for Decision tab cross-reference
         cover_letter = candidate_profile.get("cover_letter_insights")
         if cover_letter:

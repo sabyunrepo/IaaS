@@ -638,6 +638,17 @@ async def generate_deep_analysis(
             jd_analysis, code_analysis, document_analysis,
             lang=output_language, candidate_profile=candidate_profile,
         )
+
+    # JIT-51: match quality 순 정렬 (exact → similar → partial → none)
+    # 동일 match type 내에서는 confidence 내림차순
+    MATCH_TYPE_ORDER = {"exact": 0, "similar": 1, "partial": 2, "none": 3}
+    skill_table = sorted(
+        skill_table,
+        key=lambda row: (
+            MATCH_TYPE_ORDER.get(row.type if hasattr(row, 'type') else row.get("type", "none"), 4),
+            -(row.confidence if hasattr(row, 'confidence') else row.get("confidence", 0)),
+        ),
+    )
     activity.heartbeat()
 
     # 5. 전체 매칭 점수 계산 (Evidence-Based Weighted Composite)

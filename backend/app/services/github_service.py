@@ -125,9 +125,42 @@ class GitHubService:
         target_languages: list[str],
         min_language_ratio: float = 0.3,
     ) -> list[dict]:
-        """JD 기술스택과 매칭되는 레포 필터링"""
+        """JD 기술스택과 매칭되는 레포 필터링 (하위 호환)"""
+        return await self.select_relevant_repos(
+            github_urls=github_urls,
+            target_languages=target_languages,
+            min_language_ratio=min_language_ratio,
+        )
+
+    async def select_relevant_repos(
+        self,
+        github_urls: list[str],
+        target_languages: list[str],
+        min_language_ratio: float = 0.2,
+        jd_text: str = "",
+        jd_keywords: list[str] | None = None,
+    ) -> list[dict]:
+        """JD 기반 레포 관련성 스코어링 + 필터링 (JIT-49)
+
+        스코어링 공식:
+            score = (lang_match × 0.3) + (size_activity × 0.3) + (jd_keyword × 0.4)
+
+        Args:
+            github_urls: 레포 URL 목록
+            target_languages: JD 기술스택 언어 목록
+            min_language_ratio: 최소 언어 비율 (하위 호환)
+            jd_text: JD 전체 텍스트 (키워드 매칭용)
+            jd_keywords: JD 키워드 목록 (없으면 jd_text에서 추출)
+
+        Returns:
+            관련성 높은 순으로 정렬된 레포 목록
+        """
         target_set = {lang.lower() for lang in target_languages}
-        matched = []
+        scored_repos = []
+
+        # JD 키워드 추출 (jd_text에서)
+        if not jd_keywords and jd_text:
+            jd_keywords = self._extract_jd_keywords(jd_text)
 
         for url in github_urls:
             languages = await self.get_repo_languages(url)
@@ -138,19 +171,101 @@ class GitHubService:
             if total_bytes == 0:
                 continue
 
-            matched_bytes = sum(
-                bytes_count for lang, bytes_count in languages.items()
-                if lang.lower() in target_set
+            info = await self.get_repo_info(url)
+            if info.get("error"):
+                continue
+
+            # 최소 레포 크기 필터 (100KB 이하 제외)
+            repo_size = info.get("size", 0) or 0
+            if repo_size < 100:
+                logger.debug(f"Skipping small repo ({repo_size}KB): {url}")
+                continue
+
+            # 스코어링
+            score = self._score_repo_relevance(
+                info=info,
+                languages=languages,
+                total_bytes=total_bytes,
+                target_set=target_set,
+                jd_keywords=jd_keywords or [],
             )
-            ratio = matched_bytes / total_bytes
 
-            if ratio >= min_language_ratio:
-                info = await self.get_repo_info(url)
+            if score >= 0.2:
                 info["languages"] = languages
-                info["jd_match_ratio"] = ratio
-                matched.append(info)
+                info["jd_match_ratio"] = score
+                info["relevance_score"] = score
+                scored_repos.append(info)
 
-        return matched
+        # 관련성 높은 순 정렬
+        scored_repos.sort(key=lambda r: r.get("relevance_score", 0), reverse=True)
+
+        logger.info(
+            f"Repo selection: {len(github_urls)} candidates → "
+            f"{len(scored_repos)} relevant (target_languages={target_languages})"
+        )
+
+        return scored_repos
+
+    @staticmethod
+    def _score_repo_relevance(
+        info: dict,
+        languages: dict,
+        total_bytes: int,
+        target_set: set[str],
+        jd_keywords: list[str],
+    ) -> float:
+        """레포 관련성 점수 계산 (JIT-49)
+
+        score = (lang_match × 0.3) + (size_activity × 0.3) + (jd_keyword × 0.4)
+        """
+        # 1. 언어 매칭 점수 (0.0-1.0)
+        matched_bytes = sum(
+            bytes_count for lang, bytes_count in languages.items()
+            if lang.lower() in target_set
+        )
+        lang_match = matched_bytes / total_bytes if total_bytes > 0 else 0.0
+
+        # 2. 크기/활동 점수 (0.0-1.0)
+        repo_size = info.get("size", 0) or 0
+        size_score = min(repo_size / 5000, 1.0)
+        stars = info.get("stars", 0) or 0
+        forks = info.get("forks", 0) or 0
+        activity_score = min((stars + forks * 2) / 50, 1.0)
+        size_activity = size_score * 0.7 + activity_score * 0.3
+
+        # 3. JD 키워드 매칭 점수 (0.0-1.0)
+        jd_keyword_score = 0.0
+        if jd_keywords:
+            description = (info.get("description") or "").lower()
+            repo_name = (info.get("name") or "").lower()
+            searchable = f"{description} {repo_name}"
+
+            matched_keywords = sum(
+                1 for kw in jd_keywords
+                if kw.lower() in searchable
+            )
+            jd_keyword_score = min(matched_keywords / max(len(jd_keywords), 1), 1.0)
+
+        score = (lang_match * 0.3) + (size_activity * 0.3) + (jd_keyword_score * 0.4)
+        return round(score, 3)
+
+    @staticmethod
+    def _extract_jd_keywords(jd_text: str) -> list[str]:
+        """JD 텍스트에서 기술 키워드 추출"""
+        tech_keywords = {
+            "python", "javascript", "typescript", "java", "go", "rust", "ruby",
+            "react", "vue", "angular", "next.js", "nuxt", "svelte",
+            "node.js", "express", "fastapi", "django", "flask", "spring",
+            "tensorflow", "pytorch", "langchain", "llm", "rag",
+            "aws", "azure", "gcp", "docker", "kubernetes", "terraform",
+            "postgresql", "mysql", "mongodb", "redis", "elasticsearch",
+            "graphql", "rest", "grpc", "microservices",
+            "temporal", "kafka", "rabbitmq", "celery",
+            "ci/cd", "github actions", "jenkins",
+            "machine learning", "deep learning", "nlp", "computer vision",
+        }
+        jd_lower = jd_text.lower()
+        return [kw for kw in tech_keywords if kw in jd_lower]
 
     async def get_account_type(self, username: str) -> dict:
         """

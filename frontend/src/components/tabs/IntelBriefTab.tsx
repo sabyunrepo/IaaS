@@ -336,11 +336,21 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
                 {t('intel_skills')}
               </h4>
               <div className="flex flex-wrap gap-2">
-                {linkedinProfile.skills.map((skill, i) => (
-                  <span key={i} className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-medium">
-                    {skill}
-                  </span>
-                ))}
+                {linkedinProfile.skills.map((skill, i) => {
+                  const jdReqs = jd_summary?.requirements?.map(r => r.text?.toLowerCase()) || [];
+                  const isJdMatch = jdReqs.some(r =>
+                    r && (r.includes(skill.toLowerCase()) || skill.toLowerCase().includes(r))
+                  );
+                  return (
+                    <span key={i} className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
+                      isJdMatch
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                    }`}>
+                      {skill}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -414,6 +424,42 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Recommendations Summary (JIT-52) */}
+          {linkedinProfile?.recommendations_summary && (
+            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+              <h4 className="text-sm font-semibold text-purple-800 flex items-center gap-2 mb-2">
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                {t('intel_recommendations')}
+                {linkedinProfile.recommendations && (
+                  <span className="bg-purple-200 text-purple-700 text-xs px-2 py-0.5 rounded-full">
+                    {linkedinProfile.recommendations.length}
+                  </span>
+                )}
+              </h4>
+              <p className="text-sm text-gray-700">{linkedinProfile.recommendations_summary}</p>
+            </div>
+          )}
+
+          {/* Volunteer Summary (JIT-52) */}
+          {linkedinProfile?.volunteer_summary && (
+            <div className="bg-teal-50 rounded-lg p-4 border border-teal-200">
+              <h4 className="text-sm font-semibold text-teal-800 flex items-center gap-2 mb-2">
+                <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                {t('intel_volunteer')}
+                {linkedinProfile.volunteer_experience && (
+                  <span className="bg-teal-200 text-teal-700 text-xs px-2 py-0.5 rounded-full">
+                    {linkedinProfile.volunteer_experience.length}
+                  </span>
+                )}
+              </h4>
+              <p className="text-sm text-gray-700">{linkedinProfile.volunteer_summary}</p>
             </div>
           )}
 

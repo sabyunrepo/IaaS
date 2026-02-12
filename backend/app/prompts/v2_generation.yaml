@@ -315,16 +315,20 @@ prompts:
       3. Red flags to watch for during interview — each MUST include the data source in parentheses
          Example: "GitHub 활동이 최근 6개월간 없음 (GitHub)" or "이력서 경력 갭 2023-2024 (Resume)"
 
-      # MULTI-SOURCE DATA (JIT-43)
+      # MULTI-SOURCE DATA (JIT-43/50)
       The candidate_profile may contain enriched multi-source data:
       - "unified_skills": skills with source attribution (resume, github, linkedin)
       - "linkedin_experiences": LinkedIn career history for cross-referencing with resume
       - "linkedin_honors": certifications, awards from LinkedIn
+      - "recommendations_summary": LLM-generated summary of LinkedIn recommendations
+      - "volunteer_summary": LLM-generated summary of volunteer experience
       When multi-source data is available:
       - Cross-reference resume claims with LinkedIn data for verification tips
       - Note discrepancies between resume and LinkedIn as red flags
       - Use LinkedIn honors/certifications as positive verification points
       - Tag red flags with the specific source: "(Resume)", "(GitHub)", "(LinkedIn)", "(Resume vs LinkedIn)"
+      - If recommendations_summary is available, use it to identify strengths confirmed by others
+      - If volunteer_summary is available, assess candidate's leadership and values
 
       # INPUT
       Questions:
