@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     ZAI_API_KEY: str | None = None  # Z.AI (Zhipu AI) API Key for GLM models
     MOONSHOT_API_KEY: str | None = None  # Moonshot AI (Kimi) API Key
     LLM_MODEL: str = "openai:gpt-4o"
-    LLM_FALLBACK_MODEL: str = "anthropic:claude-3-5-sonnet-20241022"
+    LLM_FALLBACK_MODEL: str = "zai/glm-4.7-flashx"
     # GLM 모델 (Z.AI - Zhipu AI)
     # glm-4.5-flash: 무료!, glm-4.5-air: 저렴, glm-4.7: 최신 플래그십
     GLM_MODEL: str = "zai/glm-4.5-flash"  # 무료 모델
