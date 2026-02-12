@@ -474,6 +474,9 @@ async def _analyze_single_repo_impl(
         # 7단계 휴리스틱 + AuthorIdentityResult 배열 반환.
         # top_committer_fallback 삭제, confidence 0.0~1.0 수치 반환.
         # ================================================================
+        # JIT-36: 다중 author 목록 (PyDriller에 list[str]로 전달)
+        candidate_author_names: list[str] = []
+
         if candidate_username and clone_dir:
             try:
                 from app.services.github_service import GitHubService
@@ -493,6 +496,11 @@ async def _analyze_single_repo_impl(
                                 else "medium" if best.confidence >= 0.6
                                 else "low"
                             )
+                            # JIT-36: identity-linked 매칭에서 모든 author name 수집
+                            candidate_author_names = list(dict.fromkeys(
+                                m.name for m in identity_result.matches
+                                if m.method != "commit_pattern_analysis"
+                            ))
                             candidate_identification = {
                                 "method": f"git_author_validation/{best.method}",
                                 "confidence": confidence,
@@ -503,12 +511,14 @@ async def _analyze_single_repo_impl(
                                 "matched_email": best.email,
                                 "matched_commits": best.commits,
                                 "match_candidates": len(identity_result.matches),
+                                "author_names": candidate_author_names,
                             }
                             logger.info(
                                 f"Git author resolved: {original} → "
                                 f"{candidate_username} for {repo_name} "
                                 f"(method={best.method}, "
-                                f"confidence={best.confidence})"
+                                f"confidence={best.confidence}, "
+                                f"all_authors={candidate_author_names})"
                             )
             except Exception as e:
                 logger.warning(f"Git author validation failed for {repo_name}: {e}")
@@ -534,10 +544,12 @@ async def _analyze_single_repo_impl(
             await alog.progress(f"Phase 2: PyDriller for {repo_name}", {"phase": 2})
 
         file_types = _jd_to_file_types(jd_tech_stack)
+        # JIT-36: 다중 author 목록이 있으면 list로 전달, 없으면 단일 author 호환
+        pydriller_author = candidate_author_names if candidate_author_names else candidate_username
         driller_result = await analyzer.analyze_with_pydriller(
             repo_url=repo_url,
             job_id=job_id or "",
-            author=candidate_username,
+            author=pydriller_author,
             since_years=settings.GITHUB_ANALYSIS_YEARS,
             file_types=file_types,
         )
