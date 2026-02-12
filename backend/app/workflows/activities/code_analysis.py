@@ -316,6 +316,30 @@ async def analyze_code(
         "repo_contribution_breakdown": repo_contribution_breakdown,
     }
 
+    # JIT-44: HYBRID 분석 집계 필드
+    total_ast_chunks = 0
+    total_analyzed_functions = 0
+    has_hybrid = False
+    for repo in repositories:
+        meta = repo.get("hybrid_metadata", {})
+        if meta:
+            has_hybrid = True
+            total_ast_chunks += meta.get("ranked_chunks_count", 0)
+        ast = repo.get("ast_analysis", {})
+        total_analyzed_functions += len(ast.get("functions", []))
+
+    if has_hybrid:
+        code_analysis_result["ast_chunk_count"] = total_ast_chunks
+        code_analysis_result["analyzed_functions_count"] = total_analyzed_functions
+        code_analysis_result["hybrid_metadata"] = {
+            "method": "hybrid",
+            "total_repos": len(repositories),
+            "total_ast_chunks": total_ast_chunks,
+            "total_deep_analyses": sum(
+                repo.get("hybrid_metadata", {}).get("deep_analyses_count", 0) for repo in repositories
+            ),
+        }
+
     # JIT-25: A/B 비교 메트릭 로깅
     _log_pipeline_metrics(code_analysis_result, use_clone_based)
 

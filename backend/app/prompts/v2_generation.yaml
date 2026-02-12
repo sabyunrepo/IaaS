@@ -169,6 +169,9 @@ prompts:
       Candidate Skills (GitHub code analysis — FALLBACK):
       {{code_skills}}
 
+      Analyzed Function Names (HYBRID pipeline — additional evidence, may be empty):
+      {{code_functions}}
+
       # OUTPUT FORMAT (JSON array, one per JD requirement)
       [
         {{
@@ -274,6 +277,9 @@ prompts:
 
       # ADDITIONAL CONTEXT (may be empty)
       {{kg_context}}
+
+      # CODE ANALYSIS DEPTH (may be empty — only present for HYBRID pipeline)
+      {{code_depth_context}}
 
       # OUTPUT FORMAT
       {{

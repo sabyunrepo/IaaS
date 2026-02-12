@@ -16,6 +16,10 @@ _LABELS: dict[str, dict[str, str]] = {
     "unconfirmed": {"ko": "미확인", "en": "Unconfirmed"},
     "no_code_data": {"ko": "코드 분석 데이터 없음", "en": "No code analysis data"},
     "tech_stack_confirmed": {"ko": "{n}개 기술 스택 확인", "en": "{n} tech stacks confirmed"},
+    "tech_stack_confirmed_hybrid": {
+        "ko": "{n}개 기술 스택 확인, {fn_count}개 함수 분석 (코드 직접 분석 기반)",
+        "en": "{n} tech stacks confirmed, {fn_count} functions analyzed (direct code analysis)",
+    },
     # analysis_generation.py -- engineering DNA
     "code_analysis": {"ko": "코드 분석", "en": "Code Analysis"},
     "test_coverage": {"ko": "테스트 커버리지", "en": "Test Coverage"},

@@ -308,6 +308,17 @@ async def _llm_build_skill_table(
                 for skill in skill_list
             ] if isinstance(raw_candidate_skills, dict) else list(raw_candidate_skills or [])
 
+        # JIT-44: HYBRID 함수 레벨 근거 추출
+        code_functions_context = ""
+        if code_analysis:
+            all_functions = []
+            for repo in code_analysis.get("repositories", []):
+                ast = repo.get("ast_analysis", {})
+                for fn in ast.get("functions", [])[:10]:
+                    all_functions.append(fn.get("name", "") if isinstance(fn, dict) else str(fn))
+            if all_functions:
+                code_functions_context = json.dumps(all_functions[:20], ensure_ascii=False)
+
         code_skills = code_analysis.get("tech_stack", []) if code_analysis else []
         # JIT-29: JD relevance scores가 있으면 스킬에 매칭 점수 보강
         jd_relevance = code_analysis.get("jd_relevance_scores", {}) if code_analysis else {}
@@ -352,6 +363,7 @@ async def _llm_build_skill_table(
             candidate_skills=candidate_text,
             code_skills=code_text,
             unified_skills=unified_skills_text,
+            code_functions=code_functions_context or "[]",
             output_language=output_language,
         )
 

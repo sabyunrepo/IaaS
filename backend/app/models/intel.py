@@ -53,6 +53,10 @@ class GitHubSummary(BaseModel):
     tenure_note: str
     activity_gap: str | None = None
     chart_data: list[int] = Field(default_factory=list)  # 12개월 기여도 데이터
+    # JIT-44: HYBRID 분석 깊이 정보
+    ast_analysis_depth: int | None = None       # AST 분석 청크 수
+    functions_analyzed: int | None = None       # 분석된 함수 수
+    analysis_method: str | None = None          # "hybrid" | "legacy" | None
 
 
 class IntelBrief(BaseModel):
