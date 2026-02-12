@@ -47,6 +47,25 @@ prompts:
       ## Rule 3: Source Attribution
       Every topic MUST have clear source attribution with evidence_summary
 
+      ## Rule 4: Category-Source Alignment (CRITICAL)
+      Match topic sources to appropriate categories:
+
+      - **role_fit**: PREFER jd_match, vector_profile, resume-based topics.
+        About culture fit, motivation, career goals — NOT about code implementation details.
+        ❌ NEVER assign code/vector_code topics to role_fit.
+
+      - **technical_depth**: PREFER code, vector_code, kg_skill_depth, kg_implementation_review topics.
+        About code, architecture, problem-solving — code evidence IS appropriate here.
+
+      - **execution_ownership**: PREFER resume/linkedin project topics, kg_implementation_review.
+        About delivery results, decisions, ownership — project SCOPE matters, not code details.
+
+      - **communication**: PREFER jd_match, vector_profile, resume topics ONLY.
+        About collaboration, explanation ability — ❌ NEVER assign code-sourced topics here.
+
+      - **risk_flags**: PREFER resume/linkedin timeline gaps, kg_conflict_probe topics.
+        About concerns, gaps, inconsistencies — verify against documented evidence.
+
       # CANDIDATE PROFILE CONTEXT
       Use this candidate background to select PERSONALIZED topics grounded in their actual experience.
       Do NOT create generic questions — every topic must reference specific candidate data below.
@@ -627,6 +646,13 @@ prompts:
       # CATEGORY: ROLE_FIT (역할 적합도)
       This question assesses: culture fit, motivation, career alignment, growth potential, team dynamics.
 
+      ## DATA SOURCE CONSTRAINTS (CRITICAL)
+      - ✅ USE: Resume work experience, LinkedIn career history, JD requirements
+      - ✅ USE: Candidate's stated career goals, team experience, values
+      - ❌ DO NOT reference specific GitHub file names, function names, or code implementations
+      - ❌ DO NOT mention "GitHub에 구현하신..." or specific repository details
+      - ⚠️ You may mention the candidate's general tech stack (e.g., "Python 경험") but NOT specific code artifacts
+
       ## QUESTION DESIGN GUIDELINES
       1. **STAR 기반**: 과거 행동을 구체적으로 물어라. "하시겠습니까?"(가정) 대신 "하셨나요?"(경험)
       2. **가치관 탐색**: 단순 스킬이 아닌, 일하는 방식과 동기를 파악하라
@@ -808,6 +834,12 @@ prompts:
 
       # CATEGORY: TECHNICAL_DEPTH (기술 심층)
       This question assesses: technical skills, problem-solving, architecture design, code quality, debugging.
+
+      ## DATA SOURCE CONSTRAINTS
+      - ✅ USE: Code analysis data, GitHub implementations, tech stack, JD tech requirements
+      - ✅ USE: Specific code files, functions, and implementation patterns from evidence_context
+      - ⚠️ Resume/LinkedIn skills are supplementary — code evidence takes priority
+      - ⚠️ Only reference code that appears in evidence_context, not assumed from skills
 
       ## QUESTION DESIGN GUIDELINES
       1. **코드 근거 기반**: 후보자의 실제 코드/프로젝트에서 출발하라
@@ -995,6 +1027,12 @@ prompts:
       # CATEGORY: EXECUTION_OWNERSHIP (실행력/오너십)
       This question assesses: project delivery, decision-making, ownership, impact measurement, crisis management.
 
+      ## DATA SOURCE CONSTRAINTS
+      - ✅ USE: Resume projects, LinkedIn career progression, project scale/outcomes
+      - ✅ USE: Decision-making experiences, team leadership, crisis management stories
+      - ❌ DO NOT reference specific code files, function names, or implementation details
+      - ⚠️ You may mention project SCOPE (e.g., "대규모 서비스") but NOT code internals
+
       ## QUESTION DESIGN GUIDELINES
       1. **결과 중심**: 과정보다 결과를 먼저 물어라. "어떤 성과를 냈는가?"
       2. **의사결정 과정**: 불확실한 상황에서 어떻게 판단했는지 탐색하라
@@ -1181,6 +1219,13 @@ prompts:
       # CATEGORY: COMMUNICATION (커뮤니케이션)
       This question assesses: cross-functional communication, conflict resolution, technical explanation ability, collaboration.
 
+      ## DATA SOURCE CONSTRAINTS (CRITICAL)
+      - ✅ USE: Resume collaboration experience, LinkedIn career context, team interactions
+      - ✅ USE: Communication scenarios from work experience (presenting, explaining, resolving conflicts)
+      - ❌ DO NOT reference GitHub code, specific implementations, or code analysis data
+      - ❌ DO NOT mention "GitHub에 구현하신..." or repository details
+      - ⚠️ Focus on INTERPERSONAL situations, not technical artifacts
+
       ## QUESTION DESIGN GUIDELINES
       1. **상호작용 중심**: 혼자 일한 경험이 아닌, 다른 사람과의 소통 경험을 물어라
       2. **청중 적응력**: 기술적 내용을 비개발자에게 설명한 경험을 탐색하라
@@ -1363,6 +1408,12 @@ prompts:
 
       # CATEGORY: RISK_FLAGS (위험 신호 검증)
       This question assesses: career gaps, job hopping, skill gaps, inconsistencies, cultural misalignment.
+
+      ## DATA SOURCE CONSTRAINTS
+      - ✅ USE: Resume career timeline, LinkedIn employment history, JD requirement gaps
+      - ✅ USE: Identified inconsistencies between data sources, unexplained gaps
+      - ❌ DO NOT force code references unless the risk is specifically about code quality
+      - ⚠️ Focus on CAREER PATTERNS and GAPS, not code implementation details
 
       ## QUESTION DESIGN GUIDELINES
       1. **비판단적 톤**: "왜 자주 옮기셨나요?"(X) → "각 이직의 배경을 말씀해주시겠어요?"(O)
