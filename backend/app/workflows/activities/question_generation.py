@@ -399,15 +399,30 @@ async def craft_question(
         except Exception as e:
             logger.debug(f"KG evidence fetch failed for {topic.get('topic')}: {e}")
 
-    # pgvector 시맨틱 검색으로 추가 컨텍스트 수집
+    # 카테고리별 데이터 소스 접근 제어 (evidence_context 코드 검색 포함)
+    from app.workflows.activities.question_generation_utils import CATEGORY_DATA_ACCESS
+    category = topic.get("category", "technical_depth")
+    code_access_level = CATEGORY_DATA_ACCESS.get(category, {}).get("code_analysis", "full")
+
+    # pgvector 시맨틱 검색으로 추가 컨텍스트 수집 (카테고리별 제어)
     if job_id:
         try:
             from app.services.vector_store import get_vector_store
             vs = get_vector_store(job_id)
             topic_text = topic.get("topic", "")
             if topic_text:
-                vector_results = await vs.search_profile(topic_text, limit=3)
-                code_results = await vs.search_code(topic_text, limit=2)
+                # 프로필 검색: 모든 카테고리에서 실행 (코드 접근 제한 카테고리는 limit 축소)
+                profile_limit = 3 if code_access_level in ("full", "project_scope") else 2
+                vector_results = await vs.search_profile(topic_text, limit=profile_limit)
+
+                # 코드 검색: 카테고리별 code_analysis 레벨에 따라 제어
+                code_results = []
+                if code_access_level == "full":
+                    code_results = await vs.search_code(topic_text, limit=2)
+                elif code_access_level == "project_scope":
+                    code_results = await vs.search_code(topic_text, limit=1)
+                # tech_stack_only, none → 코드 벡터 검색 스킵
+
                 relevant = [r for r in (vector_results + code_results) if r["similarity"] >= 0.5]
                 if relevant:
                     evidence_context += "\n\nSemantic matches (vector search):\n"
@@ -418,7 +433,6 @@ async def craft_question(
 
     from app.prompts import get_prompt_with_config
     # 카테고리별 특화 프롬프트 선택 (fallback → 범용 craft_question)
-    category = topic.get("category", "technical_depth")
     category_prompt_key = f"craft_question_{category}"
     # 카테고리별 데이터 소스 필터링 — 불필요한 데이터 제외 (토큰 절감 + 품질 향상)
     candidate_context = build_candidate_context(analysis, enriched_input, category=category)

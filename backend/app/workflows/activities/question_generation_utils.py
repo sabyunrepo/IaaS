@@ -250,7 +250,9 @@ def _build_code_section(analysis: dict, level: str) -> str:
 
     if not parts:
         return ""
-    return "## Code Analysis (GitHub)\n" + "\n".join(parts)
+    # tech_stack_only 수준에서는 코드 분석이 아닌 기술 스택 제목 사용 (LLM이 코드 참조 질문 생성 방지)
+    heading = "## Technical Skills\n" if level == "tech_stack_only" else "## Code Analysis (GitHub)\n"
+    return heading + "\n".join(parts)
 
 
 def _build_jd_section(analysis: dict, level: str) -> str:

@@ -93,45 +93,100 @@ class LinkedInService:
     async def _fetch_profile(self, linkedin_url: str) -> dict | None:
         """Bright Data 비동기 API 호출 (메인 프로필 + 세부 페이지 병렬 수집)
 
-        1. 메인 프로필 + 7개 세부 페이지 URL을 한 번에 트리거
-        2. 폴링 후 결과 조회
-        3. 세부 페이지 데이터를 메인 프로필에 병합
+        전략: 메인 + 세부 페이지 일괄 트리거 → 실패 시 메인만 재시도 (graceful degradation)
         """
-        # 프로필 base URL 정규화 (trailing slash 포함)
         base_url = linkedin_url.rstrip("/")
 
         # 메인 프로필 + 세부 페이지 URL 구성
-        urls_to_fetch = [{"url": linkedin_url}]
+        urls_all = [{"url": linkedin_url}]
         for page in DETAIL_PAGES:
-            urls_to_fetch.append({"url": f"{base_url}/{page}"})
+            urls_all.append({"url": f"{base_url}/{page}"})
+        urls_main_only = [{"url": linkedin_url}]
 
         async with httpx.AsyncClient(timeout=30.0) as client:
-            # 1. 수집 트리거 (메인 + 세부 페이지 일괄)
+            # Phase 1: 메인 + 세부 페이지 일괄 트리거 시도
+            snapshot_id = await self._trigger_collection(client, urls_all)
+
+            if snapshot_id:
+                logger.info(
+                    f"Bright Data collection started: {snapshot_id} "
+                    f"({len(urls_all)} URLs: main + {len(DETAIL_PAGES)} detail pages)"
+                )
+                data = await self._poll_and_fetch(client, snapshot_id, linkedin_url)
+
+                if data is not None:
+                    main_profile = data[0]
+                    detail_results = data[1:] if len(data) > 1 else []
+                    if detail_results:
+                        logger.info(f"Merging {len(detail_results)} detail page results")
+                    merged = self._merge_detail_pages(main_profile, detail_results)
+                    return self._normalize_profile(merged, linkedin_url)
+
+                # 폴링/조회 실패 → 메인만 재시도
+                logger.warning("Full collection failed, falling back to main profile only")
+
+            # Phase 2: 메인 프로필만 트리거 (fallback)
+            snapshot_id = await self._trigger_collection(client, urls_main_only)
+            if not snapshot_id:
+                raise LinkedInFetchError(
+                    f"Bright Data trigger failed for both full and main-only requests: {linkedin_url}"
+                )
+
+            logger.info(f"Bright Data fallback collection started: {snapshot_id} (main profile only)")
+            data = await self._poll_and_fetch(client, snapshot_id, linkedin_url)
+
+            if data is None:
+                return None
+
+            return self._normalize_profile(data[0], linkedin_url)
+
+    async def _trigger_collection(
+        self, client: httpx.AsyncClient, urls: list[dict]
+    ) -> str | None:
+        """Bright Data 수집 트리거. 성공 시 snapshot_id, 실패 시 None 반환."""
+        try:
             trigger_resp = await client.post(
                 f"{self.BASE_URL}/trigger",
                 params={"dataset_id": self.DATASET_ID},
-                json=urls_to_fetch,
+                json=urls,
                 headers=self.headers,
+            )
+
+            logger.info(
+                f"Bright Data trigger response: status={trigger_resp.status_code}, "
+                f"urls={len(urls)}, body={trigger_resp.text[:500]}"
             )
 
             if trigger_resp.status_code == 429:
                 raise httpx.HTTPError("Rate limited by Bright Data")
+
             if trigger_resp.status_code not in (200, 201, 202):
-                raise LinkedInFetchError(
-                    f"Bright Data trigger error {trigger_resp.status_code}: {trigger_resp.text}"
+                logger.error(
+                    f"Bright Data trigger error: status={trigger_resp.status_code}, "
+                    f"body={trigger_resp.text[:1000]}, urls={[u['url'] for u in urls]}"
                 )
+                return None
 
             trigger_data = trigger_resp.json()
             snapshot_id = trigger_data.get("snapshot_id")
             if not snapshot_id:
-                raise LinkedInFetchError(f"No snapshot_id in trigger response: {trigger_data}")
+                logger.error(f"No snapshot_id in trigger response: {trigger_data}")
+                return None
 
-            logger.info(
-                f"Bright Data collection started: {snapshot_id} "
-                f"({len(urls_to_fetch)} URLs: main + {len(DETAIL_PAGES)} detail pages)"
-            )
+            return snapshot_id
 
-            # 2. 상태 폴링
+        except httpx.HTTPError:
+            raise
+        except Exception as e:
+            logger.error(f"Bright Data trigger exception: {e}", exc_info=True)
+            return None
+
+    async def _poll_and_fetch(
+        self, client: httpx.AsyncClient, snapshot_id: str, linkedin_url: str
+    ) -> list[dict] | None:
+        """상태 폴링 + 결과 조회. 실패 시 None 반환 (예외 발생 안 함)."""
+        try:
+            # 상태 폴링
             for poll_attempt in range(MAX_POLL_ATTEMPTS):
                 await asyncio.sleep(POLL_INTERVAL)
 
@@ -141,7 +196,10 @@ class LinkedInService:
                 )
 
                 if progress_resp.status_code != 200:
-                    logger.warning(f"Progress check failed: {progress_resp.status_code}")
+                    logger.warning(
+                        f"Progress check failed: status={progress_resp.status_code}, "
+                        f"body={progress_resp.text[:500]}"
+                    )
                     continue
 
                 progress_data = progress_resp.json()
@@ -151,36 +209,53 @@ class LinkedInService:
                     logger.info(f"Bright Data collection ready: {snapshot_id}")
                     break
                 elif status == "failed":
-                    raise LinkedInFetchError(f"Bright Data collection failed: {progress_data}")
+                    logger.error(
+                        f"Bright Data collection failed: snapshot={snapshot_id}, "
+                        f"response={progress_data}"
+                    )
+                    return None
                 # running 상태면 계속 폴링
             else:
-                raise LinkedInFetchError(f"Bright Data timeout after {MAX_POLL_ATTEMPTS * POLL_INTERVAL}s")
+                logger.error(
+                    f"Bright Data timeout after {MAX_POLL_ATTEMPTS * POLL_INTERVAL}s: "
+                    f"snapshot={snapshot_id}"
+                )
+                return None
 
-            # 3. 결과 조회
+            # 결과 조회
             snapshot_resp = await client.get(
                 f"{self.BASE_URL}/snapshot/{snapshot_id}",
                 params={"format": "json"},
                 headers=self.headers,
             )
 
+            logger.info(
+                f"Bright Data snapshot response: status={snapshot_resp.status_code}, "
+                f"snapshot={snapshot_id}"
+            )
+
             if snapshot_resp.status_code == 404:
                 logger.warning(f"LinkedIn profile not found: {linkedin_url}")
                 return None
             if snapshot_resp.status_code != 200:
-                raise LinkedInFetchError(
-                    f"Bright Data snapshot error {snapshot_resp.status_code}: {snapshot_resp.text}"
+                logger.error(
+                    f"Bright Data snapshot error: status={snapshot_resp.status_code}, "
+                    f"body={snapshot_resp.text[:1000]}"
                 )
+                return None
 
             data = snapshot_resp.json()
             if not isinstance(data, list) or len(data) == 0:
+                logger.warning(f"Empty snapshot data for {linkedin_url}: {type(data)}")
                 return None
 
-            # 4. 메인 프로필 + 세부 페이지 병합
-            main_profile = data[0]
-            detail_results = data[1:] if len(data) > 1 else []
-            merged = self._merge_detail_pages(main_profile, detail_results)
+            return data
 
-            return self._normalize_profile(merged, linkedin_url)
+        except httpx.HTTPError:
+            raise
+        except Exception as e:
+            logger.error(f"Poll/fetch exception: {e}", exc_info=True)
+            return None
 
     @staticmethod
     def validate_url(url: str) -> bool:
