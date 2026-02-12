@@ -139,6 +139,20 @@ async def analyze_code(
                 file_types=file_types,
             )
 
+            # JIT-34: Legacy fallback — GitHub username ≠ git author 시 재시도
+            if driller_result["stats"]["total_commits"] == 0 and candidate_username:
+                logger.warning(
+                    f"Legacy: 0 commits for {repo_name} with author={candidate_username}, "
+                    f"retrying without author filter"
+                )
+                driller_result = await analyzer.analyze_with_pydriller(
+                    repo_url=repo_url,
+                    job_id="",
+                    author=None,
+                    since_years=settings.GITHUB_ANALYSIS_YEARS,
+                    file_types=file_types,
+                )
+
             # Phase 3: AST (deprecated)
             activity.heartbeat(f"Phase 3: AST analysis for {repo_name}...")
             top_files = analyzer.select_top_files(
@@ -454,6 +468,54 @@ async def _analyze_single_repo_impl(
                     )
             except Exception as e:
                 logger.warning(f"Git log fallback failed for {repo_name}: {e}")
+
+        # ================================================================
+        # Stage 4.5: GitHub username → git author 검증 (JIT-34)
+        # GitHub username(예: "sabyunrepo")이 git author(예: "sabyun")와
+        # 다를 수 있음. 다중 휴리스틱으로 보정:
+        #   1. name 완전 일치
+        #   2. noreply email GitHub username 매칭
+        #   3. email 접두어 휴리스틱 (id@gmail/company/noreply)
+        #   4. name substring 매칭
+        #   5. 최다 커밋 작성자 fallback (≤3명)
+        # ================================================================
+        if candidate_username and clone_dir:
+            try:
+                from app.services.github_service import GitHubService
+                git_authors = await GitHubService.extract_git_authors(clone_dir)
+                if git_authors:
+                    author_names = [a["name"] for a in git_authors]
+                    # GitHub username이 git author 목록에 없으면 보정 필요
+                    if candidate_username not in author_names:
+                        resolved_author, match_method = (
+                            GitHubService.resolve_author_by_identity(
+                                candidate_username, git_authors
+                            )
+                        )
+                        if resolved_author:
+                            original = candidate_username
+                            candidate_username = resolved_author["name"]
+                            confidence = (
+                                "high" if match_method in (
+                                    "name_exact", "noreply_email", "email_prefix"
+                                ) else "medium"
+                            )
+                            candidate_identification = {
+                                "method": f"git_author_validation/{match_method}",
+                                "confidence": confidence,
+                                "original_username": original,
+                                "resolved_username": candidate_username,
+                                "matched_author": resolved_author["name"],
+                                "matched_email": resolved_author.get("email", ""),
+                                "matched_commits": resolved_author["commits"],
+                            }
+                            logger.info(
+                                f"Git author resolved: {original} → "
+                                f"{candidate_username} for {repo_name} "
+                                f"(method={match_method})"
+                            )
+            except Exception as e:
+                logger.warning(f"Git author validation failed for {repo_name}: {e}")
 
         # Stage 5: 모든 식별 실패 시 → 전체 분석
         if not candidate_username:

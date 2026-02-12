@@ -569,6 +569,74 @@ class GitHubService:
             logger.warning(f"extract_git_authors failed for {clone_dir}: {e}")
             return []
 
+    @staticmethod
+    def resolve_author_by_identity(
+        github_username: str,
+        git_authors: list[dict],
+    ) -> tuple[dict | None, str]:
+        """
+        GitHub username을 기반으로 git author 식별 (다중 휴리스틱).
+
+        매칭 전략 (우선순위 순):
+        1. name 완전 일치 (github_username == author.name)
+        2. noreply email에서 GitHub username 추출 후 일치
+        3. email 접두어 휴리스틱 (id@gmail.com, id@company.com → 접두어 비교)
+        4. name에 username 포함 (substring match)
+        5. 최다 커밋 작성자 fallback (3명 이하 개인 레포)
+
+        Args:
+            github_username: GitHub 프로필 username
+            git_authors: extract_git_authors() 반환값
+
+        Returns:
+            (matched_author, match_method) or (None, "")
+        """
+        if not github_username or not git_authors:
+            return None, ""
+
+        username_lower = github_username.lower()
+
+        # 1) name 완전 일치
+        for a in git_authors:
+            if a["name"].lower() == username_lower:
+                return a, "name_exact"
+
+        # 2) noreply email 매칭
+        #    형태: "12345+username@users.noreply.github.com"
+        for a in git_authors:
+            email = a.get("email", "")
+            m = re.match(r'(\d+\+)?(.+?)@users\.noreply\.github\.com', email)
+            if m and m.group(2).lower() == username_lower:
+                return a, "noreply_email"
+
+        # 3) email 접두어 휴리스틱
+        #    id@gmail.com, id@company.com 등에서 접두어가 username과 일치
+        for a in git_authors:
+            email = a.get("email", "")
+            if email and "@" in email:
+                prefix = email.split("@")[0].lower()
+                # "user+tag@domain" 형태 정리
+                if "+" in prefix:
+                    prefix = prefix.split("+")[-1]
+                if prefix == username_lower:
+                    return a, "email_prefix"
+
+        # 4) name에 username 포함 (substring match)
+        #    예: username="sabyun", author.name="sabyun-dev"
+        for a in git_authors:
+            name_lower = a["name"].lower()
+            if len(username_lower) >= 3 and (
+                username_lower in name_lower or name_lower in username_lower
+            ):
+                return a, "name_substring"
+
+        # 5) 최다 커밋 작성자 fallback (개인 레포 가정, 3명 이하)
+        if len(git_authors) <= 3:
+            top = max(git_authors, key=lambda a: a["commits"])
+            return top, "top_committer_fallback"
+
+        return None, ""
+
     async def match_candidate_from_git_log(
         self,
         clone_dir: str,
