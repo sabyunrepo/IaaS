@@ -50,7 +50,7 @@ def _extract_github_summary(code_analysis: dict | None, lang: str = "ko") -> Git
         return None
 
     repos = code_analysis.get("repositories", [])
-    total_commits = sum(r.get("commit_count", 0) for r in repos)
+    total_commits = sum(r.get("candidate_commits", r.get("commit_count", 0)) for r in repos)
     tech_stack = code_analysis.get("tech_stack", [])
 
     # 월별 기여도 데이터 (12개월)
