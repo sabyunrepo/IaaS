@@ -22,6 +22,8 @@ async def _llm_calculate_radar_scores(
     document_analysis: dict,
     output_language: str = "ko",
     job_id: str | None = None,
+    linkedin_profile: dict | None = None,
+    candidate_profile: dict | None = None,
 ) -> tuple[list[int], list[int]] | None:
     """LLM 기반 레이더 점수 계산 (실패 시 None 반환)"""
     try:
@@ -48,6 +50,30 @@ async def _llm_calculate_radar_scores(
                         kg_context += f"- {g.topic}\n"
             except Exception as e:
                 logger.debug(f"KG enrichment failed for radar: {e}")
+
+        # JIT-42: LinkedIn 경력/스킬 데이터 추출
+        linkedin_context = ""
+        if linkedin_profile:
+            experiences = linkedin_profile.get("experiences", []) or linkedin_profile.get("experience", [])
+            if experiences:
+                linkedin_context += f"LinkedIn 경력: {json.dumps(experiences[:5], ensure_ascii=False, default=str)}\n"
+            skills = linkedin_profile.get("skills", [])
+            if skills:
+                linkedin_context += f"LinkedIn 스킬: {json.dumps(skills[:15], ensure_ascii=False, default=str)}\n"
+
+        # JIT-42: candidate_profile 통합 스킬
+        unified_skills_context = ""
+        if candidate_profile and candidate_profile.get("skills"):
+            unified_skills_context = json.dumps(
+                [
+                    {
+                        "skill": s.get("canonical_name", "") if isinstance(s, dict) else str(s),
+                        "sources": s.get("sources", []) if isinstance(s, dict) else [],
+                    }
+                    for s in candidate_profile["skills"][:15]
+                ],
+                ensure_ascii=False,
+            )
 
         # 결정론적 공식 기반 기준 점수 선계산 (LLM 참고용)
         from app.services.scoring_formulas import (
@@ -87,16 +113,23 @@ async def _llm_calculate_radar_scores(
                 summary_data["hybrid_metadata"] = code_analysis["hybrid_metadata"]
             code_summary = json.dumps(summary_data, ensure_ascii=False, default=str)
 
-        raw_skills = document_analysis.get("profile", {}).get("skills", [])
-        skills_to_summarize = []
-        if isinstance(raw_skills, dict):
-            skills_to_summarize.extend(
-                skill
-                for skill_list in raw_skills.values() if isinstance(skill_list, list)
-                for skill in skill_list if isinstance(skill, str)
-            )
-        elif isinstance(raw_skills, list):
-            skills_to_summarize.extend(skill for skill in raw_skills if isinstance(skill, str))
+        # JIT-42: candidate_profile.skills → primary, document_analysis → fallback
+        if candidate_profile and candidate_profile.get("skills"):
+            skills_to_summarize = [
+                s.get("canonical_name", "") if isinstance(s, dict) else str(s)
+                for s in candidate_profile["skills"][:10]
+            ]
+        else:
+            raw_skills = document_analysis.get("profile", {}).get("skills", [])
+            skills_to_summarize = []
+            if isinstance(raw_skills, dict):
+                skills_to_summarize.extend(
+                    skill
+                    for skill_list in raw_skills.values() if isinstance(skill_list, list)
+                    for skill in skill_list if isinstance(skill, str)
+                )
+            elif isinstance(raw_skills, list):
+                skills_to_summarize.extend(skill for skill in raw_skills if isinstance(skill, str))
 
         doc_summary = json.dumps({
             "skills": skills_to_summarize[:10],
@@ -119,6 +152,8 @@ async def _llm_calculate_radar_scores(
             kg_context=kg_context,
             formula_base_scores=json.dumps(formula_base, ensure_ascii=False),
             formula_sources=json.dumps(formula_sources, ensure_ascii=False),
+            linkedin_context=linkedin_context,
+            unified_skills_context=unified_skills_context,
         )
 
         llm = CachedLLMService()
@@ -536,7 +571,10 @@ async def generate_deep_analysis(
     # 1. 5축 레이더 점수 계산 (LLM 우선, 규칙 기반 fallback)
     # LLM 결과도 결정론적 공식 기반 ±15% 범위로 바운딩
     score_sources = []
-    llm_radar = await _llm_calculate_radar_scores(jd_analysis, code_analysis, document_analysis, output_language, job_id=job_id)
+    llm_radar = await _llm_calculate_radar_scores(
+        jd_analysis, code_analysis, document_analysis, output_language, job_id=job_id,
+        linkedin_profile=linkedin_profile, candidate_profile=candidate_profile,
+    )
     if llm_radar:
         radar_candidate, radar_required, axis_sources, llm_reasoning = llm_radar
         # human_sources 가져오기 (formula_radar에서)
@@ -559,7 +597,7 @@ async def generate_deep_analysis(
     else:
         radar_candidate, radar_required, axis_sources, confidence, human_sources = _calculate_radar_scores(
             jd_analysis, code_analysis, document_analysis, experience_level,
-            candidate_profile=candidate_profile,
+            linkedin_profile=linkedin_profile, candidate_profile=candidate_profile,
         )
         # human_sources 우선 사용 (Issue #245)
         if human_sources:
