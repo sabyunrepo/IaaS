@@ -12,6 +12,7 @@ shallow clone 통합 (JIT-20):
 - PyDriller diff가 0일 때 clone 소스 기반 분석으로 자동 fallback
 """
 import asyncio
+import re
 import shutil
 
 from temporalio import activity
@@ -193,6 +194,11 @@ async def analyze_code(
                 "ast_analysis": ast_result,
                 "analysis": analysis,
                 "notable_implementations": analysis.get("notable_implementations", []),
+                "quality_metrics": _build_quality_metrics(
+                    static_analysis=None,
+                    driller_stats=driller_result["stats"],
+                    driller_files=driller_result.get("files", []),
+                ),
             })
 
     # ================================================================
@@ -970,17 +976,12 @@ async def _analyze_single_repo_impl(
         # ================================================================
         # 결과 조립
         # ================================================================
-        # Build quality_metrics from static analysis (if available)
-        quality_metrics = {}
-        if static_analysis:
-            quality_metrics["security_score"] = static_analysis.get("security_score", 100)
-            quality_metrics["documentation_ratio"] = static_analysis.get("documentation_ratio", 0.0)
-            quality_metrics["test_coverage"] = static_analysis.get("test_to_code_ratio", 0) * 100
-            if static_analysis.get("maintainability_index") is not None:
-                quality_metrics["maintainability_index"] = static_analysis["maintainability_index"]
-            # Lizard multi-language CC takes precedence over PyDriller Python-only CC
-            if static_analysis.get("overall_avg_cc", 0) > 0:
-                quality_metrics["avg_cc"] = static_analysis["overall_avg_cc"]
+        # Build quality_metrics from static analysis or PyDriller fallback
+        quality_metrics = _build_quality_metrics(
+            static_analysis=static_analysis,
+            driller_stats=driller_result["stats"],
+            driller_files=driller_result.get("files", []),
+        )
 
         total_commits = driller_result["stats"]["total_commits"]
         result = {
@@ -1032,6 +1033,75 @@ async def _analyze_single_repo_impl(
     finally:
         if clone_dir:
             shutil.rmtree(clone_dir, ignore_errors=True)
+
+
+_TEST_FILE_PATTERN = re.compile(
+    r"(^|/)tests?/|test_[^/]+\.\w+$|[^/]+_test\.\w+$|\.spec\.\w+$|\.test\.\w+$",
+    re.IGNORECASE,
+)
+
+
+def _build_quality_metrics(
+    static_analysis: dict | None,
+    driller_stats: dict,
+    driller_files: list[dict],
+) -> dict:
+    """static_analysis 결과가 있으면 사용, 없으면 PyDriller 통계에서 기본 메트릭 생성.
+
+    downstream calculate_code_quality_score()가 사용하는 키:
+    - avg_cc, test_coverage, documentation_ratio, security_score, maintainability_index
+    + commit_frequency, avg_file_changes (추가 메트릭)
+    """
+    # --- static_analysis 우선 ---
+    if static_analysis:
+        qm: dict = {}
+        qm["security_score"] = static_analysis.get("security_score", 100)
+        qm["documentation_ratio"] = static_analysis.get("documentation_ratio", 0.0)
+        qm["test_coverage"] = static_analysis.get("test_to_code_ratio", 0) * 100
+        if static_analysis.get("maintainability_index") is not None:
+            qm["maintainability_index"] = static_analysis["maintainability_index"]
+        # Lizard multi-language CC takes precedence over PyDriller Python-only CC
+        if static_analysis.get("overall_avg_cc", 0) > 0:
+            qm["avg_cc"] = static_analysis["overall_avg_cc"]
+        else:
+            # static_analysis에 CC 없으면 PyDriller fallback
+            avg_cc = driller_stats.get("avg_complexity", 0)
+            if avg_cc > 0:
+                qm["avg_cc"] = avg_cc
+        # PyDriller 기반 추가 메트릭 보강
+        _enrich_from_driller(qm, driller_stats, driller_files)
+        return qm
+
+    # --- static_analysis 없음: PyDriller fallback ---
+    qm = {}
+    avg_cc = driller_stats.get("avg_complexity", 0)
+    if avg_cc > 0:
+        qm["avg_cc"] = avg_cc
+
+    # test_coverage: 파일명 패턴으로 테스트 파일 비율 추정
+    if driller_files:
+        test_count = sum(1 for f in driller_files if _TEST_FILE_PATTERN.search(f.get("filename", "")))
+        total_count = len(driller_files)
+        if total_count > 0:
+            qm["test_coverage"] = round((test_count / total_count) * 100, 1)
+
+    _enrich_from_driller(qm, driller_stats, driller_files)
+    qm["_source"] = "pydriller_fallback"
+    return qm
+
+
+def _enrich_from_driller(qm: dict, driller_stats: dict, driller_files: list[dict]) -> None:
+    """PyDriller 통계에서 commit_frequency, avg_file_changes 등 추가 메트릭 보강."""
+    total_commits = driller_stats.get("total_commits", 0)
+    total_additions = driller_stats.get("total_additions", 0)
+    total_deletions = driller_stats.get("total_deletions", 0)
+    period_years = driller_stats.get("analysis_period_years", 0)
+
+    if total_commits > 0 and period_years and period_years > 0:
+        qm["commit_frequency"] = round(total_commits / period_years, 1)
+
+    if total_commits > 0:
+        qm["avg_file_changes"] = round((total_additions + total_deletions) / total_commits, 1)
 
 
 @activity.defn
