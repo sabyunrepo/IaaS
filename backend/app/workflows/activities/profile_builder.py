@@ -401,10 +401,15 @@ def _build_code_profile(code_analysis: dict) -> "CodeProfile":
                 patterns.add(p)
         for n in repo.get("notable_implementations", []):
             notables.append(n if isinstance(n, dict) else {"title": str(n)})
+        # JIT-62: repo_summaries 필드 보강
         repo_summaries.append({
             "name": repo.get("repo_name", ""),
             "language": lang,
             "commits": repo.get("candidate_commits", 0),
+            "tech_stack": repo.get("analysis", {}).get("tech_stack", []),
+            "notable_count": len(repo.get("notable_implementations", [])),
+            "additions": repo.get("candidate_additions", 0),
+            "deletions": repo.get("candidate_deletions", 0),
         })
 
     # Complexity from stats or repos
