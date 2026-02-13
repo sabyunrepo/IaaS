@@ -51,7 +51,7 @@ async def run_with_heartbeat(
             return f"LLM processing... ({elapsed[0]}s elapsed)"
         result = await run_with_heartbeat(llm.run(prompt), message=msg)
     """
-    task = asyncio.create_task(coro)
+    task = asyncio.ensure_future(coro)
     heartbeat_count = 0
 
     while not task.done():
