@@ -1,0 +1,76 @@
+prompts:
+  craft_question_execution_ownership:
+    description: 실행력/오너십 질문 생성 — 프로젝트 딜리버리, 의사결정, 장애 대응, 성과 측정
+    template: "# CRITICAL OUTPUT RULES (READ FIRST)\n- Return ONLY raw JSON, NO markdown formatting\n- Do NOT wrap output\
+      \ in ```json or ``` code blocks\n- Start your response with { and end with }\n- No explanatory text before or after\
+      \ the JSON\n\n# ROLE & GOAL\nYou are a VP of Engineering assessing a candidate's execution capability and ownership\
+      \ mindset.\nGenerate a question in {{output_language}} that reveals how candidates deliver results,\nmake decisions\
+      \ under pressure, and take ownership of outcomes.\n\n# LANGUAGE REQUIREMENT (CRITICAL — OVERRIDES EXAMPLES)\nWrite ALL\
+      \ output text in {{output_language}}.\nThe few-shot examples below are in Korean for reference ONLY.\nYou MUST produce\
+      \ ALL output (title, question_text, why_matters, listen_for, scenarios, follow_ups, terminology, interviewer_note) in\
+      \ {{output_language}}.\nDo NOT copy Korean text from examples — translate the pattern into {{output_language}}.\n\n\
+      # CATEGORY: EXECUTION_OWNERSHIP (실행력/오너십)\nThis question assesses: project delivery, decision-making, ownership, impact\
+      \ measurement, crisis management.\n\n## DATA SOURCE CONSTRAINTS\n- ✅ USE: Resume projects, LinkedIn career progression,\
+      \ project scale/outcomes\n- ✅ USE: Decision-making experiences, team leadership, crisis management stories\n- ❌ DO NOT\
+      \ reference specific code files, function names, or implementation details\n- ⚠️ You may mention project SCOPE (e.g.,\
+      \ \"대규모 서비스\") but NOT code internals\n\n## QUESTION DESIGN GUIDELINES\n1. **결과 중심**: 과정보다 결과를 먼저 물어라. \"어떤 성과를 냈는가?\"\
+      \n2. **의사결정 과정**: 불확실한 상황에서 어떻게 판단했는지 탐색하라\n3. **장애/위기 대응**: 예상치 못한 문제에서의 행동 패턴을 확인하라\n4. **오너십 범위**: 자기 업무만이 아닌, 팀/프로젝트\
+      \ 전체에 대한 책임감을 탐색하라\n\n## ANSWER EVALUATION CRITERIA\n- Expert: 타임라인/지표로 결과를 설명, 의사결정 과정과 근거 명확, 실패도 인정하며 교훈 도출\n- Mid:\
+      \ 프로젝트 경험은 있으나 본인의 구체적 기여와 의사결정 역할이 불명확\n- Low: 팀의 성과를 말하지만 본인의 역할이 모호, 지시받은 일만 수행\n\n# CANDIDATE PROFILE (USE THIS\
+      \ TO PERSONALIZE YOUR QUESTION)\n{{candidate_context}}\n\n# TOPIC DETAILS\nTopic: {{topic}}\nCategory: {{category}}\n\
+      Difficulty: {{difficulty}}\nExperience Level: {{experience_level}}\n\n{{evidence_context}}\n{{recommended_probe}}\n\n\
+      # OUTPUT FORMAT (v2 JSON)\nReturn a JSON object with: title, question_text, why_matters, listen_for, is_risk,\nanswer_keywords[],\
+      \ scenarios[] (Expert/Mid/Low with score and text),\nfollow_ups[] (with trigger, good/poor examples), terminology[],\
+      \ interviewer_note.\n\n# FEW-SHOT EXAMPLE 1: \"장애 대응 경험\"\nTopic: \"프로덕션 장애 대응 및 복구 경험\" (from Resume: 결제 시스템 운영, GitHub:\
+      \ 모니터링 코드)\nCategory: execution_ownership\nDifficulty: Hard\n\n```json\n{\n  \"title\": \"장애 대응 경험\",\n  \"question_text\"\
+      : \"프로덕션 환경에서 심각한 장애를 겪으신 경험이 있으신가요? 장애를 인지한 순간부터 복구까지의 과정을 시간순으로 설명해주세요.\",\n  \"why_matters\": \"위기 상황에서의 판단력과 실행\
+      \ 속도는 서비스 안정성의 핵심입니다\",\n  \"listen_for\": \"인지 속도, 원인 분석 방법, 복구 우선순위, 재발 방지 조치\",\n  \"is_risk\": false,\n  \"answer_keywords\"\
+      : [\n    {\"keyword\": \"모니터링/알림\", \"importance\": \"must\", \"explanation\": \"장애 인지 체계\"},\n    {\"keyword\": \"\
+      롤백/핫픽스\", \"importance\": \"must\", \"explanation\": \"빠른 복구 전략\"},\n    {\"keyword\": \"포스트모템\", \"importance\": \"\
+      good_to_have\", \"explanation\": \"재발 방지와 학습 문화\"}\n  ],\n  \"scenarios\": [\n    {\n      \"level\": \"Expert\",\n\
+      \      \"score\": 25,\n      \"text\": \"금요일 오후 6시에 결제 API 응답 시간이 평소 200ms에서 15초로 급등했습니다. PagerDuty 알림을 받고 10분 내에 Slack\
+      \ 워룸을 열었고, Datadog 대시보드에서 DB 커넥션 풀이 포화 상태인 걸 확인했습니다. 그날 배포된 배치 작업이 트랜잭션을 반환하지 않아서 커넥션이 리크되고 있었습니다. 배치를 즉시 롤백하고, 커넥션\
+      \ 풀을 50에서 100으로 임시 확장해서 서비스를 42분 만에 복구했습니다. 다음 주 월요일에 포스트모템을 진행하고, 커넥션 리크 감지 알림과 배치 작업 격리 큐를 추가했습니다.\",\n      \"depth_expectations\"\
+      : \"시간별 행동 + 진단 도구 + 원인 분석 + 복구 조치 + 재발 방지 + 구체적 수치\"\n    },\n    {\n      \"level\": \"Mid\",\n      \"score\": 15,\n\
+      \      \"text\": \"서버가 느려지는 장애가 있었는데, 로그를 확인해서 DB 연결 문제인 걸 찾았습니다. 서버를 재시작하고 해결했고, 이후에 모니터링 알림을 추가했습니다.\",\n      \"\
+      depth_expectations\": \"장애 해결 경험은 있으나 진단 과정과 근본 원인 분석 깊이 부족\"\n    },\n    {\n      \"level\": \"Low\",\n      \"score\"\
+      : 5,\n      \"text\": \"장애가 나면 보통 팀장님이나 시니어 개발자가 먼저 대응하시고, 저는 지시에 따라 로그를 수집하거나 상황을 모니터링했습니다.\",\n      \"depth_expectations\"\
+      : \"주도적 대응 경험 부재, 보조 역할에만 머무름\"\n    }\n  ],\n  \"follow_ups\": [\n    {\n      \"id\": \"q-f1\",\n      \"trigger\"\
+      : \"Expert\",\n      \"question_text\": \"포스트모템에서 가장 중요하게 다룬 재발 방지 조치는 무엇이었나요?\",\n      \"why_matters\": \"학습하고 시스템을\
+      \ 개선하는 능력\",\n      \"listen_for\": \"알림 체계, 테스트 자동화, 프로세스 변경\",\n      \"good\": {\"text\": \"커넥션 사용량이 80%를 넘으면 자동\
+      \ 알림이 오도록 설정하고, 배치 작업은 별도 DB 커넥션 풀을 사용하도록 분리했습니다. 또 배포 전 스테이징에서 커넥션 풀 부하 테스트를 CI에 추가했습니다.\", \"score\": 10},\n     \
+      \ \"poor\": {\"text\": \"다음에는 더 조심하기로 했습니다.\", \"score\": 2}\n    },\n    {\n      \"id\": \"q-f2\",\n      \"trigger\"\
+      : \"Low\",\n      \"question_text\": \"장애 상황이 아니더라도, 본인이 주도적으로 문제를 발견하고 해결한 경험이 있으신가요?\",\n      \"why_matters\": \"\
+      오너십 마인드셋 기본 수준 확인\",\n      \"listen_for\": \"자발적 문제 발견, 주도적 해결\",\n      \"good\": {\"text\": \"CI 빌드가 가끔 실패하는데 아무도\
+      \ 안 고쳐서 제가 원인을 찾아보니 테스트 간 DB 상태가 공유되는 문제였습니다. 테스트별 트랜잭션 롤백을 추가해서 해결했습니다.\", \"score\": 6},\n      \"poor\": {\"text\"\
+      : \"딱히 기억나는 건 없습니다.\", \"score\": 1}\n    }\n  ],\n  \"terminology\": [\n    {\"term\": \"포스트모템 (Postmortem)\", \"definition\"\
+      : \"장애 후 원인과 개선점을 분석하는 회의. 비행기 사고 후 블랙박스를 분석하는 것과 비슷합니다\", \"pronunciation\": \"포스트모템\"},\n    {\"term\": \"커넥션 풀\"\
+      , \"definition\": \"DB 연결을 미리 만들어두고 재사용하는 방식. 콜센터 전화 회선처럼 한정된 연결을 효율적으로 관리합니다\", \"pronunciation\": \"커넥션 풀\"}\n  ],\n\
+      \  \"interviewer_note\": {\n    \"business_interpretation\": \"장애 대응 42분 vs 수시간은 매출 손실에서 수천만 원 차이입니다. 포스트모템 문화는 같은 장애의\
+      \ 반복을 방지합니다.\",\n    \"daily_analogy\": \"집에 수도관이 터졌을 때 당황해서 전화만 하는 사람과, 먼저 메인 밸브를 잠그고 수건으로 응급조치한 뒤 배관공에게 정확한 위치를 알려주는\
+      \ 사람의 차이입니다\",\n    \"level_expectation\": \"시니어: 주도적 대응 + 타임라인 + 재발 방지 | 주니어: 장애 상황 인식 + 로그 분석 경험\"\n  }\n}\n```\n\n\
+      # FEW-SHOT EXAMPLE 2: \"일정 지연 대응\"\nTopic: \"프로젝트 일정 관리 및 우선순위 조정\" (from Resume: 3개 프로젝트 동시 진행)\nCategory: execution_ownership\n\
+      Difficulty: Medium\n\n```json\n{\n  \"title\": \"일정 지연 대응\",\n  \"question_text\": \"프로젝트 일정이 예상보다 밀린 경험이 있으신가요? 그 상황에서\
+      \ 어떻게 판단하고 대응하셨나요?\",\n  \"why_matters\": \"일정 관리와 우선순위 조정 능력은 프로젝트 성공의 핵심입니다\",\n  \"listen_for\": \"원인 분석, 이해관계자 커뮤니케이션,\
+      \ 스코프 조정, 의사결정 근거\",\n  \"is_risk\": false,\n  \"answer_keywords\": [\n    {\"keyword\": \"스코프 조정\", \"importance\"\
+      : \"must\", \"explanation\": \"전체를 늦추는 대신 우선순위 재배분\"},\n    {\"keyword\": \"이해관계자 소통\", \"importance\": \"must\", \"\
+      explanation\": \"지연 사실을 투명하게 공유\"}\n  ],\n  \"scenarios\": [\n    {\n      \"level\": \"Expert\",\n      \"score\":\
+      \ 20,\n      \"text\": \"신규 결제 시스템을 6주 안에 출시해야 했는데, 3주차에 PG사 API 변경으로 2주 지연이 예상됐습니다. PM과 기획자에게 바로 공유하고, 기능을 Must-have(카드\
+      \ 결제)와 Nice-to-have(간편결제, 포인트)로 분류해서 Must-have만 6주에 맞추고 나머지는 2차 스프린트로 미뤘습니다. 결과적으로 핵심 기능은 일정대로 출시했고, 간편결제는 2주 후 추가 배포했습니다.\
+      \ PM에게 매일 진행 상황을 공유해서 신뢰를 유지했습니다.\",\n      \"depth_expectations\": \"원인 파악 → 이해관계자 즉시 공유 → 스코프 분류 → 대안 제시 → 결과\"\n\
+      \    },\n    {\n      \"level\": \"Mid\",\n      \"score\": 12,\n      \"text\": \"일정이 밀려서 야근으로 맞추려고 했습니다. 어려운 부분은 팀원들과\
+      \ 나눠서 처리했고, 결국 며칠 늦게 완료했습니다.\",\n      \"depth_expectations\": \"노력으로 만회하려는 패턴, 구조적 대응(스코프 조정) 부족\"\n    },\n    {\n\
+      \      \"level\": \"Low\",\n      \"score\": 5,\n      \"text\": \"일정이 밀렸는데 PM에게 보고하고 기다렸습니다. 추가 일정을 받아서 마무리했습니다.\"\
+      ,\n      \"depth_expectations\": \"수동적 대응, 주도적 대안 제시 없음\"\n    }\n  ],\n  \"follow_ups\": [\n    {\n      \"id\": \"\
+      q-f1\",\n      \"trigger\": \"Expert\",\n      \"question_text\": \"스코프를 줄이자고 제안했을 때 기획팀의 반응은 어땠나요?\",\n      \"why_matters\"\
+      : \"이해관계자 관리 능력\",\n      \"listen_for\": \"데이터 기반 설득, 대안 제시\",\n      \"good\": {\"text\": \"처음에는 '전부 해야 한다'고 했는데,\
+      \ 사용자 데이터를 보여드리며 카드 결제가 전체 결제의 85%라서 이것만 먼저 해도 사업 영향이 적다고 설명했더니 동의해주셨습니다.\", \"score\": 8},\n      \"poor\": {\"text\"\
+      : \"어쩔 수 없다고 하셔서 야근해서 다 했습니다.\", \"score\": 2}\n    }\n  ],\n  \"terminology\": [\n    {\"term\": \"스코프 (Scope)\", \"\
+      definition\": \"프로젝트에서 만들어야 할 기능의 범위. 이사할 때 짐을 한 번에 다 옮길지, 급한 것만 먼저 옮길지 정하는 것과 같습니다\", \"pronunciation\": \"스코프\"}\n\
+      \  ],\n  \"interviewer_note\": {\n    \"business_interpretation\": \"일정 지연 자체보다 대응 방식이 중요합니다. 투명한 소통과 스코프 조정이 프로젝트 신뢰를\
+      \ 유지합니다.\",\n    \"daily_analogy\": \"여행 가기 전날 태풍이 오면, 1) 아무 말 없이 비행기를 기다리거나 2) 일정을 바꿔 다른 도시를 가거나 3) 모두에게 공유하고 함께 대안을\
+      \ 찾는 것의 차이입니다\",\n    \"level_expectation\": \"시니어: 구조적 대응 + 이해관계자 관리 | 주니어: 상황 인식 + 적극적 소통\"\n  }\n}\n```\n\n# LIMITATIONS\n\
+      - NEVER accept \"야근으로 해결했습니다\" as Expert-level answer\n- NEVER create questions that only test knowledge, not execution\
+      \ experience\n- Expert answers MUST include timeline, specific actions, and measurable outcomes\n- Follow-ups should\
+      \ probe decision-making PROCESS, not just results\n\nREMINDER: Return raw JSON only. Do NOT use markdown code blocks.\
+      \ Start with { and end with }.\n"

@@ -308,8 +308,10 @@ def _prompt_key_to_activity_name(filename: str, key: str) -> str:
     """YAML 파일명과 키를 activity 이름으로 변환.
 
     매핑 규칙:
-    - question_generation.yaml + select_topics → select_topics
-    - question_generation.yaml + craft_question → craft_question
+    - question_topic_selection.yaml + select_topics → select_topics
+    - question_craft.yaml + craft_question → craft_question
+    - question_craft_{category}.yaml + craft_question_{category} → craft_question
+    - question_enhancement.yaml + enhance_terminology → enhance_terminology
     - document_analysis.yaml + extract_profile → analyze_documents
     - jd_analysis.yaml + analyze → analyze_jd
     - quality_review.yaml + review → quality_review

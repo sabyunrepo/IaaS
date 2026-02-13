@@ -1,0 +1,74 @@
+prompts:
+  craft_question_risk_flags:
+    description: 위험 신호 검증 질문 생성 — 비판단적 톤, 객관적 확인, 우려사항 탐색
+    template: "# CRITICAL OUTPUT RULES (READ FIRST)\n- Return ONLY raw JSON, NO markdown formatting\n- Do NOT wrap output\
+      \ in ```json or ``` code blocks\n- Start your response with { and end with }\n- No explanatory text before or after\
+      \ the JSON\n\n# ROLE & GOAL\nYou are an experienced interviewer skilled at surfacing concerns without creating defensiveness.\n\
+      Generate a risk verification question in {{output_language}} that explores potential\nred flags while maintaining a\
+      \ respectful, non-judgmental tone.\n\n# LANGUAGE REQUIREMENT (CRITICAL — OVERRIDES EXAMPLES)\nWrite ALL output text\
+      \ in {{output_language}}.\nThe few-shot examples below are in Korean for reference ONLY.\nYou MUST produce ALL output\
+      \ (title, question_text, why_matters, listen_for, scenarios, follow_ups, terminology, interviewer_note) in {{output_language}}.\n\
+      Do NOT copy Korean text from examples — translate the pattern into {{output_language}}.\n\n# CATEGORY: RISK_FLAGS (위험\
+      \ 신호 검증)\nThis question assesses: career gaps, job hopping, skill gaps, inconsistencies, cultural misalignment.\n\n\
+      ## DATA SOURCE CONSTRAINTS\n- ✅ USE: Resume career timeline, LinkedIn employment history, JD requirement gaps\n- ✅ USE:\
+      \ Identified inconsistencies between data sources, unexplained gaps\n- ❌ DO NOT force code references unless the risk\
+      \ is specifically about code quality\n- ⚠️ Focus on CAREER PATTERNS and GAPS, not code implementation details\n\n##\
+      \ QUESTION DESIGN GUIDELINES\n1. **비판단적 톤**: \"왜 자주 옮기셨나요?\"(X) → \"각 이직의 배경을 말씀해주시겠어요?\"(O)\n2. **객관적 확인**: 우려사항의 실제\
+      \ 원인을 파악하라 (외부 요인 vs 본인 패턴)\n3. **방어 유발 금지**: 후보자가 방어적이 되면 진실한 답변을 얻기 어려움\n4. **재발 가능성 탐색**: 과거 패턴이 앞으로도 반복될 가능성을 간접적으로\
+      \ 확인하라\n\n## ANSWER EVALUATION CRITERIA\n- Expert: 구체적 사유 + 외부/내부 요인 구분 + 배운 점 + 재발 방지 근거 제시\n- Mid: 사유는 있으나 구체성 부족,\
+      \ 향후 계획이 모호\n- Low: 방어적/회피적 태도, 남 탓, 구체적 사유 없음\n\n# CANDIDATE PROFILE (USE THIS TO PERSONALIZE YOUR QUESTION)\n{{candidate_context}}\n\
+      \n# TOPIC DETAILS\nTopic: {{topic}}\nCategory: {{category}}\nDifficulty: {{difficulty}}\nExperience Level: {{experience_level}}\n\
+      \n{{evidence_context}}\n{{recommended_probe}}\n\n# OUTPUT FORMAT (v2 JSON)\nReturn a JSON object with: title, question_text,\
+      \ why_matters, listen_for, is_risk (usually true),\nanswer_keywords[], scenarios[] (Expert/Mid/Low with score and text),\n\
+      follow_ups[] (with trigger, good/poor examples), terminology[], interviewer_note.\n\n# FEW-SHOT EXAMPLE 1: \"경력 공백 기간\
+      \ 확인\"\nTopic: \"1년 경력 공백 기간에 대한 확인\" (from Resume: 2023.03-2024.03 공백)\nCategory: risk_flags\nDifficulty: Medium\n\n\
+      ```json\n{\n  \"title\": \"경력 공백 확인\",\n  \"question_text\": \"이력서를 보니 2023년부터 약 1년간 경력 공백이 있으신데, 그 기간에 어떤 활동을 하셨는지\
+      \ 편하게 말씀해주시겠어요?\",\n  \"why_matters\": \"경력 공백의 실제 사유와 복귀 준비 상태를 파악합니다\",\n  \"listen_for\": \"솔직한 사유, 기간 중 활동, 현재 업무\
+      \ 준비 상태, 자기 인식\",\n  \"is_risk\": true,\n  \"answer_keywords\": [\n    {\"keyword\": \"구체적 사유\", \"importance\": \"\
+      must\", \"explanation\": \"공백의 실제 원인\"},\n    {\"keyword\": \"기간 중 활동\", \"importance\": \"must\", \"explanation\":\
+      \ \"자기개발이나 회복 노력\"},\n    {\"keyword\": \"복귀 준비\", \"importance\": \"good_to_have\", \"explanation\": \"현재 업무 준비 상태\"\
+      }\n  ],\n  \"scenarios\": [\n    {\n      \"level\": \"Expert\",\n      \"score\": 18,\n      \"text\": \"3년간 온콜 로테이션과\
+      \ 야근이 계속되면서 번아웃이 왔습니다. 처음 3개월은 완전히 쉬면서 체력을 회복했고, 이후 6개월은 평소 관심 있던 Rust를 독학하며 CLI 도구 2개를 만들었습니다. GitHub에 올린 프로젝트가 Star\
+      \ 120개를 받았습니다. 마지막 3개월은 오픈소스 프로젝트에 기여하면서 협업 감각을 회복했습니다. 이 경험으로 지속 가능한 페이스의 중요성을 깨달았고, 워라밸을 중시하면서도 성과를 내는 팀에서 일하고 싶습니다.\"\
+      ,\n      \"depth_expectations\": \"솔직한 사유 + 기간별 구체적 활동 + 결과물 + 배운 점 + 향후 기준\"\n    },\n    {\n      \"level\": \"Mid\"\
+      ,\n      \"score\": 10,\n      \"text\": \"개인 사정으로 쉬었습니다. 쉬는 동안 온라인 강의를 듣고 공부를 했습니다. 이제 다시 일할 준비가 됐습니다.\",\n      \"\
+      depth_expectations\": \"사유가 모호하고 활동이 구체적이지 않음\"\n    },\n    {\n      \"level\": \"Low\",\n      \"score\": 3,\n   \
+      \   \"text\": \"좀 쉬고 싶어서 쉬었습니다. 특별히 한 건 없습니다.\",\n      \"depth_expectations\": \"자기개발 노력 없음, 복귀 준비 불명확\"\n    }\n \
+      \ ],\n  \"follow_ups\": [\n    {\n      \"id\": \"q-f1\",\n      \"trigger\": \"Expert\",\n      \"question_text\":\
+      \ \"번아웃을 경험하신 후 업무 방식에서 구체적으로 바꾼 점이 있으신가요?\",\n      \"why_matters\": \"같은 패턴 반복 가능성 평가\",\n      \"listen_for\": \"\
+      구체적 변화, 경계 설정, 자기 관리 전략\",\n      \"good\": {\"text\": \"온콜을 혼자 다 맡지 않고 팀 로테이션을 제안하기로 했고, 주 50시간이 넘으면 매니저에게 리소스 조정을\
+      \ 요청하기로 정했습니다. 이전에는 거절을 못 했는데, 이제는 우선순위를 명확히 하고 스코프를 조정하는 게 오히려 팀에 도움이 된다는 걸 알았습니다.\", \"score\": 8},\n      \"poor\"\
+      : {\"text\": \"이번에는 너무 무리하지 않으려고 합니다.\", \"score\": 2}\n    },\n    {\n      \"id\": \"q-f2\",\n      \"trigger\": \"\
+      Mid\",\n      \"question_text\": \"쉬시는 동안 들었던 온라인 강의 중에 가장 도움이 됐던 건 무엇인가요?\",\n      \"why_matters\": \"학습 활동의 구체성 확인\"\
+      ,\n      \"listen_for\": \"구체적 강의명, 적용 내용, 결과물\",\n      \"good\": {\"text\": \"Udemy에서 시스템 디자인 강의를 듣고, 실습으로 URL 단축\
+      \ 서비스를 직접 설계해봤습니다. Redis를 처음 써봤는데 캐싱 패턴을 이해하는 데 도움이 많이 됐습니다.\", \"score\": 5},\n      \"poor\": {\"text\": \"여러 개 들었는데\
+      \ 구체적으로 기억이 안 납니다.\", \"score\": 1}\n    }\n  ],\n  \"terminology\": [],\n  \"interviewer_note\": {\n    \"business_interpretation\"\
+      : \"경력 공백 자체보다 그 기간의 활용과 복귀 준비가 중요합니다. 번아웃 후 자기 관리 전략을 갖춘 후보자는 오히려 지속 가능하게 일할 가능성이 높습니다.\",\n    \"daily_analogy\":\
+      \ \"운동선수가 부상 후 재활하는 기간처럼, 중요한 건 쉬었다는 사실이 아니라 어떻게 회복하고 돌아왔는지입니다\",\n    \"level_expectation\": \"시니어: 솔직한 사유 + 구체적 활동\
+      \ + 재발 방지 전략 | 주니어: 학습 노력 + 복귀 의지\"\n  }\n}\n```\n\n# FEW-SHOT EXAMPLE 2: \"기술 스택 불일치 확인\"\nTopic: \"JD 요구 기술과 경험 간\
+      \ 차이 확인\" (from JD: Kubernetes 필수, Resume: Docker만 경험)\nCategory: risk_flags\nDifficulty: Easy\n\n```json\n{\n  \"title\"\
+      : \"기술 스택 차이 확인\",\n  \"question_text\": \"이 포지션에서는 Kubernetes 경험이 중요한데, 이력서에는 Docker 경험 위주로 적으셨네요. 컨테이너 오케스트레이션 관련\
+      \ 경험이 있으신지, 아니면 학습 계획이 있으신지 말씀해주시겠어요?\",\n  \"why_matters\": \"핵심 기술 스택 차이가 온보딩 기간과 팀 기여 속도에 영향을 미칩니다\",\n  \"listen_for\"\
+      : \"현실적 자기 인식, 학습 계획 구체성, 관련 경험 연결, 습득 속도 근거\",\n  \"is_risk\": true,\n  \"answer_keywords\": [\n    {\"keyword\": \"\
+      자기 인식\", \"importance\": \"must\", \"explanation\": \"부족한 부분을 솔직히 인정하는 태도\"},\n    {\"keyword\": \"학습 계획\", \"importance\"\
+      : \"must\", \"explanation\": \"구체적인 습득 전략\"}\n  ],\n  \"scenarios\": [\n    {\n      \"level\": \"Expert\",\n      \"\
+      score\": 18,\n      \"text\": \"Kubernetes를 프로덕션에서 직접 운영한 경험은 없습니다. 하지만 Docker Compose로 10개 이상의 서비스를 로컬에서 오케스트레이션한 경험이\
+      \ 있고, 네트워킹, 볼륨, 헬스체크 개념은 이해하고 있습니다. 개인적으로 minikube로 사이드 프로젝트를 배포해봤고, Pod, Service, Deployment 같은 기본 리소스는 YAML로 작성할 수\
+      \ 있습니다. 합류하면 첫 2주간 팀의 기존 Helm 차트를 분석하면서 배우겠습니다. 이전에도 새 기술을 3주 안에 실무 수준으로 올린 경험이 있습니다.\",\n      \"depth_expectations\"\
+      : \"솔직한 인정 + 관련 기반 + 이미 시작한 학습 + 구체적 온보딩 계획\"\n    },\n    {\n      \"level\": \"Mid\",\n      \"score\": 10,\n    \
+      \  \"text\": \"Kubernetes는 아직 안 해봤는데 Docker는 잘 씁니다. Kubernetes도 빨리 배울 수 있을 것 같습니다. 온라인 강의를 보려고 합니다.\",\n      \"depth_expectations\"\
+      : \"자신감은 있으나 학습 계획이 구체적이지 않음\"\n    },\n    {\n      \"level\": \"Low\",\n      \"score\": 3,\n      \"text\": \"Kubernetes는\
+      \ 잘 모릅니다. 회사에서 알려주시면 배우겠습니다.\",\n      \"depth_expectations\": \"수동적 학습 태도, 자기주도 계획 없음\"\n    }\n  ],\n  \"follow_ups\"\
+      : [\n    {\n      \"id\": \"q-f1\",\n      \"trigger\": \"Expert\",\n      \"question_text\": \"minikube로 배포하면서 가장 어려웠던\
+      \ 부분은 무엇이었나요?\",\n      \"why_matters\": \"실제 학습 경험의 깊이 확인\",\n      \"listen_for\": \"구체적 문제, 해결 과정, 이해도\",\n     \
+      \ \"good\": {\"text\": \"서비스 간 통신에서 ClusterIP와 NodePort의 차이를 이해하는 게 어려웠습니다. Pod가 재시작될 때 IP가 바뀌어서 Service 리소스로 안정적인 엔드포인트를\
+      \ 만들어야 한다는 걸 직접 겪고 나서 이해했습니다.\", \"score\": 8},\n      \"poor\": {\"text\": \"설치가 좀 복잡했습니다.\", \"score\": 2}\n    }\n\
+      \  ],\n  \"terminology\": [\n    {\"term\": \"Kubernetes (K8s)\", \"definition\": \"여러 서버에서 컨테이너를 자동으로 관리하는 시스템. 대형마트에서\
+      \ 직원(컨테이너) 배치, 교대, 결원 보충을 자동으로 해주는 매니저와 같습니다\", \"pronunciation\": \"쿠버네티스\"}\n  ],\n  \"interviewer_note\": {\n   \
+      \ \"business_interpretation\": \"기술 스택 차이 자체보다 학습 속도와 자기주도 학습 능력이 중요합니다. Docker 경험이 있으면 Kubernetes 온보딩이 빠릅니다.\",\n \
+      \   \"daily_analogy\": \"수동 기어 운전 경험이 있는 사람이 자동 기어를 배우는 것 — 기본 운전 실력이 있으면 전환은 빠릅니다\",\n    \"level_expectation\": \"\
+      시니어: 관련 기반 경험 + 구체적 학습 계획 + 과거 학습 속도 근거 | 주니어: 솔직한 인정 + 학습 의지 + 기본적 시도\"\n  }\n}\n```\n\n# LIMITATIONS\n- NEVER use\
+      \ accusatory or judgmental tone (\"왜 그만두셨나요?\" → \"어떤 배경이 있었나요?\")\n- NEVER treat risk flags as automatic disqualification\
+      \ — they're verification points\n- Expert answers should turn risks INTO strengths (learned from experience)\n- Follow-ups\
+      \ should assess FUTURE behavior patterns, not punish past ones\n\nREMINDER: Return raw JSON only. Do NOT use markdown\
+      \ code blocks. Start with { and end with }.\n"

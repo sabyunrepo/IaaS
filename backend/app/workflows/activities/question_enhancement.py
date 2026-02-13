@@ -114,7 +114,7 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
 
     validated = await _run_batched_enhancement(
         questions=questions[:25],
-        prompt_file="question_generation.yaml",
+        prompt_file="question_enhancement.yaml",
         prompt_name="enhance_terminology",
         activity_name="enhance_terminology",
         extra_vars={"output_language": output_language},
@@ -170,7 +170,7 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
 
     validated = await _run_batched_enhancement(
         questions=questions[:25],
-        prompt_file="question_generation.yaml",
+        prompt_file="question_enhancement.yaml",
         prompt_name="craft_evaluation_scenarios",
         activity_name="craft_evaluation_scenarios",
         extra_vars={"output_language": output_language, "experience_level": experience_level},
@@ -234,7 +234,7 @@ async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict
 
     validated = await _run_batched_enhancement(
         questions=questions[:25],
-        prompt_file="question_generation.yaml",
+        prompt_file="question_enhancement.yaml",
         prompt_name="design_follow_ups",
         activity_name="design_follow_ups",
         extra_vars={"output_language": output_language, "experience_level": experience_level},
@@ -274,7 +274,7 @@ async def generate_interviewer_notes(questions: list[dict], enriched_input: dict
 
     validated = await _run_batched_enhancement(
         questions=questions[:25],
-        prompt_file="question_generation.yaml",
+        prompt_file="question_enhancement.yaml",
         prompt_name="generate_interviewer_notes",
         activity_name="generate_interviewer_notes",
         extra_vars={"output_language": output_language},
@@ -323,7 +323,7 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
     category_summary = json.dumps(categories, ensure_ascii=False)
 
     prompt_config = get_prompt_with_config(
-        "question_generation.yaml", "generate_decision_guide",
+        "question_enhancement.yaml", "generate_decision_guide",
         output_language=output_language,
         experience_level=experience_level,
         analysis_summary=analysis_summary,
@@ -383,7 +383,7 @@ async def revise_questions(
 
     # flagged 질문만 LLM에 전달 (토큰 ~84K → ~5-20K)
     prompt_config = get_prompt_with_config(
-        "question_generation.yaml", "revise_questions",
+        "question_enhancement.yaml", "revise_questions",
         output_language=output_language,
         questions_json=json.dumps(flagged_questions, ensure_ascii=False, default=str),
         review_feedback=json.dumps(review_feedback, ensure_ascii=False, default=str),

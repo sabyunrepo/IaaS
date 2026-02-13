@@ -16,7 +16,7 @@ class TestPromptLoader:
 
     def test_load_select_topics(self):
         prompt = get_prompt(
-            "question_generation.yaml", "select_topics",
+            "question_topic_selection.yaml", "select_topics",
             max_questions=25, experience_level="시니어", candidates="1. React",
         )
         assert "25" in prompt
@@ -24,7 +24,7 @@ class TestPromptLoader:
 
     def test_load_craft_question(self):
         prompt = get_prompt(
-            "question_generation.yaml", "craft_question",
+            "question_craft.yaml", "craft_question",
             output_language="ko", experience_level="주니어",
             topic="React hooks", category="technical_depth", difficulty="Medium",
         )
@@ -73,7 +73,14 @@ class TestYamlStructure:
     YAML_FILES = [
         "jd_analysis.yaml",
         "document_analysis.yaml",
-        "question_generation.yaml",
+        "question_topic_selection.yaml",
+        "question_craft.yaml",
+        "question_craft_role_fit.yaml",
+        "question_craft_technical_depth.yaml",
+        "question_craft_execution_ownership.yaml",
+        "question_craft_communication.yaml",
+        "question_craft_risk_flags.yaml",
+        "question_enhancement.yaml",
         "quality_review.yaml",
         "finalization.yaml",
     ]
@@ -136,8 +143,8 @@ class TestPhase3PromptNameGeneration:
     def test_prompt_name_from_question_generation(self):
         """Generates correct name for question_generation prompts."""
         from app.prompts import _get_langfuse_prompt_name
-        name = _get_langfuse_prompt_name("question_generation.yaml", "craft_question")
-        assert name == "question_generation_craft_question"
+        name = _get_langfuse_prompt_name("question_craft.yaml", "craft_question")
+        assert name == "question_craft_craft_question"
 
     def test_prompt_name_from_finalization(self):
         """Generates correct name for finalization prompts."""
@@ -219,7 +226,9 @@ class TestPhase3PromptCache:
 
         assert isinstance(result, dict)
         assert "jd_analysis.yaml" in result
-        assert "question_generation.yaml" in result
+        assert "question_topic_selection.yaml" in result
+        assert "question_craft.yaml" in result
+        assert "question_enhancement.yaml" in result
         assert "document_analysis.yaml" in result
         assert "quality_review.yaml" in result
         assert "finalization.yaml" in result
@@ -232,8 +241,8 @@ class TestPhase3PromptCache:
 
         # Check specific keys exist
         assert "analyze" in result["jd_analysis.yaml"]
-        assert "select_topics" in result["question_generation.yaml"]
-        assert "craft_question" in result["question_generation.yaml"]
+        assert "select_topics" in result["question_topic_selection.yaml"]
+        assert "craft_question" in result["question_craft.yaml"]
 
 
 class TestPhase3LangfuseFallback:
@@ -284,7 +293,7 @@ class TestPhase3LangfuseFallback:
         assert "JD" in prompt1
 
         prompt2 = get_prompt(
-            "question_generation.yaml", "select_topics",
+            "question_topic_selection.yaml", "select_topics",
             max_questions=25, experience_level="Senior", candidates="data"
         )
         assert "25" in prompt2

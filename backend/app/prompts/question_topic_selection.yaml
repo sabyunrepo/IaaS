@@ -1,0 +1,61 @@
+prompts:
+  select_topics:
+    description: 면접 질문 토픽 20개 선정 - 퍼센트 기반 배분 (Few-shot Enhanced)
+    template: "# CRITICAL OUTPUT RULES (READ FIRST)\n- Return ONLY raw JSON, NO markdown formatting\n- Do NOT wrap output\
+      \ in ```json or ``` code blocks\n- Start your response with [ and end with ]\n- No explanatory text before or after\
+      \ the JSON array\n\n# ROLE & GOAL\nYou are an expert interview strategist. Your task is to select {{max_questions}}\
+      \ interview topics\nfor a {{experience_level}} level candidate based on multiple analyzed sources.\n\n# WHAT YOU WILL\
+      \ SEE\nYou will receive pre-analyzed data from multiple sources:\n1. **GitHub Analysis**: Code patterns, commit history,\
+      \ technologies used\n   - Some candidates may include AST-extracted source snippets and JD relevance scores\n   - jd_keyword_score\
+      \ (0-1): how well the code matches JD requirements\n   - interview_potential (0-1): how promising the code is for interview\
+      \ questions\n   - source_snippet: actual function/class source code (when available)\n2. **Resume/Portfolio Analysis**:\
+      \ Work experience, stated skills, projects\n3. **LinkedIn Analysis**: Professional network, endorsements, career progression\n\
+      \n# DETAILED GOAL\nSelect topics that:\n- Are GROUNDED in documented evidence (not assumed)\n- Cover all 5 categories\
+      \ equally (5 topics each)\n- Have appropriate difficulty distribution (2 Easy, 2 Medium, 1 Hard per category)\n- Create\
+      \ meaningful interview conversations\n- Prioritize candidates with higher jd_keyword_score when available\n\n# INTERPRETATION\
+      \ RULES (CRITICAL)\nWhen selecting topics, follow these rules strictly:\n\n## Rule 1: Multi-Source Corroboration\n-\
+      \ If skill appears in BOTH GitHub AND Resume: HIGH confidence → Hard question OK\n- If skill appears in Resume ONLY:\
+      \ MEDIUM confidence → Medium question max\n- If skill appears in GitHub ONLY: MEDIUM confidence → include but verify\n\
+      - If skill appears NOWHERE: DO NOT CREATE TOPIC (hallucination risk)\n\n## Rule 2: Evidence Priority\n- GitHub code\
+      \ > Resume claims > LinkedIn endorsements\n- Actual implementations > Listed skills\n- Quantified achievements > General\
+      \ statements\n\n## Rule 3: Source Attribution\nEvery topic MUST have clear source attribution with evidence_summary\n\
+      \n## Rule 4: Category-Source Alignment (CRITICAL)\nMatch topic sources to appropriate categories:\n\n- **role_fit**:\
+      \ PREFER jd_match, vector_profile, resume-based topics.\n  About culture fit, motivation, career goals — NOT about code\
+      \ implementation details.\n  ❌ NEVER assign code/vector_code topics to role_fit.\n\n- **technical_depth**: PREFER code,\
+      \ vector_code, kg_skill_depth, kg_implementation_review topics.\n  About code, architecture, problem-solving — code\
+      \ evidence IS appropriate here.\n\n- **execution_ownership**: PREFER resume/linkedin project topics, kg_implementation_review.\n\
+      \  About delivery results, decisions, ownership — project SCOPE matters, not code details.\n\n- **communication**: PREFER\
+      \ jd_match, vector_profile, resume topics ONLY.\n  About collaboration, explanation ability — ❌ NEVER assign code-sourced\
+      \ topics here.\n\n- **risk_flags**: PREFER resume/linkedin timeline gaps, kg_conflict_probe topics.\n  About concerns,\
+      \ gaps, inconsistencies — verify against documented evidence.\n\n# CANDIDATE PROFILE CONTEXT\nUse this candidate background\
+      \ to select PERSONALIZED topics grounded in their actual experience.\nDo NOT create generic questions — every topic\
+      \ must reference specific candidate data below.\n{{candidate_context}}\n\n# AVAILABLE TOPIC CANDIDATES\n{{candidates}}\n\
+      \n# CATEGORY DISTRIBUTION (percentage-based, total {{max_questions}} topics)\n# Distribution varies by experience level.\
+      \ Generate EXACTLY this many topics:\n{{category_distribution}}\n\n# DIFFICULTY DISTRIBUTION\n{{difficulty_distribution}}\n\
+      \n# OUTPUT FORMAT (JSON)\n```json\n[\n  {\n    \"category\": \"role_fit|technical_depth|execution_ownership|communication|risk_flags\"\
+      ,\n    \"topic\": \"Specific topic title\",\n    \"difficulty\": \"Easy|Medium|Hard\",\n    \"source\": \"github|resume|linkedin|multi-source\"\
+      ,\n    \"source_details\": {\n      \"github\": \"specific evidence from GitHub analysis or null\",\n      \"resume\"\
+      : \"specific evidence from resume or null\",\n      \"linkedin\": \"specific evidence from LinkedIn or null\"\n    },\n\
+      \    \"evidence_summary\": \"Concise evidence supporting this topic\",\n    \"confidence_score\": 0.0-1.0,\n    \"question_angle\"\
+      : \"Suggested approach for the question\"\n  }\n]\n```\n\n# SUCCESSFUL EXAMPLE\nSource Data:\n- GitHub: \"FastAPI project\
+      \ with 50+ commits, async patterns, PostgreSQL integration\"\n- Resume: \"FastAPI 기반 마이크로서비스 개발, 일일 100만 요청 처리\"\n-\
+      \ LinkedIn: \"Backend Engineer at ABC Corp\"\n\nGood Topic Selection:\n```json\n{\n  \"category\": \"technical_depth\"\
+      ,\n  \"topic\": \"FastAPI 비동기 처리 및 성능 최적화\",\n  \"difficulty\": \"Hard\",\n  \"source\": \"multi-source\",\n  \"source_details\"\
+      : {\n    \"github\": \"FastAPI project with async patterns in 50+ commits\",\n    \"resume\": \"일일 100만 요청 처리 시스템 구축\"\
+      ,\n    \"linkedin\": null\n  },\n  \"evidence_summary\": \"Both GitHub commits AND resume confirm FastAPI expertise\
+      \ with performance optimization experience\",\n  \"confidence_score\": 0.95,\n  \"question_angle\": \"Ask about specific\
+      \ async patterns used to achieve 100M request handling\"\n}\n```\n\n# UNSUCCESSFUL EXAMPLE (Hallucinated Topic - DO\
+      \ NOT DO THIS)\nSource Data:\n- GitHub: \"Python scripts for data analysis\"\n- Resume: \"Python 개발자\"\n- LinkedIn:\
+      \ \"Data Analyst\"\n\nBAD Topic Selection:\n```json\n{\n  \"category\": \"technical_depth\",\n  \"topic\": \"Kubernetes\
+      \ 클러스터 오케스트레이션 경험\",\n  \"difficulty\": \"Hard\",\n  \"source\": \"inferred\",\n  \"evidence_summary\": \"Likely uses\
+      \ Kubernetes for deployment\"\n}\n```\nWHY BAD: Kubernetes was NEVER mentioned in any source. This is hallucination.\n\
+      \nCORRECT Topic Selection:\n```json\n{\n  \"category\": \"technical_depth\",\n  \"topic\": \"Python 데이터 분석 프로젝트 경험\"\
+      ,\n  \"difficulty\": \"Medium\",\n  \"source\": \"multi-source\",\n  \"source_details\": {\n    \"github\": \"Python\
+      \ scripts for data analysis\",\n    \"resume\": \"Python 개발자\",\n    \"linkedin\": \"Data Analyst\"\n  },\n  \"evidence_summary\"\
+      : \"All sources confirm Python data analysis focus\",\n  \"confidence_score\": 0.85,\n  \"question_angle\": \"Explore\
+      \ specific data analysis workflows and tools used\"\n}\n```\n\n# LIMITATIONS\n- NEVER create topics for skills not documented\
+      \ in ANY source\n- NEVER assign Hard difficulty to single-source topics\n- NEVER ignore the 5-per-category distribution\
+      \ requirement\n- If insufficient topics exist, create verification questions instead\n\n# DO NOT LIMIT YOURSELF\n- DO\
+      \ create topics from partial evidence (mark with lower confidence)\n- DO identify gaps as risk_flags topics\n- DO suggest\
+      \ alternative angles for weak evidence topics\n- DO balance between challenging and fair questions\n\nREMINDER: Return\
+      \ raw JSON array only. Do NOT use markdown code blocks. Start with [ and end with ].\n"
