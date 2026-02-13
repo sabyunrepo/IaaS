@@ -67,16 +67,16 @@ class GitHubService:
             logger.warning(f"Failed to get languages for {url}: {e}")
             return {}
 
-    async def get_user_repos(self, profile_url: str, max_repos: int = 10) -> list[str]:
+    async def get_user_repos(self, profile_url: str, max_repos: int = 20) -> list[str]:
         """
         GitHub 프로필 URL에서 사용자의 레포지토리 목록 가져오기
 
         Args:
             profile_url: GitHub 프로필 URL (e.g., https://github.com/username)
-            max_repos: 최대 가져올 레포 수 (기본 10개)
+            max_repos: 최대 가져올 non-fork 레포 수 (기본 20개)
 
         Returns:
-            레포지토리 URL 목록
+            레포지토리 URL 목록 (fork 제외)
         """
         import httpx
 
@@ -93,27 +93,32 @@ class GitHubService:
             g = self._get_github()
             user = g.get_user(username)
             repos = []
-            for repo in user.get_repos(sort="pushed")[:max_repos]:
-                if not repo.fork:  # fork된 레포 제외
+            for repo in user.get_repos(sort="pushed"):
+                if not repo.fork:
                     repos.append(repo.html_url)
+                if len(repos) >= max_repos:
+                    break
             return repos
         except Exception as e:
             logger.warning(f"PyGithub failed for user repos {username}: {e}, trying unauthenticated...")
 
-        # Fallback: 인증 없이 공개 API 직접 호출
+        # Fallback: 인증 없이 공개 API 직접 호출 (per_page 여유있게 요청)
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 resp = await client.get(
                     f"https://api.github.com/users/{username}/repos",
                     headers={"Accept": "application/vnd.github.v3+json"},
-                    params={"sort": "pushed", "per_page": max_repos},
+                    params={"sort": "pushed", "per_page": min(max_repos * 2, 100)},
                 )
                 if resp.status_code == 200:
                     data = resp.json()
-                    return [
-                        repo["html_url"] for repo in data
-                        if not repo.get("fork", False)
-                    ]
+                    repos = []
+                    for repo in data:
+                        if not repo.get("fork", False):
+                            repos.append(repo["html_url"])
+                        if len(repos) >= max_repos:
+                            break
+                    return repos
         except Exception as e2:
             logger.warning(f"Unauthenticated repos request also failed for {username}: {e2}")
 
