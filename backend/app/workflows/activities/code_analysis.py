@@ -564,6 +564,18 @@ async def _analyze_single_repo_impl(
         if candidate_username and clone_dir:
             try:
                 from app.services.github_service import GitHubService
+
+                # JIT-81: clone 깊이 확장 — author 추출 정확도 향상
+                try:
+                    deepen_proc = await asyncio.create_subprocess_exec(
+                        "git", "-C", clone_dir, "fetch", "--deepen=49",
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE,
+                    )
+                    await asyncio.wait_for(deepen_proc.communicate(), timeout=15)
+                except Exception:
+                    pass  # non-fatal: depth=1로 계속 진행
+
                 git_authors = await GitHubService.extract_git_authors(clone_dir)
                 if git_authors:
                     author_names = [a["name"] for a in git_authors]
@@ -572,10 +584,13 @@ async def _analyze_single_repo_impl(
                         github_profile = None
                         try:
                             import httpx
+                            profile_headers = {"Accept": "application/vnd.github.v3+json"}
+                            if settings.GITHUB_TOKEN:
+                                profile_headers["Authorization"] = f"token {settings.GITHUB_TOKEN}"
                             async with httpx.AsyncClient(timeout=5.0) as client:
                                 resp = await client.get(
                                     f"https://api.github.com/users/{candidate_username}",
-                                    headers={"Accept": "application/vnd.github.v3+json"},
+                                    headers=profile_headers,
                                 )
                                 if resp.status_code == 200:
                                     profile_data = resp.json()
@@ -591,6 +606,37 @@ async def _analyze_single_repo_impl(
                             github_profile=github_profile,
                         )
                         repo_identity_result = identity_result  # JIT-37: cross-repo용 보존
+
+                        # JIT-81: 휴리스틱 실패 시 GitHub Commits API fallback
+                        if not identity_result.best_match:
+                            repo_full_name = repo_url.replace("https://github.com/", "").rstrip("/").rstrip(".git")
+                            api_match = await GitHubService.resolve_author_by_github_api(
+                                candidate_username, repo_full_name, token=settings.GITHUB_TOKEN,
+                            )
+                            if api_match:
+                                from app.models.author_identity import AuthorMatch
+                                identity_result.matches.append(AuthorMatch(
+                                    name=api_match["name"],
+                                    email=api_match["email"],
+                                    commits=1,
+                                    confidence=api_match["confidence"],
+                                    method=api_match["method"],
+                                    repos_matched=[repo_name],
+                                ))
+                                identity_result.best_match = identity_result.matches[-1]
+                                logger.info(
+                                    f"Git author resolved via API fallback: "
+                                    f"{candidate_username} → {api_match['name']} "
+                                    f"for {repo_name} (email={api_match['email']})"
+                                )
+
+                        # JIT-81: 매칭 실패 진단 로깅
+                        if not identity_result.best_match:
+                            logger.warning(
+                                f"Author resolution FAILED for {candidate_username} "
+                                f"in {repo_name}: git_authors={author_names}, "
+                                f"profile={'fetched' if github_profile else 'None'}"
+                            )
 
                         if identity_result.best_match:
                             best = identity_result.best_match
