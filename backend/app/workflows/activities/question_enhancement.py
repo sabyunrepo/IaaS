@@ -124,7 +124,7 @@ async def enhance_terminology(questions: list[dict], enriched_input: dict) -> di
                 if isinstance(term, dict):
                     total_terms += 1
                     term_name = str(term.get("term", "") or term.get("name", "")).strip().lower()
-                    explanation = term.get("plain_explanation", "") or term.get("explanation", "")
+                    explanation = term.get("plain_language_explanation", "") or term.get("plain_explanation", "") or term.get("explanation", "")
                     explanation_str = str(explanation).strip()
 
                     if not explanation_str or len(explanation_str) < 3:

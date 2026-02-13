@@ -523,6 +523,20 @@ async def finalize_output(
             "has_document_analysis": bool(analysis.get("document_analysis")),
             "code_analysis_tech_stack": (analysis.get("code_analysis") or {}).get("tech_stack", [])[:10],
             "chart_data": (analysis.get("code_analysis") or {}).get("monthly_contributions", []),
+            # JIT-67: repo_summaries enriched 필드 (tech_stack, notable_count, additions, deletions 포함)
+            "repo_summaries": [
+                {
+                    "name": repo.get("repo_name", ""),
+                    "language": repo.get("language", ""),
+                    "commits": repo.get("candidate_commits", 0),
+                    "tech_stack": repo.get("analysis", {}).get("tech_stack", []) if isinstance(repo.get("analysis"), dict) else repo.get("tech_stack", []),
+                    "notable_count": len(repo.get("notable_implementations", [])),
+                    "additions": repo.get("candidate_additions", 0),
+                    "deletions": repo.get("candidate_deletions", 0),
+                }
+                for repo in (analysis.get("code_analysis") or {}).get("repositories", [])
+                if isinstance(repo, dict)
+            ],
             "document_analysis_skills": (
                 list((analysis.get("document_analysis") or {}).get("profile", {}).get("skills", {}).keys())[:10]
                 if isinstance((analysis.get("document_analysis") or {}).get("profile", {}).get("skills"), dict)
@@ -535,6 +549,12 @@ async def finalize_output(
                 "code_analysis": code_truncated,
             },
             "quality": _extract_quality_metadata(questions),
+            # JIT-67: code_reference 전달 검증
+            "code_reference_count": sum(
+                1 for q in questions
+                if isinstance(q, dict) and q.get("code_reference")
+                and (q["code_reference"].get("file") or q["code_reference"].get("snippet"))
+            ),
         },
     }
 

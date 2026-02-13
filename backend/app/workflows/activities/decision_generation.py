@@ -618,6 +618,17 @@ async def generate_decision_support(
     )
     if summary is None:
         summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis, lang=output_language, experience_level=experience_level, code_analysis=code_analysis)
+    elif not summary.concerns:
+        # JIT-66: LLM이 유효한 summary를 반환했으나 concerns가 빈 배열인 경우
+        # 기존 LLM 결과(strengths, level 등)를 보존하면서 concerns만 fallback에서 가져옴
+        fallback_summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis, lang=output_language, experience_level=experience_level, code_analysis=code_analysis)
+        summary.concerns = fallback_summary.concerns
+        logger.info(f"JIT-66: LLM concerns empty, filled {len(summary.concerns)} concerns from fallback")
+
+    # JIT-66: 최종 concerns 최소 1개 검증
+    if not summary.concerns:
+        summary.concerns = ["추가 검증이 필요한 영역이 면접에서 확인되어야 합니다"]
+        logger.warning("JIT-66: No concerns after all fallbacks, using minimum default")
     activity.heartbeat()
 
     # 2. 면접관 가이드 팁 생성 (LLM 우선, 규칙 기반 fallback)
