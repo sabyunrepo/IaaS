@@ -316,6 +316,7 @@ def _extract_decision_summary(
     document_analysis: dict,
     lang: str = "ko",
     experience_level: str = "미들",
+    code_analysis: dict | None = None,
 ) -> DecisionSummary:
     """후보자 요약에서 Decision Summary 추출"""
     from app.services.i18n_labels import _t
@@ -403,7 +404,7 @@ def _extract_decision_summary(
                 elif isinstance(s, str):
                     strengths.append(s)
 
-    # 우려사항 추출
+    # JIT-63: 우려사항 추출 — areas_to_probe + JD 스킬 갭 + 데이터 완전성 교차 활용
     concerns = []
     risk_flags = profile.get("areas_to_probe", [])
     for flag in risk_flags[:3]:
@@ -411,6 +412,23 @@ def _extract_decision_summary(
             concerns.append(flag)
         elif isinstance(flag, dict):
             concerns.append(flag.get("concern", flag.get("area", "")))
+
+    # JD 필수 스킬 갭 기반 우려사항 보강
+    if len(concerns) < 3:
+        jd_requirements = jd_analysis.get("requirements", [])
+        candidate_skills_lower = {s.lower() for s in skill_list if isinstance(s, str)}
+        for req in jd_requirements:
+            if len(concerns) >= 3:
+                break
+            req_skill = req.get("skill", "") if isinstance(req, dict) else str(req)
+            category = req.get("category", "") if isinstance(req, dict) else ""
+            if category in ("필수", "required", "must") and req_skill.lower() not in candidate_skills_lower:
+                concerns.append(f"JD 필수 요구사항 '{req_skill}' 관련 경험 미확인")
+
+    # 데이터 완전성 기반 우려사항 보강
+    if len(concerns) < 1:
+        if not code_analysis:
+            concerns.append(_t("no_code_data", lang) if _t("no_code_data", lang) != "no_code_data" else "GitHub 코드 데이터 없어 기술 역량 직접 검증 불가")
 
     return DecisionSummary(
         experience=experience_str,
@@ -599,7 +617,7 @@ async def generate_decision_support(
         code_analysis=code_analysis,
     )
     if summary is None:
-        summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis, lang=output_language, experience_level=experience_level)
+        summary = _extract_decision_summary(candidate_summary, jd_analysis, document_analysis, lang=output_language, experience_level=experience_level, code_analysis=code_analysis)
     activity.heartbeat()
 
     # 2. 면접관 가이드 팁 생성 (LLM 우선, 규칙 기반 fallback)
