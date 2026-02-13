@@ -1001,7 +1001,11 @@ async def _analyze_single_repo_impl(
             "monthly_contributions": driller_result.get("monthly_contributions", []),
             "ast_analysis": ast_result,
             "analysis": synthesis_result,
-            "notable_implementations": synthesis_result.get("notable_implementations", []),
+            # JIT-64: notable_implementations에 file_path 보장 (deep_analyses에서 보강)
+            "notable_implementations": _enrich_notables_with_file_path(
+                synthesis_result.get("notable_implementations", []),
+                successful_analyses,
+            ),
             "quality_metrics": quality_metrics,
             # 정적 분석 결과 (KG/Scoring에서 활용)
             "static_analysis": static_analysis,
@@ -1044,6 +1048,47 @@ _TEST_FILE_PATTERN = re.compile(
     r"(^|/)tests?/|test_[^/]+\.\w+$|[^/]+_test\.\w+$|\.spec\.\w+$|\.test\.\w+$",
     re.IGNORECASE,
 )
+
+
+def _enrich_notables_with_file_path(
+    notables: list[dict],
+    deep_analyses: list[dict],
+) -> list[dict]:
+    """JIT-64: notable_implementations에 file_path/code_snippet 보장.
+
+    synthesis LLM이 file_path/code_snippet을 누락한 경우,
+    deep_analyses의 file_path 매칭으로 보강.
+    """
+    # deep_analyses file_path → analysis 매핑
+    da_by_path = {}
+    for da in deep_analyses:
+        if isinstance(da, dict) and da.get("file_path"):
+            da_by_path[da["file_path"]] = da
+
+    for impl in notables:
+        if not isinstance(impl, dict):
+            continue
+        fp = impl.get("file_path", "")
+        # file_path가 있지만 code_snippet이 없는 경우: deep_analysis에서 question_candidates 기반 보강
+        if fp and not impl.get("code_snippet") and fp in da_by_path:
+            da = da_by_path[fp]
+            # notable_aspects에서 첫 번째 항목을 snippet 대체로 사용
+            aspects = da.get("notable_aspects", [])
+            if aspects:
+                impl["code_snippet"] = aspects[0][:500] if isinstance(aspects[0], str) else ""
+        # file_path가 없는 경우: title 기반 매칭 시도
+        if not fp:
+            title_lower = (impl.get("title") or "").lower()
+            for da_path, da in da_by_path.items():
+                if da_path.lower() in title_lower or any(
+                    aspect.lower() in title_lower
+                    for aspect in da.get("notable_aspects", [])
+                    if isinstance(aspect, str)
+                ):
+                    impl["file_path"] = da_path
+                    break
+
+    return notables
 
 
 def _build_quality_metrics(
