@@ -568,8 +568,27 @@ async def _analyze_single_repo_impl(
                 if git_authors:
                     author_names = [a["name"] for a in git_authors]
                     if candidate_username not in author_names:
+                        # JIT-72: GitHub API profile로 name/email 크로스 매칭
+                        github_profile = None
+                        try:
+                            import httpx
+                            async with httpx.AsyncClient(timeout=5.0) as client:
+                                resp = await client.get(
+                                    f"https://api.github.com/users/{candidate_username}",
+                                    headers={"Accept": "application/vnd.github.v3+json"},
+                                )
+                                if resp.status_code == 200:
+                                    profile_data = resp.json()
+                                    github_profile = {
+                                        "name": profile_data.get("name"),
+                                        "email": profile_data.get("email"),
+                                    }
+                        except Exception as profile_err:
+                            logger.debug(f"GitHub profile fetch failed for {candidate_username}: {profile_err}")
+
                         identity_result = GitHubService.resolve_author_by_identity(
                             candidate_username, git_authors, repo_name=repo_name,
+                            github_profile=github_profile,
                         )
                         repo_identity_result = identity_result  # JIT-37: cross-repo용 보존
 
@@ -922,6 +941,20 @@ async def _analyze_single_repo_impl(
             "quality_metrics": quality_metrics,
             # 정적 분석 결과 (KG/Scoring에서 활용)
             "static_analysis": static_analysis,
+            # JIT-69: deep analysis 기반 key_files (vector_store.store_code()용)
+            "key_files": [
+                {
+                    "path": da.get("file_path", ""),
+                    "description": " | ".join(filter(None, [
+                        da.get("complexity_assessment", ""),
+                        da.get("quality_notes", ""),
+                        ", ".join(da.get("patterns_found", [])),
+                        ", ".join(str(a) for a in da.get("notable_aspects", [])),
+                    ]))[:4000],
+                }
+                for da in successful_analyses
+                if da.get("file_path")
+            ],
             # 후보자 식별 메타데이터
             "candidate_identification": candidate_identification,
             # JIT-37: cross-repo 검증용 identity_result (내부 전용, 최종 결과에서 제거)

@@ -689,11 +689,13 @@ class GitHubService:
         github_username: str,
         git_authors: list[dict],
         repo_name: str = "",
+        github_profile: dict | None = None,
     ) -> "AuthorIdentityResult":
         """
-        GitHub username을 기반으로 git author 식별 (7단계 휴리스틱).
+        GitHub username을 기반으로 git author 식별 (8단계 휴리스틱).
 
         매칭 전략 (우선순위 순):
+        0. github_profile — GitHub API profile name/email 매칭 (confidence=0.95)
         1. name_exact — name 완전 일치 (confidence=1.0)
         2. noreply_email — noreply email 매칭 (confidence=0.95)
         3. email_prefix — email 접두어 일치 (confidence=0.9)
@@ -706,6 +708,7 @@ class GitHubService:
             github_username: GitHub 프로필 username
             git_authors: extract_git_authors() 반환값
             repo_name: 레포 이름 (cross-repo 검증용)
+            github_profile: GitHub API /users/{username} 응답 (name, email)
 
         Returns:
             AuthorIdentityResult (matches 배열 + best_match)
@@ -718,6 +721,27 @@ class GitHubService:
         username_lower = github_username.lower()
         matches: list[AuthorMatch] = []
         repos = [repo_name] if repo_name else []
+
+        # 0) JIT-72: GitHub API profile name/email 크로스 매칭
+        if github_profile:
+            profile_name = (github_profile.get("name") or "").strip().lower()
+            profile_email = (github_profile.get("email") or "").strip().lower()
+
+            for a in git_authors:
+                matched = False
+                # profile email과 git author email 일치 (가장 강력한 신호)
+                if profile_email and a.get("email", "").lower() == profile_email:
+                    matched = True
+                # profile name과 git author name 일치 (대소문자 무시)
+                elif profile_name and a["name"].lower() == profile_name:
+                    matched = True
+
+                if matched and not any(am.name == a["name"] and am.email == a.get("email", "") for am in matches):
+                    matches.append(AuthorMatch(
+                        name=a["name"], email=a.get("email", ""),
+                        commits=a["commits"], confidence=0.95,
+                        method="github_profile", repos_matched=repos,
+                    ))
 
         # 1) name 완전 일치
         for a in git_authors:

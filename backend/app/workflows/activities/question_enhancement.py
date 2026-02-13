@@ -45,13 +45,21 @@ async def _run_batched_enhancement(
     logger.info(f"{activity_name}: {len(questions)} questions → {len(questions)} parallel LLM calls (concurrency={ENHANCEMENT_MAX_CONCURRENCY})")
 
     async def process_single(question: dict, idx: int) -> dict:
-        """질문 1개에 대한 LLM 호출 (세마포어로 동시성 제한)"""
+        """질문 1개에 대한 LLM 호출 (세마포어로 동시성 제한, JIT-70: 실패 시 1회 재시도)"""
         async with semaphore:
             vars_ = {**(extra_vars or {})}
             vars_["questions_json"] = json.dumps([question], ensure_ascii=False, default=str)
             prompt_config = get_prompt_with_config(prompt_file, prompt_name, **vars_)
             result = await llm.run_with_prompt_config(prompt_config)
             validated = validate_llm_output(result, activity_name=f"{activity_name}_q{idx}")
+            if isinstance(validated, dict) and validated:
+                return validated
+
+            # JIT-70: JSON 파싱 실패 시 1회 재시도
+            logger.warning(f"{activity_name}_q{idx}: empty result, retrying once")
+            prompt_config = get_prompt_with_config(prompt_file, prompt_name, **vars_)
+            result = await llm.run_with_prompt_config(prompt_config)
+            validated = validate_llm_output(result, activity_name=f"{activity_name}_q{idx}_retry")
             return validated if isinstance(validated, dict) else {}
 
     # Heartbeat 태스크 — 병렬 LLM 호출 중 Temporal에 alive 신호 전송
