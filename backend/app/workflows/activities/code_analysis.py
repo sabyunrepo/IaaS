@@ -21,6 +21,7 @@ from app.core.observability import observe_activity
 from app.core.logging import get_logger, JobContextMiddleware
 from app.services.activity_logger import ActivityLogger
 from app.services.llm_config import KIMI_CODER_MODEL
+from app.workflows.utils import run_with_heartbeat
 
 logger = get_logger(__name__)
 
@@ -172,7 +173,11 @@ async def analyze_code(
                 jd_tech_stack=jd_tech_stack,
                 token_budget=30_000,
             )
-            analysis = await analyzer.llm_analyze_code(ranked_files, ast_context=ast_result)
+            analysis = await run_with_heartbeat(
+                analyzer.llm_analyze_code(ranked_files, ast_context=ast_result),
+                interval=30.0,
+                message=f"LLM analyzing {repo_name}...",
+            )
 
             total_commits = driller_result["stats"]["total_commits"]
             repositories.append({
@@ -847,13 +852,17 @@ async def _analyze_single_repo_impl(
                 "model": KIMI_CODER_MODEL,
             })
 
-        overview_result = await analyzer.llm_overview_analysis(
-            files=driller_result["files"],
-            commit_diffs=driller_result.get("commit_diffs", []),
-            ast_summary=ast_result,
-            jd_tech_stack=jd_tech_stack,
-            model=KIMI_CODER_MODEL,
-            ranked_chunks=ranked_chunks if use_ast_pipeline else None,
+        overview_result = await run_with_heartbeat(
+            analyzer.llm_overview_analysis(
+                files=driller_result["files"],
+                commit_diffs=driller_result.get("commit_diffs", []),
+                ast_summary=ast_result,
+                jd_tech_stack=jd_tech_stack,
+                model=KIMI_CODER_MODEL,
+                ranked_chunks=ranked_chunks if use_ast_pipeline else None,
+            ),
+            interval=30.0,
+            message=f"Stage 1: Overview LLM for {repo_name}...",
         )
 
         # 핵심 파일 추출 (최대 10개)
@@ -921,8 +930,12 @@ async def _analyze_single_repo_impl(
             )
             deep_analysis_tasks.append(task)
 
-        # 병렬 실행 (asyncio.gather)
-        deep_results = await asyncio.gather(*deep_analysis_tasks, return_exceptions=True)
+        # 병렬 실행 (asyncio.gather) + heartbeat 유지
+        deep_results = await run_with_heartbeat(
+            asyncio.gather(*deep_analysis_tasks, return_exceptions=True),
+            interval=30.0,
+            message=f"Stage 2: Deep Analysis LLM ({len(deep_analysis_tasks)} files) for {repo_name}...",
+        )
 
         # 실패한 분석 필터링
         successful_analyses = [
@@ -941,12 +954,16 @@ async def _analyze_single_repo_impl(
                 "successful_analyses": len(successful_analyses),
             })
 
-        synthesis_result = await analyzer.llm_synthesize_analysis(
-            overview=overview_result,
-            deep_analyses=successful_analyses,
-            repo_info=repo_info,
-            jd_tech_stack=jd_tech_stack,
-            model=KIMI_CODER_MODEL,
+        synthesis_result = await run_with_heartbeat(
+            analyzer.llm_synthesize_analysis(
+                overview=overview_result,
+                deep_analyses=successful_analyses,
+                repo_info=repo_info,
+                jd_tech_stack=jd_tech_stack,
+                model=KIMI_CODER_MODEL,
+            ),
+            interval=30.0,
+            message=f"Stage 3: Synthesis LLM for {repo_name}...",
         )
 
         # ================================================================
