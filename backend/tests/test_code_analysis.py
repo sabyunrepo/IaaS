@@ -135,21 +135,22 @@ class TestCodeAnalysisActivity:
 
         async def mock_pydriller(repo_url, job_id, author, since_years, file_types):
             return {
-                "files": [{"path": "main.py", "content": "print('hello')"}],
-                "stats": {"total_commits": 10, "total_additions": 500, "avg_complexity": 5.0},
+                "files": [{"filename": "main.py", "diff": "print('hello')", "nloc": 10, "complexity": 2}],
+                "commit_diffs": [],
+                "stats": {
+                    "total_commits": 10, "total_additions": 500,
+                    "total_deletions": 100, "avg_complexity": 5.0,
+                },
             }
 
         async def mock_ast_analyze(files, primary_language):
             return {"functions": [], "classes": [], "parser_used": "mock"}
 
-        def mock_rank_files(files, jd_tech_stack, token_budget):
-            return files
-
-        async def mock_llm_analyze(ranked_files, ast_context):
-            return {"notable_implementations": [{"title": "Main function", "complexity": "low"}]}
-
         async def mock_overview(files, commit_diffs, ast_summary, jd_tech_stack, model, ranked_chunks=None):
             return {"key_files": [], "patterns": [], "tech_stack": ["Python"]}
+
+        async def mock_deep_file(file_info, commit_history, jd_tech_stack, model=None, token_budget=8000):
+            return {"file_path": "main.py", "patterns_found": [], "notable_aspects": [], "complexity_assessment": "low", "quality_notes": "OK"}
 
         async def mock_synthesize(overview, deep_analyses, repo_info, jd_tech_stack, model):
             return {"notable_implementations": [{"title": "Main function", "complexity": "low"}], "patterns": [], "tech_stack": ["Python"], "quality_score": 0.7}
@@ -159,9 +160,8 @@ class TestCodeAnalysisActivity:
              patch("app.services.code_analyzer.CodeAnalyzer.analyze_with_pydriller", side_effect=mock_pydriller), \
              patch("app.services.code_analyzer.CodeAnalyzer.select_top_files", return_value=[]), \
              patch("app.services.code_analyzer.CodeAnalyzer.analyze_ast", side_effect=mock_ast_analyze), \
-             patch("app.services.code_analyzer.CodeAnalyzer.rank_files_for_llm", side_effect=mock_rank_files), \
-             patch("app.services.code_analyzer.CodeAnalyzer.llm_analyze_code", side_effect=mock_llm_analyze), \
              patch("app.services.code_analyzer.CodeAnalyzer.llm_overview_analysis", side_effect=mock_overview), \
+             patch("app.services.code_analyzer.CodeAnalyzer.llm_deep_file_analysis", side_effect=mock_deep_file), \
              patch("app.services.code_analyzer.CodeAnalyzer.llm_synthesize_analysis", side_effect=mock_synthesize):
 
             mock_activity.heartbeat = MagicMock()
