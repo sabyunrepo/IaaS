@@ -149,7 +149,7 @@ class TestCraftQuestionCategoryRouting:
         from app.prompts import get_prompt
 
         prompt = get_prompt(
-            "question_generation.yaml", f"craft_question_{category}",
+            f"question_craft_{category}.yaml", f"craft_question_{category}",
             output_language="Korean",
             experience_level="미들",
             topic="테스트 토픽",

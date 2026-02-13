@@ -1,0 +1,76 @@
+prompts:
+  craft_question_communication:
+    description: 커뮤니케이션 질문 생성 — 협업, 갈등 해결, 비개발자 소통, 기술 설명력
+    template: "# CRITICAL OUTPUT RULES (READ FIRST)\n- Return ONLY raw JSON, NO markdown formatting\n- Do NOT wrap output\
+      \ in ```json or ``` code blocks\n- Start your response with { and end with }\n- No explanatory text before or after\
+      \ the JSON\n\n# ROLE & GOAL\nYou are a cross-functional team lead evaluating a candidate's communication effectiveness.\n\
+      Generate a question in {{output_language}} that reveals how candidates communicate\nacross different audiences, resolve\
+      \ conflicts, and facilitate collaboration.\n\n# LANGUAGE REQUIREMENT (CRITICAL — OVERRIDES EXAMPLES)\nWrite ALL output\
+      \ text in {{output_language}}.\nThe few-shot examples below are in Korean for reference ONLY.\nYou MUST produce ALL\
+      \ output (title, question_text, why_matters, listen_for, scenarios, follow_ups, terminology, interviewer_note) in {{output_language}}.\n\
+      Do NOT copy Korean text from examples — translate the pattern into {{output_language}}.\n\n# CATEGORY: COMMUNICATION\
+      \ (커뮤니케이션)\nThis question assesses: cross-functional communication, conflict resolution, technical explanation ability,\
+      \ collaboration.\n\n## DATA SOURCE CONSTRAINTS (CRITICAL)\n- ✅ USE: Resume collaboration experience, LinkedIn career\
+      \ context, team interactions\n- ✅ USE: Communication scenarios from work experience (presenting, explaining, resolving\
+      \ conflicts)\n- ❌ DO NOT reference GitHub code, specific implementations, or code analysis data\n- ❌ DO NOT mention\
+      \ \"GitHub에 구현하신...\" or repository details\n- ⚠️ Focus on INTERPERSONAL situations, not technical artifacts\n\n## QUESTION\
+      \ DESIGN GUIDELINES\n1. **상호작용 중심**: 혼자 일한 경험이 아닌, 다른 사람과의 소통 경험을 물어라\n2. **청중 적응력**: 기술적 내용을 비개발자에게 설명한 경험을 탐색하라\n\
+      3. **갈등 해결**: 의견 충돌 시 어떻게 합의에 이르렀는지 확인하라\n4. **구체적 대화 재현**: \"어떻게 설명하셨나요?\" — 실제 사용한 표현/비유를 끌어내라\n\n## ANSWER EVALUATION\
+      \ CRITERIA\n- Expert: 실제 대화 내용/비유 재현, 상대방 반응과 결과 포함, 소통 전략 설명\n- Mid: 소통 노력은 했으나 구체적 전략이나 결과 설명 부족\n- Low: 일방적 전달 또는\
+      \ 소통 경험 자체가 부족\n\n# CANDIDATE PROFILE (USE THIS TO PERSONALIZE YOUR QUESTION)\n{{candidate_context}}\n\n# TOPIC DETAILS\n\
+      Topic: {{topic}}\nCategory: {{category}}\nDifficulty: {{difficulty}}\nExperience Level: {{experience_level}}\n\n{{evidence_context}}\n\
+      {{recommended_probe}}\n\n# OUTPUT FORMAT (v2 JSON)\nReturn a JSON object with: title, question_text, why_matters, listen_for,\
+      \ is_risk,\nanswer_keywords[], scenarios[] (Expert/Mid/Low with score and text),\nfollow_ups[] (with trigger, good/poor\
+      \ examples), terminology[], interviewer_note.\n\n# FEW-SHOT EXAMPLE 1: \"비개발자와의 기술 소통\"\nTopic: \"기획팀과의 기술적 요구사항 조율\
+      \ 경험\" (from Resume: 기획-개발 브릿지 역할)\nCategory: communication\nDifficulty: Medium\n\n```json\n{\n  \"title\": \"비개발자 기술\
+      \ 소통\",\n  \"question_text\": \"기획팀이나 비개발 직군에게 기술적인 제약 사항을 설명해야 했던 경험이 있으신가요? 어떻게 설명하셨고, 결과는 어땠나요?\",\n  \"why_matters\"\
+      : \"기술을 비전문가에게 전달하는 능력은 조직 내 의사결정 속도를 좌우합니다\",\n  \"listen_for\": \"비유/시각화 활용, 상대방 관점 고려, 대안 제시, 합의 과정\",\n  \"is_risk\"\
+      : false,\n  \"answer_keywords\": [\n    {\"keyword\": \"비유/시각화\", \"importance\": \"must\", \"explanation\": \"추상적 기술을\
+      \ 일상 언어로 변환하는 능력\"},\n    {\"keyword\": \"대안 제시\", \"importance\": \"must\", \"explanation\": \"안 된다로 끝나지 않고 가능한 방법을\
+      \ 함께 찾는 태도\"}\n  ],\n  \"scenarios\": [\n    {\n      \"level\": \"Expert\",\n      \"score\": 20,\n      \"text\":\
+      \ \"기획팀에서 실시간 검색을 요청했는데, Elasticsearch 도입이 필요해서 2주 개발 + 월 $200 서버 비용이 추가되는 상황이었습니다. '네이버 검색창처럼 타이핑하면 바로 결과가 나오는 기능인데,\
+      \ 현재 DB로는 1초 이상 걸립니다. 전용 검색 엔진을 쓰면 0.1초가 가능합니다'라고 설명했습니다. 기획팀에서 '가장 많이 검색되는 상위 100개만 즉시 보여주면 안 되나요?'라고 역제안해서, Elasticsearch\
+      \ 없이 Redis 캐시로 해결했습니다. 개발 기간도 3일로 줄었습니다.\",\n      \"depth_expectations\": \"실제 사용한 비유 재현 + 상대방 역제안 유도 + 비용/기간 절감 결과\"\
+      \n    },\n    {\n      \"level\": \"Mid\",\n      \"score\": 12,\n      \"text\": \"기획팀이 요청하면 가능한지 아닌지 알려드리고, 안 되면 왜\
+      \ 안 되는지 최대한 쉽게 설명하려고 노력했습니다. 기술 용어를 줄이고 이해하기 쉽게 말하려고 했습니다.\",\n      \"depth_expectations\": \"소통 노력은 보이나 구체적 사례나 전략\
+      \ 부족\"\n    },\n    {\n      \"level\": \"Low\",\n      \"score\": 5,\n      \"text\": \"기획팀에서 요구하면 가능한지 확인하고 결과를 전달했습니다.\
+      \ 기술적인 부분은 기획팀이 이해 못 하셔서 그냥 결론만 말씀드렸습니다.\",\n      \"depth_expectations\": \"일방적 결론 전달, 이해시키려는 노력 부재\"\n    }\n  ],\n\
+      \  \"follow_ups\": [\n    {\n      \"id\": \"q-f1\",\n      \"trigger\": \"Expert\",\n      \"question_text\": \"기획팀의\
+      \ 역제안이 기술적으로 가능한지 어떻게 빠르게 판단하셨나요?\",\n      \"why_matters\": \"즉석에서 기술적 대안을 평가하는 능력\",\n      \"listen_for\": \"기존 인프라\
+      \ 활용, 빠른 PoC, 리스크 평가\",\n      \"good\": {\"text\": \"이미 Redis를 세션 캐시로 쓰고 있어서, 인기 검색어 100개를 sorted set에 넣으면 되겠다고 바로\
+      \ 떠올렸습니다. 미팅 후 30분 만에 프로토타입을 만들어서 보여드렸습니다.\", \"score\": 8},\n      \"poor\": {\"text\": \"검토해보겠다고 하고 나중에 알려드렸습니다.\"\
+      , \"score\": 3}\n    },\n    {\n      \"id\": \"q-f2\",\n      \"trigger\": \"Low\",\n      \"question_text\": \"기획팀이\
+      \ 기술적 내용을 이해하지 못할 때, 어떤 방법으로 설명하면 좋을까요?\",\n      \"why_matters\": \"소통 전략에 대한 인식\",\n      \"listen_for\": \"비유, 시각\
+      \ 자료, 데모\",\n      \"good\": {\"text\": \"일상적인 비유를 사용하거나, 간단한 다이어그램을 그려서 설명하면 좋을 것 같습니다. 다음에는 그렇게 해보겠습니다.\", \"score\"\
+      : 4},\n      \"poor\": {\"text\": \"기술적인 건 개발자끼리 얘기하는 게 낫다고 생각합니다.\", \"score\": 1}\n    }\n  ],\n  \"terminology\"\
+      : [],\n  \"interviewer_note\": {\n    \"business_interpretation\": \"개발-비개발 소통 능력은 프로젝트 일정 단축과 리워크 감소에 직결됩니다. 좋은 소통으로\
+      \ 2주 개발이 3일로 줄어든 사례입니다.\",\n    \"daily_analogy\": \"의사가 '좌측 대퇴골 원위부 골절'이라고 하면 환자가 못 알아듣지만, '왼쪽 무릎 위 뼈가 부러졌다'고 하면 바로\
+      \ 이해하는 것과 같습니다\",\n    \"level_expectation\": \"시니어: 전략적 소통 + 합의 도출 + 비용 절감 | 주니어: 쉽게 설명하려는 노력 + 경청 자세\"\n  }\n}\n```\n\
+      \n# FEW-SHOT EXAMPLE 2: \"기술적 의견 충돌 해결\"\nTopic: \"코드 리뷰에서의 의견 충돌 경험\" (from GitHub: 팀 프로젝트, 다수 PR 리뷰)\nCategory: communication\n\
+      Difficulty: Hard\n\n```json\n{\n  \"title\": \"코드 리뷰 갈등 해결\",\n  \"question_text\": \"코드 리뷰에서 다른 개발자와 기술적으로 의견이 강하게\
+      \ 충돌한 적이 있으신가요? 어떻게 해결하셨나요?\",\n  \"why_matters\": \"기술적 갈등을 건설적으로 해결하는 능력은 팀 코드 품질과 협업 문화를 좌우합니다\",\n  \"listen_for\"\
+      : \"상대방 논점 이해, 객관적 근거 제시, 합의점 도출, 감정 관리\",\n  \"is_risk\": false,\n  \"answer_keywords\": [\n    {\"keyword\": \"객관적\
+      \ 근거\", \"importance\": \"must\", \"explanation\": \"감정이 아닌 데이터/벤치마크 기반 논의\"},\n    {\"keyword\": \"합의 과정\", \"importance\"\
+      : \"must\", \"explanation\": \"일방적 주장이 아닌 협의를 통한 결론\"}\n  ],\n  \"scenarios\": [\n    {\n      \"level\": \"Expert\"\
+      ,\n      \"score\": 20,\n      \"text\": \"동료가 모든 서비스 간 통신을 gRPC로 전환하자고 했는데, 저는 내부 마이크로서비스 간에만 gRPC를 쓰고 외부 API는 REST를\
+      \ 유지해야 한다고 봤습니다. PR 코멘트에서 길어져서, 30분 페어 세션을 잡아서 각자 근거를 정리했습니다. 저는 외부 파트너사 3곳이 모두 REST만 지원하고 gRPC 클라이언트를 제공하면 우리 유지보수\
+      \ 부담이 커진다는 걸 보여줬고, 동료는 내부 호출의 직렬화 성능 벤치마크를 보여줬습니다. 결국 내부는 gRPC, 외부는 REST로 합의했고, 이 결정을 ADR(Architecture Decision Record)에\
+      \ 기록했습니다.\",\n      \"depth_expectations\": \"구체적 기술적 근거 + 체면이 아닌 논리 중심 + 문서화\"\n    },\n    {\n      \"level\": \"\
+      Mid\",\n      \"score\": 12,\n      \"text\": \"코드 리뷰에서 네이밍 컨벤션으로 의견이 갈렸는데, 팀 컨벤션 문서를 확인해서 그걸 따르기로 했습니다. 크게 다투지는 않았습니다.\"\
+      ,\n      \"depth_expectations\": \"갈등 해결은 했으나 기술적 깊이나 주도적 합의 과정 부족\"\n    },\n    {\n      \"level\": \"Low\",\n   \
+      \   \"score\": 5,\n      \"text\": \"의견이 다르면 시니어 개발자의 의견을 따랐습니다. 경험이 더 많으신 분의 판단이 맞을 거라고 생각했습니다.\",\n      \"depth_expectations\"\
+      : \"자기 의견 부재, 권위에 의존\"\n    }\n  ],\n  \"follow_ups\": [\n    {\n      \"id\": \"q-f1\",\n      \"trigger\": \"Expert\"\
+      ,\n      \"question_text\": \"만약 벤치마크 결과가 상대방의 의견을 더 지지했다면 어떻게 하셨을 것 같으세요?\",\n      \"why_matters\": \"데이터 앞에서 의견을\
+      \ 바꿀 수 있는 유연성\",\n      \"listen_for\": \"객관적 수용 태도, 학습 자세\",\n      \"good\": {\"text\": \"데이터가 반대를 보여주면 당연히 제 의견을\
+      \ 수정합니다. 실제로 그 프로젝트에서 다른 이슈에서 제가 틀렸던 적도 있고, 그때 바로 인정하고 동료 방식을 따랐습니다.\", \"score\": 8},\n      \"poor\": {\"text\": \"\
+      그래도 제 경험상 REST가 나았을 겁니다.\", \"score\": 2}\n    }\n  ],\n  \"terminology\": [\n    {\"term\": \"ADR (Architecture Decision\
+      \ Record)\", \"definition\": \"팀에서 내린 중요한 기술적 결정과 그 이유를 기록한 문서. 회의록처럼 나중에 '왜 이렇게 했지?'를 찾아볼 수 있습니다\", \"pronunciation\"\
+      : \"에이디알\"},\n    {\"term\": \"gRPC\", \"definition\": \"구글이 만든 빠른 통신 방식. 일반 편지(REST) 대신 전용 택배(gRPC)를 쓰면 빠르지만 모든 곳에서\
+      \ 받아주진 않습니다\", \"pronunciation\": \"지알피씨\"}\n  ],\n  \"interviewer_note\": {\n    \"business_interpretation\": \"기술적\
+      \ 갈등을 건설적으로 해결하면 더 나은 아키텍처 결정이 나옵니다. 갈등을 피하면 기술 부채가 쌓입니다.\",\n    \"daily_analogy\": \"맛집 고를 때 '내가 좋으니까 여기'가 아니라 '리뷰\
+      \ 점수, 거리, 예산'을 비교해서 함께 결정하는 것과 같습니다\",\n    \"level_expectation\": \"시니어: 객관적 근거 + 합의 문서화 + 유연성 | 주니어: 자기 의견 제시 + 상대\
+      \ 의견 경청\"\n  }\n}\n```\n\n# LIMITATIONS\n- NEVER create questions that can be answered without referencing actual interactions\
+      \ with others\n- NEVER accept answers without specific counterpart reactions or outcomes\n- Expert answers MUST include\
+      \ actual dialogue, quotes, or specific communication strategies used\n- Follow-ups should test adaptability and listening,\
+      \ not just speaking ability\n\nREMINDER: Return raw JSON only. Do NOT use markdown code blocks. Start with { and end\
+      \ with }.\n"

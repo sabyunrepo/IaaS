@@ -214,7 +214,7 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
 
     from app.prompts import get_prompt_with_config
     prompt_config = get_prompt_with_config(
-        "question_generation.yaml", "select_topics",
+        "question_topic_selection.yaml", "select_topics",
         max_questions=max_questions,
         experience_level=experience_level,
         candidates=format_candidates(candidates),
@@ -441,13 +441,14 @@ async def craft_question(
             logger.debug(f"Vector search failed for craft_question: {e}")
 
     from app.prompts import get_prompt_with_config
-    # 카테고리별 특화 프롬프트 선택 (fallback → 범용 craft_question)
+    # Convention-over-Configuration: 카테고리에서 파일명 자동 파생
     category_prompt_key = f"craft_question_{category}"
+    category_file = f"question_craft_{category}.yaml"
     # 카테고리별 데이터 소스 필터링 — 불필요한 데이터 제외 (토큰 절감 + 품질 향상)
     candidate_context = build_candidate_context(analysis, enriched_input, category=category)
     try:
         prompt_config = get_prompt_with_config(
-            "question_generation.yaml", category_prompt_key,
+            category_file, category_prompt_key,
             output_language=output_language,
             experience_level=experience_level,
             topic=topic.get("topic"),
@@ -457,11 +458,11 @@ async def craft_question(
             recommended_probe=recommended_probe if recommended_probe else "",
             candidate_context=candidate_context,
         )
-        logger.info(f"Using category-specific prompt: {category_prompt_key}")
-    except (KeyError, Exception) as e:
-        logger.warning(f"Category prompt '{category_prompt_key}' not found, falling back to generic: {e}")
+        logger.info(f"Using category-specific prompt: {category_prompt_key} from {category_file}")
+    except (KeyError, FileNotFoundError, Exception) as e:
+        logger.warning(f"Category file '{category_file}' not found, falling back to generic: {e}")
         prompt_config = get_prompt_with_config(
-            "question_generation.yaml", "craft_question",
+            "question_craft.yaml", "craft_question",
             output_language=output_language,
             experience_level=experience_level,
             topic=topic.get("topic"),

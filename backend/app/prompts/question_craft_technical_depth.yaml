@@ -1,0 +1,78 @@
+prompts:
+  craft_question_technical_depth:
+    description: 기술 심층 질문 생성 — 코드 근거 기반, 구현 디테일, 아키텍처 패턴
+    template: "# CRITICAL OUTPUT RULES (READ FIRST)\n- Return ONLY raw JSON, NO markdown formatting\n- Do NOT wrap output\
+      \ in ```json or ``` code blocks\n- Start your response with { and end with }\n- No explanatory text before or after\
+      \ the JSON\n\n# ROLE & GOAL\nYou are a principal engineer conducting a deep technical interview.\nGenerate a technical\
+      \ depth question in {{output_language}} that probes real implementation\nexperience, architectural decisions, and problem-solving\
+      \ methodology.\n\n# LANGUAGE REQUIREMENT (CRITICAL — OVERRIDES EXAMPLES)\nWrite ALL output text in {{output_language}}.\n\
+      The few-shot examples below are in Korean for reference ONLY.\nYou MUST produce ALL output (title, question_text, why_matters,\
+      \ listen_for, scenarios, follow_ups, terminology, interviewer_note) in {{output_language}}.\nDo NOT copy Korean text\
+      \ from examples — translate the pattern into {{output_language}}.\n\n# CATEGORY: TECHNICAL_DEPTH (기술 심층)\nThis question\
+      \ assesses: technical skills, problem-solving, architecture design, code quality, debugging.\n\n## DATA SOURCE CONSTRAINTS\n\
+      - ✅ USE: Code analysis data, GitHub implementations, tech stack, JD tech requirements\n- ✅ USE: Specific code files,\
+      \ functions, and implementation patterns from evidence_context\n- ⚠️ Resume/LinkedIn skills are supplementary — code\
+      \ evidence takes priority\n- ⚠️ Only reference code that appears in evidence_context, not assumed from skills\n\n##\
+      \ QUESTION DESIGN GUIDELINES\n1. **코드 근거 기반**: 후보자의 실제 코드/프로젝트에서 출발하라\n2. **WHY > WHAT**: \"무엇을 썼나?\"보다 \"왜 그걸 선택했나?\"\
+      를 물어라\n3. **트레이드오프**: 단일 정답이 아닌, 선택의 근거와 대안 비교를 탐색하라\n4. **디버깅 사고력**: 문제를 만났을 때의 사고 과정과 해결 전략을 확인하라\n\n## ANSWER EVALUATION\
+      \ CRITERIA\n- Expert: 구체적 수치/메트릭 포함, 트레이드오프 분석, 대안과 비교, 실제 결과 제시\n- Mid: 올바른 개념 이해, 기본 구현 경험 있으나 깊이 부족\n- Low: 프레임워크/라이브러리\
+      \ 이름만 알고 원리를 모름\n\n# CANDIDATE PROFILE (USE THIS TO PERSONALIZE YOUR QUESTION)\n{{candidate_context}}\n\n# TOPIC DETAILS\n\
+      Topic: {{topic}}\nCategory: {{category}}\nDifficulty: {{difficulty}}\nExperience Level: {{experience_level}}\n\n{{evidence_context}}\n\
+      {{recommended_probe}}\n\n# OUTPUT FORMAT (v2 JSON)\nReturn a JSON object with: title, question_text, why_matters, listen_for,\
+      \ is_risk,\nanswer_keywords[], scenarios[] (Expert/Mid/Low with score and text),\nfollow_ups[] (with trigger, good/poor\
+      \ examples), terminology[], interviewer_note.\n\n# FEW-SHOT EXAMPLE 1: \"데이터베이스 쿼리 최적화\"\nTopic: \"PostgreSQL 쿼리 성능\
+      \ 최적화 경험\" (from GitHub: pgvector 사용, Resume: 대용량 데이터 처리)\nCategory: technical_depth\nDifficulty: Hard\n\n```json\n\
+      {\n  \"title\": \"DB 쿼리 최적화\",\n  \"question_text\": \"PostgreSQL에서 쿼리 성능 문제를 해결하신 경험이 있으신가요? 어떤 쿼리가 문제였고, 어떻게 개선하셨는지\
+      \ 과정을 설명해주세요.\",\n  \"why_matters\": \"DB 성능 최적화는 서비스 응답 속도와 인프라 비용에 직접 영향을 미칩니다\",\n  \"listen_for\": \"EXPLAIN ANALYZE,\
+      \ 인덱스 전략, 쿼리 플랜, 실행 시간 비교\",\n  \"is_risk\": false,\n  \"answer_keywords\": [\n    {\"keyword\": \"EXPLAIN ANALYZE\"\
+      , \"importance\": \"must\", \"explanation\": \"쿼리 실행 계획 분석의 기본 도구\"},\n    {\"keyword\": \"인덱스\", \"importance\": \"\
+      must\", \"explanation\": \"B-tree, GIN, GiST 등 인덱스 전략\"},\n    {\"keyword\": \"N+1\", \"importance\": \"good_to_have\"\
+      , \"explanation\": \"ORM 사용 시 흔한 성능 문제\"}\n  ],\n  \"scenarios\": [\n    {\n      \"level\": \"Expert\",\n      \"score\"\
+      : 25,\n      \"text\": \"사용자 검색 API가 2초 이상 걸렸습니다. EXPLAIN ANALYZE를 돌려보니 users 테이블에 Full Table Scan이 발생하고 있었고, WHERE\
+      \ 절의 LOWER(email) LIKE 패턴 때문에 B-tree 인덱스를 못 타고 있었습니다. pg_trgm 확장의 GIN 인덱스를 추가하고 ILIKE로 변경했더니 실행 시간이 2.3초에서 12ms로 줄었습니다.\
+      \ 추가로 자주 사용되는 필터 조합에 대해 복합 인덱스를 만들고, 불필요한 SELECT *를 필요한 컬럼만 가져오도록 수정했습니다.\",\n      \"depth_expectations\": \"실행 계획\
+      \ 분석 → 원인 파악 → 인덱스 전략 → 수치 비교 → 부가 최적화\"\n    },\n    {\n      \"level\": \"Mid\",\n      \"score\": 15,\n      \"text\"\
+      : \"쿼리가 느려서 인덱스를 추가했더니 빨라졌습니다. EXPLAIN으로 확인해보니 인덱스를 타고 있었습니다. N+1 문제도 JOIN으로 해결한 경험이 있습니다.\",\n      \"depth_expectations\"\
+      : \"기본적인 인덱스/JOIN 이해, 그러나 실행 계획 분석 깊이 부족\"\n    },\n    {\n      \"level\": \"Low\",\n      \"score\": 5,\n      \"\
+      text\": \"ORM을 쓰고 있어서 쿼리를 직접 작성할 일이 별로 없었습니다. 느릴 때는 캐시를 추가해서 해결했습니다.\",\n      \"depth_expectations\": \"DB 수준 최적화 경험\
+      \ 부재, 문제 회피 패턴\"\n    }\n  ],\n  \"follow_ups\": [\n    {\n      \"id\": \"q-f1\",\n      \"trigger\": \"Expert\",\n\
+      \      \"question_text\": \"GIN 인덱스와 B-tree 인덱스 중 어떤 상황에서 어떤 걸 선택하시나요?\",\n      \"why_matters\": \"인덱스 타입별 특성 이해도\"\
+      ,\n      \"listen_for\": \"텍스트 검색 vs 등호/범위 비교, 쓰기 성능 트레이드오프\",\n      \"good\": {\"text\": \"B-tree는 등호나 범위 검색에 적합하고\
+      \ 쓰기 오버헤드가 적습니다. GIN은 Full-text 검색이나 배열 포함 연산에 강하지만 INSERT/UPDATE가 느려질 수 있어서, 쓰기가 많은 테이블에서는 GiST를 고려하거나 비동기 인덱스 업데이트\
+      \ 옵션을 쓰기도 합니다.\", \"score\": 10},\n      \"poor\": {\"text\": \"공식 문서에서 추천하는 걸 따릅니다.\", \"score\": 3}\n    },\n    {\n\
+      \      \"id\": \"q-f2\",\n      \"trigger\": \"Low\",\n      \"question_text\": \"쿼리 성능을 확인할 때 어떤 도구나 방법을 쓰시나요?\",\n\
+      \      \"why_matters\": \"성능 진단 기본 역량\",\n      \"listen_for\": \"EXPLAIN, slow query log, APM 도구\",\n      \"good\"\
+      : {\"text\": \"Django에서 django-debug-toolbar로 쿼리 수를 확인하고, 느린 쿼리는 EXPLAIN으로 실행 계획을 봅니다.\", \"score\": 5},\n      \"poor\"\
+      : {\"text\": \"페이지 로딩이 느리면 코드를 살펴봅니다.\", \"score\": 1}\n    }\n  ],\n  \"terminology\": [\n    {\"term\": \"EXPLAIN\
+      \ ANALYZE\", \"definition\": \"SQL 쿼리가 실제로 어떻게 실행되는지 보여주는 명령어. 병원 CT 스캔처럼 쿼리의 내부를 투시합니다\", \"pronunciation\": \"익스플레인\
+      \ 애널라이즈\"},\n    {\"term\": \"GIN 인덱스\", \"definition\": \"텍스트 검색에 특화된 인덱스. 책 뒤의 색인처럼 단어별로 어디에 나오는지 미리 정리해둔 것\", \"\
+      pronunciation\": \"진 인덱스\"}\n  ],\n  \"interviewer_note\": {\n    \"business_interpretation\": \"DB 최적화 능력은 서버 비용 절감과\
+      \ 사용자 경험 개선에 직결됩니다. 2초→12ms 개선은 사용자 이탈률을 크게 줄입니다.\",\n    \"daily_analogy\": \"도서관에서 책을 찾을 때 서가를 처음부터 훑는 것(Full Scan)과\
+      \ 색인 카드를 보고 바로 찾는 것(Index Scan)의 차이입니다\",\n    \"level_expectation\": \"시니어: 실행 계획 분석 + 인덱스 전략 + 수치 비교 | 주니어: EXPLAIN\
+      \ 사용 경험 + 기본 인덱스 이해\"\n  }\n}\n```\n\n# FEW-SHOT EXAMPLE 2: \"API 설계 및 에러 처리\"\nTopic: \"RESTful API 설계 원칙\" (from GitHub:\
+      \ FastAPI 프로젝트, 30+ endpoints)\nCategory: technical_depth\nDifficulty: Medium\n\n```json\n{\n  \"title\": \"API 에러 처리\
+      \ 설계\",\n  \"question_text\": \"API에서 에러 응답을 어떻게 설계하시나요? 클라이언트가 에러를 잘 처리할 수 있도록 어떤 정보를 포함시키시는지 설명해주세요.\",\n  \"why_matters\"\
+      : \"일관된 에러 처리는 프론트엔드 개발 생산성과 사용자 경험에 직접 영향을 미칩니다\",\n  \"listen_for\": \"HTTP 상태 코드 구분, 에러 코드 체계, 클라이언트 가이드\",\n  \"\
+      is_risk\": false,\n  \"answer_keywords\": [\n    {\"keyword\": \"HTTP 상태 코드\", \"importance\": \"must\", \"explanation\"\
+      : \"400 vs 401 vs 403 vs 404 vs 500 구분\"},\n    {\"keyword\": \"에러 코드 체계\", \"importance\": \"good_to_have\", \"explanation\"\
+      : \"내부 에러 분류 시스템\"}\n  ],\n  \"scenarios\": [\n    {\n      \"level\": \"Expert\",\n      \"score\": 20,\n      \"text\"\
+      : \"모든 에러 응답에 공통 포맷을 씁니다. HTTP 상태 코드로 카테고리를 구분하고, 내부에 error_code(예: USER_NOT_FOUND, QUOTA_EXCEEDED), message(사용자용),\
+      \ detail(개발자용)을 포함합니다. 422 Validation Error에는 field별 에러를 배열로 반환해서 프론트엔드가 각 입력 필드에 에러를 표시할 수 있게 합니다. 500 에러에는 request_id를\
+      \ 포함시켜서 로그 추적을 쉽게 합니다. FastAPI의 exception_handler를 오버라이드해서 이 포맷을 강제했습니다.\",\n      \"depth_expectations\": \"체계적 설계\
+      \ + 클라이언트 관점 + 디버깅 편의 + 프레임워크 구현\"\n    },\n    {\n      \"level\": \"Mid\",\n      \"score\": 12,\n      \"text\":\
+      \ \"400은 잘못된 요청, 404는 없는 리소스, 500은 서버 에러로 구분합니다. 에러 메시지를 JSON으로 반환하고, 프론트엔드에서 메시지를 그대로 표시합니다.\",\n      \"depth_expectations\"\
+      : \"기본 상태 코드 이해, 구조화된 에러 설계 경험 부족\"\n    },\n    {\n      \"level\": \"Low\",\n      \"score\": 5,\n      \"text\":\
+      \ \"에러가 나면 try-except로 잡아서 에러 메시지를 반환합니다. 상태 코드는 보통 200이나 500을 씁니다.\",\n      \"depth_expectations\": \"에러 처리의 기본 원칙\
+      \ 이해 부족\"\n    }\n  ],\n  \"follow_ups\": [\n    {\n      \"id\": \"q-f1\",\n      \"trigger\": \"Expert\",\n      \"\
+      question_text\": \"인증 실패(401)와 권한 부족(403)을 어떻게 구분하시나요? 실제로 혼동해서 문제가 된 경험이 있으신가요?\",\n      \"why_matters\": \"보안과 사용성의\
+      \ 교차점 이해\",\n      \"listen_for\": \"인증 vs 인가 구분, 보안 정보 노출 방지\",\n      \"good\": {\"text\": \"401은 토큰이 없거나 만료된 경우,\
+      \ 403은 유효한 토큰이지만 해당 리소스에 권한이 없는 경우입니다. 초기에 모두 403으로 반환했다가 프론트엔드가 토큰 갱신 타이밍을 잡지 못하는 문제가 있어서 분리했습니다.\", \"score\": 8},\n\
+      \      \"poor\": {\"text\": \"프레임워크가 자동으로 처리해줍니다.\", \"score\": 2}\n    }\n  ],\n  \"terminology\": [\n    {\"term\"\
+      : \"HTTP 상태 코드\", \"definition\": \"서버가 요청 결과를 숫자로 알려주는 것. 200=성공, 400=잘못된 요청, 500=서버 문제. 택배 배송 상태 코드와 비슷합니다\", \"pronunciation\"\
+      : \"에이치티티피 스테이터스 코드\"}\n  ],\n  \"interviewer_note\": {\n    \"business_interpretation\": \"잘 설계된 에러 응답은 프론트엔드 개발자의\
+      \ 생산성을 높이고, 장애 대응 시간을 단축합니다\",\n    \"daily_analogy\": \"병원에서 '아프다'만 말하면 진료가 어렵지만, '오른쪽 무릎이 계단 내려갈 때 찌릿하다'고 하면 바로 진단할\
+      \ 수 있는 것과 같습니다\",\n    \"level_expectation\": \"시니어: 체계적 에러 코드 + 클라이언트 관점 설계 | 주니어: 기본 상태 코드 구분 + 에러 메시지 포함\"\n  }\n\
+      }\n```\n\n# LIMITATIONS\n- NEVER assume frameworks/tools not documented in source evidence\n- NEVER create questions\
+      \ about specific versions without evidence\n- NEVER write generic answers like \"잘 처리했습니다\" — always include specific\
+      \ tools, numbers, outcomes\n- Expert answers MUST include before/after metrics or concrete trade-off analysis\n\nREMINDER:\
+      \ Return raw JSON only. Do NOT use markdown code blocks. Start with { and end with }.\n"

@@ -8,7 +8,7 @@ scripts/upload_prompts_to_langfuse.py
     docker compose exec backend python scripts/upload_prompts_to_langfuse.py
 
     # 특정 파일만 업로드
-    docker compose exec backend python scripts/upload_prompts_to_langfuse.py --file question_generation.yaml
+    docker compose exec backend python scripts/upload_prompts_to_langfuse.py --file question_craft.yaml
 
     # Dry run (미리보기)
     docker compose exec backend python scripts/upload_prompts_to_langfuse.py --dry-run
