@@ -127,7 +127,11 @@ async def _llm_generate_decision_summary(
             return None
 
         # 강점 소스 태그 자동 보강 — LLM이 누락 시 후처리
-        SOURCE_TAGS = ("(Resume)", "(GitHub)", "(Resume + GitHub)", "(LinkedIn)", "(Multi-source)")
+        # JIT-71: 한국어 변형 추가 (LLM/rule-based fallback 한국어 태그 인식)
+        SOURCE_TAGS = (
+            "(Resume)", "(GitHub)", "(Resume + GitHub)", "(LinkedIn)", "(Multi-source)",
+            "(이력서)", "(깃허브)", "(이력서 + 깃허브)", "(링크드인)", "(다중 출처)", "(다중 소스)",
+        )
         raw_strengths = result.get("strengths", [])[:5]
         enriched_strengths = []
         for s in raw_strengths:
@@ -281,7 +285,11 @@ async def _llm_generate_interviewer_tips(
                 ))
 
         # red_flags 소스 태그 자동 보강
-        SOURCE_TAGS = ("(Resume)", "(GitHub)", "(LinkedIn)", "(Resume + GitHub)", "(Multi-source)")
+        # JIT-71: 한국어 변형 추가
+        SOURCE_TAGS = (
+            "(Resume)", "(GitHub)", "(LinkedIn)", "(Resume + GitHub)", "(Multi-source)",
+            "(이력서)", "(깃허브)", "(링크드인)", "(이력서 + 깃허브)", "(다중 출처)", "(다중 소스)",
+        )
 
         def _enrich_source_tag(items: list) -> list:
             enriched = []
@@ -643,7 +651,11 @@ async def generate_decision_support(
 
     # Decision Summary: 강점에 소스 태그 존재 확인
     if summary.strengths:
-        SOURCE_TAGS = ("(Resume)", "(GitHub)", "(Resume + GitHub)", "(LinkedIn)", "(Multi-source)", "(다중 소스)")
+        # JIT-71: 한국어 변형 추가
+        SOURCE_TAGS = (
+            "(Resume)", "(GitHub)", "(Resume + GitHub)", "(LinkedIn)", "(Multi-source)",
+            "(이력서)", "(깃허브)", "(이력서 + 깃허브)", "(링크드인)", "(다중 출처)", "(다중 소스)",
+        )
         strengths_with_source = sum(1 for s in summary.strengths if any(tag in s for tag in SOURCE_TAGS))
         logger.info(f"Decision summary: {len(summary.strengths)} strengths, {strengths_with_source} with source tags")
         if strengths_with_source < len(summary.strengths) // 2:
