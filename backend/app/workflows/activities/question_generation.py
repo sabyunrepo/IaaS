@@ -428,6 +428,15 @@ async def craft_question(
                     evidence_context += "\n\nSemantic matches (vector search):\n"
                     for r in relevant[:4]:
                         evidence_context += f"- [{r['content_key']}] {r['content_text'][:150]} (similarity: {r['similarity']:.2f})\n"
+
+                # JIT-64: vector_code/vector_github 소스에서 code_reference 구성
+                if not code_reference and code_results:
+                    best_code = max(code_results, key=lambda r: r.get("similarity", 0))
+                    if best_code.get("similarity", 0) >= 0.5:
+                        code_reference = {
+                            "file_path": best_code.get("content_key", ""),
+                            "code_snippet": best_code.get("content_text", "")[:500],
+                        }
         except Exception as e:
             logger.debug(f"Vector search failed for craft_question: {e}")
 

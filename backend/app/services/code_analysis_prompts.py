@@ -272,6 +272,7 @@ Respond in JSON format:
             "title": "Implementation title",
             "description": "What it does",
             "file_path": "path/to/file.py",
+            "code_snippet": "The most relevant 2-10 lines of actual source code from this implementation",
             "why_notable": "Why this is interesting for interview",
             "question_potential": 0.0-1.0,
             "related_patterns": ["Pattern1"],
