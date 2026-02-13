@@ -937,6 +937,55 @@ class GitHubService:
         )
 
     @staticmethod
+    async def resolve_author_by_github_api(
+        github_username: str,
+        repo_full_name: str,
+        token: str | None = None,
+    ) -> dict | None:
+        """
+        GitHub Commits API로 author 확인 (JIT-81 fallback).
+
+        GitHub는 verified email 기반으로 username→commits 연결을 내부 수행.
+        휴리스틱 매칭 실패 시 최종 fallback으로 사용.
+
+        Args:
+            github_username: GitHub username
+            repo_full_name: "owner/repo" 형식
+            token: GitHub API 토큰
+
+        Returns:
+            {"name": str, "email": str, "method": str, "confidence": float} or None
+        """
+        import httpx
+
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        if token:
+            headers["Authorization"] = f"token {token}"
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(
+                    f"https://api.github.com/repos/{repo_full_name}/commits",
+                    params={"author": github_username, "per_page": 1},
+                    headers=headers,
+                )
+                if resp.status_code == 200:
+                    commits = resp.json()
+                    if commits and isinstance(commits, list):
+                        author = commits[0].get("commit", {}).get("author", {})
+                        name = author.get("name")
+                        email = author.get("email")
+                        if name:
+                            return {
+                                "name": name,
+                                "email": email or "",
+                                "method": "github_commits_api",
+                                "confidence": 0.9,
+                            }
+        except Exception as e:
+            logger.debug(f"GitHub Commits API fallback failed for {github_username} in {repo_full_name}: {e}")
+        return None
+
+    @staticmethod
     def validate_repo_contributions(
         repo_result: dict,
     ) -> dict:
