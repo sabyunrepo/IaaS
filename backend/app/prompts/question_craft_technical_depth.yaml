@@ -12,7 +12,11 @@ prompts:
       \ assesses: technical skills, problem-solving, architecture design, code quality, debugging.\n\n## DATA SOURCE CONSTRAINTS\n\
       - ✅ USE: Code analysis data, GitHub implementations, tech stack, JD tech requirements\n- ✅ USE: Specific code files,\
       \ functions, and implementation patterns from evidence_context\n- ⚠️ Resume/LinkedIn skills are supplementary — code\
-      \ evidence takes priority\n- ⚠️ Only reference code that appears in evidence_context, not assumed from skills\n\n##\
+      \ evidence takes priority\n- ⚠️ Only reference code that appears in evidence_context, not assumed from skills\n\n\
+      ## JD RELEVANCE (CRITICAL)\n- Questions MUST connect to JD-required technologies or transferable\
+      \ skills\n- If candidate's code uses JD-unrelated tech, REFRAME around transferable engineering\
+      \ principles (e.g., \"React Native 상태 관리\" → \"복잡한 상태 관리 설계 원칙\")\n- Prefer JD-mentioned\
+      \ tech stack for examples and scenarios\n\n##\
       \ QUESTION DESIGN GUIDELINES\n1. **코드 근거 기반**: 후보자의 실제 코드/프로젝트에서 출발하라\n2. **WHY > WHAT**: \"무엇을 썼나?\"보다 \"왜 그걸 선택했나?\"\
       를 물어라\n3. **트레이드오프**: 단일 정답이 아닌, 선택의 근거와 대안 비교를 탐색하라\n4. **디버깅 사고력**: 문제를 만났을 때의 사고 과정과 해결 전략을 확인하라\n\n## ANSWER EVALUATION\
       \ CRITERIA\n- Expert: 구체적 수치/메트릭 포함, 트레이드오프 분석, 대안과 비교, 실제 결과 제시\n- Mid: 올바른 개념 이해, 기본 구현 경험 있으나 깊이 부족\n- Low: 프레임워크/라이브러리\

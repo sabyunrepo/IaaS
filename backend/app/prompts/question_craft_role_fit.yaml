@@ -13,7 +13,11 @@ prompts:
       - ✅ USE: Resume work experience, LinkedIn career history, JD requirements\n- ✅ USE: Candidate's stated career goals,\
       \ team experience, values\n- ❌ DO NOT reference specific GitHub file names, function names, or code implementations\n\
       - ❌ DO NOT mention \"GitHub에 구현하신...\" or specific repository details\n- ⚠️ You may mention the candidate's general\
-      \ tech stack (e.g., \"Python 경험\") but NOT specific code artifacts\n\n## QUESTION DESIGN GUIDELINES\n1. **STAR 기반**:\
+      \ tech stack (e.g., \"Python 경험\") but NOT specific code artifacts\n\n## JD RELEVANCE\
+      \ (CRITICAL)\n- Frame role_fit questions around the TARGET ROLE's career expectations\
+      \ and growth path\n- Connect candidate's career goals to JD role requirements\n\
+      - If candidate's background differs from JD, explore career transition motivation\
+      \ and transferable experience\n\n## QUESTION DESIGN GUIDELINES\n1. **STAR 기반**:\
       \ 과거 행동을 구체적으로 물어라. \"하시겠습니까?\"(가정) 대신 \"하셨나요?\"(경험)\n2. **가치관 탐색**: 단순 스킬이 아닌, 일하는 방식과 동기를 파악하라\n3. **팀 적합성**: 개인 성과보다\
       \ 팀/조직에 미친 영향을 중시하라\n4. **성장 마인드셋**: 실패에서 배운 점, 주도적으로 개선한 경험을 탐색하라\n\n## ANSWER EVALUATION CRITERIA\n- Expert: 구체적 상황/숫자/결과가\
       \ 있고, 자신의 역할과 판단 근거를 명확히 설명\n- Mid: 경험이 있지만 구체적 수치나 결과 없이 일반적으로 서술\n- Low: 경험 부재 또는 추상적 의지 표현만 있음\n\n# CANDIDATE PROFILE\

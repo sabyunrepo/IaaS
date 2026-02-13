@@ -173,11 +173,18 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
             evidence["interview_potential"] = relevance.get("interview_potential", 0)
         if impl.get("source_snippet"):
             evidence["source_snippet"] = impl["source_snippet"][:500]
+        # JIT-75: JD 관련성 가중 점수 — jd_keyword_score 60% + question_potential 40%
+        jd_kw = relevance.get("jd_keyword_score", 0) if relevance else 0
+        q_pot = impl.get("question_potential", 0.5)
+        score = jd_kw * 0.6 + q_pot * 0.4 if jd_kw > 0 else q_pot
+        # jd_score < 0.2이면 50% 페널티 (JD 무관 코드 억제)
+        if jd_kw < 0.2 and jd_kw > 0:
+            score *= 0.5
         candidates.append({
             "source": "code",
             "topic": topic,
             "evidence": evidence,
-            "score": impl.get("question_potential", 0.5),
+            "score": round(score, 2),
         })
 
     # JD 기반 후보
@@ -195,6 +202,17 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
             "score": 0.7 if category == "필수" else 0.5,
         })
 
+    # JIT-78: JD 관련성 기반 후보 정렬 — jd_match/vector_profile/KG 소스 우선
+    jd_relevant_sources = {"jd_match", "vector_profile", "vector_code"}
+    for c in candidates:
+        src = c.get("source", "")
+        # jd_match 소스는 부스트
+        if src == "jd_match":
+            c["score"] = max(c.get("score", 0), 0.7)
+        # KG 기반도 JD 관련성 간접 반영 (이미 boost 적용됨)
+    # score 내림차순 정렬 (LLM에 전달할 때 상위 후보 우선)
+    candidates.sort(key=lambda c: c.get("score", 0), reverse=True)
+
     activity.heartbeat(f"Selecting {max_questions} topics from {len(candidates)} candidates...")
 
     # 후보 소스 분포 추적 — 코드/KG 기반 비율이 낮으면 경고
@@ -208,6 +226,14 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
             f"({code_based * 100 // total_cands}%) — questions may lack code evidence"
         )
     logger.info(f"select_topics candidate sources: {dict(source_dist)}")
+
+    # JIT-78: JD 관련성 후보 비율 추적 — jd_match 부족 시 폴백 전략 트리거 로깅
+    jd_related = sum(v for k, v in source_dist.items() if k in ("jd_match", "vector_profile"))
+    if total_cands > 0 and jd_related / total_cands < 0.2:
+        logger.warning(
+            f"select_topics: JD-related candidates only {jd_related}/{total_cands} "
+            f"({jd_related * 100 // total_cands}%) — fallback strategy (Tier 2/3) likely needed"
+        )
 
     cat_dist_text, diff_dist_text = format_distribution_for_prompt(dist)
     candidate_context = build_candidate_context(analysis, enriched_input)

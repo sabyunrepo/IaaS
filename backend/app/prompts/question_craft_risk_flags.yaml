@@ -12,7 +12,11 @@ prompts:
       \ 신호 검증)\nThis question assesses: career gaps, job hopping, skill gaps, inconsistencies, cultural misalignment.\n\n\
       ## DATA SOURCE CONSTRAINTS\n- ✅ USE: Resume career timeline, LinkedIn employment history, JD requirement gaps\n- ✅ USE:\
       \ Identified inconsistencies between data sources, unexplained gaps\n- ❌ DO NOT force code references unless the risk\
-      \ is specifically about code quality\n- ⚠️ Focus on CAREER PATTERNS and GAPS, not code implementation details\n\n##\
+      \ is specifically about code quality\n- ⚠️ Focus on CAREER PATTERNS and GAPS, not code implementation details\n\n\
+      ## JD RELEVANCE (CRITICAL)\n- Prioritize risk flags that directly impact JD requirements\
+      \ (e.g., missing required skills, career gaps in relevant domain)\n- Assess gaps between\
+      \ candidate's experience and JD requirements as primary risk areas\n- Frame questions\
+      \ to verify whether the candidate can bridge JD requirement gaps\n\n##\
       \ QUESTION DESIGN GUIDELINES\n1. **비판단적 톤**: \"왜 자주 옮기셨나요?\"(X) → \"각 이직의 배경을 말씀해주시겠어요?\"(O)\n2. **객관적 확인**: 우려사항의 실제\
       \ 원인을 파악하라 (외부 요인 vs 본인 패턴)\n3. **방어 유발 금지**: 후보자가 방어적이 되면 진실한 답변을 얻기 어려움\n4. **재발 가능성 탐색**: 과거 패턴이 앞으로도 반복될 가능성을 간접적으로\
       \ 확인하라\n\n## ANSWER EVALUATION CRITERIA\n- Expert: 구체적 사유 + 외부/내부 요인 구분 + 배운 점 + 재발 방지 근거 제시\n- Mid: 사유는 있으나 구체성 부족,\

@@ -13,7 +13,10 @@ prompts:
       \ measurement, crisis management.\n\n## DATA SOURCE CONSTRAINTS\n- ✅ USE: Resume projects, LinkedIn career progression,\
       \ project scale/outcomes\n- ✅ USE: Decision-making experiences, team leadership, crisis management stories\n- ❌ DO NOT\
       \ reference specific code files, function names, or implementation details\n- ⚠️ You may mention project SCOPE (e.g.,\
-      \ \"대규모 서비스\") but NOT code internals\n\n## QUESTION DESIGN GUIDELINES\n1. **결과 중심**: 과정보다 결과를 먼저 물어라. \"어떤 성과를 냈는가?\"\
+      \ \"대규모 서비스\") but NOT code internals\n\n## JD RELEVANCE (CRITICAL)\n- Frame execution\
+      \ questions around process, leadership, and delivery aspects relevant to the TARGET ROLE\n\
+      - If candidate's experience is in a different domain, focus on transferable process/leadership\
+      \ skills\n- Highlight ownership patterns that align with JD role expectations\n\n## QUESTION DESIGN GUIDELINES\n1. **결과 중심**: 과정보다 결과를 먼저 물어라. \"어떤 성과를 냈는가?\"\
       \n2. **의사결정 과정**: 불확실한 상황에서 어떻게 판단했는지 탐색하라\n3. **장애/위기 대응**: 예상치 못한 문제에서의 행동 패턴을 확인하라\n4. **오너십 범위**: 자기 업무만이 아닌, 팀/프로젝트\
       \ 전체에 대한 책임감을 탐색하라\n\n## ANSWER EVALUATION CRITERIA\n- Expert: 타임라인/지표로 결과를 설명, 의사결정 과정과 근거 명확, 실패도 인정하며 교훈 도출\n- Mid:\
       \ 프로젝트 경험은 있으나 본인의 구체적 기여와 의사결정 역할이 불명확\n- Low: 팀의 성과를 말하지만 본인의 역할이 모호, 지시받은 일만 수행\n\n# CANDIDATE PROFILE (USE THIS\

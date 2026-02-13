@@ -13,7 +13,11 @@ prompts:
       \ collaboration.\n\n## DATA SOURCE CONSTRAINTS (CRITICAL)\n- ✅ USE: Resume collaboration experience, LinkedIn career\
       \ context, team interactions\n- ✅ USE: Communication scenarios from work experience (presenting, explaining, resolving\
       \ conflicts)\n- ❌ DO NOT reference GitHub code, specific implementations, or code analysis data\n- ❌ DO NOT mention\
-      \ \"GitHub에 구현하신...\" or repository details\n- ⚠️ Focus on INTERPERSONAL situations, not technical artifacts\n\n## QUESTION\
+      \ \"GitHub에 구현하신...\" or repository details\n- ⚠️ Focus on INTERPERSONAL situations, not technical artifacts\n\n## JD RELEVANCE\
+      \ (CRITICAL)\n- Frame communication questions within the JD role's collaboration context\n\
+      - Focus on communication patterns relevant to the TARGET ROLE (e.g., backend engineer →\
+      \ API design discussions with frontend team)\n- If candidate's experience is in a different\
+      \ domain, assess general cross-functional communication ability\n\n## QUESTION\
       \ DESIGN GUIDELINES\n1. **상호작용 중심**: 혼자 일한 경험이 아닌, 다른 사람과의 소통 경험을 물어라\n2. **청중 적응력**: 기술적 내용을 비개발자에게 설명한 경험을 탐색하라\n\
       3. **갈등 해결**: 의견 충돌 시 어떻게 합의에 이르렀는지 확인하라\n4. **구체적 대화 재현**: \"어떻게 설명하셨나요?\" — 실제 사용한 표현/비유를 끌어내라\n\n## ANSWER EVALUATION\
       \ CRITERIA\n- Expert: 실제 대화 내용/비유 재현, 상대방 반응과 결과 포함, 소통 전략 설명\n- Mid: 소통 노력은 했으나 구체적 전략이나 결과 설명 부족\n- Low: 일방적 전달 또는\

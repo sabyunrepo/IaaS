@@ -12,7 +12,9 @@ prompts:
       \ Work experience, stated skills, projects\n3. **LinkedIn Analysis**: Professional network, endorsements, career progression\n\
       \n# DETAILED GOAL\nSelect topics that:\n- Are GROUNDED in documented evidence (not assumed)\n- Cover all 5 categories\
       \ equally (5 topics each)\n- Have appropriate difficulty distribution (2 Easy, 2 Medium, 1 Hard per category)\n- Create\
-      \ meaningful interview conversations\n- Prioritize candidates with higher jd_keyword_score when available\n\n# INTERPRETATION\
+      \ meaningful interview conversations\n- Prioritize candidates with higher jd_keyword_score when available\n\
+      - **JD RELEVANCE FIRST**: Every topic MUST be relevant to the JD requirements. Impressive code unrelated\
+      \ to the JD should be deprioritized.\n\n# INTERPRETATION\
       \ RULES (CRITICAL)\nWhen selecting topics, follow these rules strictly:\n\n## Rule 1: Multi-Source Corroboration\n-\
       \ If skill appears in BOTH GitHub AND Resume: HIGH confidence → Hard question OK\n- If skill appears in Resume ONLY:\
       \ MEDIUM confidence → Medium question max\n- If skill appears in GitHub ONLY: MEDIUM confidence → include but verify\n\
@@ -27,7 +29,13 @@ prompts:
       \  About delivery results, decisions, ownership — project SCOPE matters, not code details.\n\n- **communication**: PREFER\
       \ jd_match, vector_profile, resume topics ONLY.\n  About collaboration, explanation ability — ❌ NEVER assign code-sourced\
       \ topics here.\n\n- **risk_flags**: PREFER resume/linkedin timeline gaps, kg_conflict_probe topics.\n  About concerns,\
-      \ gaps, inconsistencies — verify against documented evidence.\n\n# CANDIDATE PROFILE CONTEXT\nUse this candidate background\
+      \ gaps, inconsistencies — verify against documented evidence.\n\n## Rule 5: JD Relevance\
+      \ Requirement (CRITICAL)\n- Every selected topic MUST connect to the JD requirements — directly or through\
+      \ transferable skills\n- Code that is technically impressive but UNRELATED to the JD should be DEPRIORITIZED\n\
+      - When a candidate has both JD-relevant and JD-irrelevant experience, ALWAYS prioritize JD-relevant topics\n\
+      - For technical_depth: prefer technologies and patterns mentioned in the JD\n- For role_fit: frame around\
+      \ TARGET ROLE expectations\n- Exception: risk_flags may include JD-unrelated topics if they reveal important\
+      \ concerns\n\n# CANDIDATE PROFILE CONTEXT\nUse this candidate background\
       \ to select PERSONALIZED topics grounded in their actual experience.\nDo NOT create generic questions — every topic\
       \ must reference specific candidate data below.\n{{candidate_context}}\n\n# AVAILABLE TOPIC CANDIDATES\n{{candidates}}\n\
       \n# CATEGORY DISTRIBUTION (percentage-based, total {{max_questions}} topics)\n# Distribution varies by experience level.\
@@ -53,9 +61,32 @@ prompts:
       ,\n  \"difficulty\": \"Medium\",\n  \"source\": \"multi-source\",\n  \"source_details\": {\n    \"github\": \"Python\
       \ scripts for data analysis\",\n    \"resume\": \"Python 개발자\",\n    \"linkedin\": \"Data Analyst\"\n  },\n  \"evidence_summary\"\
       : \"All sources confirm Python data analysis focus\",\n  \"confidence_score\": 0.85,\n  \"question_angle\": \"Explore\
-      \ specific data analysis workflows and tools used\"\n}\n```\n\n# LIMITATIONS\n- NEVER create topics for skills not documented\
+      \ specific data analysis workflows and tools used\"\n}\n```\n\n# UNSUCCESSFUL EXAMPLE 2\
+      \ (JD-Irrelevant Topic — DO NOT DO THIS)\nSource Data:\n- JD: \"Backend Engineer — FastAPI, PostgreSQL,\
+      \ Redis 경험 필수\"\n- GitHub: \"React Native 모바일 앱, 복잡한 애니메이션 구현, 100+ commits\"\n- Resume: \"모바일 앱 개발,\
+      \ FastAPI 백엔드 경험\"\n\nBAD Topic Selection:\n```json\n{\n  \"category\": \"technical_depth\",\n  \"topic\"\
+      : \"React Native 애니메이션 최적화 경험\",\n  \"difficulty\": \"Hard\",\n  \"source\": \"github\",\n  \"evidence_summary\"\
+      : \"Impressive React Native animation with 100+ commits\",\n  \"confidence_score\": 0.9\n}\n```\nWHY BAD:\
+      \ React Native is NOT relevant to the Backend Engineer JD. The LLM was distracted by impressive code\
+      \ instead of JD requirements.\n\nCORRECT Topic Selection:\n```json\n{\n  \"category\": \"technical_depth\"\
+      ,\n  \"topic\": \"FastAPI 백엔드 설계 경험\",\n  \"difficulty\": \"Medium\",\n  \"source\": \"resume\",\n  \"source_details\"\
+      : {\n    \"github\": null,\n    \"resume\": \"FastAPI 백엔드 경험\",\n    \"linkedin\": null\n  },\n  \"evidence_summary\"\
+      : \"Resume confirms FastAPI backend experience, directly relevant to JD\",\n  \"confidence_score\": 0.7,\n\
+      \  \"question_angle\": \"Explore FastAPI project architecture and design decisions\"\n}\n```\nWHY CORRECT:\
+      \ Chose JD-relevant topic (FastAPI) over impressive-but-irrelevant code (React Native).\n\n# LIMITATIONS\n- NEVER create topics for skills not documented\
       \ in ANY source\n- NEVER assign Hard difficulty to single-source topics\n- NEVER ignore the 5-per-category distribution\
-      \ requirement\n- If insufficient topics exist, create verification questions instead\n\n# DO NOT LIMIT YOURSELF\n- DO\
+      \ requirement\n- If insufficient topics exist, create verification questions instead\n\n\
+      # JD-UNRELATED EXPERIENCE FALLBACK STRATEGY\nWhen candidate lacks JD-relevant experience,\
+      \ apply this 3-tier fallback:\n\n## Tier 1: JD-Relevant Experience Found\n→ Create questions\
+      \ directly based on JD-matched evidence. This is the default path.\n\n## Tier 2: No Direct\
+      \ JD Match, but Transferable Skills Exist\n→ REFRAME the topic through transferable skills.\n\
+      Example: JD requires \"Kubernetes\" but candidate only has \"Docker Compose\" experience\n\
+      → Topic: \"컨테이너 오케스트레이션 경험과 Kubernetes 학습 계획\"\n→ question_angle: \"Docker Compose\
+      \ 경험에서 Kubernetes로의 전이 가능성 탐색\"\n→ Mark confidence_score lower (0.5-0.7)\n\n\
+      ## Tier 3: No Transferable Skills\n→ Create JD-based VERIFICATION questions instead of\
+      \ experience-based questions.\n→ Topic: \"JD 요구 기술(X)에 대한 이해도 및 학습 계획 확인\"\n\
+      → category: risk_flags\n→ question_angle: \"Ask about learning plan and foundational\
+      \ understanding\"\n→ Mark confidence_score low (0.3-0.5)\n\n# DO NOT LIMIT YOURSELF\n- DO\
       \ create topics from partial evidence (mark with lower confidence)\n- DO identify gaps as risk_flags topics\n- DO suggest\
       \ alternative angles for weak evidence topics\n- DO balance between challenging and fair questions\n\nREMINDER: Return\
       \ raw JSON array only. Do NOT use markdown code blocks. Start with [ and end with ].\n"
