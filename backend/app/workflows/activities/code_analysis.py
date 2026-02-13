@@ -312,6 +312,10 @@ async def analyze_code(
         if lang and lang not in combined_tech_set:
             combined_tech_set.add(lang)
     combined_tech = list(combined_tech_set)
+    # JIT-61: GitHub API language 필드만 수집 (프로그래밍 언어만 보장)
+    primary_languages = list(dict.fromkeys(
+        repo.get("language") for repo in repositories if repo.get("language")
+    ))
     code_analysis_result = {
         "repositories": repositories,
         "target_repos": target_repos,  # Step 2 병렬 처리용
@@ -319,6 +323,7 @@ async def analyze_code(
         "candidate_username": candidate_username,
         "combined_tech_stack": combined_tech,
         "tech_stack": combined_tech,  # alias for intel/analysis_generation compatibility
+        "primary_languages": primary_languages,  # JIT-61: GitHub API language 기반 (프로그래밍 언어만)
         "total_patterns": sum(len(repo.get("analysis", {}).get("patterns", [])) for repo in repositories),
         "total_notable_implementations": len(all_notables),
         "top_question_candidates": all_notables[:20],

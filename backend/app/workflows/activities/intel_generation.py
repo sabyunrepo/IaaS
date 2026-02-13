@@ -52,6 +52,8 @@ def _extract_github_summary(code_analysis: dict | None, lang: str = "ko") -> Git
     repos = code_analysis.get("repositories", [])
     total_commits = sum(r.get("candidate_commits", r.get("commit_count", 0)) for r in repos)
     tech_stack = code_analysis.get("tech_stack", [])
+    # JIT-61: GitHub API language 기반 프로그래밍 언어 (LLM tech_stack과 분리)
+    primary_languages = code_analysis.get("primary_languages", [])
 
     # 월별 기여도 데이터 (12개월)
     chart_data = code_analysis.get("monthly_contributions", [0] * 12)
@@ -76,7 +78,7 @@ def _extract_github_summary(code_analysis: dict | None, lang: str = "ko") -> Git
     return GitHubSummary(
         contributions=total_commits,
         repos=len(repos),
-        main_languages=", ".join(tech_stack[:3]) if tech_stack else "N/A",
+        main_languages=", ".join(primary_languages[:3]) if primary_languages else "N/A",
         tech_match=_t("high", lang) if tech_stack else _t("unconfirmed", lang),
         tech_match_note=tech_match_note,
         tenure_pattern=code_analysis.get("tenure_pattern", _t("unconfirmed", lang)),
