@@ -27,6 +27,8 @@ MAX_RETRIES = 2
 RETRY_BACKOFF = 1.0  # seconds
 POLL_INTERVAL = 5.0  # seconds
 MAX_POLL_ATTEMPTS = 24  # 5s × 24 = 최대 2분 대기
+SNAPSHOT_RETRY_ATTEMPTS = 6  # snapshot 202 재시도 (5s × 6 = 최대 30초)
+SNAPSHOT_RETRY_INTERVAL = 5.0  # seconds
 
 
 class LinkedInService:
@@ -185,29 +187,46 @@ class LinkedInService:
                 )
                 return None
 
-            # 결과 조회
-            snapshot_resp = await client.get(
-                f"{self.BASE_URL}/snapshot/{snapshot_id}",
-                params={"format": "json"},
-                headers=self.headers,
-            )
+            # 결과 조회 (JIT-79: 202 재시도 — 데이터 준비 중일 수 있음)
+            data = None
+            for snapshot_attempt in range(SNAPSHOT_RETRY_ATTEMPTS):
+                snapshot_resp = await client.get(
+                    f"{self.BASE_URL}/snapshot/{snapshot_id}",
+                    params={"format": "json"},
+                    headers=self.headers,
+                )
 
-            logger.info(
-                f"Bright Data snapshot response: status={snapshot_resp.status_code}, "
-                f"snapshot={snapshot_id}"
-            )
+                logger.info(
+                    f"Bright Data snapshot response: status={snapshot_resp.status_code}, "
+                    f"snapshot={snapshot_id}, attempt={snapshot_attempt + 1}/{SNAPSHOT_RETRY_ATTEMPTS}"
+                )
 
-            if snapshot_resp.status_code == 404:
-                logger.warning(f"LinkedIn profile not found: {linkedin_url}")
-                return None
-            if snapshot_resp.status_code != 200:
+                if snapshot_resp.status_code == 200:
+                    data = snapshot_resp.json()
+                    break
+                elif snapshot_resp.status_code == 202:
+                    logger.info(
+                        f"Bright Data snapshot not ready yet (202), "
+                        f"retrying in {SNAPSHOT_RETRY_INTERVAL}s..."
+                    )
+                    await asyncio.sleep(SNAPSHOT_RETRY_INTERVAL)
+                    continue
+                elif snapshot_resp.status_code == 404:
+                    logger.warning(f"LinkedIn profile not found: {linkedin_url}")
+                    return None
+                else:
+                    logger.error(
+                        f"Bright Data snapshot error: status={snapshot_resp.status_code}, "
+                        f"body={snapshot_resp.text[:1000]}"
+                    )
+                    return None
+            else:
                 logger.error(
-                    f"Bright Data snapshot error: status={snapshot_resp.status_code}, "
-                    f"body={snapshot_resp.text[:1000]}"
+                    f"Bright Data snapshot still not ready after "
+                    f"{SNAPSHOT_RETRY_ATTEMPTS * SNAPSHOT_RETRY_INTERVAL}s: "
+                    f"snapshot={snapshot_id}"
                 )
                 return None
-
-            data = snapshot_resp.json()
             if not isinstance(data, list) or len(data) == 0:
                 logger.warning(f"Empty snapshot data for {linkedin_url}: {type(data)}")
                 return None
