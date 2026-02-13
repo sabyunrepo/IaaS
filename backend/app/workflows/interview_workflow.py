@@ -87,7 +87,7 @@ class InterviewGenerationWorkflow:
                 enrich_input,
                 input_data,
                 start_to_close_timeout=timedelta(minutes=5),
-                heartbeat_timeout=timedelta(seconds=60),
+                heartbeat_timeout=timedelta(seconds=120),
                 retry_policy=EXTERNAL_API_RETRY,
             )
 

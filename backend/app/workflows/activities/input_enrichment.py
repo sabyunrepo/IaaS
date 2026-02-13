@@ -2,6 +2,7 @@
 backend/app/workflows/activities/input_enrichment.py
 Smart Input Extraction — 입력 교차 추출 및 보강
 """
+import asyncio
 import re
 import logging
 
@@ -11,6 +12,28 @@ from app.core.observability import observe_activity
 from app.exceptions import LinkedInFetchError
 
 logger = logging.getLogger(__name__)
+
+
+async def _with_heartbeat(coro, message: str, interval: float = 30.0):
+    """장기 실행 코루틴에 주기적 heartbeat를 보내 Temporal 타임아웃 방지.
+
+    Gemini OCR(최대 120s), LinkedIn 폴링(최대 120s) 등
+    heartbeat_timeout(120s) 근처까지 블로킹되는 호출을 안전하게 래핑.
+    """
+    async def _heartbeat_loop():
+        while True:
+            await asyncio.sleep(interval)
+            activity.heartbeat(message)
+
+    task = asyncio.create_task(_heartbeat_loop())
+    try:
+        return await coro
+    finally:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
 
 @activity.defn
@@ -39,7 +62,10 @@ async def enrich_input(input_data: dict) -> dict:
     if input_data.get("resume_path"):
         activity.heartbeat("Extracting URLs from resume...")
         try:
-            text = await extract_text(input_data["resume_path"])
+            text = await _with_heartbeat(
+                extract_text(input_data["resume_path"]),
+                "Processing resume OCR...",
+            )
             found = _extract_urls(text)
             for url in found["github"]:
                 extracted_urls["github"].add(url)
@@ -55,7 +81,10 @@ async def enrich_input(input_data: dict) -> dict:
     if input_data.get("portfolio_path"):
         activity.heartbeat("Extracting URLs from portfolio...")
         try:
-            text = await extract_text(input_data["portfolio_path"])
+            text = await _with_heartbeat(
+                extract_text(input_data["portfolio_path"]),
+                "Processing portfolio OCR...",
+            )
             found = _extract_urls(text)
             for url in found["github"]:
                 extracted_urls["github"].add(url)
@@ -68,7 +97,10 @@ async def enrich_input(input_data: dict) -> dict:
     if input_data.get("cover_letter_path"):
         activity.heartbeat("Extracting URLs from cover letter...")
         try:
-            text = await extract_text(input_data["cover_letter_path"])
+            text = await _with_heartbeat(
+                extract_text(input_data["cover_letter_path"]),
+                "Processing cover letter OCR...",
+            )
             found = _extract_urls(text)
             for url in found["github"]:
                 extracted_urls["github"].add(url)
@@ -88,7 +120,10 @@ async def enrich_input(input_data: dict) -> dict:
             try:
                 from app.services.github_service import GitHubService
                 github_svc = GitHubService()
-                profile_repos = await github_svc.get_user_repos(git_url)
+                profile_repos = await _with_heartbeat(
+                    github_svc.get_user_repos(git_url),
+                    "Fetching GitHub profile repos...",
+                )
                 for repo_url in profile_repos:
                     extracted_urls["github"].add(repo_url)
                     extraction_sources.setdefault("github_urls", []).append("git_url_profile")
@@ -114,12 +149,14 @@ async def enrich_input(input_data: dict) -> dict:
         activity.heartbeat("Fetching LinkedIn profile via Bright Data...")
         try:
             linkedin_svc = LinkedInService()
-            linkedin_profile = await linkedin_svc.get_profile(linkedin_url)
-        except LinkedInFetchError:
-            raise
-        except Exception as e:
-            logger.warning(f"Bright Data failed for {linkedin_url}: {e}")
+            linkedin_profile = await _with_heartbeat(
+                linkedin_svc.get_profile(linkedin_url),
+                "Polling LinkedIn profile...",
+            )
+        except (LinkedInFetchError, Exception) as e:
+            logger.warning(f"LinkedIn fetch failed for {linkedin_url} ({type(e).__name__}): {e}")
             linkedin_profile = None
+            document_errors.append({"source": "linkedin", "error": str(e)})
 
         # LinkedIn에서 GitHub URL 발견 시 추가
         if linkedin_profile and linkedin_profile.get("github_url"):
@@ -144,9 +181,12 @@ async def enrich_input(input_data: dict) -> dict:
             from app.services.github_service import GitHubService
             github_svc = GitHubService()
 
-            username_inference = await github_svc.infer_candidate_username(
-                github_urls=github_urls,
-                candidate_name=candidate_name,
+            username_inference = await _with_heartbeat(
+                github_svc.infer_candidate_username(
+                    github_urls=github_urls,
+                    candidate_name=candidate_name,
+                ),
+                "Validating GitHub URLs...",
             )
 
             # 개인 레포 URL만 사용

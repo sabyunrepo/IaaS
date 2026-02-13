@@ -28,17 +28,6 @@ RETRY_BACKOFF = 1.0  # seconds
 POLL_INTERVAL = 5.0  # seconds
 MAX_POLL_ATTEMPTS = 24  # 5s × 24 = 최대 2분 대기
 
-# LinkedIn 세부 페이지 7종 (접힌 섹션 데이터 수집용)
-DETAIL_PAGES = [
-    "details/experience/",
-    "details/skills/",
-    "details/education/",
-    "details/projects/",
-    "details/honors/",
-    "details/recommendations/",
-    "details/volunteering/",
-]
-
 
 class LinkedInService:
     """LinkedIn 프로필 데이터 수집 (Bright Data Web Scraper API)
@@ -91,48 +80,22 @@ class LinkedInService:
         raise LinkedInFetchError(f"Bright Data request failed after retries: {last_error}") from last_error
 
     async def _fetch_profile(self, linkedin_url: str) -> dict | None:
-        """Bright Data 비동기 API 호출 (메인 프로필 + 세부 페이지 병렬 수집)
+        """Bright Data 비동기 API 호출 (메인 프로필 URL)
 
-        전략: 메인 + 세부 페이지 일괄 트리거 → 실패 시 메인만 재시도 (graceful degradation)
+        Bright Data Web Scraper API는 메인 프로필 URL에서 experience, education,
+        skills, projects 등 모든 섹션을 추출함. /details/ 세부 페이지 URL은
+        dead_page로 처리되므로 메인 URL만 전송.
         """
-        base_url = linkedin_url.rstrip("/")
-
-        # 메인 프로필 + 세부 페이지 URL 구성
-        urls_all = [{"url": linkedin_url}]
-        for page in DETAIL_PAGES:
-            urls_all.append({"url": f"{base_url}/{page}"})
-        urls_main_only = [{"url": linkedin_url}]
+        urls = [{"url": linkedin_url}]
 
         async with httpx.AsyncClient(timeout=30.0) as client:
-            # Phase 1: 메인 + 세부 페이지 일괄 트리거 시도
-            snapshot_id = await self._trigger_collection(client, urls_all)
-
-            if snapshot_id:
-                logger.info(
-                    f"Bright Data collection started: {snapshot_id} "
-                    f"({len(urls_all)} URLs: main + {len(DETAIL_PAGES)} detail pages)"
-                )
-                data = await self._poll_and_fetch(client, snapshot_id, linkedin_url)
-
-                if data is not None:
-                    main_profile = data[0]
-                    detail_results = data[1:] if len(data) > 1 else []
-                    if detail_results:
-                        logger.info(f"Merging {len(detail_results)} detail page results")
-                    merged = self._merge_detail_pages(main_profile, detail_results)
-                    return self._normalize_profile(merged, linkedin_url)
-
-                # 폴링/조회 실패 → 메인만 재시도
-                logger.warning("Full collection failed, falling back to main profile only")
-
-            # Phase 2: 메인 프로필만 트리거 (fallback)
-            snapshot_id = await self._trigger_collection(client, urls_main_only)
+            snapshot_id = await self._trigger_collection(client, urls)
             if not snapshot_id:
                 raise LinkedInFetchError(
-                    f"Bright Data trigger failed for both full and main-only requests: {linkedin_url}"
+                    f"Bright Data trigger failed: {linkedin_url}"
                 )
 
-            logger.info(f"Bright Data fallback collection started: {snapshot_id} (main profile only)")
+            logger.info(f"Bright Data collection started: {snapshot_id}")
             data = await self._poll_and_fetch(client, snapshot_id, linkedin_url)
 
             if data is None:
@@ -261,143 +224,6 @@ class LinkedInService:
     def validate_url(url: str) -> bool:
         """LinkedIn 프로필 URL 유효성 검증"""
         return bool(LINKEDIN_URL_PATTERN.match(url))
-
-    @staticmethod
-    def _merge_detail_pages(main: dict, details: list[dict]) -> dict:
-        """세부 페이지 데이터를 메인 프로필에 병합
-
-        Bright Data는 세부 페이지에서 접힌 섹션의 전체 데이터를 반환.
-        메인 프로필의 해당 섹션이 불완전하면 세부 페이지 데이터로 보강.
-        """
-        if not details:
-            return main
-
-        merged = dict(main)
-
-        for detail in details:
-            if not isinstance(detail, dict):
-                continue
-
-            # 경력 병합 (title+company 기준 중복 제거)
-            detail_exp = detail.get("experience") or detail.get("experiences") or []
-            if detail_exp and isinstance(detail_exp, list):
-                existing_exp = merged.get("experience") or merged.get("experiences") or []
-                existing_keys = set()
-                for exp in existing_exp:
-                    if isinstance(exp, dict):
-                        title = (exp.get("title") or "").lower().strip()
-                        company = (exp.get("company") or exp.get("company_name") or "").lower().strip()
-                        existing_keys.add(f"{title}|{company}")
-
-                new_entries = []
-                for exp in detail_exp:
-                    if not isinstance(exp, dict):
-                        continue
-                    title = (exp.get("title") or "").lower().strip()
-                    company = (exp.get("company") or exp.get("company_name") or "").lower().strip()
-                    key = f"{title}|{company}"
-                    if key not in existing_keys:
-                        new_entries.append(exp)
-                        existing_keys.add(key)
-
-                if new_entries:
-                    merged_exp = list(existing_exp) + new_entries
-                    # experience 또는 experiences 키 유지
-                    if "experiences" in merged:
-                        merged["experiences"] = merged_exp
-                    else:
-                        merged["experience"] = merged_exp
-                    logger.info(f"Merged {len(new_entries)} new experience entries from detail pages")
-
-            # 스킬 병합 (name 기준 중복 제거)
-            detail_skills = detail.get("skills") or []
-            if detail_skills and isinstance(detail_skills, list):
-                existing_skills = merged.get("skills") or []
-                existing_skill_names = set()
-                for s in existing_skills:
-                    if isinstance(s, str):
-                        existing_skill_names.add(s.lower())
-                    elif isinstance(s, dict):
-                        existing_skill_names.add((s.get("name") or "").lower())
-
-                new_skills = []
-                for s in detail_skills:
-                    name = s if isinstance(s, str) else (s.get("name") or "" if isinstance(s, dict) else "")
-                    if name and name.lower() not in existing_skill_names:
-                        new_skills.append(s)
-                        existing_skill_names.add(name.lower())
-
-                if new_skills:
-                    merged["skills"] = list(existing_skills) + new_skills
-                    logger.info(f"Merged {len(new_skills)} new skills from detail pages")
-
-            # 학력 병합 (school 기준 중복 제거)
-            detail_edu = detail.get("education") or []
-            if detail_edu and isinstance(detail_edu, list):
-                existing_edu = merged.get("education") or []
-                existing_schools = set()
-                for edu in existing_edu:
-                    if isinstance(edu, dict):
-                        school = (edu.get("school") or edu.get("school_name") or edu.get("title") or "").lower()
-                        existing_schools.add(school)
-
-                new_edu = []
-                for edu in detail_edu:
-                    if not isinstance(edu, dict):
-                        continue
-                    school = (edu.get("school") or edu.get("school_name") or edu.get("title") or "").lower()
-                    if school and school not in existing_schools:
-                        new_edu.append(edu)
-                        existing_schools.add(school)
-
-                if new_edu:
-                    merged["education"] = list(existing_edu) + new_edu
-                    logger.info(f"Merged {len(new_edu)} new education entries from detail pages")
-
-            # 프로젝트 병합 (title 기준 중복 제거)
-            detail_projects = detail.get("projects") or []
-            if detail_projects and isinstance(detail_projects, list):
-                existing_projects = merged.get("projects") or []
-                existing_titles = {(p.get("title") or "").lower() for p in existing_projects if isinstance(p, dict)}
-                new_projects = [
-                    p for p in detail_projects
-                    if isinstance(p, dict) and (p.get("title") or "").lower() not in existing_titles
-                ]
-                if new_projects:
-                    merged["projects"] = list(existing_projects) + new_projects
-                    logger.info(f"Merged {len(new_projects)} new projects from detail pages")
-
-            # 수상 병합
-            detail_honors = detail.get("honors_and_awards") or detail.get("honors") or []
-            if detail_honors and isinstance(detail_honors, list):
-                existing_honors = merged.get("honors_and_awards") or []
-                existing_honor_titles = {(h.get("title") or "").lower() for h in existing_honors if isinstance(h, dict)}
-                new_honors = [
-                    h for h in detail_honors
-                    if isinstance(h, dict) and (h.get("title") or "").lower() not in existing_honor_titles
-                ]
-                if new_honors:
-                    merged["honors_and_awards"] = list(existing_honors) + new_honors
-
-            # 추천서 병합 (신규)
-            detail_recs = detail.get("recommendations") or []
-            if detail_recs and isinstance(detail_recs, list):
-                existing_recs = merged.get("recommendations") or []
-                merged["recommendations"] = list(existing_recs) + [
-                    r for r in detail_recs
-                    if isinstance(r, dict) and r not in existing_recs
-                ]
-
-            # 봉사활동 병합 (신규)
-            detail_volunteer = detail.get("volunteering") or detail.get("volunteer_experience") or []
-            if detail_volunteer and isinstance(detail_volunteer, list):
-                existing_vol = merged.get("volunteering") or []
-                merged["volunteering"] = list(existing_vol) + [
-                    v for v in detail_volunteer
-                    if isinstance(v, dict) and v not in existing_vol
-                ]
-
-        return merged
 
     def _normalize_profile(self, data: dict, url: str) -> dict:
         """Bright Data 응답을 내부 형식으로 정규화
