@@ -255,8 +255,8 @@ def _build_code_section(analysis: dict, level: str) -> str:
     return heading + "\n".join(parts)
 
 
-def _build_jd_section(analysis: dict, level: str) -> str:
-    """JD 요구사항 섹션 빌드 — level에 따라 포함 범위 조절"""
+def _build_jd_section(analysis: dict, level: str, emphasize: bool = False) -> str:
+    """JD 요구사항 섹션 빌드 — level에 따라 포함 범위 조절, emphasize=True시 앵커 텍스트 추가"""
     jd = analysis.get("jd_analysis", {})
     if not jd:
         return ""
@@ -279,7 +279,9 @@ def _build_jd_section(analysis: dict, level: str) -> str:
 
     if not parts:
         return ""
-    return "## JD Requirements\n" + "\n".join(parts)
+    # JIT-76: emphasize=True면 앵커 텍스트로 LLM에 JD 우선 필터링 지시
+    heading = "## JD Requirements — USE THIS AS PRIMARY FILTER\n" if emphasize else "## JD Requirements\n"
+    return heading + "\n".join(parts)
 
 
 def build_candidate_context(
@@ -296,31 +298,32 @@ def build_candidate_context(
 
     sections = []
 
-    # 1. 이력서/포트폴리오 프로필
+    # JIT-76: JD를 최상단에 배치하여 LLM이 JD 기준으로 필터링하도록 유도
+    # 1. JD 매칭 요약 (최상단 — PRIMARY FILTER)
+    jd_level = access["jd"] if access else "full"
+    if jd_level != "none":
+        section = _build_jd_section(analysis, jd_level, emphasize=True)
+        if section:
+            sections.append(section)
+
+    # 2. 이력서/포트폴리오 프로필
     resume_level = access["resume"] if access else "full"
     if resume_level != "none":
         section = _build_resume_section(analysis, resume_level)
         if section:
             sections.append(section)
 
-    # 2. LinkedIn 프로필
+    # 3. LinkedIn 프로필
     linkedin_level = access["linkedin"] if access else "full"
     if linkedin_level != "none":
         section = _build_linkedin_section(enriched_input, linkedin_level)
         if section:
             sections.append(section)
 
-    # 3. 코드 분석
+    # 4. 코드 분석
     code_level = access["code_analysis"] if access else "full"
     if code_level != "none":
         section = _build_code_section(analysis, code_level)
-        if section:
-            sections.append(section)
-
-    # 4. JD 매칭 요약
-    jd_level = access["jd"] if access else "full"
-    if jd_level != "none":
-        section = _build_jd_section(analysis, jd_level)
         if section:
             sections.append(section)
 
