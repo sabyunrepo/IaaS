@@ -1000,10 +1000,11 @@ def _enrich_notables_with_file_path(
     notables: list[dict],
     deep_analyses: list[dict],
 ) -> list[dict]:
-    """JIT-64: notable_implementations에 file_path/code_snippet 보장.
+    """JIT-64: notable_implementations에 file_path/code_snippet/relevance_score 보장.
 
     synthesis LLM이 file_path/code_snippet을 누락한 경우,
     deep_analyses의 file_path 매칭으로 보강.
+    JIT-75: relevance_score도 deep_analyses에서 전파하여 question_generation 가중 점수 활성화.
     """
     # deep_analyses file_path → analysis 매핑
     da_by_path = {}
@@ -1016,12 +1017,16 @@ def _enrich_notables_with_file_path(
             continue
         fp = impl.get("file_path", "")
         # file_path가 있지만 code_snippet이 없는 경우: deep_analysis에서 question_candidates 기반 보강
-        if fp and not impl.get("code_snippet") and fp in da_by_path:
+        if fp and fp in da_by_path:
             da = da_by_path[fp]
-            # notable_aspects에서 첫 번째 항목을 snippet 대체로 사용
-            aspects = da.get("notable_aspects", [])
-            if aspects:
-                impl["code_snippet"] = aspects[0][:500] if isinstance(aspects[0], str) else ""
+            if not impl.get("code_snippet"):
+                # notable_aspects에서 첫 번째 항목을 snippet 대체로 사용
+                aspects = da.get("notable_aspects", [])
+                if aspects:
+                    impl["code_snippet"] = aspects[0][:500] if isinstance(aspects[0], str) else ""
+            # JIT-75: relevance_score 전파 — question_generation 가중 점수에 필수
+            if not impl.get("relevance_score") and da.get("relevance_score"):
+                impl["relevance_score"] = da["relevance_score"]
         # file_path가 없는 경우: title 기반 매칭 시도
         if not fp:
             title_lower = (impl.get("title") or "").lower()
@@ -1032,6 +1037,9 @@ def _enrich_notables_with_file_path(
                     if isinstance(aspect, str)
                 ):
                     impl["file_path"] = da_path
+                    # JIT-75: title 매칭된 경우에도 relevance_score 전파
+                    if not impl.get("relevance_score") and da.get("relevance_score"):
+                        impl["relevance_score"] = da["relevance_score"]
                     break
 
     return notables
