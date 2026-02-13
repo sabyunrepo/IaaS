@@ -92,119 +92,34 @@ async def analyze_code(
             "repos": [r.get("name", "unknown") for r in target_repos],
         })
 
-    # JIT-25: feature flag로 HYBRID/레거시 분기
-    use_clone_based = settings.USE_CLONE_BASED_ANALYSIS
-
+    # JIT-65: HYBRID 파이프라인만 사용 (legacy 경로 제거)
     # Phase 2-4: 레포별 분석
     repositories = []
     for i, repo_info in enumerate(target_repos):
-        repo_url = repo_info.get("url", "")
         repo_name = repo_info.get("name", "unknown")
 
-        if use_clone_based:
-            # ---- JIT-25: HYBRID 경로 (analyze_single_repo 위임) ----
-            activity.heartbeat(f"HYBRID analysis for {repo_name} ({i+1}/{len(target_repos)})")
-            if alog:
-                await alog.progress(f"HYBRID analysis for {repo_name}", {
-                    "phase": "2-4 (HYBRID)",
-                    "repo_index": i + 1,
-                    "total_repos": len(target_repos),
-                    "repo_name": repo_name,
-                    "pipeline": "clone_based",
-                })
-
-            # analyze_single_repo는 @activity.defn이므로
-            # 내부 로직만 직접 호출 (같은 Activity context 내에서)
-            repo_result = await _run_single_repo_hybrid(
-                repo_info=repo_info,
-                jd_tech_stack=jd_tech_stack,
-                candidate_username=candidate_username,
-                job_id=job_id or "",
-            )
-            repositories.append(repo_result)
-        else:
-            # ---- 레거시 경로 (deprecated: JIT-25) ----
-            # Phase 2: PyDriller
-            activity.heartbeat(f"Phase 2: Analyzing {repo_name} ({i+1}/{len(target_repos)})")
-            if alog:
-                await alog.progress(f"Phase 2: Analyzing {repo_name}", {
-                    "phase": 2,
-                    "repo_index": i + 1,
-                    "total_repos": len(target_repos),
-                    "repo_name": repo_name,
-                    "pipeline": "legacy",
-                })
-            file_types = _jd_to_file_types(jd_tech_stack)
-            driller_result = await analyzer.analyze_with_pydriller(
-                repo_url=repo_url,
-                job_id="",
-                author=candidate_username,
-                since_years=settings.GITHUB_ANALYSIS_YEARS,
-                file_types=file_types,
-            )
-
-            # JIT-34: Legacy fallback — GitHub username ≠ git author 시 재시도
-            if driller_result["stats"]["total_commits"] == 0 and candidate_username:
-                logger.warning(
-                    f"Legacy: 0 commits for {repo_name} with author={candidate_username}, "
-                    f"retrying without author filter"
-                )
-                driller_result = await analyzer.analyze_with_pydriller(
-                    repo_url=repo_url,
-                    job_id="",
-                    author=None,
-                    since_years=settings.GITHUB_ANALYSIS_YEARS,
-                    file_types=file_types,
-                )
-
-            # Phase 3: AST (deprecated)
-            activity.heartbeat(f"Phase 3: AST analysis for {repo_name}...")
-            top_files = analyzer.select_top_files(
-                files=driller_result["files"],
-                jd_tech_stack=jd_tech_stack,
-                max_files=20,
-            )
-            primary_lang = max(repo_info.get("languages", {}), key=repo_info.get("languages", {}).get, default=None)
-            ast_result = await analyzer.analyze_ast(files=top_files, primary_language=primary_lang)
-
-            # Phase 4: LLM (deprecated: rank_files_for_llm + llm_analyze_code)
-            activity.heartbeat(f"Phase 4: LLM analysis for {repo_name}...")
-            ranked_files = analyzer.rank_files_for_llm(
-                files=driller_result["files"],
-                jd_tech_stack=jd_tech_stack,
-                token_budget=30_000,
-            )
-            analysis = await run_with_heartbeat(
-                analyzer.llm_analyze_code(ranked_files, ast_context=ast_result),
-                interval=30.0,
-                message=f"LLM analyzing {repo_name}...",
-            )
-
-            total_commits = driller_result["stats"]["total_commits"]
-            repositories.append({
-                "repo_url": repo_url,
+        activity.heartbeat(f"HYBRID analysis for {repo_name} ({i+1}/{len(target_repos)})")
+        if alog:
+            await alog.progress(f"HYBRID analysis for {repo_name}", {
+                "phase": "2-4 (HYBRID)",
+                "repo_index": i + 1,
+                "total_repos": len(target_repos),
                 "repo_name": repo_name,
-                "language": primary_lang,
-                "candidate_commits": total_commits,
-                "commit_count": total_commits,
-                "candidate_additions": driller_result["stats"]["total_additions"],
-                "candidate_deletions": driller_result["stats"]["total_deletions"],
-                "avg_complexity": driller_result["stats"]["avg_complexity"],
-                "monthly_contributions": driller_result.get("monthly_contributions", []),
-                "ast_analysis": ast_result,
-                "analysis": analysis,
-                "notable_implementations": analysis.get("notable_implementations", []),
-                "quality_metrics": _build_quality_metrics(
-                    static_analysis=None,
-                    driller_stats=driller_result["stats"],
-                    driller_files=driller_result.get("files", []),
-                ),
+                "pipeline": "clone_based",
             })
+
+        repo_result = await _run_single_repo_hybrid(
+            repo_info=repo_info,
+            jd_tech_stack=jd_tech_stack,
+            candidate_username=candidate_username,
+            job_id=job_id or "",
+        )
+        repositories.append(repo_result)
 
     # ================================================================
     # JIT-37: Cross-Repo 검증 — 모든 레포 분석 완료 후
     # ================================================================
-    if use_clone_based and len(repositories) >= 2:
+    if len(repositories) >= 2:
         activity.heartbeat("Cross-repo author verification...")
         try:
             from app.services.github_service import GitHubService
@@ -328,8 +243,7 @@ async def analyze_code(
         "total_notable_implementations": len(all_notables),
         "top_question_candidates": all_notables[:20],
         "monthly_contributions": aggregated_monthly,
-        # JIT-25: 파이프라인 메타데이터
-        "pipeline_type": "clone_based" if use_clone_based else "legacy",
+        "pipeline_type": "clone_based",
         # JIT-39: Zero-contribution 필터링 메타데이터
         "zero_contribution_excluded": zero_excluded_count,
         "repo_contribution_breakdown": repo_contribution_breakdown,
@@ -359,8 +273,7 @@ async def analyze_code(
             ),
         }
 
-    # JIT-25: A/B 비교 메트릭 로깅
-    _log_pipeline_metrics(code_analysis_result, use_clone_based)
+    _log_pipeline_metrics(code_analysis_result)
 
     # Extract and store KG entities (non-blocking)
     job_id = input_data.get("job_id")
@@ -427,10 +340,10 @@ def _jd_to_file_types(jd_tech_stack: list[str]) -> list[str]:
     return types or [".py"]
 
 
-def _log_pipeline_metrics(result: dict, use_clone_based: bool) -> None:
-    """JIT-25/37: A/B 비교용 파이프라인 메트릭 로깅"""
+def _log_pipeline_metrics(result: dict) -> None:
+    """파이프라인 메트릭 로깅 (JIT-65: legacy 분기 제거)"""
     repos = result.get("repositories", [])
-    pipeline_label = "HYBRID" if use_clone_based else "LEGACY"
+    pipeline_label = "HYBRID"
 
     # 핵심 품질 메트릭 수집
     notables_count = result.get("total_notable_implementations", 0)

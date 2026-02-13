@@ -338,6 +338,5 @@ class TestPipelineMetrics:
             "total_notable_implementations": 1,
             "top_question_candidates": [{"desc": "test"}],
         }
-        # 에러 없이 실행되면 통과
-        _log_pipeline_metrics(result, use_clone_based=True)
-        _log_pipeline_metrics(result, use_clone_based=False)
+        # 에러 없이 실행되면 통과 (JIT-65: legacy 파라미터 제거)
+        _log_pipeline_metrics(result)
