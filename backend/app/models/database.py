@@ -29,6 +29,7 @@ class UserDB(Base):
     role = Column(String(50))  # 'ceo' | 'candidate' | 'both' | null (미선택)
     github_username = Column(String(255))
     is_active = Column(Boolean, nullable=False, default=True)
+    email_notification_enabled = Column(Boolean, nullable=True)  # NULL=미설정, True=켜짐, False=꺼짐
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
