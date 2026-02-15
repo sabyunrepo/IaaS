@@ -318,6 +318,10 @@ class InterviewGenerationWorkflow:
                                 q[field_name] = enhancement[q_key]
                             break
 
+            # JIT-67: enhancement merge 후 code_reference 보존 검증
+            code_ref_count = sum(1 for q in questions if isinstance(q, dict) and q.get("code_reference"))
+            logger.info(f"Post-enhancement merge: {code_ref_count}/{len(questions)} questions have code_reference")
+
             # Phase 4: Quality Review + Finalization
             self._update_status(JobStatus.REVIEWING, "Phase 4: Review", 85)
 
