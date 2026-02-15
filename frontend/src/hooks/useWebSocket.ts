@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import i18next from 'i18next'
 import { getToken } from '../lib/api'
 
 interface WSProgress {
@@ -73,11 +74,11 @@ export function useWebSocket(jobId: string | undefined): UseWebSocketReturn {
       }
 
       ws.onerror = () => {
-        setError('WebSocket 연결 실패')
+        setError(i18next.t('websocket_error'))
         setConnected(false)
       }
     } catch {
-      setError('WebSocket 연결 실패')
+      setError(i18next.t('websocket_error'))
     }
   }, [jobId])
 
