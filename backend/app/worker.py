@@ -56,6 +56,7 @@ from app.workflows.activities.analysis_generation import generate_deep_analysis
 from app.workflows.activities.decision_generation import generate_decision_support
 from app.workflows.activities.profile_builder import build_candidate_profile
 from app.workflows.activities.jd_matching import match_candidate_to_jd
+from app.workflows.activities.update_job_status import update_job_status_activity
 
 ACTIVITIES = [
     enrich_input,
@@ -94,6 +95,8 @@ ACTIVITIES = [
     build_candidate_profile,
     # JD Matching
     match_candidate_to_jd,
+    # Status sync
+    update_job_status_activity,
 ]
 
 

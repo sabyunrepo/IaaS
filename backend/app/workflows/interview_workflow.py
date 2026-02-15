@@ -36,6 +36,7 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.decision_generation import generate_decision_support
     from app.workflows.activities.knowledge_graph_activities import build_knowledge_graph
     from app.workflows.activities.profile_builder import build_candidate_profile
+    from app.workflows.activities.update_job_status import update_job_status_activity
     from app.workflows.workflow_code_analysis import run_parallel_code_analysis
 
 # ── 분리된 모듈 re-export (backwards compatibility) ──
@@ -58,6 +59,7 @@ class InterviewGenerationWorkflow:
         self._status = JobStatus.PENDING.value
         self._progress = 0
         self._current_phase = "pending"
+        self._job_id = None
 
     @workflow.run
     async def run(self, input_data: dict) -> dict:
@@ -67,6 +69,7 @@ class InterviewGenerationWorkflow:
         job_id = input_data.get("job_id")
         user_id = input_data.get("user_id")
         trace_id = None
+        self._job_id = job_id
 
         # Start Langfuse trace for this job
         if job_id:
@@ -82,7 +85,7 @@ class InterviewGenerationWorkflow:
             use_enhanced_pipeline = workflow.patched("enhanced-pipeline-v1")
 
             # Phase 0: Input Enrichment
-            self._update_status(JobStatus.ENRICHING, "Phase 0: Input Enrichment", 5)
+            await self._update_status(JobStatus.ENRICHING, "Phase 0: Input Enrichment", 5)
             enriched = await workflow.execute_activity(
                 enrich_input,
                 input_data,
@@ -92,7 +95,7 @@ class InterviewGenerationWorkflow:
             )
 
             # Phase 1: Planning
-            self._update_status(JobStatus.PLANNING, "Phase 1: Planning", 15)
+            await self._update_status(JobStatus.PLANNING, "Phase 1: Planning", 15)
             execution_plan = await workflow.execute_activity(
                 create_execution_plan,
                 enriched,
@@ -102,7 +105,7 @@ class InterviewGenerationWorkflow:
             )
 
             # Phase 2: Parallel Analysis
-            self._update_status(JobStatus.ANALYZING, "Phase 2: Analysis", 25)
+            await self._update_status(JobStatus.ANALYZING, "Phase 2: Analysis", 25)
             raw_input = enriched.get("raw_input", {})
             output_language = raw_input.get("language_config", {}).get("output_language", "ko")
             phases = {p["name"]: p["enabled"] for p in execution_plan.get("phases", [])}
@@ -197,7 +200,7 @@ class InterviewGenerationWorkflow:
                     logger.warning(f"Profile builder failed (non-fatal): {pb_err}")
 
             # Phase 3: Question Generation
-            self._update_status(JobStatus.GENERATING, "Phase 3: Generation", 60)
+            await self._update_status(JobStatus.GENERATING, "Phase 3: Generation", 60)
 
             # 3a. 토픽 선정
             topics = await workflow.execute_activity(
@@ -235,7 +238,7 @@ class InterviewGenerationWorkflow:
                 logger.warning(f"Generic question ratio {general_ratio}% exceeds 20% target")
 
             # Phase 3c-3g: Enhancement Agents (병렬)
-            self._update_status(JobStatus.GENERATING, "Phase 3: Enhancement", 70)
+            await self._update_status(JobStatus.GENERATING, "Phase 3: Enhancement", 70)
 
             enhancement_tasks = [
                 # 3c. Terminology Agent
@@ -319,7 +322,7 @@ class InterviewGenerationWorkflow:
                             break
 
             # Phase 4: Quality Review + Finalization
-            self._update_status(JobStatus.REVIEWING, "Phase 4: Review", 85)
+            await self._update_status(JobStatus.REVIEWING, "Phase 4: Review", 85)
 
             # 4a. 품질 검토
             review = await workflow.execute_activity(
@@ -339,7 +342,7 @@ class InterviewGenerationWorkflow:
                 and revision_count < max_revisions
             ):
                 revision_count += 1
-                self._update_status(
+                await self._update_status(
                     JobStatus.REVIEWING,
                     f"Phase 4: Revision {revision_count}/{max_revisions}",
                     85 + revision_count,
@@ -407,7 +410,7 @@ class InterviewGenerationWorkflow:
                                 )
 
             # 4b. 최종화
-            self._update_status(JobStatus.REVIEWING, "Phase 4: Finalization", 90)
+            await self._update_status(JobStatus.REVIEWING, "Phase 4: Finalization", 90)
             final_script = await workflow.execute_activity(
                 finalize_output,
                 args=[questions, analysis, enriched],
@@ -427,7 +430,7 @@ class InterviewGenerationWorkflow:
                         quality["revision_count"] = revision_count
 
             # Phase 4c: Generate v2 Intel and Analysis (병렬)
-            self._update_status(JobStatus.REVIEWING, "Phase 4: Intel/Analysis", 92)
+            await self._update_status(JobStatus.REVIEWING, "Phase 4: Intel/Analysis", 92)
 
             # Prepare inputs for intel/analysis generation
             jd_analysis_data = analysis.get("jd_analysis", {})
@@ -575,7 +578,7 @@ class InterviewGenerationWorkflow:
             # DB에 결과 저장
             job_id = input_data.get("job_id")
             if job_id:
-                self._update_status(JobStatus.REVIEWING, "Persisting result", 95)
+                await self._update_status(JobStatus.REVIEWING, "Persisting result", 95)
                 await workflow.execute_activity(
                     persist_result,
                     args=[job_id, final_script],
@@ -595,7 +598,7 @@ class InterviewGenerationWorkflow:
                 except Exception as we:
                     logger.warning(f"Webhook delivery failed (non-fatal): {we}")
 
-            self._update_status(JobStatus.COMPLETED, "completed", 100)
+            await self._update_status(JobStatus.COMPLETED, "completed", 100)
 
             # End Langfuse trace with success
             if job_id and trace_id:
@@ -659,9 +662,21 @@ class InterviewGenerationWorkflow:
             "progress": self._progress,
         }
 
-    def _update_status(self, status: JobStatus, phase: str, progress: int):
+    async def _update_status(self, status: JobStatus, phase: str, progress: int):
         self._status = status.value
         self._current_phase = phase
         self._progress = progress
         logger.info(f"Phase: {phase} ({progress}%)")
+
+        # DB 즉시 동기화
+        if self._job_id:
+            try:
+                await workflow.execute_activity(
+                    update_job_status_activity,
+                    args=[self._job_id, status.value],
+                    start_to_close_timeout=timedelta(seconds=10),
+                    schedule_to_close_timeout=timedelta(seconds=15),
+                )
+            except Exception as e:
+                logger.warning(f"DB status sync failed (non-fatal): {e}")
 
