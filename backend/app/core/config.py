@@ -77,6 +77,14 @@ class Settings(BaseSettings):
     # LinkedIn (Bright Data Web Scraper API)
     BRIGHTDATA_API_TOKEN: str | None = None
 
+    # Email Notification (Gmail SMTP)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_FROM_EMAIL: str | None = None
+    SMTP_FROM_NAME: str = "Jittda"
+
     # OAuth + JWT
     JWT_SECRET: str = "dev-secret-change-in-production"
     OAUTH_TOKEN_ENCRYPTION_KEY: str = "dev-key-generate-with-python-Fernet.generate_key"

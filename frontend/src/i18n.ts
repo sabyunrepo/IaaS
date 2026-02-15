@@ -499,6 +499,11 @@ const resources = {
       settings_jd_updated: 'JD가 수정되었습니다',
       settings_jd_deleted: 'JD가 삭제되었습니다',
       settings_jd_delete_confirm: '이 JD를 삭제하시겠습니까?',
+      // Email notification
+      email_notification_title: '이메일 알림 설정',
+      email_notification_desc: '작업이 완료되면 이메일로 알림을 받으시겠습니까?',
+      email_notification_yes: '네, 알림 받기',
+      email_notification_no: '아니요',
     },
   },
   en: {
@@ -998,6 +1003,11 @@ const resources = {
       settings_jd_updated: 'JD updated successfully',
       settings_jd_deleted: 'JD deleted successfully',
       settings_jd_delete_confirm: 'Are you sure you want to delete this JD?',
+      // Email notification
+      email_notification_title: 'Email Notification',
+      email_notification_desc: 'Would you like to receive email notifications when jobs are completed?',
+      email_notification_yes: 'Yes, notify me',
+      email_notification_no: 'No thanks',
     },
   },
 }

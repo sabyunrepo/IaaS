@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
+import { useAuth } from '../hooks/useAuth'
 import { getToken } from '../lib/api'
 import { SectionCard } from '../components/SectionCard'
 import { FileUploadField, type FileUpload } from '../components/FileUploadField'
+import { EmailNotificationModal } from '../components/EmailNotificationModal'
 
 
 // 지원 언어 목록
@@ -27,6 +29,7 @@ export function CreateJobPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { createJob } = useJob()
+  const { user, updateNotification } = useAuth()
 
   // 필수 필드
   const [jdText, setJdText] = useState('')
@@ -44,6 +47,8 @@ export function CreateJobPage() {
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showNotificationModal, setShowNotificationModal] = useState(false)
+  const [pendingSubmit, setPendingSubmit] = useState(false)
 
   // 파일 업로드 핸들러
   const uploadFile = async (
@@ -101,6 +106,17 @@ export function CreateJobPage() {
     e.preventDefault()
     if (!jdText.trim()) return
 
+    // 알림 미설정 시 모달 표시
+    if (user?.email_notification_enabled === null || user?.email_notification_enabled === undefined) {
+      setPendingSubmit(true)
+      setShowNotificationModal(true)
+      return
+    }
+
+    await submitJob()
+  }
+
+  const submitJob = async () => {
     setSubmitting(true)
     setError(null)
 
@@ -141,6 +157,24 @@ export function CreateJobPage() {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleNotificationAccept = async () => {
+    await updateNotification(true)
+    setShowNotificationModal(false)
+    if (pendingSubmit) {
+      setPendingSubmit(false)
+      await submitJob()
+    }
+  }
+
+  const handleNotificationDecline = async () => {
+    await updateNotification(false)
+    setShowNotificationModal(false)
+    if (pendingSubmit) {
+      setPendingSubmit(false)
+      await submitJob()
     }
   }
 
@@ -351,6 +385,13 @@ export function CreateJobPage() {
           </button>
         </div>
       </form>
+
+      {showNotificationModal && (
+        <EmailNotificationModal
+          onAccept={handleNotificationAccept}
+          onDecline={handleNotificationDecline}
+        />
+      )}
     </div>
   )
 }
