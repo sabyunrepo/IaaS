@@ -12,8 +12,8 @@ export function EmailNotificationModal({ onAccept, onDecline }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm mx-4">
         <div className="text-center">
-          <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 bg-navy-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
@@ -33,7 +33,7 @@ export function EmailNotificationModal({ onAccept, onDecline }: Props) {
           </button>
           <button
             onClick={onAccept}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-navy-700 rounded-lg hover:bg-navy-800 transition-colors"
           >
             {t('email_notification_yes')}
           </button>

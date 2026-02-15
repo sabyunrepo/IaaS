@@ -40,7 +40,7 @@ function DataSourceIcons({ candidate }: { candidate: Candidate }) {
 
 function CompletenessBar({ value }: { value: number }) {
   const pct = Math.round(value * 100)
-  const color = pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-400'
+  const color = pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-brand-500' : 'bg-red-400'
   return (
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-20 overflow-hidden rounded-full bg-gray-200">
@@ -56,9 +56,9 @@ function LevelBadge({ level }: { level: string | null }) {
   const colors: Record<string, string> = {
     '신입': 'bg-gray-100 text-gray-700',
     '주니어': 'bg-blue-100 text-blue-700',
-    '미들': 'bg-indigo-100 text-indigo-700',
-    '시니어': 'bg-purple-100 text-purple-700',
-    'CTO/VP': 'bg-amber-100 text-amber-800',
+    '미들': 'bg-navy-100 text-navy-800',
+    '시니어': 'bg-brand-100 text-brand-700',
+    'CTO/VP': 'bg-brand-100 text-brand-800',
   }
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[level] || 'bg-gray-100 text-gray-700'}`}>
@@ -71,7 +71,7 @@ function EmptyState() {
   const { t } = useTranslation()
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 px-6 py-16">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-navy-700 to-navy-600">
         <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
@@ -80,7 +80,7 @@ function EmptyState() {
       <p className="mt-1 text-sm text-gray-500">{t('candidate_list_empty_desc')}</p>
       <Link
         to="/candidates/new"
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-navy-800 hover:to-navy-700 hover:shadow-md"
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -171,7 +171,7 @@ export function CandidateListPage() {
           <select
             value={levelFilter}
             onChange={(e) => { setLevelFilter(e.target.value); setPage(1) }}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
           >
             <option value="">{t('filter_all_levels')}</option>
             <option value="신입">{t('level_entry')}</option>
@@ -182,7 +182,7 @@ export function CandidateListPage() {
           </select>
           <Link
             to="/candidates/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-navy-800 hover:to-navy-700 hover:shadow-md"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -215,7 +215,7 @@ export function CandidateListPage() {
                         {c.skills.slice(0, 8).map((skill) => (
                           <span
                             key={skill}
-                            className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700"
+                            className="inline-flex items-center rounded-md bg-navy-50 px-2 py-0.5 text-xs font-medium text-navy-800"
                           >
                             {skill}
                           </span>
@@ -238,7 +238,7 @@ export function CandidateListPage() {
                   </div>
                   <Link
                     to={`/candidates/search?candidate=${c.id}`}
-                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:border-navy-200 hover:bg-navy-50 hover:text-navy-800"
                   >
                     {t('candidate_match_jd')}
                   </Link>

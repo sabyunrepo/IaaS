@@ -19,9 +19,9 @@ const PHASE_KEYS: Record<string, string> = {
 const PHASE_CONFIG: Record<string, { color: string; bgColor: string; icon: string }> = {
   pending: { color: 'text-gray-600', bgColor: 'bg-gray-100', icon: 'clock' },
   enriching: { color: 'text-blue-600', bgColor: 'bg-blue-100', icon: 'search' },
-  planning: { color: 'text-purple-600', bgColor: 'bg-purple-100', icon: 'clipboard' },
-  analyzing: { color: 'text-indigo-600', bgColor: 'bg-indigo-100', icon: 'chart' },
-  generating: { color: 'text-amber-600', bgColor: 'bg-amber-100', icon: 'sparkles' },
+  planning: { color: 'text-brand-600', bgColor: 'bg-brand-100', icon: 'clipboard' },
+  analyzing: { color: 'text-navy-700', bgColor: 'bg-navy-100', icon: 'chart' },
+  generating: { color: 'text-brand-600', bgColor: 'bg-brand-100', icon: 'sparkles' },
   reviewing: { color: 'text-cyan-600', bgColor: 'bg-cyan-100', icon: 'check' },
   completed: { color: 'text-green-600', bgColor: 'bg-green-100', icon: 'done' },
   failed: { color: 'text-red-600', bgColor: 'bg-red-100', icon: 'error' },
@@ -98,7 +98,7 @@ function TimelineStep({
           isActive
             ? isFailed
               ? 'bg-red-100 text-red-600'
-              : 'bg-indigo-100 text-indigo-600 ring-4 ring-indigo-50'
+              : 'bg-navy-100 text-navy-700 ring-4 ring-navy-50'
             : isCompleted
             ? 'bg-green-100 text-green-600'
             : 'bg-gray-100 text-gray-400'
@@ -117,7 +117,7 @@ function TimelineStep({
       </span>
       {isActive && !isFailed && phase !== 'completed' && (
         <span className="ml-auto">
-          <svg className="h-4 w-4 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
+          <svg className="h-4 w-4 animate-spin text-navy-700" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
@@ -179,9 +179,9 @@ export function JobStatusPage() {
       <div className="mx-auto max-w-2xl">
         <div className="flex flex-col items-center justify-center py-20">
           <div className="relative">
-            <div className="h-16 w-16 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
+            <div className="h-16 w-16 animate-spin rounded-full border-4 border-navy-200 border-t-navy-700"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600"></div>
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-navy-700 to-navy-600"></div>
             </div>
           </div>
           <p className="mt-4 text-sm font-medium text-gray-500">{t('loading')}</p>
@@ -244,7 +244,7 @@ export function JobStatusPage() {
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
             <div
               className={`h-2.5 rounded-full transition-all duration-700 ease-out ${
-                status === 'failed' ? 'bg-red-500' : 'bg-gradient-to-r from-indigo-500 to-purple-600'
+                status === 'failed' ? 'bg-red-500' : 'bg-gradient-to-r from-navy-700 to-navy-600'
               }`}
               style={{ width: `${progressPercent}%` }}
             />

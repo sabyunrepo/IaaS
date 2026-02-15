@@ -31,10 +31,10 @@ const colorMap = {
     border: 'border-blue-200'
   },
   amber: {
-    bg: 'bg-amber-100',
-    fill: 'bg-amber-500',
-    text: 'text-amber-700',
-    border: 'border-amber-200'
+    bg: 'bg-brand-100',
+    fill: 'bg-brand-500',
+    text: 'text-brand-700',
+    border: 'border-brand-200'
   },
   red: {
     bg: 'bg-red-100',
@@ -49,10 +49,10 @@ const colorMap = {
     border: 'border-gray-200'
   },
   slate: {
-    bg: 'bg-slate-100',
-    fill: 'bg-slate-500',
-    text: 'text-slate-700',
-    border: 'border-slate-200'
+    bg: 'bg-navy-100',
+    fill: 'bg-navy-500',
+    text: 'text-navy-700',
+    border: 'border-navy-200'
   }
 }
 
@@ -131,7 +131,7 @@ export function ProgressBarGroup({ title, items }: ProgressBarGroupProps) {
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <svg
-          className="w-5 h-5 text-indigo-600"
+          className="w-5 h-5 text-navy-700"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

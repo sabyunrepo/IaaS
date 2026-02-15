@@ -134,7 +134,7 @@ export function ResultPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-navy-700 to-navy-600 shadow-lg">
             <svg className="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -148,7 +148,7 @@ export function ResultPage() {
               {script.metadata?.experience_level && (
                 <>
                   <span>·</span>
-                  <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-medium">
+                  <span className="px-2 py-0.5 rounded-full bg-navy-100 text-navy-800 text-xs font-medium">
                     {script.metadata.experience_level}
                   </span>
                 </>
@@ -159,11 +159,11 @@ export function ResultPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           {maxScore > 0 && (
-            <div className="flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2">
-              <svg className="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-2 rounded-lg border border-navy-200 bg-navy-50 px-3 py-2">
+              <svg className="h-5 w-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              <span className="text-sm font-semibold text-indigo-700">
+              <span className="text-sm font-semibold text-navy-800">
                 {totalScore}/{maxScore} ({scorePercent}%)
               </span>
             </div>
@@ -205,7 +205,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('intel')}
             onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'intel' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'intel' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +222,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('analysis')}
             onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'analysis' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'analysis' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,7 +239,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('interview')}
             onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'interview' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'interview' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,7 +256,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('decision')}
             onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'decision' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'decision' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,7 +277,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('questions')}
             onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'questions' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'questions' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {t('result_tab_questions')} ({questions.length})
@@ -291,7 +291,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('summary')}
             onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'summary' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'summary' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {t('result_tab_summary')}
@@ -305,7 +305,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('guide')}
             onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'guide' ? 'active text-indigo-700' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'guide' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {t('result_tab_guide')}

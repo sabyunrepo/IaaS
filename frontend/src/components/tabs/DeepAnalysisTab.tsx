@@ -33,18 +33,18 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
     <div className="space-y-6">
       {/* Overall Match Score */}
       {overall_match !== undefined && (
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-navy-700 to-navy-600 rounded-xl text-white shadow-lg overflow-hidden">
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-medium text-indigo-100">{t('deep_overall_match')}</h3>
+                <h3 className="text-lg font-medium text-navy-100">{t('deep_overall_match')}</h3>
                 <p className="text-2xl sm:text-4xl font-bold mt-1">{overall_match}%</p>
                 {data_confidence && (
                   <button
                     onClick={() => setShowConfidenceDetail(prev => !prev)}
                     className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 transition-colors cursor-pointer ${
                       data_confidence === 'high' ? 'bg-emerald-400/20 text-emerald-100 hover:bg-emerald-400/30'
-                      : data_confidence === 'medium' ? 'bg-amber-400/20 text-amber-100 hover:bg-amber-400/30'
+                      : data_confidence === 'medium' ? 'bg-brand-400/20 text-brand-100 hover:bg-brand-400/30'
                       : 'bg-red-400/20 text-red-100 hover:bg-red-400/30'
                     }`}
                   >
@@ -62,7 +62,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                 {overallMatchSource && (
                   <button
                     onClick={() => setShowMatchBreakdown(prev => !prev)}
-                    className="text-xs text-indigo-200 hover:text-white transition-colors flex items-center gap-1"
+                    className="text-xs text-navy-200 hover:text-white transition-colors flex items-center gap-1"
                   >
                     {t('deep_show_breakdown')}
                     <svg className={`w-3 h-3 transition-transform ${showMatchBreakdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,26 +77,26 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
           {/* Overall Match Breakdown */}
           {showMatchBreakdown && overallMatchSource && (
             <div className="px-6 pb-4 border-t border-white/10 pt-4 animate-fadeIn">
-              <p className="text-sm text-indigo-100 leading-relaxed">{overallMatchSource}</p>
+              <p className="text-sm text-navy-100 leading-relaxed">{overallMatchSource}</p>
             </div>
           )}
 
           {/* Data Confidence Detail */}
           {showConfidenceDetail && data_confidence && (
             <div className="px-6 pb-4 border-t border-white/10 pt-4 animate-fadeIn">
-              <p className="text-xs text-indigo-200 mb-2">{t('deep_confidence_explain')}</p>
+              <p className="text-xs text-navy-200 mb-2">{t('deep_confidence_explain')}</p>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 text-xs">
                   <span>{data_confidence_score != null && data_confidence_score >= 25 ? '✅' : '❌'}</span>
-                  <span className="text-indigo-100">{t('deep_confidence_resume')}</span>
+                  <span className="text-navy-100">{t('deep_confidence_resume')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <span>{data_confidence_score != null && data_confidence_score >= 50 ? '✅' : '⚠️'}</span>
-                  <span className="text-indigo-100">{t('deep_confidence_github')}</span>
+                  <span className="text-navy-100">{t('deep_confidence_github')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <span>{data_confidence_score != null && data_confidence_score >= 70 ? '✅' : '⚠️'}</span>
-                  <span className="text-indigo-100">{t('deep_confidence_linkedin')}</span>
+                  <span className="text-navy-100">{t('deep_confidence_linkedin')}</span>
                 </div>
               </div>
             </div>
@@ -107,7 +107,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
       {/* Radar Chart Section */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
           </svg>
@@ -176,7 +176,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <span className="text-sm font-semibold text-gray-900">{t('score_sources_title')}</span>
@@ -192,7 +192,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
               <div className="space-y-2">
                 {score_sources.map((source, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-medium mt-0.5">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-navy-100 text-navy-700 flex items-center justify-center text-xs font-medium mt-0.5">
                       {i + 1}
                     </span>
                     <span className="text-gray-700 font-mono text-xs leading-relaxed">{source}</span>
@@ -228,7 +228,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
       {skill_table && skill_table.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm overflow-hidden">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
             {t('deep_skill_matching')}
@@ -255,7 +255,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         row.type === 'exact' ? 'bg-emerald-100 text-emerald-800' :
                         row.type === 'similar' ? 'bg-blue-100 text-blue-800' :
-                        row.type === 'partial' ? 'bg-amber-100 text-amber-800' :
+                        row.type === 'partial' ? 'bg-brand-100 text-brand-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
                         {row.type === 'exact' ? t('deep_match_exact') :
@@ -268,7 +268,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                       <span className="group relative inline-flex items-center">
                         <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium mt-1 cursor-help ${
                           row.confidence >= 80 ? 'bg-emerald-50 text-emerald-700' :
-                          row.confidence >= 50 ? 'bg-amber-50 text-amber-700' :
+                          row.confidence >= 50 ? 'bg-brand-50 text-brand-700' :
                           'bg-red-50 text-red-700'
                         }`}>
                           {row.confidence >= 80 ? t('evidence_high') :
@@ -284,7 +284,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                       {row.related_questions && row.related_questions.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {row.related_questions.map((qNum) => (
-                            <span key={qNum} className="inline-flex items-center px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-medium">
+                            <span key={qNum} className="inline-flex items-center px-1.5 py-0.5 rounded bg-navy-50 text-navy-800 text-xs font-medium">
                               Q{qNum}
                             </span>
                           ))}
@@ -300,7 +300,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                             className={`h-full rounded-full ${
                               row.confidence >= 80 ? 'bg-emerald-500' :
                               row.confidence >= 60 ? 'bg-blue-500' :
-                              row.confidence >= 40 ? 'bg-amber-500' :
+                              row.confidence >= 40 ? 'bg-brand-500' :
                               'bg-red-500'
                             }`}
                             style={{ width: `${row.confidence}%` }}

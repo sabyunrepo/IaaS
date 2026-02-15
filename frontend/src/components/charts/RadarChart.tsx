@@ -132,8 +132,8 @@ export const RadarChart = memo(function RadarChart({
         {/* Required polygon (background) */}
         <polygon
           points={geometry.requiredPolygon}
-          fill="rgba(99, 102, 241, 0.2)"
-          stroke="#6366f1"
+          fill="rgba(27, 58, 92, 0.2)"
+          stroke="#1B3A5C"
           strokeWidth={2}
           strokeDasharray="4 2"
           style={{ transition: 'all 0.4s ease' }}
@@ -197,7 +197,7 @@ export const RadarChart = memo(function RadarChart({
           <span className="text-xs text-gray-600">{t('radar_candidate_legend')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-0.5 bg-indigo-500" style={{ borderStyle: 'dashed' }}></div>
+          <div className="w-4 h-0.5 bg-navy-700" style={{ borderStyle: 'dashed' }}></div>
           <span className="text-xs text-gray-600">{t('radar_required_legend')}</span>
         </div>
       </div>
