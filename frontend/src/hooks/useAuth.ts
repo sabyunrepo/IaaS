@@ -9,6 +9,7 @@ interface User {
   role?: string | null        // 'ceo' | 'candidate' | 'both' | null
   github_username?: string | null
   providers?: string[]        // ['google', 'github']
+  email_notification_enabled?: boolean | null
 }
 
 export function useAuth() {
@@ -35,6 +36,7 @@ export function useAuth() {
         role: data.role,
         github_username: data.github_username,
         providers: data.providers || [],
+        email_notification_enabled: data.email_notification_enabled,
       })
     } catch {
       clearToken()
@@ -92,5 +94,18 @@ export function useAuth() {
     }
   }, [])
 
-  return { user, loading, logout, isAuthenticated: !!user, updateRole, updateProfile }
+  const updateNotification = useCallback(async (enabled: boolean) => {
+    const token = getToken()
+    if (!token) return
+    const res = await fetch('/auth/notification', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email_notification_enabled: enabled }),
+    })
+    if (res.ok) {
+      setUser(prev => prev ? { ...prev, email_notification_enabled: enabled } : null)
+    }
+  }, [])
+
+  return { user, loading, logout, isAuthenticated: !!user, updateRole, updateProfile, updateNotification }
 }
