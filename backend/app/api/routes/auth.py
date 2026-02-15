@@ -266,6 +266,7 @@ async def get_me(
         "role": user.role,
         "github_username": user.github_username,
         "providers": providers,
+        "email_notification_enabled": user.email_notification_enabled,
     }
 
 
@@ -287,6 +288,24 @@ async def set_role(
     user.role = body.role
     await db.flush()
     return {"role": user.role}
+
+
+# --- Notification Settings ---
+
+class NotificationRequest(BaseModel):
+    email_notification_enabled: bool
+
+
+@router.patch("/notification")
+async def update_notification_setting(
+    body: NotificationRequest,
+    user: UserDB = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """이메일 알림 설정 변경"""
+    user.email_notification_enabled = body.email_notification_enabled
+    await db.flush()
+    return {"email_notification_enabled": user.email_notification_enabled}
 
 
 # --- Profile Update ---
