@@ -504,6 +504,10 @@ const resources = {
       email_notification_desc: '작업이 완료되면 이메일로 알림을 받으시겠습니까?',
       email_notification_yes: '네, 알림 받기',
       email_notification_no: '아니요',
+      // Auth callback
+      auth_callback_processing: '로그인 처리 중...',
+      // WebSocket
+      websocket_error: 'WebSocket 연결 실패',
     },
   },
   en: {
@@ -1008,6 +1012,10 @@ const resources = {
       email_notification_desc: 'Would you like to receive email notifications when jobs are completed?',
       email_notification_yes: 'Yes, notify me',
       email_notification_no: 'No thanks',
+      // Auth callback
+      auth_callback_processing: 'Processing login...',
+      // WebSocket
+      websocket_error: 'WebSocket connection failed',
     },
   },
 }
