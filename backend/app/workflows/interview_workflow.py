@@ -37,6 +37,7 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.activities.knowledge_graph_activities import build_knowledge_graph
     from app.workflows.activities.profile_builder import build_candidate_profile
     from app.workflows.activities.update_job_status import update_job_status_activity
+    from app.workflows.activities.send_email_notification import send_email_notification
     from app.workflows.workflow_code_analysis import run_parallel_code_analysis
 
 # ── 분리된 모듈 re-export (backwards compatibility) ──
@@ -586,6 +587,16 @@ class InterviewGenerationWorkflow:
                     retry_policy=DEFAULT_RETRY,
                 )
 
+                # 이메일 알림 (실패해도 워크플로우 계속)
+                try:
+                    await workflow.execute_activity(
+                        send_email_notification,
+                        args=[job_id],
+                        start_to_close_timeout=timedelta(seconds=30),
+                    )
+                except Exception as email_err:
+                    logger.warning(f"Email notification failed (non-fatal): {email_err}")
+
             # Webhook callback (fire-and-forget, 실패해도 워크플로우 성공)
             callback_url = input_data.get("callback_url")
             if callback_url and job_id:
@@ -636,6 +647,16 @@ class InterviewGenerationWorkflow:
                     )
                 except Exception:
                     logger.error("Failed to persist error status to DB")
+
+                # 실패 이메일 알림
+                try:
+                    await workflow.execute_activity(
+                        send_email_notification,
+                        args=[job_id],
+                        start_to_close_timeout=timedelta(seconds=30),
+                    )
+                except Exception:
+                    logger.warning("Email notification for failure failed (non-fatal)")
 
             # Webhook callback for failure
             callback_url = input_data.get("callback_url")

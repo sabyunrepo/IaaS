@@ -57,6 +57,7 @@ from app.workflows.activities.decision_generation import generate_decision_suppo
 from app.workflows.activities.profile_builder import build_candidate_profile
 from app.workflows.activities.jd_matching import match_candidate_to_jd
 from app.workflows.activities.update_job_status import update_job_status_activity
+from app.workflows.activities.send_email_notification import send_email_notification
 
 ACTIVITIES = [
     enrich_input,
@@ -97,6 +98,8 @@ ACTIVITIES = [
     match_candidate_to_jd,
     # Status sync
     update_job_status_activity,
+    # Email notification
+    send_email_notification,
 ]
 
 
