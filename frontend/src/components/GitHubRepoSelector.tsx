@@ -54,14 +54,14 @@ export function GitHubRepoSelector({
 
   if (!githubConnected) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+      <div className="rounded-lg border border-brand-200 bg-brand-50 p-4">
         <div className="flex items-center gap-3">
-          <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-5 w-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <div>
-            <p className="text-sm font-medium text-amber-800">{t('github_not_connected')}</p>
-            <p className="mt-0.5 text-xs text-amber-600">{t('github_connect_hint')}</p>
+            <p className="text-sm font-medium text-brand-800">{t('github_not_connected')}</p>
+            <p className="mt-0.5 text-xs text-brand-600">{t('github_connect_hint')}</p>
           </div>
         </div>
       </div>
@@ -132,12 +132,12 @@ export function GitHubRepoSelector({
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={t('repo_search_placeholder')}
-          className="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700"
         />
         <select
           value={langFilter}
           onChange={e => setLangFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700"
         >
           <option value="">{t('all_languages')}</option>
           {languages.map(lang => (
@@ -147,7 +147,7 @@ export function GitHubRepoSelector({
         <select
           value={sortBy}
           onChange={e => setSortBy(e.target.value as 'updated' | 'stars')}
-          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700"
         >
           <option value="updated">{t('sort_updated')}</option>
           <option value="stars">{t('sort_stars')}</option>
@@ -156,7 +156,7 @@ export function GitHubRepoSelector({
 
       {/* Selection counter */}
       <div className="flex items-center justify-between text-sm">
-        <span className={`font-medium ${selectedRepos.length >= maxSelection ? 'text-amber-600' : 'text-gray-600'}`}>
+        <span className={`font-medium ${selectedRepos.length >= maxSelection ? 'text-brand-600' : 'text-gray-600'}`}>
           {t('repos_selected', { count: selectedRepos.length, max: maxSelection })}
         </span>
         {selectedRepos.length > 0 && (
@@ -183,7 +183,7 @@ export function GitHubRepoSelector({
                 key={repo.full_name}
                 className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
                   isSelected
-                    ? 'border-indigo-300 bg-indigo-50'
+                    ? 'border-navy-200 bg-navy-50'
                     : isDisabled
                     ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-50'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -194,7 +194,7 @@ export function GitHubRepoSelector({
                   checked={isSelected}
                   onChange={() => toggleRepo(repo.html_url)}
                   disabled={isDisabled}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  className="h-4 w-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700"
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -212,7 +212,7 @@ export function GitHubRepoSelector({
                 <div className="flex flex-shrink-0 items-center gap-3 text-xs text-gray-400">
                   {repo.language && (
                     <span className="flex items-center gap-1">
-                      <span className="h-2.5 w-2.5 rounded-full bg-indigo-400" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-navy-600" />
                       {repo.language}
                     </span>
                   )}

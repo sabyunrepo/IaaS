@@ -42,7 +42,7 @@ export const DecisionTab = memo(function DecisionTab({
       <div className={`bg-gradient-to-r ${
         recommendation.color === 'emerald' ? 'from-emerald-500 to-teal-600' :
         recommendation.color === 'green' ? 'from-green-500 to-emerald-600' :
-        recommendation.color === 'amber' ? 'from-amber-500 to-orange-600' :
+        recommendation.color === 'amber' ? 'from-brand-500 to-orange-600' :
         'from-red-500 to-rose-600'
       } rounded-xl p-6 text-white shadow-lg`}>
         <div className="flex items-center justify-between">
@@ -68,7 +68,7 @@ export const DecisionTab = memo(function DecisionTab({
         </h4>
         <div className="relative h-3 rounded-full overflow-hidden flex">
           <div className="h-full bg-red-400" style={{ width: '40%' }} />
-          <div className="h-full bg-amber-400" style={{ width: '20%' }} />
+          <div className="h-full bg-brand-400" style={{ width: '20%' }} />
           <div className="h-full bg-green-400" style={{ width: '20%' }} />
           <div className="h-full bg-emerald-400" style={{ width: '20%' }} />
           {/* Score indicator */}
@@ -83,7 +83,7 @@ export const DecisionTab = memo(function DecisionTab({
             <span className="text-gray-400 ml-1">0-39%</span>
           </div>
           <div className="w-[20%] text-center">
-            <span className="text-amber-600 font-medium">{t('rec_leaning_no')}</span>
+            <span className="text-brand-600 font-medium">{t('rec_leaning_no')}</span>
             <span className="text-gray-400 ml-1">40-59%</span>
           </div>
           <div className="w-[20%] text-center">
@@ -100,7 +100,7 @@ export const DecisionTab = memo(function DecisionTab({
       {/* Decision Summary */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           {t('decision_candidate_summary')}
@@ -108,9 +108,9 @@ export const DecisionTab = memo(function DecisionTab({
 
         {/* Level Evidence */}
         {summary.level_evidence && (
-          <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200 mb-6">
-            <div className="text-sm font-medium text-indigo-900">{t('decision_level_evidence')}</div>
-            <div className="text-sm text-indigo-800 mt-1">{summary.level_evidence}</div>
+          <div className="p-4 bg-navy-50 rounded-lg border border-navy-200 mb-6">
+            <div className="text-sm font-medium text-navy-900">{t('decision_level_evidence')}</div>
+            <div className="text-sm text-navy-800 mt-1">{summary.level_evidence}</div>
           </div>
         )}
 
@@ -131,14 +131,14 @@ export const DecisionTab = memo(function DecisionTab({
           </div>
 
           {/* Concerns */}
-          <div className="card-hover p-4 bg-amber-50 rounded-xl border border-amber-200">
-            <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+          <div className="card-hover p-4 bg-brand-50 rounded-xl border border-brand-200">
+            <h4 className="font-semibold text-brand-900 mb-3 flex items-center gap-2">
               <span>⚠️</span> {t('decision_concerns')}
             </h4>
             <ul className="space-y-2">
               {summary.concerns.map((concern, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-amber-800">
-                  <span className="text-amber-500 mt-0.5">•</span>
+                <li key={i} className="flex items-start gap-2 text-sm text-brand-800">
+                  <span className="text-brand-500 mt-0.5">•</span>
                   {concern}
                 </li>
               ))}
@@ -154,7 +154,7 @@ export const DecisionTab = memo(function DecisionTab({
           className="w-full p-6 flex items-center justify-between text-left"
         >
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             {t('decision_interviewer_guide')}
@@ -176,7 +176,7 @@ export const DecisionTab = memo(function DecisionTab({
                   <span className="text-xs font-semibold text-gray-500 uppercase">{tip.section}</span>
                   <p className="text-sm text-gray-700 mt-1">{tip.insight}</p>
                   {tip.question_link && (
-                    <p className="text-xs text-indigo-600 mt-1">→ {tip.question_link}</p>
+                    <p className="text-xs text-navy-700 mt-1">→ {tip.question_link}</p>
                   )}
                 </div>
               ))}

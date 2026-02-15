@@ -206,7 +206,7 @@ export function FindCEOPage() {
                   )}
                   <div className="flex flex-wrap gap-2">
                     {selectedJD.required_skills.map(skill => (
-                      <span key={skill} className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                      <span key={skill} className="rounded-md bg-navy-50 px-2 py-0.5 text-xs font-medium text-navy-800">
                         {skill}
                       </span>
                     ))}
@@ -248,7 +248,7 @@ export function FindCEOPage() {
                         {/* Rank */}
                         <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold ${
                           item.rank <= 3
-                            ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white'
+                            ? 'bg-gradient-to-br from-brand-400 to-orange-500 text-white'
                             : 'bg-gray-100 text-gray-600'
                         }`}>
                           {item.rank}
@@ -268,7 +268,7 @@ export function FindCEOPage() {
                           </div>
                           <div className="mt-1 flex flex-wrap gap-1">
                             {item.candidate.skills.slice(0, 5).map(skill => (
-                              <span key={skill} className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] text-indigo-600">
+                              <span key={skill} className="rounded bg-navy-50 px-1.5 py-0.5 text-[10px] text-navy-700">
                                 {skill}
                               </span>
                             ))}
@@ -285,7 +285,7 @@ export function FindCEOPage() {
                           <div className="text-right">
                             <div className={`text-lg font-bold ${
                               item.overall_match_score >= 70 ? 'text-emerald-600'
-                              : item.overall_match_score >= 50 ? 'text-amber-600'
+                              : item.overall_match_score >= 50 ? 'text-brand-600'
                               : 'text-gray-500'
                             }`}>
                               {Math.round(item.overall_match_score)}%
@@ -344,7 +344,7 @@ export function FindCEOPage() {
                           )}
                           <div className="mt-2 flex flex-wrap gap-1.5">
                             {jd.required_skills.slice(0, 6).map(skill => (
-                              <span key={skill} className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-600">
+                              <span key={skill} className="rounded bg-navy-50 px-1.5 py-0.5 text-[10px] font-medium text-navy-700">
                                 {skill}
                               </span>
                             ))}
@@ -490,9 +490,9 @@ export function FindCEOPage() {
                 {requiredSkills.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {requiredSkills.map(skill => (
-                      <span key={skill} className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-sm font-medium text-indigo-700">
+                      <span key={skill} className="inline-flex items-center gap-1 rounded-md bg-navy-50 px-2 py-0.5 text-sm font-medium text-navy-800">
                         {skill}
-                        <button type="button" onClick={() => removeSkill(skill, requiredSkills, setRequiredSkills)} className="text-indigo-400 hover:text-indigo-600">
+                        <button type="button" onClick={() => removeSkill(skill, requiredSkills, setRequiredSkills)} className="text-navy-600 hover:text-navy-700">
                           <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                         </button>
                       </span>

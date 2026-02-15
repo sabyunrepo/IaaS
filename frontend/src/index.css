@@ -1,8 +1,45 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════
+   JittDa Brand Design Tokens (Tailwind v4)
+   Navy: #1B3A5C  |  Brand Orange: #E87E24
+   ═══════════════════════════════════════════ */
+@theme {
+  /* Navy palette (primary) */
+  --color-navy-50: #f0f4f8;
+  --color-navy-100: #d9e2ec;
+  --color-navy-200: #bcccdc;
+  --color-navy-300: #9fb3c8;
+  --color-navy-400: #6d8eab;
+  --color-navy-500: #3e6b8a;
+  --color-navy-600: #2d5577;
+  --color-navy-700: #1f4060;
+  --color-navy-800: #1B3A5C;
+  --color-navy-900: #142d47;
+  --color-navy-950: #0d1f33;
+
+  /* Brand Orange palette (accent) */
+  --color-brand-50: #fff8f0;
+  --color-brand-100: #feebd0;
+  --color-brand-200: #fdd5a0;
+  --color-brand-300: #f9b86a;
+  --color-brand-400: #f29a3e;
+  --color-brand-500: #E87E24;
+  --color-brand-600: #cc6a17;
+  --color-brand-700: #a85414;
+  --color-brand-800: #874316;
+  --color-brand-900: #6e3815;
+  --color-brand-950: #3d1c08;
+
+  /* Brand shadows */
+  --shadow-card: 0 1px 3px 0 rgba(27, 58, 92, 0.06), 0 1px 2px -1px rgba(27, 58, 92, 0.06);
+  --shadow-card-hover: 0 4px 12px -2px rgba(27, 58, 92, 0.10), 0 2px 6px -2px rgba(27, 58, 92, 0.06);
+  --shadow-elevated: 0 10px 25px -5px rgba(27, 58, 92, 0.12), 0 8px 10px -6px rgba(27, 58, 92, 0.06);
+}
+
 /* Focus ring for keyboard navigation */
 *:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #1B3A5C;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -14,7 +51,7 @@
   top: 0;
   z-index: 999;
   padding: 0.5rem 1rem;
-  background: #1f2937;
+  background: #1B3A5C;
   color: white;
   font-size: 0.875rem;
 }
@@ -30,11 +67,18 @@
 }
 .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
 
-/* Custom scrollbar */
+/* slideDown animation */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-slideDown { animation: slideDown 0.2s ease-out forwards; }
+
+/* Custom scrollbar (navy-tinted) */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-thumb { background: #bcccdc; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #6d8eab; }
 
 /* Card hover effect */
 .card-hover {
@@ -42,7 +86,7 @@
 }
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card-hover);
 }
 
 /* Tab underline animation */
@@ -56,7 +100,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(to right, #6366f1, #8b5cf6);
+  background: linear-gradient(to right, #1B3A5C, #E87E24);
   transition: width 0.3s ease;
   border-radius: 1px;
 }
@@ -64,13 +108,13 @@
   width: 100%;
 }
 
-/* Skeleton loading */
+/* Skeleton loading (navy-tinted) */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #f0f4f8 25%, #d9e2ec 50%, #f0f4f8 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 0.5rem;
@@ -79,6 +123,25 @@
 /* Scrollbar hide utility */
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .animate-slideDown {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .card-hover {
+    transition: none;
+  }
+  .tab-underline::after {
+    transition: none;
+  }
+  .skeleton {
+    animation: none;
+  }
+}
 
 @media print {
   body {
@@ -95,7 +158,7 @@
 
   .shadow {
     box-shadow: none !important;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #d9e2ec;
   }
 
   .max-w-5xl,

@@ -121,14 +121,14 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
             <div className="flex gap-2">
               <button
                 onClick={selectAll}
-                className="px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                className="px-3 py-1.5 text-sm font-medium text-navy-700 hover:bg-navy-50 rounded-lg transition-colors"
               >
                 {t('live_select_all')}
               </button>
               <button
                 onClick={startInterview}
                 disabled={selectedQuestions.size === 0}
-                className="px-4 py-1.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 rounded-lg transition-colors"
+                className="px-4 py-1.5 text-sm font-medium text-white bg-navy-700 hover:bg-navy-800 disabled:bg-gray-300 rounded-lg transition-colors"
               >
                 {t('live_start_interview')}
               </button>
@@ -152,14 +152,14 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
                 onClick={() => toggleQuestion(q.id)}
                 className={`card-hover w-full text-left p-4 rounded-xl border transition-all ${
                   selectedQuestions.has(q.id)
-                    ? 'bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200'
+                    ? 'bg-navy-50 border-navy-300 ring-1 ring-navy-200'
                     : 'bg-white border-gray-200 hover:border-gray-300'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center ${
                     selectedQuestions.has(q.id)
-                      ? 'bg-indigo-600 border-indigo-600'
+                      ? 'bg-navy-700 border-navy-700'
                       : 'border-gray-300'
                   }`}>
                     {selectedQuestions.has(q.id) && (
@@ -178,7 +178,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
                       )}
                       <span className={`px-1.5 py-0.5 text-xs rounded ${
                         q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
-                        q.difficulty === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                        q.difficulty === 'Medium' ? 'bg-brand-100 text-brand-700' :
                         'bg-green-100 text-green-700'
                       }`}>
                         {q.difficulty}
@@ -235,7 +235,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
           <p className="text-sm text-gray-500 mb-6">
             {t('live_scored_count', { scored: scoredCount, total: interviewQuestions.length })}
           </p>
-          <div className="text-5xl font-bold text-indigo-600 mb-2">
+          <div className="text-5xl font-bold text-navy-700 mb-2">
             {scorePercent}%
           </div>
           <p className="text-sm text-gray-500">
@@ -258,7 +258,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'
+                        pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-brand-500' : 'bg-red-500'
                       }`}
                       style={{ width: `${pct}%` }}
                     />
@@ -279,7 +279,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
           </button>
           <button
             onClick={() => { setPhase('select'); setCurrentIndex(0); setScores({}); setSelectedQuestions(new Set()) }}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+            className="px-4 py-2 text-sm font-medium text-white bg-navy-700 rounded-lg hover:bg-navy-800"
           >
             {t('live_new_interview')}
           </button>
@@ -299,7 +299,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
         <p className="text-gray-500">{t('live_no_questions')}</p>
         <button
           onClick={() => setPhase('select')}
-          className="mt-4 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"
+          className="mt-4 px-4 py-2 text-navy-700 hover:bg-navy-50 rounded-lg"
         >
           {t('live_back_to_select')}
         </button>
@@ -326,7 +326,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-500">{t('live_total_score')}</span>
-            <span className="text-lg font-bold text-indigo-600">{totalScore}</span>
+            <span className="text-lg font-bold text-navy-700">{totalScore}</span>
             {maxScore > 0 && (
               <span className="text-sm text-gray-400">/ {maxScore}</span>
             )}
@@ -334,7 +334,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-indigo-500 transition-all"
+            className="h-full bg-navy-500 transition-all"
             style={{ width: `${((currentIndex + 1) / interviewQuestions.length) * 100}%` }}
           />
         </div>
@@ -368,7 +368,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
         ) : (
           <button
             onClick={() => setCurrentIndex(currentIndex + 1)}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+            className="px-4 py-2 text-sm font-medium text-white bg-navy-700 rounded-lg hover:bg-navy-800"
           >
             {t('live_next_question')}
           </button>

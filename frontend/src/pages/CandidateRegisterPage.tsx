@@ -145,7 +145,7 @@ export function CandidateRegisterPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-navy-700 to-navy-600">
             <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
@@ -159,14 +159,14 @@ export function CandidateRegisterPage() {
 
       {/* Auto-fill info banner */}
       {user && (user.display_name || user.email || user.github_username) && (
-        <div className="mb-6 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+        <div className="mb-6 rounded-lg border border-navy-200 bg-navy-50 p-4">
           <div className="flex items-center gap-3">
-            <svg className="h-5 w-5 flex-shrink-0 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 flex-shrink-0 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <p className="text-sm font-medium text-indigo-800">{t('auto_filled_info')}</p>
-              <p className="mt-0.5 text-xs text-indigo-600">{t('auto_filled_hint')}</p>
+              <p className="text-sm font-medium text-navy-800">{t('auto_filled_info')}</p>
+              <p className="mt-0.5 text-xs text-navy-700">{t('auto_filled_hint')}</p>
             </div>
           </div>
         </div>
@@ -185,7 +185,7 @@ export function CandidateRegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t('candidate_name_placeholder')}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
                 required
               />
             </div>
@@ -198,7 +198,7 @@ export function CandidateRegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@example.com"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
               />
             </div>
             <div>
@@ -208,7 +208,7 @@ export function CandidateRegisterPage() {
               <select
                 value={experienceLevel}
                 onChange={(e) => setExperienceLevel(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
               >
                 <option value="신입">{t('level_entry')}</option>
                 <option value="주니어">{t('level_junior')}</option>
@@ -230,7 +230,7 @@ export function CandidateRegisterPage() {
                 onChange={(e) => setSkillInput(e.target.value)}
                 onKeyDown={handleSkillKeyDown}
                 placeholder={t('candidate_skill_placeholder')}
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
               />
               <button
                 type="button"
@@ -245,13 +245,13 @@ export function CandidateRegisterPage() {
                 {skills.map((skill) => (
                   <span
                     key={skill}
-                    className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2.5 py-1 text-sm font-medium text-indigo-700"
+                    className="inline-flex items-center gap-1 rounded-md bg-navy-50 px-2.5 py-1 text-sm font-medium text-navy-800"
                   >
                     {skill}
                     <button
                       type="button"
                       onClick={() => removeSkill(skill)}
-                      className="ml-0.5 text-indigo-400 hover:text-indigo-600"
+                      className="ml-0.5 text-navy-600 hover:text-navy-700"
                     >
                       <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -283,7 +283,7 @@ export function CandidateRegisterPage() {
                   value={githubUsername}
                   onChange={(e) => setGithubUsername(e.target.value)}
                   placeholder="username"
-                  className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
                 />
               </div>
             </div>
@@ -303,7 +303,7 @@ export function CandidateRegisterPage() {
                   value={linkedinUrl}
                   onChange={(e) => setLinkedinUrl(e.target.value)}
                   placeholder="https://linkedin.com/in/username"
-                  className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
                 />
               </div>
             </div>
@@ -378,7 +378,7 @@ export function CandidateRegisterPage() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-400 disabled:shadow-none"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-navy-800 hover:to-navy-700 hover:shadow-md disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-400 disabled:shadow-none"
           >
             {submitting ? (
               <>

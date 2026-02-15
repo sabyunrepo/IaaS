@@ -19,7 +19,7 @@ export function HomePage({ user }: HomePageProps) {
   if (!role) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg mb-6">
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-navy-800 to-navy-700 shadow-lg mb-6">
           <svg className="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
@@ -28,7 +28,7 @@ export function HomePage({ user }: HomePageProps) {
         <p className="text-gray-500 mb-8 max-w-md">{t('home_welcome_desc')}</p>
         <Link
           to="/onboarding"
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:from-indigo-700 hover:to-purple-700"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-navy-800 to-navy-700 px-6 py-3 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:from-navy-900 hover:to-navy-800"
         >
           {t('home_get_started')}
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,9 +54,9 @@ export function HomePage({ user }: HomePageProps) {
         {/* 면접 스크립트 생성 — 모든 역할 공통 */}
         <Link
           to="/interview/new"
-          className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-indigo-200"
+          className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-navy-300"
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 mb-4 transition-transform group-hover:scale-110">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-700 mb-4 transition-transform group-hover:scale-110">
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -69,9 +69,9 @@ export function HomePage({ user }: HomePageProps) {
         {(role === 'ceo' || role === 'both') && (
           <Link
             to="/find-cto"
-            className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-purple-200"
+            className="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-brand-200"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-50 text-purple-600 mb-4 transition-transform group-hover:scale-110">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600 mb-4 transition-transform group-hover:scale-110">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>

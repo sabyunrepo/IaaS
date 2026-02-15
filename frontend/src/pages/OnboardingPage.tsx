@@ -14,10 +14,10 @@ const ROLES = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
       </svg>
     ),
-    gradient: 'from-purple-500 to-indigo-600',
-    bg: 'bg-purple-50',
-    border: 'border-purple-200 hover:border-purple-400',
-    text: 'text-purple-600',
+    gradient: 'from-brand-500 to-navy-700',
+    bg: 'bg-brand-50',
+    border: 'border-brand-200 hover:border-brand-400',
+    text: 'text-brand-600',
   },
   {
     value: 'candidate',
@@ -38,10 +38,10 @@ const ROLES = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
       </svg>
     ),
-    gradient: 'from-amber-500 to-orange-600',
-    bg: 'bg-amber-50',
-    border: 'border-amber-200 hover:border-amber-400',
-    text: 'text-amber-600',
+    gradient: 'from-brand-500 to-orange-600',
+    bg: 'bg-brand-50',
+    border: 'border-brand-200 hover:border-brand-400',
+    text: 'text-brand-600',
   },
 ] as const
 
@@ -74,7 +74,7 @@ export function OnboardingPage({ onSelectRole }: OnboardingPageProps) {
             onClick={() => setSelected(role.value)}
             className={`relative rounded-2xl border-2 p-6 text-center transition-all ${
               selected === role.value
-                ? `${role.border} ring-2 ring-offset-2 ring-${role.value === 'ceo' ? 'purple' : role.value === 'candidate' ? 'emerald' : 'amber'}-400 shadow-md`
+                ? `${role.border} ring-2 ring-offset-2 ring-${role.value === 'ceo' ? 'brand' : role.value === 'candidate' ? 'emerald' : 'brand'}-400 shadow-md`
                 : `border-gray-200 hover:shadow-sm ${role.border}`
             }`}
           >
@@ -90,7 +90,7 @@ export function OnboardingPage({ onSelectRole }: OnboardingPageProps) {
       <button
         onClick={handleConfirm}
         disabled={!selected || loading}
-        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-navy-700 to-navy-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? t('loading') : t('onboarding_confirm')}
       </button>

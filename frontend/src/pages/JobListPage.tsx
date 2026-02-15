@@ -12,9 +12,9 @@ function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
     pending: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('phase_pending') },
     enriching: { bg: 'bg-blue-100', text: 'text-blue-700', label: t('phase_enriching') },
-    planning: { bg: 'bg-purple-100', text: 'text-purple-700', label: t('phase_planning') },
-    analyzing: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: t('phase_analyzing') },
-    generating: { bg: 'bg-amber-100', text: 'text-amber-700', label: t('phase_generating') },
+    planning: { bg: 'bg-brand-100', text: 'text-brand-700', label: t('phase_planning') },
+    analyzing: { bg: 'bg-navy-100', text: 'text-navy-800', label: t('phase_analyzing') },
+    generating: { bg: 'bg-brand-100', text: 'text-brand-700', label: t('phase_generating') },
     reviewing: { bg: 'bg-cyan-100', text: 'text-cyan-700', label: t('phase_reviewing') },
     completed: { bg: 'bg-green-100', text: 'text-green-700', label: t('phase_completed') },
     failed: { bg: 'bg-red-100', text: 'text-red-700', label: t('phase_failed') },
@@ -35,7 +35,7 @@ function EmptyState() {
 
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 px-6 py-16">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-navy-700 to-navy-600">
         <svg
           className="h-8 w-8 text-white"
           fill="none"
@@ -54,7 +54,7 @@ function EmptyState() {
       <p className="mt-1 text-sm text-gray-500">{t('script_list_empty_desc')}</p>
       <Link
         to="/interview/new"
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-navy-800 hover:to-navy-700 hover:shadow-md"
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -145,7 +145,7 @@ export function JobListPage() {
         {jobs.length > 0 && (
           <Link
             to="/interview/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-navy-800 hover:to-navy-700 hover:shadow-md"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -171,7 +171,7 @@ export function JobListPage() {
                     <div className="flex items-center gap-3">
                       <Link
                         to={`/interview/${job.job_id}`}
-                        className="text-base font-medium text-gray-900 hover:text-indigo-600"
+                        className="text-base font-medium text-gray-900 hover:text-navy-700"
                       >
                         #{job.job_id.slice(0, 8)}
                       </Link>
@@ -195,7 +195,7 @@ export function JobListPage() {
                   <div className="flex items-center gap-3">
                     <Link
                       to={`/interview/${job.job_id}`}
-                      className="rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
+                      className="rounded-lg bg-navy-50 px-3 py-1.5 text-sm font-medium text-navy-800 hover:bg-navy-100"
                     >
                       {t('view_job_status')}
                     </Link>
@@ -209,7 +209,7 @@ export function JobListPage() {
                     )}
                     <button
                       onClick={() => handleDelete(job.job_id)}
-                      className="rounded-lg p-2 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                      className="rounded-lg p-2 text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-700"
                       aria-label={t('delete')}
                     >
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

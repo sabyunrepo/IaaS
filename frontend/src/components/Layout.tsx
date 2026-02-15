@@ -11,7 +11,7 @@ export function Layout({ user, onLogout }: LayoutProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-navy-50">
       <a href="#main-content" className="skip-link">
         {t('skip_to_content')}
       </a>

@@ -186,7 +186,7 @@ export function CreateJobPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-navy-700 to-navy-600">
             <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
@@ -210,7 +210,7 @@ export function CreateJobPage() {
             onChange={(e) => setJdText(e.target.value)}
             placeholder={t('jd_placeholder')}
             rows={8}
-            className="w-full rounded-lg border border-gray-300 p-4 text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="w-full rounded-lg border border-gray-300 p-4 text-gray-900 placeholder-gray-400 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
             required
             minLength={50}
           />
@@ -273,7 +273,7 @@ export function CreateJobPage() {
               <select
                 value={experienceLevel}
                 onChange={(e) => setExperienceLevel(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
               >
                 <option value="신입">{t('level_entry')}</option>
                 <option value="주니어">{t('level_junior')}</option>
@@ -290,7 +290,7 @@ export function CreateJobPage() {
               <select
                 value={outputLanguage}
                 onChange={(e) => setOutputLanguage(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
@@ -317,7 +317,7 @@ export function CreateJobPage() {
                 value={linkedinUrl}
                 onChange={(e) => setLinkedinUrl(e.target.value)}
                 placeholder="https://linkedin.com/in/username"
-                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
               />
             </div>
             <p className="mt-1.5 text-sm text-gray-500">{t('linkedin_hint')}</p>
@@ -337,7 +337,7 @@ export function CreateJobPage() {
               value={gitUrl}
               onChange={(e) => setGitUrl(e.target.value)}
               placeholder="https://github.com/username"
-              className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
             />
           </div>
         </SectionCard>
@@ -364,7 +364,7 @@ export function CreateJobPage() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-400 disabled:shadow-none"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-navy-800 hover:to-navy-700 hover:shadow-md disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-400 disabled:shadow-none"
           >
             {submitting ? (
               <>

@@ -59,22 +59,7 @@ export function LoginPage() {
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
           {/* Header */}
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600">
-              <svg
-                className="h-8 w-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                />
-              </svg>
-            </div>
+            <img src="/logo-full.png" alt="JittDa" className="h-20 mx-auto" />
             <h1 className="text-2xl font-bold text-gray-900">{t('app_title')}</h1>
             <p className="mt-2 text-sm text-gray-600">{t('login_subtitle')}</p>
           </div>
@@ -83,7 +68,7 @@ export function LoginPage() {
           <div className="space-y-3">
             <a
               href={`/auth/google/login`}
-              className="group flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="group flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2"
             >
               <GoogleIcon className="h-5 w-5" />
               <span>{t('login_with_google')}</span>
@@ -103,7 +88,7 @@ export function LoginPage() {
             <button
               onClick={handleDevLogin}
               disabled={devLoading}
-              className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-dashed border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700 transition-all hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50"
+              className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-dashed border-brand-400 bg-brand-50 px-4 py-3 text-sm font-medium text-brand-700 transition-all hover:bg-brand-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50"
             >
               <span>🔧</span>
               <span>{devLoading ? t('loading') : t('dev_login')}</span>

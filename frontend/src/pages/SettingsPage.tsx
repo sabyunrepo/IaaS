@@ -134,7 +134,7 @@ export function SettingsPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`pb-3 border-b-2 text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'border-indigo-600 text-indigo-700'
+                  ? 'border-navy-700 text-navy-800'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -152,7 +152,7 @@ export function SettingsPage() {
             {user?.avatar_url ? (
               <img src={user.avatar_url} alt={user.display_name} className="h-16 w-16 rounded-full ring-2 ring-gray-100" />
             ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 text-xl font-medium text-white">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-navy-600 to-navy-700 text-xl font-medium text-white">
                 {(user?.display_name || 'U').charAt(0).toUpperCase()}
               </div>
             )}
@@ -162,7 +162,7 @@ export function SettingsPage() {
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
                 placeholder={t('settings_display_name_placeholder')}
               />
             </div>
@@ -214,7 +214,7 @@ export function SettingsPage() {
                 onClick={() => handleChangeLanguage('ko')}
                 className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                   i18n.language === 'ko'
-                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                    ? 'border-navy-700 bg-navy-50 text-navy-800'
                     : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -224,7 +224,7 @@ export function SettingsPage() {
                 onClick={() => handleChangeLanguage('en')}
                 className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                   i18n.language === 'en'
-                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                    ? 'border-navy-700 bg-navy-50 text-navy-800'
                     : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -245,7 +245,7 @@ export function SettingsPage() {
             </div>
             <button
               onClick={() => navigate('/onboarding')}
-              className="ml-3 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+              className="ml-3 text-sm text-navy-700 hover:text-navy-800 font-medium"
             >
               {t('settings_change_role')}
             </button>
@@ -255,7 +255,7 @@ export function SettingsPage() {
           <button
             onClick={handleSaveProfile}
             disabled={saving || !displayName.trim()}
-            className="w-full rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-all hover:from-navy-800 hover:to-navy-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? t('saving') : t('settings_save')}
           </button>
@@ -284,7 +284,7 @@ export function SettingsPage() {
                     <span className="text-xs text-gray-500">{t('settings_profile_completeness')}: </span>
                     <div className="mt-1 flex items-center gap-2">
                       <div className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-gray-200">
-                        <div className="h-full rounded-full bg-indigo-600" style={{ width: `${Math.round(myProfile.data_completeness * 100)}%` }} />
+                        <div className="h-full rounded-full bg-navy-700" style={{ width: `${Math.round(myProfile.data_completeness * 100)}%` }} />
                       </div>
                       <span className="text-sm font-medium text-gray-700">{Math.round(myProfile.data_completeness * 100)}%</span>
                     </div>
@@ -297,7 +297,7 @@ export function SettingsPage() {
                   <h3 className="text-sm font-medium text-gray-900 mb-3">{t('candidate_skills')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {myProfile.skills.map((skill: string) => (
-                      <span key={skill} className="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                      <span key={skill} className="inline-flex items-center rounded-md bg-navy-50 px-2.5 py-0.5 text-xs font-medium text-navy-800">
                         {skill}
                       </span>
                     ))}
@@ -307,7 +307,7 @@ export function SettingsPage() {
 
               <button
                 onClick={() => navigate('/find-cto')}
-                className="w-full rounded-lg border border-indigo-600 px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
+                className="w-full rounded-lg border border-navy-700 px-4 py-3 text-sm font-medium text-navy-700 hover:bg-navy-50 transition-colors"
               >
                 {t('settings_edit_profile')}
               </button>
@@ -317,7 +317,7 @@ export function SettingsPage() {
               <p className="text-gray-500 mb-4">{t('settings_no_profile')}</p>
               <button
                 onClick={() => navigate('/find-cto')}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-navy-800 hover:to-navy-700"
               >
                 {t('register_candidate')}
               </button>
@@ -348,7 +348,7 @@ export function SettingsPage() {
                           <>
                             <button
                               onClick={() => handleEditJD(jd)}
-                              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                              className="text-sm text-navy-700 hover:text-navy-800 font-medium"
                             >
                               {t('settings_edit')}
                             </button>
@@ -381,7 +381,7 @@ export function SettingsPage() {
                       <textarea
                         value={editJDText}
                         onChange={(e) => setEditJDText(e.target.value)}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
                         rows={6}
                       />
                     ) : (
@@ -392,7 +392,7 @@ export function SettingsPage() {
               </div>
               <button
                 onClick={() => navigate('/find-ceo')}
-                className="w-full rounded-lg border border-indigo-600 px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
+                className="w-full rounded-lg border border-navy-700 px-4 py-3 text-sm font-medium text-navy-700 hover:bg-navy-50 transition-colors"
               >
                 + {t('ceo_create_jd')}
               </button>
@@ -402,7 +402,7 @@ export function SettingsPage() {
               <p className="text-gray-500 mb-4">{t('ceo_no_jds_title')}</p>
               <button
                 onClick={() => navigate('/find-ceo')}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-navy-800 hover:to-navy-700"
               >
                 {t('ceo_create_jd')}
               </button>

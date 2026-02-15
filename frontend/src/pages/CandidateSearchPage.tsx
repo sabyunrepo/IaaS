@@ -19,7 +19,7 @@ function RecommendationBadge({ score }: { score: number }) {
   const { t } = useTranslation()
   if (score >= 80) return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-800">{t('rec_strong_hire')}</span>
   if (score >= 65) return <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800">{t('rec_hire')}</span>
-  if (score >= 45) return <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">{t('rec_leaning_no')}</span>
+  if (score >= 45) return <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-800">{t('rec_leaning_no')}</span>
   return <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800">{t('rec_no_hire')}</span>
 }
 
@@ -29,7 +29,7 @@ function SkillMatchBar({ matched, total }: { matched: number; total: number }) {
     <div className="flex items-center gap-2">
       <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200">
         <div
-          className="h-full rounded-full bg-indigo-500"
+          className="h-full rounded-full bg-navy-700"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -63,7 +63,7 @@ function MatchCard({ detail, onToggle, expanded }: {
           <div className="mt-2 flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">{t('deep_overall_match')}:</span>
-              <span className="text-lg font-bold text-indigo-600">{Math.round(match.overall_match_score)}%</span>
+              <span className="text-lg font-bold text-navy-700">{Math.round(match.overall_match_score)}%</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">{t('search_skill_match')}:</span>
@@ -77,7 +77,7 @@ function MatchCard({ detail, onToggle, expanded }: {
           {candidate.skills.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {candidate.skills.slice(0, 6).map((skill) => (
-                <span key={skill} className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                <span key={skill} className="rounded-md bg-navy-50 px-2 py-0.5 text-xs font-medium text-navy-800">
                   {skill}
                 </span>
               ))}
@@ -89,7 +89,7 @@ function MatchCard({ detail, onToggle, expanded }: {
         </div>
         <button
           onClick={onToggle}
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:border-navy-200 hover:bg-navy-50 hover:text-navy-800"
         >
           {expanded ? t('search_collapse') : t('search_detail')}
         </button>
@@ -253,7 +253,7 @@ export function CandidateSearchPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-navy-700 to-navy-600">
             <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -277,7 +277,7 @@ export function CandidateSearchPage() {
             onChange={(e) => setJdText(e.target.value)}
             placeholder={t('jd_placeholder')}
             rows={6}
-            className="w-full rounded-lg border border-gray-300 p-4 text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="w-full rounded-lg border border-gray-300 p-4 text-gray-900 placeholder-gray-400 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
             required
             minLength={50}
           />
@@ -305,7 +305,7 @@ export function CandidateSearchPage() {
             <select
               value={experienceLevel}
               onChange={(e) => setExperienceLevel(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
             >
               <option value="신입">{t('level_entry')}</option>
               <option value="주니어">{t('level_junior')}</option>
@@ -321,7 +321,7 @@ export function CandidateSearchPage() {
             <select
               value={outputLanguage}
               onChange={(e) => setOutputLanguage(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
             >
               {SUPPORTED_LANGUAGES.map((lang) => (
                 <option key={lang.code} value={lang.code}>{lang.name}</option>
@@ -335,7 +335,7 @@ export function CandidateSearchPage() {
           <button
             type="submit"
             disabled={jdText.length < 50 || searching}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-md disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-400 disabled:shadow-none"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-navy-800 hover:to-navy-700 hover:shadow-md disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-400 disabled:shadow-none"
           >
             {searching ? (
               <>

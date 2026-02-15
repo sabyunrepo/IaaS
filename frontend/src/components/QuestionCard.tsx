@@ -51,11 +51,11 @@ function getConfidenceLabel(confidence?: number): string {
 function getRevisionTypeBadge(type: string | undefined, t: (key: string) => string): { color: string; label: string } | null {
   if (!type) return null
   const badges: Record<string, { color: string; labelKey: string }> = {
-    'duplicate_merge': { color: 'bg-purple-100 text-purple-700', labelKey: 'badge_duplicate_merge' },
+    'duplicate_merge': { color: 'bg-brand-100 text-brand-700', labelKey: 'badge_duplicate_merge' },
     'clarity_fix': { color: 'bg-blue-100 text-blue-700', labelKey: 'badge_clarity_fix' },
     'hallucination_fix': { color: 'bg-red-100 text-red-700', labelKey: 'badge_hallucination_fix' },
     'evidence_improvement': { color: 'bg-green-100 text-green-700', labelKey: 'badge_evidence_improvement' },
-    'scope_adjustment': { color: 'bg-amber-100 text-amber-700', labelKey: 'badge_scope_adjustment' },
+    'scope_adjustment': { color: 'bg-brand-100 text-brand-700', labelKey: 'badge_scope_adjustment' },
   }
   const badge = badges[type]
   if (!badge) return { color: 'bg-gray-100 text-gray-700', label: type }
@@ -95,7 +95,7 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-navy-100 text-navy-800 text-sm font-semibold">
               {index + 1}
             </span>
 
@@ -201,9 +201,9 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
               <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('terminology')}</h4>
               <div className="grid gap-2">
                 {question.terminology.map((term, i) => (
-                  <div key={i} className="text-sm p-2 rounded bg-amber-50 border border-amber-200">
-                    <strong className="text-amber-800">{term.term}</strong>
-                    <span className="text-amber-700">: {term.plain_language_explanation || term.definition}</span>
+                  <div key={i} className="text-sm p-2 rounded bg-brand-50 border border-brand-200">
+                    <strong className="text-brand-800">{term.term}</strong>
+                    <span className="text-brand-700">: {term.plain_language_explanation || term.definition}</span>
                   </div>
                 ))}
               </div>
@@ -212,9 +212,9 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
 
           {/* Legacy: Interviewer note */}
           {question.interviewer_note && (
-            <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-200">
-              <h4 className="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-1">{t('interviewer_note')}</h4>
-              <p className="text-sm text-indigo-800">
+            <div className="p-3 rounded-lg bg-navy-50 border border-navy-200">
+              <h4 className="text-xs font-semibold text-navy-800 uppercase tracking-wide mb-1">{t('interviewer_note')}</h4>
+              <p className="text-sm text-navy-800">
                 {typeof question.interviewer_note === 'string'
                   ? question.interviewer_note
                   : JSON.stringify(question.interviewer_note)}
@@ -234,8 +234,8 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
                   aria-pressed={score === s}
                   className={`w-9 h-9 rounded-lg text-sm font-semibold border-2 transition-all ${
                     score === s
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-400 hover:text-indigo-600'
+                      ? 'bg-navy-700 text-white border-navy-700 shadow-md'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-navy-600 hover:text-navy-700'
                   }`}
                 >
                   {s}

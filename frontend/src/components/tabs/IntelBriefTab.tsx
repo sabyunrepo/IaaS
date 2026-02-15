@@ -23,7 +23,7 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
     <div className="space-y-6">
       {/* Candidate Header */}
       {candidate && (
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-gradient-to-r from-navy-700 to-navy-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center gap-4">
             {candidate.avatar_url && !avatarError ? (
               <img
@@ -39,31 +39,31 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
             )}
             <div>
               <h2 className="text-xl sm:text-2xl font-bold">{candidate.name}</h2>
-              <p className="text-indigo-100">{candidate.role || candidate.current_title}</p>
+              <p className="text-navy-100">{candidate.role || candidate.current_title}</p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {candidate.experience && (
               <div className="bg-white/10 rounded-lg px-4 py-2">
-                <div className="text-sm text-indigo-100">{t('intel_experience')}</div>
+                <div className="text-sm text-navy-100">{t('intel_experience')}</div>
                 <div className="text-lg font-semibold">{candidate.experience}</div>
               </div>
             )}
             {candidate.jd_match && (
               <div className="bg-white/10 rounded-lg px-4 py-2">
-                <div className="text-sm text-indigo-100">{t('intel_jd_match')}</div>
+                <div className="text-sm text-navy-100">{t('intel_jd_match')}</div>
                 <div className="text-lg font-semibold">{candidate.jd_match}</div>
               </div>
             )}
             {candidate.level && (
               <div className="bg-white/10 rounded-lg px-4 py-2">
-                <div className="text-sm text-indigo-100">{t('intel_level')}</div>
+                <div className="text-sm text-navy-100">{t('intel_level')}</div>
                 <div className="text-lg font-semibold">{candidate.level}</div>
               </div>
             )}
             {candidate.company_context && (
               <div className="bg-white/10 rounded-lg px-4 py-2">
-                <div className="text-sm text-indigo-100">{t('intel_target_company')}</div>
+                <div className="text-sm text-navy-100">{t('intel_target_company')}</div>
                 <div className="text-lg font-semibold">{candidate.company_context}</div>
               </div>
             )}
@@ -74,7 +74,7 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
       {/* JD Summary */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm animate-fadeIn">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           {t('intel_jd_summary')}
@@ -124,7 +124,7 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
             <ul className="space-y-1">
               {jd_summary.success_metrics.map((metric, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                  <span className="text-indigo-500">•</span>
+                  <span className="text-navy-700">•</span>
                   {metric}
                 </li>
               ))}
@@ -179,11 +179,11 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
             <>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-indigo-600">{github.contributions}</div>
+                  <div className="text-2xl font-bold text-navy-700">{github.contributions}</div>
                   <div className="text-sm text-gray-500">{t('intel_contributions')}</div>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-indigo-600">{github.repos}</div>
+                  <div className="text-2xl font-bold text-navy-700">{github.repos}</div>
                   <div className="text-sm text-gray-500">{t('intel_repos')}</div>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -197,11 +197,11 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
               </div>
 
               {/* Tech Match */}
-              <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <div className="mb-4 p-3 bg-navy-50 border border-navy-200 rounded-lg">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-indigo-900">{t('intel_tech_match')} {github.tech_match}</span>
+                  <span className="font-medium text-navy-900">{t('intel_tech_match')} {github.tech_match}</span>
                   {github.tech_match_note && (
-                    <span className="text-sm text-amber-600">⚠️ {github.tech_match_note}</span>
+                    <span className="text-sm text-brand-600">⚠️ {github.tech_match_note}</span>
                   )}
                 </div>
               </div>
@@ -212,7 +212,7 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
                   <h5 className="text-xs font-medium text-gray-500 mb-2">{t('intel_tech_stack')}</h5>
                   <div className="flex flex-wrap gap-1.5">
                     {techStack.map((tech) => (
-                      <span key={tech} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
+                      <span key={tech} className="px-2 py-0.5 bg-navy-100 text-navy-800 rounded-full text-xs font-medium">
                         {tech}
                       </span>
                     ))}
@@ -230,8 +230,8 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
 
               {/* Activity Gap Warning */}
               {github.activity_gap && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <span className="text-amber-800">⚠️ {t('intel_activity_gap')} {github.activity_gap}</span>
+                <div className="mt-4 p-3 bg-brand-50 border border-brand-200 rounded-lg">
+                  <span className="text-brand-800">⚠️ {t('intel_activity_gap')} {github.activity_gap}</span>
                 </div>
               )}
             </>
@@ -268,8 +268,8 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
           </div>
 
           {linkedin_warning && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <span className="text-amber-800">⚠️ {linkedin_warning}</span>
+            <div className="mt-4 p-3 bg-brand-50 border border-brand-200 rounded-lg">
+              <span className="text-brand-800">⚠️ {linkedin_warning}</span>
             </div>
           )}
         </div>
@@ -330,7 +330,7 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
           {linkedinProfile.skills && linkedinProfile.skills.length > 0 && (
             <div>
               <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
                 {t('intel_skills')}
@@ -345,7 +345,7 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
                     <span key={i} className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
                       isJdMatch
                         ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                        : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                        : 'bg-navy-50 text-navy-800 border-navy-200'
                     }`}>
                       {skill}
                     </span>
@@ -384,14 +384,14 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
           {linkedinProfile.projects && linkedinProfile.projects.length > 0 && (
             <div>
               <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 {t('intel_projects')}
               </h4>
               <div className="space-y-2">
                 {linkedinProfile.projects.map((proj, i) => (
-                  <div key={i} className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <div key={i} className="p-3 bg-brand-50 rounded-lg border border-brand-200">
                     <div className="font-medium text-gray-900 text-sm">{proj.title}</div>
                     {proj.description && (
                       <p className="text-xs text-gray-600 mt-1">{proj.description}</p>
@@ -406,17 +406,17 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
           {linkedinProfile.honors_and_awards && linkedinProfile.honors_and_awards.length > 0 && (
             <div>
               <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
                 {t('intel_honors')}
               </h4>
               <div className="space-y-2">
                 {linkedinProfile.honors_and_awards.map((honor, i) => (
-                  <div key={i} className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <div key={i} className="p-3 bg-brand-50 rounded-lg border border-brand-200">
                     <div className="font-medium text-gray-900 text-sm">{honor.title}</div>
                     {honor.issuer && (
-                      <div className="text-xs text-amber-700">{honor.issuer}</div>
+                      <div className="text-xs text-brand-700">{honor.issuer}</div>
                     )}
                     {honor.description && (
                       <p className="text-xs text-gray-600 mt-1">{honor.description}</p>
@@ -429,14 +429,14 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
 
           {/* Recommendations Summary (JIT-52) */}
           {linkedinProfile?.recommendations_summary && (
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-              <h4 className="text-sm font-semibold text-purple-800 flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-brand-50 rounded-lg p-4 border border-brand-200">
+              <h4 className="text-sm font-semibold text-brand-800 flex items-center gap-2 mb-2">
+                <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
                 {t('intel_recommendations')}
                 {linkedinProfile.recommendations && (
-                  <span className="bg-purple-200 text-purple-700 text-xs px-2 py-0.5 rounded-full">
+                  <span className="bg-brand-200 text-brand-700 text-xs px-2 py-0.5 rounded-full">
                     {linkedinProfile.recommendations.length}
                   </span>
                 )}
