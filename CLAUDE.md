@@ -1,6 +1,7 @@
-# Vantict Sniper v4.0 — Project Intelligence
+# Jittda Sniper v5.0 — Project Intelligence
 
 > AI 면접 스크립트 생성기. 비개발자가 코드 분석 근거로 개발자 실력을 판단할 수 있게 돕는다.
+> **v5.0 재건축 진행 중** — `jittda/` Clean Slate (LangGraph HMAS + DDD)
 
 ## 핵심 설계 원칙
 1. 모든 점수에 코드/경력 데이터 근거 표시
@@ -10,16 +11,17 @@
 5. 모든 판단에 신뢰도(🟢높음/🟡중간/🔴낮음) 표시
 
 ## Tech Stack (요약)
-Frontend: Vite + React 19 + Tailwind 4 | Backend: FastAPI + Python 3.11 | Orchestration: Temporal.io
-DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Langfuse-first) | Testing: Playwright + pytest
+Frontend: Vite + React 19 + Tailwind 4 + D3.js v7 | Backend: FastAPI + Python 3.11 | Orchestration: LangGraph 1.0.8+ (HMAS)
+DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Instructor + Langfuse) | AST: Tree-sitter 0.24+ | Testing: Playwright + pytest
 
 ## 🛠 Operation Rules
 1. 아래 참조 문서는 **해당 작업에 직접 필요할 때만** Read로 로딩할 것
-2. Linear 작업 시 → `docs/claude-refs/dev-rules.md` 먼저 읽기
-3. UI/UX 작업 시 → `docs/claude-refs/ux-guidelines.md` 먼저 읽기
-4. 점수/평가 작업 시 → `docs/claude-refs/output-consistency.md` 먼저 읽기
-5. Git 워크플로우: 한글 이슈→feature branch→한글 PR→merge→main sync (자율 진행)
-6. Temporal Activity: `@activity.defn` 필수, >30s→heartbeat, LLM→CachedLLMService
+2. **v5.0 작업 시 → 해당 Phase 설계 문서를 반드시 먼저 Read** (아래 Context Mapping 참조)
+3. Linear 작업 시 → `docs/claude-refs/dev-rules.md` 먼저 읽기
+4. UI/UX 작업 시 → `docs/claude-refs/ux-guidelines.md` 먼저 읽기
+5. 점수/평가 작업 시 → `docs/claude-refs/output-consistency.md` 먼저 읽기
+6. Git 워크플로우: 한글 이슈→feature branch→한글 PR→merge→main sync (자율 진행)
+7. jittda/ DDD 규칙: domain → infrastructure import 금지, 노드는 Thin Wrapper, State에 Raw Data 금지 (Reference Passing)
 
 ## Auto-Routing (키워드 → MCP/스킬)
 
@@ -44,10 +46,53 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Langfuse-first) 
 | 스크린샷, 크롤링 | playwright | - |
 | 이전 대화, 기억 | claude-mem | - |
 | 프로젝트, 기획, lifecycle | linear, sequential | - |
+| 기능 구현, 설계, plan | superpowers | /brainstorm → /write-plan → /execute-plan |
+| TDD, 테스트 주도 | superpowers | test-driven-development 스킬 |
+| 디버깅, 근본 원인 | superpowers, sequential | systematic-debugging 스킬 |
+| jittda, v5, HMAS, LangGraph | context7, sequential | → Phase별 설계문서 참조 |
+| identity, mailmap, blame | sequential | → `plan/v5-design/phase1-domain.md` |
+| funnel, scoring, 지표 | sequential | → `plan/v5-design/phase1-domain.md` |
+| tree-sitter, AST, radon | context7 | → `plan/v5-design/phase2-infrastructure.md` |
+| instructor, langfuse, 프롬프트 | context7 | → `plan/v5-design/phase2-infrastructure.md` + `phase4-questions.md` |
+| StateGraph, supervisor, worker | context7 | → `plan/v5-design/phase3-application.md` |
+| D3, 차트, radar, treemap, heatmap | context7, magic | → `plan/v5-design/phase5-output-frontend.md` |
 
 상세 라우팅 프로토콜 → `.claude/skills/routing/SKILL.md`
 
 ## 📁 Context Mapping (필요 시만 Read)
+
+### v5.0 재건축 설계 참조 (jittda/)
+
+> **규칙:** 아래 작업을 할 때 해당 Phase 설계 문서를 **반드시 먼저 Read**할 것.
+> 구현 계획 전체: `docs/plans/2026-02-15-jittda-v5-reconstruction.md`
+> 원본 설계서: `plan/2026-02-15-v5-final-design.md`
+
+| 작업 | 먼저 읽을 참조 문서 | Linear 티켓 |
+|------|-------------------|------------|
+| 프로젝트 구조, Docker, DB, Makefile | `plan/v5-design/phase0-scaffolding.md` | JIT-82~85 |
+| Identity Resolution, Mailmap, Blame Filter | `plan/v5-design/phase1-domain.md` | JIT-86~89 |
+| LinkedIn 프로필 도메인 모델 | `plan/v5-design/phase1-domain.md` | JIT-124 |
+| Funnel Selection, Scoring Calculator | `plan/v5-design/phase1-domain.md` | JIT-90~91 |
+| Git 어댑터, GitHub GraphQL | `plan/v5-design/phase2-infrastructure.md` | JIT-92~93 |
+| Tree-sitter AST, Radon/Lizard 복잡도 | `plan/v5-design/phase2-infrastructure.md` | JIT-94~95 |
+| SonarQube, Datasketch 표절 탐지 | `plan/v5-design/phase2-infrastructure.md` | JIT-96~97 |
+| LinkedIn 어댑터 (BrightData 스크레이핑) | `plan/v5-design/phase2-infrastructure.md` | JIT-125 |
+| Instructor + Langfuse LLM 클라이언트 | `plan/v5-design/phase2-infrastructure.md` | JIT-98 |
+| pgvector 벡터 검색, 임베딩 | `plan/v5-design/phase2-infrastructure.md` | JIT-99 |
+| LangGraph State, Reference Passing | `plan/v5-design/phase3-application.md` | JIT-100 |
+| Forensic/Logic/Stack Supervisor Graph | `plan/v5-design/phase3-application.md` | JIT-101~103 |
+| MetaAgent Graph 조립, HMAS 전체 | `plan/v5-design/phase3-application.md` | JIT-104 |
+| FastAPI + WebSocket 통합 | `plan/v5-design/phase3-application.md` | JIT-105 |
+| 질문 생성 (TopicSelector, 3전략) | `plan/v5-design/phase4-questions.md` | JIT-106~107 |
+| Enhancement Agents, QualityGate | `plan/v5-design/phase4-questions.md` | JIT-108~109 |
+| Langfuse 프롬프트 관리 | `plan/v5-design/phase4-questions.md` | JIT-110 |
+| OutputAssembler, 4대 지표 산출 | `plan/v5-design/phase5-output-frontend.md` | JIT-111~112 |
+| D3.js 차트 (Radar, Treemap, Heatmap) | `plan/v5-design/phase5-output-frontend.md` | JIT-113~116 |
+| ResultPage 탭 (Overview, DeepDive, Interview) | `plan/v5-design/phase5-output-frontend.md` | JIT-117~119 |
+| 단위 테스트, E2E, Playwright | `plan/v5-design/phase6-testing.md` | JIT-120~122 |
+| 성능 벤치마크, 아키텍처 문서 | `plan/v5-design/phase6-testing.md` | JIT-123 |
+
+### 기존 참조 문서 (v4.0 레거시 — Read-only 참고)
 
 | 영역 | 참조 파일 |
 |------|----------|
