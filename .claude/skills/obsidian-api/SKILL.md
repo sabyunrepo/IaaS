@@ -117,6 +117,6 @@ obsidian_open "decisions/0001-langgraph-over-temporal.md"
 
 | 항목 | 값 |
 |------|---|
-| Vault 경로 | `/Users/sabyun/Documents/Obsidian Vault` |
+| Vault 경로 | `/Users/sabyun/Library/Mobile Documents/iCloud~md~obsidian/Obsidian Vault` (iCloud) |
 | API 포트 | 27124 (HTTPS, self-signed) |
 | 플러그인 버전 | 3.4.3 |
