@@ -49,7 +49,7 @@ linear_list_teams                     # 팀 목록
 3. 수락 기준이 없을 경우 → 사용자에게 "수락 기준을 먼저 정의할까요?" 확인
 4. 코드베이스에서 수정 필요 지점 분석 → 사용자에게 영향 범위 출력
 5. `linear_update_status "JIT-N" in_progress` → 상태 변경
-6. Git 브랜치 생성: `git checkout -b feat/JIT-{N}-{slug}` 또는 `fix/JIT-{N}-{slug}`
+6. Git 브랜치 생성: `but branch new feat/JIT-{N}-{slug}` 또는 `but branch new fix/JIT-{N}-{slug}`
 
 ### 새 티켓 생성 시
 1. `linear_list_teams` → 팀 ID 확인
@@ -171,13 +171,13 @@ linear_add_comment "JIT-N" @/tmp/review_comment.md
 ### 3-2. 상태 업데이트
 - `linear_update_status "JIT-N" in_review`
 
-### 3-3. Git 커밋, PR, 머지 및 완료
-1. 커밋 메시지에 티켓 ID 포함: `feat: {설명} [JIT-{N}]`
-2. `git push -u origin {branch}`
-3. `gh pr create --title "feat: {설명} [JIT-{N}]" --body "..."`
-4. PR 본문에 Linear 티켓 링크 포함
-5. `gh pr merge --merge` → PR 머지
-6. `git checkout main && git pull` → main 브랜치 동기화
+### 3-3. GitButler 커밋, PR, 머지 및 완료 (but-ops 스킬 참조)
+1. 스테이징: `but stage <file-id> {branch}`
+2. 커밋 (Claude가 메시지 작성): `but commit --only -m "feat: {설명} [JIT-{N}]" {branch}`
+3. 푸시: `but push {branch}`
+4. PR 생성: `but pr {branch}`
+5. 머지: `but merge {branch}`
+6. `but pull` → 타겟 브랜치 동기화
 7. `linear_update_status "JIT-N" done` → 티켓 완료 처리
 
 ---
@@ -205,7 +205,7 @@ linear_add_comment "JIT-N" @/tmp/review_comment.md
     |   +- 수락 기준 확인 (없으면 → 사용자 확인)
     |   +- 코드베이스 영향 분석
     |   +- linear_update_status → in_progress
-    |   +- git checkout -b feat/JIT-26-slug
+    |   +- but branch new feat/JIT-26-slug
     |
     +- Phase 2: TDD Implementation
     |   +- 수락 기준 → 테스트 케이스 도출
@@ -218,10 +218,11 @@ linear_add_comment "JIT-N" @/tmp/review_comment.md
     +- Phase 3: Finalize (테스트 통과 시만)
         +- linear_add_comment → 결과 기록
         +- linear_update_status → in_review
-        +- git commit + push
-        +- gh pr create
-        +- gh pr merge --merge
-        +- git checkout main && git pull
+        +- but commit -m "msg" branch (Claude 메시지 작성)
+        +- but push branch
+        +- but pr branch
+        +- but merge branch
+        +- but pull
         +- linear_update_status → done
 ```
 
