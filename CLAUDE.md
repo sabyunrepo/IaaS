@@ -50,6 +50,7 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Instructor + Lan
 | TDD, 테스트 주도 | superpowers | test-driven-development 스킬 |
 | 디버깅, 근본 원인 | superpowers, sequential | systematic-debugging 스킬 |
 | git, commit, branch, push, pr | - | /but-ops |
+| obsidian, vault, 동기화 | Bash (obsidian-api.sh) | /obsidian-api |
 | jittda, v5, HMAS, LangGraph | context7, sequential | → Phase별 설계문서 참조 |
 | identity, mailmap, blame | sequential | → `plan/v5-design/phase1-domain.md` |
 | funnel, scoring, 지표 | sequential | → `plan/v5-design/phase1-domain.md` |
