@@ -42,6 +42,7 @@
 }
 
 :root {
+  color-scheme: light;
   --color-bg-page: var(--color-ink-50);
   --color-bg-surface: #ffffff;
   --color-bg-surface-hover: var(--color-em-50);
@@ -58,6 +59,11 @@
   --color-border-default: var(--color-ink-200);
   --color-border-subtle: var(--color-ink-100);
   --color-border-accent: var(--color-em-500);
+}
+
+body {
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
 }
 
 /* Focus ring for keyboard navigation */

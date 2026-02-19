@@ -6,7 +6,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
   base: '/demo/',
-  plugins: [react(), tailwindcss(), seedDesignPlugin(), tsconfigPaths()],
+  plugins: [react(), tailwindcss(), seedDesignPlugin({ colorMode: 'light-only' }), tsconfigPaths()],
   server: {
     port: 5173,
     proxy: {
