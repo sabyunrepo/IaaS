@@ -13,3 +13,9 @@ try:
     __all__ += ["LangfusePromptManager"]
 except ImportError:
     pass
+
+try:
+    from infrastructure.llm.prompt_loader import PromptLoader, get_prompt_loader
+    __all__ += ["PromptLoader", "get_prompt_loader"]
+except ImportError:
+    pass

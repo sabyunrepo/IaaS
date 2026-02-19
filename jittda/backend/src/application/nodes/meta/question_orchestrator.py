@@ -181,159 +181,168 @@ async def question_orchestrator_node(state: MetaState) -> dict[str, Any]:
     job_id = state["job_id"]
     db_url = os.environ.get("DATABASE_URL", "")
 
-    analysis_repo = AnalysisRepository(db_url)
+    try:
+        analysis_repo = AnalysisRepository(db_url)
 
-    # 1. DB에서 분석 결과 로드
-    profile_ref = state.get("profile_ref")
-    profile_data = await analysis_repo.get_result(profile_ref) if profile_ref else None
-    profile_result = profile_data.get("result_data", {}) if profile_data else {}
+        # 1. DB에서 분석 결과 로드
+        profile_ref = state.get("profile_ref")
+        profile_data = await analysis_repo.get_result(profile_ref) if profile_ref else None
+        profile_result = profile_data.get("result_data", {}) if profile_data else {}
 
-    forensic_ref = state.get("forensic_result_ref")
-    forensic_data = await analysis_repo.get_result(forensic_ref) if forensic_ref else None
-    forensic_result = forensic_data.get("result_data", {}) if forensic_data else {}
+        forensic_ref = state.get("forensic_result_ref")
+        forensic_data = await analysis_repo.get_result(forensic_ref) if forensic_ref else None
+        forensic_result = forensic_data.get("result_data", {}) if forensic_data else {}
 
-    logic_ref = state.get("logic_result_ref")
-    logic_data = await analysis_repo.get_result(logic_ref) if logic_ref else None
-    logic_result = logic_data.get("result_data", {}) if logic_data else {}
+        logic_ref = state.get("logic_result_ref")
+        logic_data = await analysis_repo.get_result(logic_ref) if logic_ref else None
+        logic_result = logic_data.get("result_data", {}) if logic_data else {}
 
-    stack_ref = state.get("stack_result_ref")
-    stack_data = await analysis_repo.get_result(stack_ref) if stack_ref else None
-    stack_result = stack_data.get("result_data", {}) if stack_data else {}
+        stack_ref = state.get("stack_result_ref")
+        stack_data = await analysis_repo.get_result(stack_ref) if stack_ref else None
+        stack_result = stack_data.get("result_data", {}) if stack_data else {}
 
-    # 2. JD 요구사항 로드
-    from infrastructure.persistence.repository import JobRepository
+        # 2. JD 요구사항 로드
+        from infrastructure.persistence.repository import JobRepository
 
-    job_repo = JobRepository(db_url)
-    job = await job_repo.get(job_id)
-    input_data = job.get("input_data", {}) if job else {}
-    jd_tech_stack = input_data.get("jd_tech_stack", [])
+        job_repo = JobRepository(db_url)
+        job = await job_repo.get(job_id)
+        input_data = job.get("input_data", {}) if job else {}
+        jd_tech_stack = input_data.get("jd_tech_stack", [])
 
-    # 3. TopicSelector — pgvector로 관련 코드 청크 검색
-    embedding_api_key = os.environ.get("EMBEDDING_API_KEY", os.environ.get("LLM_API_KEY", ""))
-    embedding_base_url = os.environ.get("EMBEDDING_BASE_URL", "https://api.openai.com/v1")
+        # 3. TopicSelector — pgvector로 관련 코드 청크 검색
+        embedding_api_key = os.environ.get("EMBEDDING_API_KEY", os.environ.get("LLM_API_KEY", ""))
+        embedding_base_url = os.environ.get("EMBEDDING_BASE_URL", "https://api.openai.com/v1")
 
-    embedding_service = EmbeddingService(
-        api_key=embedding_api_key,
-        base_url=embedding_base_url,
-    )
-    vector_store = PgvectorStore(dsn=db_url)
+        embedding_service = EmbeddingService(
+            api_key=embedding_api_key,
+            base_url=embedding_base_url,
+        )
+        vector_store = PgvectorStore(dsn=db_url)
 
-    relevant_chunks = await _select_topics(
-        job_id, jd_tech_stack, embedding_service, vector_store
-    )
+        relevant_chunks = await _select_topics(
+            job_id, jd_tech_stack, embedding_service, vector_store
+        )
 
-    # 4. 컨텍스트 구성
-    scores = profile_result.get("scores", {})
-    profile_context = (
-        f"Logic score: {scores.get('logic', {}).get('normalized_score', 'N/A')}\n"
-        f"Mastery score: {scores.get('mastery', {}).get('normalized_score', 'N/A')}\n"
-        f"Authenticity score: {scores.get('authenticity', {}).get('normalized_score', 'N/A')}\n"
-        f"Stability score: {scores.get('stability', {}).get('normalized_score', 'N/A')}\n"
-        f"Skills detected: {stack_result.get('stack_summary', {}).get('total_skills_detected', 0)}\n"
-        f"Architecture score: {stack_result.get('stack_summary', {}).get('architecture_score', 'N/A')}\n"
-    )
+        # 4. 컨텍스트 구성
+        scores = profile_result.get("scores", {})
+        profile_context = (
+            f"Logic score: {scores.get('logic', {}).get('normalized_score', 'N/A')}\n"
+            f"Mastery score: {scores.get('mastery', {}).get('normalized_score', 'N/A')}\n"
+            f"Authenticity score: {scores.get('authenticity', {}).get('normalized_score', 'N/A')}\n"
+            f"Stability score: {scores.get('stability', {}).get('normalized_score', 'N/A')}\n"
+            f"Skills detected: {stack_result.get('stack_summary', {}).get('total_skills_detected', 0)}\n"
+            f"Architecture score: {stack_result.get('stack_summary', {}).get('architecture_score', 'N/A')}\n"
+        )
 
-    code_context = ""
-    for chunk in relevant_chunks[:10]:
-        code_context += f"[similarity={chunk['similarity']:.2f}] {chunk['content'][:500]}\n---\n"
-    if not code_context:
-        # fallback: forensic 결과에서 코드 정보 추출
-        code_context = f"Forensic summary: {str(forensic_result.get('forensic_summary', {}))[:2000]}\n"
+        code_context = ""
+        for chunk in relevant_chunks[:10]:
+            code_context += f"[similarity={chunk['similarity']:.2f}] {chunk['content'][:500]}\n---\n"
+        if not code_context:
+            # fallback: forensic 결과에서 코드 정보 추출
+            code_context = f"Forensic summary: {str(forensic_result.get('forensic_summary', {}))[:2000]}\n"
 
-    complexity_context = (
-        f"Logic summary: {str(logic_result.get('logic_summary', {}))[:1500]}\n"
-        f"Avg cyclomatic complexity: {logic_result.get('avg_cyclomatic_complexity', 'N/A')}\n"
-        f"Avg maintainability index: {logic_result.get('avg_maintainability_index', 'N/A')}\n"
-    )
+        complexity_context = (
+            f"Logic summary: {str(logic_result.get('logic_summary', {}))[:1500]}\n"
+            f"Avg cyclomatic complexity: {logic_result.get('avg_cyclomatic_complexity', 'N/A')}\n"
+            f"Avg maintainability index: {logic_result.get('avg_maintainability_index', 'N/A')}\n"
+        )
 
-    evolution_context = (
-        f"Total files analyzed: {forensic_result.get('total_files_analyzed', 0)}\n"
-        f"Style consistency: {forensic_result.get('style_consistency', 'N/A')}\n"
-        f"AI detection: {str(forensic_result.get('ai_detection', {}))[:1000]}\n"
-    )
+        evolution_context = (
+            f"Total files analyzed: {forensic_result.get('total_files_analyzed', 0)}\n"
+            f"Style consistency: {forensic_result.get('style_consistency', 'N/A')}\n"
+            f"AI detection: {str(forensic_result.get('ai_detection', {}))[:1000]}\n"
+        )
 
-    jd_context = f"Required tech stack: {jd_tech_stack}"
+        jd_context = f"Required tech stack: {jd_tech_stack}"
 
-    # 5. 3전략 병렬 실행
-    llm_client = InstructorClient(
-        api_key=os.environ.get("LLM_API_KEY", ""),
-        base_url=os.environ.get("LLM_BASE_URL", "https://api.moonshot.cn/v1"),
-    )
+        # 5. 3전략 병렬 실행
+        llm_client = InstructorClient(
+            api_key=os.environ.get("LLM_API_KEY", ""),
+            base_url=os.environ.get("LLM_BASE_URL", "https://api.moonshot.cn/v1"),
+        )
 
-    strategy_tasks = [
-        _craft_questions_for_strategy(
-            strategy=QuestionStrategy.NEGATIVE_SELECTION,
-            prompt_template=NEGATIVE_SELECTION_PROMPT,
-            profile_context=profile_context,
-            code_context=code_context,
-            extra_context=jd_context,
-            extra_context_key="jd_context",
-            client=llm_client,
-        ),
-        _craft_questions_for_strategy(
-            strategy=QuestionStrategy.INTENTIONAL_COMPLEXITY,
-            prompt_template=INTENTIONAL_COMPLEXITY_PROMPT,
-            profile_context=profile_context,
-            code_context=code_context,
-            extra_context=complexity_context,
-            extra_context_key="complexity_context",
-            client=llm_client,
-        ),
-        _craft_questions_for_strategy(
-            strategy=QuestionStrategy.CODE_EVOLUTION,
-            prompt_template=CODE_EVOLUTION_PROMPT,
-            profile_context=profile_context,
-            code_context=code_context,
-            extra_context=evolution_context,
-            extra_context_key="evolution_context",
-            client=llm_client,
-        ),
-    ]
+        strategy_tasks = [
+            _craft_questions_for_strategy(
+                strategy=QuestionStrategy.NEGATIVE_SELECTION,
+                prompt_template=NEGATIVE_SELECTION_PROMPT,
+                profile_context=profile_context,
+                code_context=code_context,
+                extra_context=jd_context,
+                extra_context_key="jd_context",
+                client=llm_client,
+            ),
+            _craft_questions_for_strategy(
+                strategy=QuestionStrategy.INTENTIONAL_COMPLEXITY,
+                prompt_template=INTENTIONAL_COMPLEXITY_PROMPT,
+                profile_context=profile_context,
+                code_context=code_context,
+                extra_context=complexity_context,
+                extra_context_key="complexity_context",
+                client=llm_client,
+            ),
+            _craft_questions_for_strategy(
+                strategy=QuestionStrategy.CODE_EVOLUTION,
+                prompt_template=CODE_EVOLUTION_PROMPT,
+                profile_context=profile_context,
+                code_context=code_context,
+                extra_context=evolution_context,
+                extra_context_key="evolution_context",
+                client=llm_client,
+            ),
+        ]
 
-    results = await asyncio.gather(*strategy_tasks, return_exceptions=True)
+        results = await asyncio.gather(*strategy_tasks, return_exceptions=True)
 
-    # 6. 질문 수집 + InterviewScript 조립
-    all_questions: list[InterviewQuestion] = []
-    for i, result in enumerate(results):
-        if isinstance(result, Exception):
-            strategy_name = list(QuestionStrategy)[i].value
-            logger.error("Strategy %s failed: %s", strategy_name, result)
-            continue
-        all_questions.extend(result)
+        # 6. 질문 수집 + InterviewScript 조립
+        all_questions: list[InterviewQuestion] = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                strategy_name = list(QuestionStrategy)[i].value
+                logger.error("Strategy %s failed: %s", strategy_name, result)
+                continue
+            all_questions.extend(result)
 
-    if not all_questions:
-        logger.error("question_orchestrator: No questions generated for job %s", job_id)
-        error_ref = await analysis_repo.save_result(
+        if not all_questions:
+            logger.error("question_orchestrator: No questions generated for job %s", job_id)
+            error_ref = await analysis_repo.save_result(
+                job_id,
+                "question_orchestrator",
+                "meta",
+                {"error": "No questions generated", "status": "failed"},
+            )
+            return {
+                "questions_ref": error_ref,
+                "status": "questioning",
+                "current_phase": "questions",
+                "errors": state.get("errors", []) + ["question_orchestrator: No questions generated"],
+            }
+
+        script = InterviewScript(job_id=job_id, questions=all_questions)
+
+        # 7. DB 저장
+        result_id = await analysis_repo.save_result(
             job_id,
             "question_orchestrator",
             "meta",
-            {"error": "No questions generated", "status": "failed"},
+            script.model_dump(),
         )
+
+        logger.info(
+            "question_orchestrator completed: %d questions (%s)",
+            script.total_count,
+            script.strategy_distribution,
+        )
+
         return {
-            "questions_ref": error_ref,
+            "questions_ref": result_id,
             "status": "questioning",
             "current_phase": "questions",
-            "errors": state.get("errors", []) + ["question_orchestrator: No questions generated"],
         }
-
-    script = InterviewScript(job_id=job_id, questions=all_questions)
-
-    # 7. DB 저장
-    result_id = await analysis_repo.save_result(
-        job_id,
-        "question_orchestrator",
-        "meta",
-        script.model_dump(),
-    )
-
-    logger.info(
-        "question_orchestrator completed: %d questions (%s)",
-        script.total_count,
-        script.strategy_distribution,
-    )
-
-    return {
-        "questions_ref": result_id,
-        "status": "questioning",
-        "current_phase": "questions",
-    }
+    except Exception as e:
+        logger.error("question_orchestrator_node failed for job %s: %s", job_id, e)
+        return {
+            "questions_ref": None,
+            "status": "questioning",
+            "current_phase": "questions",
+            "errors": state.get("errors", []) + [f"question_orchestrator: {e}"],
+        }

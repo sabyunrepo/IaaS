@@ -145,92 +145,99 @@ async def enhancement_agents_node(state: MetaState) -> dict[str, Any]:
     job_id = state["job_id"]
     db_url = os.environ.get("DATABASE_URL", "")
 
-    analysis_repo = AnalysisRepository(db_url)
+    try:
+        analysis_repo = AnalysisRepository(db_url)
 
-    # 1. 질문 로드
-    questions_ref = state.get("questions_ref")
-    if not questions_ref:
-        logger.warning("enhancement_agents: no questions_ref in state")
-        return {}
+        # 1. 질문 로드
+        questions_ref = state.get("questions_ref")
+        if not questions_ref:
+            logger.warning("enhancement_agents: no questions_ref in state")
+            return {}
 
-    questions_data = await analysis_repo.get_result(questions_ref)
-    if not questions_data:
-        logger.warning("enhancement_agents: questions not found in DB")
-        return {}
+        questions_data = await analysis_repo.get_result(questions_ref)
+        if not questions_data:
+            logger.warning("enhancement_agents: questions not found in DB")
+            return {}
 
-    result_data = questions_data.get("result_data", {})
-    questions = result_data.get("questions", [])
+        result_data = questions_data.get("result_data", {})
+        questions = result_data.get("questions", [])
 
-    if not questions:
-        logger.warning("enhancement_agents: empty questions list")
-        return {}
+        if not questions:
+            logger.warning("enhancement_agents: empty questions list")
+            return {}
 
-    # 2. 질문 요약 컨텍스트 구성
-    questions_summary = f"Interview Questions ({len(questions)} total):\n\n"
-    for i, q in enumerate(questions, 1):
-        questions_summary += (
-            f"Q{i} [id={q.get('question_id', '')}] "
-            f"[strategy={q.get('strategy', '')}] "
-            f"[category={q.get('category', '')}]\n"
-            f"  Question: {q.get('question_text', '')}\n"
-            f"  Intent: {q.get('intent', '')}\n"
-            f"  Code ref: {q.get('code_reference', 'N/A')}\n"
-            f"  Current answer guide: {q.get('expected_answer_guide', '')[:200]}\n\n"
+        # 2. 질문 요약 컨텍스트 구성
+        questions_summary = f"Interview Questions ({len(questions)} total):\n\n"
+        for i, q in enumerate(questions, 1):
+            questions_summary += (
+                f"Q{i} [id={q.get('question_id', '')}] "
+                f"[strategy={q.get('strategy', '')}] "
+                f"[category={q.get('category', '')}]\n"
+                f"  Question: {q.get('question_text', '')}\n"
+                f"  Intent: {q.get('intent', '')}\n"
+                f"  Code ref: {q.get('code_reference', 'N/A')}\n"
+                f"  Current answer guide: {q.get('expected_answer_guide', '')[:200]}\n\n"
+            )
+
+        # 3. LLM 클라이언트
+        client = InstructorClient(
+            api_key=os.environ.get("LLM_API_KEY", ""),
+            base_url=os.environ.get("LLM_BASE_URL", "https://api.moonshot.cn/v1"),
         )
 
-    # 3. LLM 클라이언트
-    client = InstructorClient(
-        api_key=os.environ.get("LLM_API_KEY", ""),
-        base_url=os.environ.get("LLM_BASE_URL", "https://api.moonshot.cn/v1"),
-    )
+        # 4. 5개 Agent 병렬 실행
+        agent_tasks = [
+            _run_agent("terminology", TERMINOLOGY_PROMPT, questions_summary, client),
+            _run_agent("answer_guide", ANSWER_GUIDE_PROMPT, questions_summary, client),
+            _run_agent("follow_up", FOLLOW_UP_PROMPT, questions_summary, client),
+            _run_agent("red_flag", RED_FLAG_PROMPT, questions_summary, client),
+            _run_agent("code_reference", CODE_REF_PROMPT, questions_summary, client),
+        ]
 
-    # 4. 5개 Agent 병렬 실행
-    agent_tasks = [
-        _run_agent("terminology", TERMINOLOGY_PROMPT, questions_summary, client),
-        _run_agent("answer_guide", ANSWER_GUIDE_PROMPT, questions_summary, client),
-        _run_agent("follow_up", FOLLOW_UP_PROMPT, questions_summary, client),
-        _run_agent("red_flag", RED_FLAG_PROMPT, questions_summary, client),
-        _run_agent("code_reference", CODE_REF_PROMPT, questions_summary, client),
-    ]
+        results = await asyncio.gather(*agent_tasks, return_exceptions=True)
 
-    results = await asyncio.gather(*agent_tasks, return_exceptions=True)
+        agent_names = ["terminology", "answer_guide", "follow_up", "red_flag", "code_reference"]
+        enhancements: dict[str, list[dict[str, Any]]] = {}
 
-    agent_names = ["terminology", "answer_guide", "follow_up", "red_flag", "code_reference"]
-    enhancements: dict[str, list[dict[str, Any]]] = {}
+        for name, result in zip(agent_names, results):
+            if isinstance(result, Exception):
+                logger.error("Enhancement agent '%s' raised: %s", name, result)
+                enhancements[name] = []
+            else:
+                enhancements[name] = result
 
-    for name, result in zip(agent_names, results):
-        if isinstance(result, Exception):
-            logger.error("Enhancement agent '%s' raised: %s", name, result)
-            enhancements[name] = []
-        else:
-            enhancements[name] = result
+        # 5. 질문에 보강 결과 병합
+        enhanced_questions = _merge_enhancements(questions, enhancements)
 
-    # 5. 질문에 보강 결과 병합
-    enhanced_questions = _merge_enhancements(questions, enhancements)
+        # 6. 보강된 질문을 DB에 저장 (기존 questions_ref 업데이트가 아닌 새 레코드)
+        enhanced_data = {
+            **result_data,
+            "questions": enhanced_questions,
+            "enhancement_applied": True,
+            "enhancement_agents": agent_names,
+        }
 
-    # 6. 보강된 질문을 DB에 저장 (기존 questions_ref 업데이트가 아닌 새 레코드)
-    enhanced_data = {
-        **result_data,
-        "questions": enhanced_questions,
-        "enhancement_applied": True,
-        "enhancement_agents": agent_names,
-    }
+        enhanced_ref = await analysis_repo.save_result(
+            job_id,
+            "enhancement_agents",
+            "meta",
+            enhanced_data,
+        )
 
-    enhanced_ref = await analysis_repo.save_result(
-        job_id,
-        "enhancement_agents",
-        "meta",
-        enhanced_data,
-    )
+        logger.info(
+            "enhancement_agents completed: %d questions enhanced with %d agents",
+            len(enhanced_questions),
+            sum(1 for r in results if not isinstance(r, Exception) and r),
+        )
 
-    logger.info(
-        "enhancement_agents completed: %d questions enhanced with %d agents",
-        len(enhanced_questions),
-        sum(1 for r in results if not isinstance(r, Exception) and r),
-    )
-
-    # questions_ref를 보강된 버전으로 교체
-    return {"questions_ref": enhanced_ref}
+        # questions_ref를 보강된 버전으로 교체
+        return {"questions_ref": enhanced_ref}
+    except Exception as e:
+        logger.error("enhancement_agents_node failed for job %s: %s", job_id, e)
+        # 보강 실패 시 기존 questions_ref를 그대로 유지 (보강 없이 계속 진행)
+        return {
+            "errors": state.get("errors", []) + [f"enhancement_agents: {e}"],
+        }
 
 
 def _merge_enhancements(

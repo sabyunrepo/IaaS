@@ -6,10 +6,13 @@ Job의 input_data를 파싱하여 분석에 필요한 정보를 추출하고
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from application.states.meta_state import MetaState
 from infrastructure.persistence.repository import JobRepository
+
+logger = logging.getLogger(__name__)
 
 
 async def input_router_node(state: MetaState) -> dict[str, Any]:
@@ -18,23 +21,30 @@ async def input_router_node(state: MetaState) -> dict[str, Any]:
 
     job_id = state["job_id"]
 
-    # DB에서 input_data 로드
-    repo = JobRepository(os.environ.get("DATABASE_URL", ""))
-    job = await repo.get(job_id)
+    try:
+        # DB에서 input_data 로드
+        repo = JobRepository(os.environ.get("DATABASE_URL", ""))
+        job = await repo.get(job_id)
 
-    if not job:
+        if not job:
+            return {
+                "status": "failed",
+                "errors": state.get("errors", []) + [f"Job {job_id} not found"],
+            }
+
+        input_data = job.get("input_data", {})
+
+        # 상태 업데이트
+        await repo.update_status(job_id, "collecting", progress=0.05)
+
+        return {
+            "input_data_ref": job_id,
+            "status": "collecting",
+            "current_phase": "plan_generator",
+        }
+    except Exception as e:
+        logger.error("input_router_node failed for job %s: %s", job_id, e)
         return {
             "status": "failed",
-            "errors": [f"Job {job_id} not found"],
+            "errors": state.get("errors", []) + [f"input_router: {e}"],
         }
-
-    input_data = job.get("input_data", {})
-
-    # 상태 업데이트
-    await repo.update_status(job_id, "collecting", progress=0.05)
-
-    return {
-        "input_data_ref": job_id,
-        "status": "collecting",
-        "current_phase": "plan_generator",
-    }

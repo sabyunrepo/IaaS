@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import { ResultPage } from './pages/ResultPage'
 
 function PlaceholderPage({ name }: { name: string }) {
   return (
@@ -30,7 +31,7 @@ export function App() {
       <Route path="/jobs/:jobId/candidates/:candidateId" element={<PlaceholderPage name="지원자 상세" />} />
 
       {/* Analysis Results */}
-      <Route path="/jobs/:jobId/candidates/:candidateId/analysis" element={<PlaceholderPage name="분석 결과" />} />
+      <Route path="/jobs/:jobId/candidates/:candidateId/analysis" element={<ResultPage />} />
       <Route path="/jobs/:jobId/candidates/:candidateId/interview" element={<PlaceholderPage name="면접 스크립트" />} />
 
       {/* Settings */}

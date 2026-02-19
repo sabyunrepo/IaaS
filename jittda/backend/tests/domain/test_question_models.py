@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 from domain.question.models import (
     InterviewQuestion,
+    InterviewScript,
     QuestionCategory,
     QuestionStrategy,
 )
@@ -194,3 +195,182 @@ class TestInterviewQuestion:
     def test_difficulty_hard(self):
         q = _make_question(difficulty="hard")
         assert q.difficulty == "hard"
+
+
+# ---------------------------------------------------------------------------
+# InterviewScript
+# ---------------------------------------------------------------------------
+
+
+def _make_script(questions: list[InterviewQuestion] | None = None) -> InterviewScript:
+    """InterviewScript 생성 헬퍼."""
+    return InterviewScript(
+        job_id="job-001",
+        questions=questions if questions is not None else [],
+    )
+
+
+class TestInterviewScript:
+    def test_empty_questions_total_count_zero(self):
+        """빈 질문 리스트 → total_count == 0."""
+        script = _make_script(questions=[])
+        assert script.total_count == 0
+
+    def test_empty_questions_strategy_distribution_empty(self):
+        """빈 질문 리스트 → strategy_distribution 비어 있음."""
+        script = _make_script(questions=[])
+        assert script.strategy_distribution == {}
+
+    def test_empty_questions_category_distribution_empty(self):
+        """빈 질문 리스트 → category_distribution 비어 있음."""
+        script = _make_script(questions=[])
+        assert script.category_distribution == {}
+
+    def test_single_question_total_count(self):
+        """질문 1개 → total_count == 1."""
+        q = _make_question()
+        script = _make_script(questions=[q])
+        assert script.total_count == 1
+
+    def test_single_question_strategy_distribution(self):
+        """질문 1개(NEGATIVE_SELECTION) → 전략 분포 정확."""
+        q = _make_question(strategy=QuestionStrategy.NEGATIVE_SELECTION)
+        script = _make_script(questions=[q])
+        assert script.strategy_distribution == {"negative_selection": 1}
+
+    def test_single_question_category_distribution(self):
+        """질문 1개(TECHNICAL_DEPTH) → 카테고리 분포 정확."""
+        q = _make_question(category=QuestionCategory.TECHNICAL_DEPTH)
+        script = _make_script(questions=[q])
+        assert script.category_distribution == {"technical_depth": 1}
+
+    def test_multiple_questions_total_count(self):
+        """질문 3개 → total_count == 3."""
+        questions = [
+            _make_question(question_id="Q-001"),
+            _make_question(question_id="Q-002"),
+            _make_question(question_id="Q-003"),
+        ]
+        script = _make_script(questions=questions)
+        assert script.total_count == 3
+
+    def test_multiple_same_strategy_distribution(self):
+        """동일 전략 질문 3개 → 해당 전략 카운트 3."""
+        questions = [
+            _make_question(
+                question_id=f"Q-{i}",
+                strategy=QuestionStrategy.CODE_EVOLUTION,
+            )
+            for i in range(3)
+        ]
+        script = _make_script(questions=questions)
+        assert script.strategy_distribution == {"code_evolution": 3}
+
+    def test_multiple_different_strategies_distribution(self):
+        """3가지 전략 각 1개씩 → 전략 분포 정확."""
+        questions = [
+            _make_question(
+                question_id="Q-001",
+                strategy=QuestionStrategy.NEGATIVE_SELECTION,
+            ),
+            _make_question(
+                question_id="Q-002",
+                strategy=QuestionStrategy.INTENTIONAL_COMPLEXITY,
+            ),
+            _make_question(
+                question_id="Q-003",
+                strategy=QuestionStrategy.CODE_EVOLUTION,
+            ),
+        ]
+        script = _make_script(questions=questions)
+        assert script.strategy_distribution == {
+            "negative_selection": 1,
+            "intentional_complexity": 1,
+            "code_evolution": 1,
+        }
+
+    def test_multiple_different_categories_distribution(self):
+        """다양한 카테고리 분포 정확."""
+        questions = [
+            _make_question(
+                question_id="Q-001",
+                category=QuestionCategory.TECHNICAL_DEPTH,
+            ),
+            _make_question(
+                question_id="Q-002",
+                category=QuestionCategory.EXECUTION_OWNERSHIP,
+            ),
+            _make_question(
+                question_id="Q-003",
+                category=QuestionCategory.COMMUNICATION,
+            ),
+            _make_question(
+                question_id="Q-004",
+                category=QuestionCategory.RISK_FLAGS,
+            ),
+        ]
+        script = _make_script(questions=questions)
+        assert script.category_distribution == {
+            "technical_depth": 1,
+            "execution_ownership": 1,
+            "communication": 1,
+            "risk_flags": 1,
+        }
+
+    def test_mixed_strategy_category_counts(self):
+        """전략 2종 + 카테고리 2종 혼합 분포."""
+        questions = [
+            _make_question(
+                question_id="Q-001",
+                strategy=QuestionStrategy.NEGATIVE_SELECTION,
+                category=QuestionCategory.TECHNICAL_DEPTH,
+            ),
+            _make_question(
+                question_id="Q-002",
+                strategy=QuestionStrategy.NEGATIVE_SELECTION,
+                category=QuestionCategory.RISK_FLAGS,
+            ),
+            _make_question(
+                question_id="Q-003",
+                strategy=QuestionStrategy.CODE_EVOLUTION,
+                category=QuestionCategory.TECHNICAL_DEPTH,
+            ),
+        ]
+        script = _make_script(questions=questions)
+        assert script.strategy_distribution == {
+            "negative_selection": 2,
+            "code_evolution": 1,
+        }
+        assert script.category_distribution == {
+            "technical_depth": 2,
+            "risk_flags": 1,
+        }
+
+    def test_job_id_stored(self):
+        """job_id 정상 저장."""
+        script = InterviewScript(job_id="my-job-42", questions=[])
+        assert script.job_id == "my-job-42"
+
+    def test_post_init_overrides_defaults(self):
+        """model_post_init이 기본값을 질문 기반으로 재계산."""
+        q = _make_question()
+        script = InterviewScript(
+            job_id="job-1",
+            questions=[q],
+            total_count=999,  # 이 값은 model_post_init에서 재계산됨
+            strategy_distribution={"wrong": 100},
+            category_distribution={"wrong": 200},
+        )
+        assert script.total_count == 1
+        assert "wrong" not in script.strategy_distribution
+        assert "wrong" not in script.category_distribution
+
+    def test_missing_job_id_raises_validation_error(self):
+        """job_id 누락 시 ValidationError."""
+        with pytest.raises(ValidationError):
+            InterviewScript(questions=[])  # type: ignore[call-arg]
+
+    def test_missing_questions_raises_validation_error(self):
+        """questions 누락 시 ValidationError."""
+        with pytest.raises(ValidationError):
+            InterviewScript(job_id="job-1")  # type: ignore[call-arg]

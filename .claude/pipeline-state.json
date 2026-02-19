@@ -1,28 +1,49 @@
 {
-  "current_phase": 4,
-  "step": "sync_completed",
-  "plan_completed_at": "2026-02-19T16:45:00+09:00",
-  "sync_completed_at": "2026-02-20T02:30:00+09:00",
-  "pr": "https://github.com/sabyunrepo/IaaS/pull/354",
-  "milestone_id": "d7af726c-0bbe-427d-ab73-664e0a27245e",
-  "milestone_name": "Phase 4: Integration Verification & Checkpoint",
+  "current_phase": 6,
+  "step": "pr_created",
+  "plan_completed_at": "2026-02-20T04:50:00+09:00",
+  "sync_completed_at": "2026-02-20T08:30:00+09:00",
+  "pr": "https://github.com/sabyunrepo/IaaS/pull/357",
+  "milestone_id": "598c375d-6489-475b-acea-578f230af364",
+  "milestone_name": "Phase 6: Frontend + Testing + Gap Resolution",
   "issues": [
-    "JIT-258",
-    "JIT-259",
-    "JIT-260",
-    "JIT-261",
-    "JIT-262",
-    "JIT-263",
-    "JIT-264"
+    "JIT-272",
+    "JIT-273",
+    "JIT-274",
+    "JIT-275",
+    "JIT-276",
+    "JIT-277",
+    "JIT-278",
+    "JIT-279",
+    "JIT-280",
+    "JIT-281",
+    "JIT-282"
   ],
   "planning_discoveries": [
     {
-      "type": "note",
-      "description": "Phase 4는 원래 Question Generation이었으나, 사용자 요청으로 통합 검증 체크포인트로 재설계. 질문 생성은 Phase 5로 이동."
+      "type": "scope",
+      "description": "Phase 6은 원래 Phase 5(프론트엔드) + Phase 6(테스트) + G6~G12 갭 해결을 결합. Phase 5는 질문 생성 + Gap Resolution으로 재정의됨(PR #356)."
     },
     {
-      "type": "gaps",
-      "description": "Phase 4 검증에서 10개 갭 발견 (Critical 3, High 2, Medium 5). 상세: Obsidian 각 계층 MOC + RELATION-MAP + briefing/06-gaps-and-roadmap.md"
+      "type": "already_done",
+      "description": "OutputAssembler(IntelBrief + DeepAnalysis + InterviewScript) 이미 Phase 5에서 구현. DecisionSupportGenerator만 미구현."
+    },
+    {
+      "type": "dependency",
+      "description": "P6-1/P6-2(백엔드) 독립. P6-5(WS Hook) → P6-3(D3 차트) → P6-4(탭 UI) → P6-8(Playwright). P6-6/P6-7(테스트) 독립."
+    },
+    {
+      "type": "prerequisite",
+      "description": "PR #356 머지 필요 (Phase 5 구현이 main에 없음). 프론트엔드에 d3, @tanstack/react-query 의존성 추가 필요."
+    },
+    {
+      "type": "discovery",
+      "description": "QualityGate revise 루프가 question_orchestrator가 아닌 self-loop임. 설계 의도와 다르지만 기능적으로 동작. Phase 6에서 변경 고려."
     }
-  ]
+  ],
+  "previous_phase": {
+    "phase": 5,
+    "milestone_id": "3a4f6709-d808-472b-8e20-5ee81f46185d",
+    "pr": "https://github.com/sabyunrepo/IaaS/pull/356"
+  }
 }
