@@ -9,6 +9,7 @@ import type {
   ScoresState
 } from '../../types/interview'
 import { InterviewQuestionCard } from './InterviewQuestionCard'
+import { ActionButton } from '../../../seed-design/ui'
 
 interface LiveInterviewTabProps {
   questions: InterviewQuestion[]
@@ -119,19 +120,12 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
               </p>
             </div>
             <div className="flex gap-2">
-              <button
-                onClick={selectAll}
-                className="px-3 py-1.5 text-sm font-medium text-em-700 hover:bg-em-50 rounded-lg transition-colors"
-              >
+              <ActionButton variant="ghost" size="small" onClick={selectAll}>
                 {t('live_select_all')}
-              </button>
-              <button
-                onClick={startInterview}
-                disabled={selectedQuestions.size === 0}
-                className="px-4 py-1.5 text-sm font-medium text-white bg-[--color-bg-accent] hover:bg-[--color-bg-accent-hover] disabled:bg-ink-300 rounded-lg transition-colors"
-              >
+              </ActionButton>
+              <ActionButton variant="brandSolid" size="small" onClick={startInterview} disabled={selectedQuestions.size === 0}>
                 {t('live_start_interview')}
-              </button>
+              </ActionButton>
             </div>
           </div>
 
@@ -271,18 +265,12 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
 
         {/* 액션 버튼 */}
         <div className="flex justify-center gap-3">
-          <button
-            onClick={() => { setPhase('interview'); setCurrentIndex(0) }}
-            className="px-4 py-2 text-sm font-medium text-[--color-text-secondary] bg-[--color-bg-surface] border border-[--color-border-default] rounded-lg hover:bg-[--color-bg-surface-hover]"
-          >
+          <ActionButton variant="neutralOutline" size="small" onClick={() => { setPhase('interview'); setCurrentIndex(0) }}>
             {t('live_review_questions')}
-          </button>
-          <button
-            onClick={() => { setPhase('select'); setCurrentIndex(0); setScores({}); setSelectedQuestions(new Set()) }}
-            className="px-4 py-2 text-sm font-medium text-white bg-[--color-bg-accent] rounded-lg hover:bg-[--color-bg-accent-hover]"
-          >
+          </ActionButton>
+          <ActionButton variant="brandSolid" size="small" onClick={() => { setPhase('select'); setCurrentIndex(0); setScores({}); setSelectedQuestions(new Set()) }}>
             {t('live_new_interview')}
-          </button>
+          </ActionButton>
         </div>
       </div>
     )
@@ -297,12 +285,9 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
     return (
       <div className="text-center py-12">
         <p className="text-[--color-text-tertiary]">{t('live_no_questions')}</p>
-        <button
-          onClick={() => setPhase('select')}
-          className="mt-4 px-4 py-2 text-em-700 hover:bg-em-50 rounded-lg"
-        >
+        <ActionButton variant="ghost" size="small" onClick={() => setPhase('select')} className="mt-4">
           {t('live_back_to_select')}
-        </button>
+        </ActionButton>
       </div>
     )
   }
@@ -351,13 +336,14 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
 
       {/* Navigation */}
       <div className="flex justify-between">
-        <button
+        <ActionButton
+          variant="neutralOutline"
+          size="small"
           onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
           disabled={currentIndex === 0}
-          className="px-4 py-2 text-sm font-medium text-[--color-text-secondary] bg-[--color-bg-surface] border border-[--color-border-default] rounded-lg hover:bg-[--color-bg-surface-hover] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t('live_prev_question')}
-        </button>
+        </ActionButton>
         {isLastQuestion ? (
           <button
             onClick={() => setPhase('summary')}
@@ -366,12 +352,9 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
             {t('live_finish_interview')}
           </button>
         ) : (
-          <button
-            onClick={() => setCurrentIndex(currentIndex + 1)}
-            className="px-4 py-2 text-sm font-medium text-white bg-[--color-bg-accent] rounded-lg hover:bg-[--color-bg-accent-hover]"
-          >
+          <ActionButton variant="brandSolid" size="small" onClick={() => setCurrentIndex(currentIndex + 1)}>
             {t('live_next_question')}
-          </button>
+          </ActionButton>
         )}
       </div>
     </div>

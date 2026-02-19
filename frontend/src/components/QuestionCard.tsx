@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ActionButton } from '../../seed-design/ui'
 
 // Backend returns this structure from finalization
 export interface Question {
@@ -227,19 +228,16 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
             <span className="text-sm font-medium text-[--color-text-secondary]">{t('scoring')}:</span>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((s) => (
-                <button
+                <ActionButton
                   key={s}
+                  variant={score === s ? "brandSolid" : "neutralOutline"}
+                  size="xsmall"
                   onClick={() => handleScore(s)}
                   aria-label={`${t('scoring')} ${s}/5`}
                   aria-pressed={score === s}
-                  className={`w-9 h-9 rounded-lg text-sm font-semibold border-2 transition-all ${
-                    score === s
-                      ? 'bg-[--color-bg-accent] text-white border-[--color-border-accent] shadow-md'
-                      : 'bg-[--color-bg-surface] text-[--color-text-secondary] border-[--color-border-default] hover:border-[--color-border-accent] hover:text-[--color-text-accent]'
-                  }`}
                 >
                   {s}
-                </button>
+                </ActionButton>
               ))}
             </div>
           </div>
