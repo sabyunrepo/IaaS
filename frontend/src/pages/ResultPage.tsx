@@ -1,11 +1,11 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { apiFetch } from '../lib/api'
 import type { InterviewScript, ResultTab, InterviewQuestion } from '../types/interview'
 import { IntelBriefTab, DeepAnalysisTab, LiveInterviewTab, DecisionTab, V1SummaryTab, V1GuideTab } from '../components/tabs'
 import { QuestionCard, type Question } from '../components/QuestionCard'
-import { ActionButton, Badge, Skeleton } from '../../seed-design/ui'
+import { ActionButton, Badge, Skeleton, TabsRoot, TabsList, TabsTrigger, TabsContent, TabsIndicator } from '../../seed-design/ui'
 
 
 function downloadJSON(data: unknown, filename: string) {
@@ -49,26 +49,6 @@ export function ResultPage() {
       })
       .finally(() => setLoading(false))
   }, [jobId])
-
-  // Tab keyboard navigation (WCAG 2.1)
-  // IMPORTANT: useCallback must be called before any early returns
-  // to maintain consistent hook call order (React Rules of Hooks).
-  const v2TabIds = ['intel', 'analysis', 'interview', 'decision'] as const
-  const v1TabIds = ['questions', 'summary', 'guide'] as const
-
-  const handleTabKeyDown = useCallback((e: React.KeyboardEvent, tabs: readonly string[]) => {
-    const currentIndex = tabs.indexOf(activeTab)
-    if (currentIndex === -1) return
-    let newIndex = currentIndex
-    if (e.key === 'ArrowRight') newIndex = (currentIndex + 1) % tabs.length
-    else if (e.key === 'ArrowLeft') newIndex = (currentIndex - 1 + tabs.length) % tabs.length
-    else if (e.key === 'Home') newIndex = 0
-    else if (e.key === 'End') newIndex = tabs.length - 1
-    else return
-    e.preventDefault()
-    setActiveTab(tabs[newIndex] as typeof activeTab)
-    document.getElementById(`tab-${tabs[newIndex]}`)?.focus()
-  }, [activeTab])
 
   if (loading) {
     return (
@@ -197,131 +177,41 @@ export function ResultPage() {
         </div>
       </div>
 
-      {/* Tab Navigation */}
+      {/* Tabs */}
       {hasV2Data ? (
-        // v2 4-tab navigation (underline style)
-        <div role="tablist" aria-label={t('interview_script')} className="flex border-b border-[--color-border-default] no-print overflow-x-auto scrollbar-hide">
-          <button
-            role="tab"
-            id="tab-intel"
-            aria-selected={activeTab === 'intel'}
-            aria-controls="tabpanel-intel"
-            tabIndex={activeTab === 'intel' ? 0 : -1}
-            onClick={() => setActiveTab('intel')}
-            onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'intel' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            {t('result_tab_intel_brief')}
-          </button>
-          <button
-            role="tab"
-            id="tab-analysis"
-            aria-selected={activeTab === 'analysis'}
-            aria-controls="tabpanel-analysis"
-            tabIndex={activeTab === 'analysis' ? 0 : -1}
-            onClick={() => setActiveTab('analysis')}
-            onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'analysis' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            {t('result_tab_analysis')}
-          </button>
-          <button
-            role="tab"
-            id="tab-interview"
-            aria-selected={activeTab === 'interview'}
-            aria-controls="tabpanel-interview"
-            tabIndex={activeTab === 'interview' ? 0 : -1}
-            onClick={() => setActiveTab('interview')}
-            onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'interview' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-            </svg>
-            {t('result_tab_interview')} ({questions.length})
-          </button>
-          <button
-            role="tab"
-            id="tab-decision"
-            aria-selected={activeTab === 'decision'}
-            aria-controls="tabpanel-decision"
-            tabIndex={activeTab === 'decision' ? 0 : -1}
-            onClick={() => setActiveTab('decision')}
-            onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'decision' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {t('result_tab_decision')}
-          </button>
-        </div>
-      ) : (
-        // v1 3-tab navigation (underline style)
-        <div role="tablist" aria-label={t('interview_script')} className="flex border-b border-[--color-border-default] no-print overflow-x-auto scrollbar-hide">
-          <button
-            role="tab"
-            id="tab-questions"
-            aria-selected={activeTab === 'questions'}
-            aria-controls="tabpanel-questions"
-            tabIndex={activeTab === 'questions' ? 0 : -1}
-            onClick={() => setActiveTab('questions')}
-            onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'questions' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
-            }`}
-          >
-            {t('result_tab_questions')} ({questions.length})
-          </button>
-          <button
-            role="tab"
-            id="tab-summary"
-            aria-selected={activeTab === 'summary'}
-            aria-controls="tabpanel-summary"
-            tabIndex={activeTab === 'summary' ? 0 : -1}
-            onClick={() => setActiveTab('summary')}
-            onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'summary' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
-            }`}
-          >
-            {t('result_tab_summary')}
-          </button>
-          <button
-            role="tab"
-            id="tab-guide"
-            aria-selected={activeTab === 'guide'}
-            aria-controls="tabpanel-guide"
-            tabIndex={activeTab === 'guide' ? 0 : -1}
-            onClick={() => setActiveTab('guide')}
-            onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
-            className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'guide' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
-            }`}
-          >
-            {t('result_tab_guide')}
-          </button>
-        </div>
-      )}
+        <TabsRoot
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as ResultTab | 'questions' | 'summary' | 'guide')}
+        >
+          <TabsList className="no-print overflow-x-auto scrollbar-hide">
+            <TabsTrigger value="intel" className="flex items-center gap-2 whitespace-nowrap">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {t('result_tab_intel_brief')}
+            </TabsTrigger>
+            <TabsTrigger value="analysis" className="flex items-center gap-2 whitespace-nowrap">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              {t('result_tab_analysis')}
+            </TabsTrigger>
+            <TabsTrigger value="interview" className="flex items-center gap-2 whitespace-nowrap">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              {t('result_tab_interview')} ({questions.length})
+            </TabsTrigger>
+            <TabsTrigger value="decision" className="flex items-center gap-2 whitespace-nowrap">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {t('result_tab_decision')}
+            </TabsTrigger>
+            <TabsIndicator />
+          </TabsList>
 
-      {/* V2 Tabs — 항상 마운트, CSS로 숨김 (LiveInterviewTab 등 내부 state 보존) */}
-      {hasV2Data && (
-        <>
-          <div id="tabpanel-intel" role="tabpanel" aria-labelledby="tab-intel" style={{ display: activeTab === 'intel' ? undefined : 'none' }}>
+          <TabsContent value="intel">
             {script.intel && (
               <IntelBriefTab
                 intel={script.intel}
@@ -330,36 +220,45 @@ export function ResultPage() {
                 linkedinProfile={script.linkedin_profile}
               />
             )}
-          </div>
-
-          <div id="tabpanel-analysis" role="tabpanel" aria-labelledby="tab-analysis" style={{ display: activeTab === 'analysis' ? undefined : 'none' }}>
+          </TabsContent>
+          <TabsContent value="analysis">
             {script.analysis && (
               <DeepAnalysisTab analysis={script.analysis} />
             )}
-          </div>
-
-          <div id="tabpanel-interview" role="tabpanel" aria-labelledby="tab-interview" style={{ display: activeTab === 'interview' ? undefined : 'none' }}>
+          </TabsContent>
+          <TabsContent value="interview">
             <LiveInterviewTab
               questions={questions as InterviewQuestion[]}
             />
-          </div>
-
-          <div id="tabpanel-decision" role="tabpanel" aria-labelledby="tab-decision" style={{ display: activeTab === 'decision' ? undefined : 'none' }}>
+          </TabsContent>
+          <TabsContent value="decision">
             {script.decision && (
               <DecisionTab
                 decision={script.decision}
                 overallMatch={script.analysis?.overall_match}
               />
             )}
-          </div>
-        </>
-      )}
+          </TabsContent>
+        </TabsRoot>
+      ) : (
+        <TabsRoot
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as ResultTab | 'questions' | 'summary' | 'guide')}
+        >
+          <TabsList className="no-print overflow-x-auto scrollbar-hide">
+            <TabsTrigger value="questions">
+              {t('result_tab_questions')} ({questions.length})
+            </TabsTrigger>
+            <TabsTrigger value="summary">
+              {t('result_tab_summary')}
+            </TabsTrigger>
+            <TabsTrigger value="guide">
+              {t('result_tab_guide')}
+            </TabsTrigger>
+            <TabsIndicator />
+          </TabsList>
 
-      {/* V1 Tabs (Fallback) */}
-      {!hasV2Data && (
-        <>
-          {/* Questions Tab */}
-          {activeTab === 'questions' && (
+          <TabsContent value="questions">
             <div className="space-y-4">
               {questions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-[--color-border-default] bg-[--color-bg-page] py-12">
@@ -379,18 +278,14 @@ export function ResultPage() {
                 ))
               )}
             </div>
-          )}
-
-          {/* Candidate Summary Tab */}
-          {activeTab === 'summary' && summary && (
-            <V1SummaryTab summary={summary} />
-          )}
-
-          {/* Interviewer Guide Tab */}
-          {activeTab === 'guide' && guide && (
-            <V1GuideTab guide={guide} />
-          )}
-        </>
+          </TabsContent>
+          <TabsContent value="summary">
+            {summary && <V1SummaryTab summary={summary} />}
+          </TabsContent>
+          <TabsContent value="guide">
+            {guide && <V1GuideTab guide={guide} />}
+          </TabsContent>
+        </TabsRoot>
       )}
 
       {/* Back to list link */}
