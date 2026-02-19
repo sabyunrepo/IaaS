@@ -14,13 +14,23 @@
 Frontend: Vite + React 19 + Tailwind 4 + D3.js v7 | Backend: FastAPI + Python 3.11 | Orchestration: LangGraph 1.0.8+ (HMAS)
 DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Instructor + Langfuse) | AST: Tree-sitter 0.24+ | Testing: Playwright + pytest
 
+## 🔴 디렉토리 규칙 (필수)
+
+| 디렉토리 | 권한 | 설명 |
+|----------|------|------|
+| `frontend/`, `backend/`, `docker-compose.yml` 등 루트 | **READ-ONLY** | v4.0 레거시. 참조만 가능, 수정/생성 금지 |
+| `jittda/` | **READ-WRITE** | v5.0 Clean Slate. 모든 신규 구현은 여기서 진행 |
+| `docs/`, `.claude/`, `plan/` | **READ-WRITE** | 문서, 스킬, 설계 |
+
+> **절대 규칙**: `frontend/`, `backend/` 등 기존 루트 디렉토리에 파일을 생성하거나 수정하지 마라. v5.0 구현은 반드시 `jittda/` 하위에서 진행한다.
+
 ## 🛠 Operation Rules
 1. 아래 참조 문서는 **해당 작업에 직접 필요할 때만** Read로 로딩할 것
 2. **v5.0 작업 시 → 해당 Phase 설계 문서를 반드시 먼저 Read** (아래 Context Mapping 참조)
 3. Linear 작업 시 → `docs/claude-refs/dev-rules.md` 먼저 읽기
-4. UI/UX 작업 시 → `docs/claude-refs/ux-guidelines.md` 먼저 읽기
+4. UI/UX 작업 시 → `docs/claude-refs/ux-guidelines.md` + `jittda-design-system` 스킬 먼저 읽기
 5. 점수/평가 작업 시 → `docs/claude-refs/output-consistency.md` 먼저 읽기
-6. Git 워크플로우: GitButler CLI(`but`) 사용 → `/but-ops` 스킬 참조
+6. Git 워크플로우: feature branch에서 작업 → PR → merge
 7. jittda/ DDD 규칙: domain → infrastructure import 금지, 노드는 Thin Wrapper, State에 Raw Data 금지 (Reference Passing)
 
 ## Auto-Routing (키워드 → MCP/스킬)
