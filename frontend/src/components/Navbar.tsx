@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Divider } from '../../seed-design/ui'
+import { Divider, AvatarRoot, AvatarImage, AvatarFallback } from '../../seed-design/ui'
 
 interface NavbarProps {
   user: {
@@ -102,17 +102,12 @@ export function Navbar({ user, onLogout }: NavbarProps) {
                     aria-expanded={menuOpen}
                     aria-haspopup="true"
                   >
-                    {user.avatar_url ? (
-                      <img
-                        src={user.avatar_url}
-                        alt={user.display_name || 'User'}
-                        className="h-8 w-8 rounded-full ring-2 ring-em-200"
-                      />
-                    ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-em-500 to-teal-400 text-sm font-medium text-white">
+                    <AvatarRoot size="32" className="ring-2 ring-em-200">
+                      <AvatarImage src={user.avatar_url} alt={user.display_name || 'User'} />
+                      <AvatarFallback className="bg-gradient-to-br from-em-500 to-teal-400 text-sm font-medium text-white">
                         {(user.display_name || 'U').charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                      </AvatarFallback>
+                    </AvatarRoot>
                     <svg className={`h-4 w-4 text-[--color-text-tertiary] transition-transform ${menuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>

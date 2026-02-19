@@ -5,7 +5,7 @@ import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { IntelBrief, Candidate, LinkedInProfile } from '../../types/interview'
 import { ContributionChart } from '../charts'
-import { Badge } from '../../../seed-design/ui'
+import { Badge, AvatarRoot, AvatarImage, AvatarFallback, CalloutRoot, CalloutContent, CalloutDescription } from '../../../seed-design/ui'
 
 interface IntelBriefTabProps {
   intel: IntelBrief
@@ -17,7 +17,6 @@ interface IntelBriefTabProps {
 export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, techStack, linkedinProfile }: IntelBriefTabProps) {
   const { t } = useTranslation()
   const { jd_summary, jd_full, github, linkedin, linkedin_warning } = intel
-  const [avatarError, setAvatarError] = useState(false)
   const [jdFullExpanded, setJdFullExpanded] = useState(false)
 
   return (
@@ -26,18 +25,12 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
       {candidate && (
         <div className="bg-gradient-to-r from-em-600 to-teal-500 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center gap-4">
-            {candidate.avatar_url && !avatarError ? (
-              <img
-                src={candidate.avatar_url}
-                alt={candidate.name}
-                className="h-16 w-16 rounded-full object-cover border-2 border-white/30"
-                onError={() => setAvatarError(true)}
-              />
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-2xl font-bold">
+            <AvatarRoot size="64" className="border-2 border-white/30">
+              <AvatarImage src={candidate.avatar_url} alt={candidate.name} />
+              <AvatarFallback className="bg-white/20 text-2xl font-bold">
                 {candidate.initials || candidate.name?.charAt(0) || '?'}
-              </div>
-            )}
+              </AvatarFallback>
+            </AvatarRoot>
             <div>
               <h2 className="text-xl sm:text-2xl font-bold">{candidate.name}</h2>
               <p className="text-em-100">{candidate.role || candidate.current_title}</p>
@@ -231,9 +224,11 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
 
               {/* Activity Gap Warning */}
               {github.activity_gap && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <span className="text-amber-800">⚠️ {t('intel_activity_gap')} {github.activity_gap}</span>
-                </div>
+                <CalloutRoot tone="warning" className="mt-4">
+                  <CalloutContent>
+                    <CalloutDescription>{t('intel_activity_gap')} {github.activity_gap}</CalloutDescription>
+                  </CalloutContent>
+                </CalloutRoot>
               )}
             </>
           )}
@@ -269,9 +264,11 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
           </div>
 
           {linkedin_warning && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <span className="text-amber-800">⚠️ {linkedin_warning}</span>
-            </div>
+            <CalloutRoot tone="warning" className="mt-4">
+              <CalloutContent>
+                <CalloutDescription>{linkedin_warning}</CalloutDescription>
+              </CalloutContent>
+            </CalloutRoot>
           )}
         </div>
       ) : (
