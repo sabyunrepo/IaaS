@@ -8,16 +8,12 @@ import './i18n'
 // 코드 스플리팅: 페이지별 lazy loading
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })))
 const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })))
-const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })))
 const JobListPage = lazy(() => import('./pages/JobListPage').then(m => ({ default: m.JobListPage })))
 const CreateJobPage = lazy(() => import('./pages/CreateJobPage').then(m => ({ default: m.CreateJobPage })))
 const JobStatusPage = lazy(() => import('./pages/JobStatusPage').then(m => ({ default: m.JobStatusPage })))
 const ResultPage = lazy(() => import('./pages/ResultPage').then(m => ({ default: m.ResultPage })))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then(m => ({ default: m.AuthCallbackPage })))
-const FindCEOPage = lazy(() => import('./pages/FindCEOPage').then(m => ({ default: m.FindCEOPage })))
-const CandidateRegisterPage = lazy(() => import('./pages/CandidateRegisterPage').then(m => ({ default: m.CandidateRegisterPage })))
-const CandidateSearchPage = lazy(() => import('./pages/CandidateSearchPage').then(m => ({ default: m.CandidateSearchPage })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
 
 // 기존 /jobs/:jobId 경로 → /interview/:jobId 리다이렉트
@@ -35,19 +31,19 @@ function PageLoader() {
 }
 
 function App() {
-  const { user, loading, logout, isAuthenticated, updateRole } = useAuth()
+  const { user, loading, logout, isAuthenticated } = useAuth()
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-navy-50">
-        <p className="text-navy-400">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[--color-bg-page]">
+        <p className="text-[--color-text-tertiary]">Loading...</p>
       </div>
     )
   }
 
   return (
     <ErrorBoundary>
-    <BrowserRouter>
+    <BrowserRouter basename="/demo">
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route element={<Layout user={user} onLogout={logout} />}>
@@ -59,12 +55,6 @@ function App() {
             <Route
               path="/"
               element={isAuthenticated ? <HomePage user={user} /> : <Navigate to="/login" />}
-            />
-
-            {/* Onboarding */}
-            <Route
-              path="/onboarding"
-              element={isAuthenticated ? <OnboardingPage onSelectRole={updateRole} /> : <Navigate to="/login" />}
             />
 
             {/* Interview (기존 /jobs → /interview 리네임) */}
@@ -90,32 +80,6 @@ function App() {
             <Route path="/jobs/new" element={<Navigate to="/interview/new" replace />} />
             <Route path="/jobs/:jobId" element={<JobRedirect />} />
             <Route path="/jobs/:jobId/result" element={<JobRedirect suffix="/result" />} />
-
-            {/* Find CTO (CEO가 개발자 찾기) — Cycle D에서 전용 페이지 구현, 현재는 기존 후보자 페이지 활용 */}
-            <Route
-              path="/find-cto"
-              element={isAuthenticated ? <CandidateSearchPage /> : <Navigate to="/login" />}
-            />
-
-            {/* Find CEO (개발자가 CEO 찾기) */}
-            <Route
-              path="/find-ceo"
-              element={isAuthenticated ? <FindCEOPage /> : <Navigate to="/login" />}
-            />
-
-            {/* 후보자 기존 경로 유지 (호환) */}
-            <Route
-              path="/candidates"
-              element={<Navigate to="/find-cto" replace />}
-            />
-            <Route
-              path="/candidates/new"
-              element={isAuthenticated ? <CandidateRegisterPage /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/candidates/search"
-              element={<Navigate to="/find-cto" replace />}
-            />
 
             {/* Settings */}
             <Route
