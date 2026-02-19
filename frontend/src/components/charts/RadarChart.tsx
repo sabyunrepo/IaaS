@@ -111,7 +111,7 @@ export const RadarChart = memo(function RadarChart({
             key={level}
             points={points}
             fill="none"
-            stroke="#e5e7eb"
+            stroke="#ccd4e0"
             strokeWidth={1}
           />
         ))}
@@ -124,7 +124,7 @@ export const RadarChart = memo(function RadarChart({
             y1={center}
             x2={endX}
             y2={endY}
-            stroke="#d1d5db"
+            stroke="#a5b3c8"
             strokeWidth={1}
           />
         ))}
@@ -132,8 +132,8 @@ export const RadarChart = memo(function RadarChart({
         {/* Required polygon (background) */}
         <polygon
           points={geometry.requiredPolygon}
-          fill="rgba(27, 58, 92, 0.2)"
-          stroke="#1B3A5C"
+          fill="rgba(52, 79, 107, 0.10)"
+          stroke="#344f6b"
           strokeWidth={2}
           strokeDasharray="4 2"
           style={{ transition: 'all 0.4s ease' }}
@@ -183,7 +183,7 @@ export const RadarChart = memo(function RadarChart({
             y={geometry.labelPositions[i].y}
             textAnchor={geometry.labelPositions[i].textAnchor}
             dominantBaseline="middle"
-            className="fill-gray-600 text-xs font-medium"
+            className="fill-ink-600 text-xs font-medium"
           >
             {label}
           </text>
@@ -194,11 +194,11 @@ export const RadarChart = memo(function RadarChart({
       <div className="flex justify-center gap-6 mt-4">
         <div className="flex items-center gap-2">
           <div className="w-4 h-0.5 bg-emerald-500"></div>
-          <span className="text-xs text-gray-600">{t('radar_candidate_legend')}</span>
+          <span className="text-xs text-[--color-text-secondary]">{t('radar_candidate_legend')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-0.5 bg-navy-700" style={{ borderStyle: 'dashed' }}></div>
-          <span className="text-xs text-gray-600">{t('radar_required_legend')}</span>
+          <div className="w-4 h-0.5 bg-ink-600" style={{ borderStyle: 'dashed' }}></div>
+          <span className="text-xs text-[--color-text-secondary]">{t('radar_required_legend')}</span>
         </div>
       </div>
     </div>

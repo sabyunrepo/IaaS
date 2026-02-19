@@ -28,7 +28,7 @@ export const ContributionChart = memo(function ContributionChart({
   labels = DEFAULT_LABELS,
   width = 400,
   height = 150,
-  color = '#6366f1'
+  color = '#2db882'
 }: ContributionChartProps) {
   const padding = { top: 20, right: 20, bottom: 30, left: 40 }
   const chartWidth = width - padding.left - padding.right
@@ -70,7 +70,7 @@ export const ContributionChart = memo(function ContributionChart({
               y1={y}
               x2={width - padding.right}
               y2={y}
-              stroke="#e5e7eb"
+              stroke="#ccd4e0"
               strokeWidth={1}
             />
             <text
@@ -78,7 +78,7 @@ export const ContributionChart = memo(function ContributionChart({
               y={y}
               textAnchor="end"
               dominantBaseline="middle"
-              className="fill-gray-400 text-xs"
+              className="fill-ink-400 text-xs"
             >
               {tick}
             </text>
@@ -128,7 +128,7 @@ export const ContributionChart = memo(function ContributionChart({
             x={x}
             y={height - 8}
             textAnchor="middle"
-            className="fill-gray-500 text-xs"
+            className="fill-ink-500 text-xs"
           >
             {label}
           </text>

@@ -33,7 +33,7 @@ interface QuestionCardProps {
 }
 
 function getConfidenceColor(confidence?: number): string {
-  if (!confidence) return 'text-gray-600'
+  if (!confidence) return 'text-[--color-text-secondary]'
   if (confidence >= 0.9) return 'text-green-600'
   if (confidence >= 0.7) return 'text-blue-600'
   if (confidence >= 0.5) return 'text-yellow-600'
@@ -51,14 +51,14 @@ function getConfidenceLabel(confidence?: number): string {
 function getRevisionTypeBadge(type: string | undefined, t: (key: string) => string): { color: string; label: string } | null {
   if (!type) return null
   const badges: Record<string, { color: string; labelKey: string }> = {
-    'duplicate_merge': { color: 'bg-brand-100 text-brand-700', labelKey: 'badge_duplicate_merge' },
+    'duplicate_merge': { color: 'bg-em-100 text-em-700', labelKey: 'badge_duplicate_merge' },
     'clarity_fix': { color: 'bg-blue-100 text-blue-700', labelKey: 'badge_clarity_fix' },
     'hallucination_fix': { color: 'bg-red-100 text-red-700', labelKey: 'badge_hallucination_fix' },
     'evidence_improvement': { color: 'bg-green-100 text-green-700', labelKey: 'badge_evidence_improvement' },
-    'scope_adjustment': { color: 'bg-brand-100 text-brand-700', labelKey: 'badge_scope_adjustment' },
+    'scope_adjustment': { color: 'bg-em-100 text-em-700', labelKey: 'badge_scope_adjustment' },
   }
   const badge = badges[type]
-  if (!badge) return { color: 'bg-gray-100 text-gray-700', label: type }
+  if (!badge) return { color: 'bg-[--color-bg-neutral] text-[--color-text-secondary]', label: type }
   return { color: badge.color, label: t(badge.labelKey) }
 }
 
@@ -85,17 +85,17 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+    <div className="bg-[--color-bg-surface] rounded-xl shadow-sm border border-[--color-border-default] overflow-hidden hover:shadow-md transition-shadow">
       <button
         type="button"
-        className="w-full p-5 cursor-pointer flex items-start justify-between hover:bg-gray-50 text-left gap-4"
+        className="w-full p-5 cursor-pointer flex items-start justify-between hover:bg-[--color-bg-surface-hover] text-left gap-4"
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
         aria-controls={`question-${index}-details`}
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-navy-100 text-navy-800 text-sm font-semibold">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-em-100 text-em-800 text-sm font-semibold">
               {index + 1}
             </span>
 
@@ -121,16 +121,16 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
             )}
           </div>
 
-          <p className="text-gray-900 leading-relaxed">{questionText}</p>
+          <p className="text-[--color-text-primary] leading-relaxed">{questionText}</p>
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
           {question.time_allocation_minutes && (
-            <span className="text-xs text-gray-400 whitespace-nowrap">
+            <span className="text-xs text-[--color-text-tertiary] whitespace-nowrap">
               {question.time_allocation_minutes}{t('minutes')}
             </span>
           )}
-          <span className={`text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden="true">
+          <span className={`text-[--color-text-tertiary] transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden="true">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
@@ -139,13 +139,13 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
       </button>
 
       {expanded && (
-        <div id={`question-${index}-details`} className="px-5 pb-5 space-y-4 border-t border-gray-100" role="region" aria-label={`Q${index + 1} ${t('details')}`}>
+        <div id={`question-${index}-details`} className="px-5 pb-5 space-y-4 border-t border-[--color-border-subtle]" role="region" aria-label={`Q${index + 1} ${t('details')}`}>
 
           {/* Original question (if revised) */}
           {question.original_question && question.original_question !== questionText && (
-            <div className="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('qcard_original_question')}</h4>
-              <p className="text-sm text-gray-600">{question.original_question}</p>
+            <div className="mt-3 p-3 rounded-lg bg-[--color-bg-page] border border-[--color-border-default]">
+              <h4 className="text-xs font-semibold text-[--color-text-tertiary] uppercase tracking-wide mb-1">{t('qcard_original_question')}</h4>
+              <p className="text-sm text-[--color-text-secondary]">{question.original_question}</p>
             </div>
           )}
 
@@ -168,7 +168,7 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
           {/* Legacy: Expected answer */}
           {question.expected_answer && (
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('expected_answer')}</h4>
+              <h4 className="text-sm font-semibold text-[--color-text-secondary] mb-2">{t('expected_answer')}</h4>
               {Object.entries(question.expected_answer).map(([level, answer]) => (
                 <div key={level} className={`text-sm p-3 rounded-lg mb-2 ${
                   level === 'expert' ? 'bg-green-50 text-green-800 border border-green-200' :
@@ -184,10 +184,10 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
           {/* Legacy: Follow-up questions */}
           {question.follow_up_questions && question.follow_up_questions.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('follow_up')}</h4>
+              <h4 className="text-sm font-semibold text-[--color-text-secondary] mb-2">{t('follow_up')}</h4>
               <div className="space-y-1">
                 {question.follow_up_questions.map((fq, i) => (
-                  <p key={i} className="text-sm text-gray-600 pl-4 border-l-2 border-gray-200">
+                  <p key={i} className="text-sm text-[--color-text-secondary] pl-4 border-l-2 border-[--color-border-default]">
                     {typeof fq === 'string' ? fq : String((fq as Record<string, unknown>).question || JSON.stringify(fq))}
                   </p>
                 ))}
@@ -198,12 +198,12 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
           {/* Legacy: Terminology */}
           {question.terminology && question.terminology.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('terminology')}</h4>
+              <h4 className="text-sm font-semibold text-[--color-text-secondary] mb-2">{t('terminology')}</h4>
               <div className="grid gap-2">
                 {question.terminology.map((term, i) => (
-                  <div key={i} className="text-sm p-2 rounded bg-brand-50 border border-brand-200">
-                    <strong className="text-brand-800">{term.term}</strong>
-                    <span className="text-brand-700">: {term.plain_language_explanation || term.definition}</span>
+                  <div key={i} className="text-sm p-2 rounded bg-em-50 border border-em-200">
+                    <strong className="text-em-800">{term.term}</strong>
+                    <span className="text-em-700">: {term.plain_language_explanation || term.definition}</span>
                   </div>
                 ))}
               </div>
@@ -212,9 +212,9 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
 
           {/* Legacy: Interviewer note */}
           {question.interviewer_note && (
-            <div className="p-3 rounded-lg bg-navy-50 border border-navy-200">
-              <h4 className="text-xs font-semibold text-navy-800 uppercase tracking-wide mb-1">{t('interviewer_note')}</h4>
-              <p className="text-sm text-navy-800">
+            <div className="p-3 rounded-lg bg-em-50 border border-em-200">
+              <h4 className="text-xs font-semibold text-em-800 uppercase tracking-wide mb-1">{t('interviewer_note')}</h4>
+              <p className="text-sm text-em-800">
                 {typeof question.interviewer_note === 'string'
                   ? question.interviewer_note
                   : JSON.stringify(question.interviewer_note)}
@@ -223,8 +223,8 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
           )}
 
           {/* Scoring */}
-          <div className="flex items-center gap-3 pt-3 border-t border-gray-100 no-print">
-            <span className="text-sm font-medium text-gray-600">{t('scoring')}:</span>
+          <div className="flex items-center gap-3 pt-3 border-t border-[--color-border-subtle] no-print">
+            <span className="text-sm font-medium text-[--color-text-secondary]">{t('scoring')}:</span>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((s) => (
                 <button
@@ -234,8 +234,8 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
                   aria-pressed={score === s}
                   className={`w-9 h-9 rounded-lg text-sm font-semibold border-2 transition-all ${
                     score === s
-                      ? 'bg-navy-700 text-white border-navy-700 shadow-md'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-navy-600 hover:text-navy-700'
+                      ? 'bg-[--color-bg-accent] text-white border-[--color-border-accent] shadow-md'
+                      : 'bg-[--color-bg-surface] text-[--color-text-secondary] border-[--color-border-default] hover:border-[--color-border-accent] hover:text-[--color-text-accent]'
                   }`}
                 >
                   {s}
