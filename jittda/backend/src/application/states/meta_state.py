@@ -37,4 +37,5 @@ class MetaState(TypedDict):
     status: str  # pending | collecting | analyzing | synthesizing | questioning | reviewing | assembling | completed | failed
     current_phase: str  # input_router | plan_generator | analysis | synthesis | questions | quality_gate | output
     revision_count: int  # QualityGate 루프 카운터 (최대 2)
+    _quality_verdict: str  # QualityGate 라우터 verdict (approve | revise)
     errors: list[str]

@@ -46,3 +46,29 @@ class InterviewQuestion(BaseModel, strict=True):
     red_flags: list[str]
     follow_up_triggers: list[str]
     terminology: list[dict]
+
+
+class InterviewScript(BaseModel, strict=True):
+    """
+    면접 질문 세트 전체를 담는 Aggregate.
+
+    3전략별 질문 목록 + 메타데이터를 포함한다.
+    OutputAssembler에서 최종 조립 시 사용.
+    """
+
+    job_id: str
+    questions: list[InterviewQuestion]
+    total_count: int = 0
+    strategy_distribution: dict[str, int] = Field(default_factory=dict)
+    category_distribution: dict[str, int] = Field(default_factory=dict)
+
+    def model_post_init(self, __context: object) -> None:
+        self.total_count = len(self.questions)
+        self.strategy_distribution = {}
+        for q in self.questions:
+            key = q.strategy.value if hasattr(q.strategy, "value") else str(q.strategy)
+            self.strategy_distribution[key] = self.strategy_distribution.get(key, 0) + 1
+        self.category_distribution = {}
+        for q in self.questions:
+            key = q.category.value if hasattr(q.category, "value") else str(q.category)
+            self.category_distribution[key] = self.category_distribution.get(key, 0) + 1

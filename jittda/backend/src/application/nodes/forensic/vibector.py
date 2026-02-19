@@ -6,12 +6,15 @@ LLM 기반: 코드 스니펫의 작성 패턴을 분석하여 AI 생성 코드 �
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 from application.states.forensic_state import ForensicState
 from infrastructure.llm.instructor_client import InstructorClient
+
+logger = logging.getLogger(__name__)
 
 
 class VibectorResult(BaseModel):
@@ -75,13 +78,16 @@ async def vibector_worker(state: ForensicState) -> dict[str, Any]:
         f"File: {s['file_path']}\n```\n{s['code'][:2000]}\n```" for s in snippets
     )
 
-    result = await client.create(
-        response_model=VibectorBatchResult,
-        messages=[
-            {"role": "system", "content": VIBECTOR_SYSTEM_PROMPT},
-            {"role": "user", "content": f"Analyze these code snippets:\n\n{snippet_text}"},
-        ],
-        temperature=0.3,
-    )
-
-    return {"vibector_scores": [r.model_dump() for r in result.results]}
+    try:
+        result = await client.create(
+            response_model=VibectorBatchResult,
+            messages=[
+                {"role": "system", "content": VIBECTOR_SYSTEM_PROMPT},
+                {"role": "user", "content": f"Analyze these code snippets:\n\n{snippet_text}"},
+            ],
+            temperature=0.3,
+        )
+        return {"vibector_scores": [r.model_dump() for r in result.results]}
+    except Exception as e:
+        logger.error("vibector_worker failed: %s", e)
+        return {"vibector_scores": []}
