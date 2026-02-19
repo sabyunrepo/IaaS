@@ -48,9 +48,18 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Instructor + Lan
 3. **관련 문서 전파**: 변경으로 영향받는 다른 vault 문서도 함께 수정
 4. **이슈 정리**: 구현 중 발견된 이슈를 Linear에 기록
 
+### 🔴 PR/머지 전 Obsidian 정합성 검증 (필수)
+> Phase 4 교훈: 구현만 하고 Obsidian sync를 미루면 문서 부정확성이 누적됨.
+
+**어떤 워크플로우**(`/execute-plan`, `/subagent-driven-development`, 수동 구현)를 쓰든, PR 생성/머지 전 반드시:
+1. `git diff --stat` → 변경된 `jittda/` 파일 목록 추출
+2. 변경 파일의 DDD 계층 판별 (domain/infrastructure/application/interface)
+3. 대응 Obsidian MOC 확인 (`obsidian_vault_get "{layer}/MOC.md"`)
+4. 불일치 발견 시 → Obsidian 즉시 수정 후 PR 진행
+
 ```
 구현 전: Obsidian 확인 → Phase 설계문서 Read → 구현
-구현 후: Obsidian 수정/마이그레이션 → Linear 업데이트 → 이슈 정리
+구현 후: Obsidian 정합성 검증 → Obsidian 수정 → Linear 업데이트 → 이슈 정리 → PR
 ```
 
 ## Auto-Routing (키워드 → MCP/스킬)

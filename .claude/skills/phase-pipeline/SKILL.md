@@ -37,6 +37,13 @@ allowed-tools: Bash, Read, Grep, Glob, Write, Edit
     │   → 사용자가 구현 완료 후 재호출:
     │     /phase-pipeline N --from sync
     │
+    ├── 🔍 Gate 1.5: Obsidian 정합성 사전 검증 (자동)
+    │   ├── git diff --stat 변경 파일 추출
+    │   ├── 변경 파일 → DDD 계층 매핑
+    │   ├── 대응 Obsidian MOC 조회 + 불일치 탐지
+    │   ├── ✅ Pass → Step 2로 진행
+    │   └── ❌ Fail → 불일치 목록 출력 + 사용자에게 수정 필요 안내
+    │
     ├── Step 2: /phase-sync 호출
     │   ├── Git diff 수집
     │   ├── Obsidian 설계 ↔ 구현 비교
@@ -85,8 +92,9 @@ allowed-tools: Bash, Read, Grep, Glob, Write, Edit
 
 1. `pipeline-state.json` 확인
 2. `step == "awaiting_implementation"` 확인
-3. `/phase-sync` 스킬 호출
-4. Gate 2로 진행
+3. **Gate 1.5: Obsidian 정합성 사전 검증** (아래 상세 참조)
+4. `/phase-sync` 스킬 호출
+5. Gate 2로 진행
 
 ### `--plan-only` (계획만)
 
@@ -129,6 +137,56 @@ Phase {N} 동기화가 완료되었습니다.
 다음 Phase로 진행할까요?
 → /phase-pipeline {N+1}
 → 또는 여기서 종료
+```
+
+---
+
+## Gate 1.5: Obsidian 정합성 사전 검증 (상세)
+
+> Phase 4 교훈에서 도입. sync 전에 Obsidian 문서와 실제 구현의 불일치를 사전 탐지한다.
+
+### 실행 절차
+
+1. **변경 파일 추출**:
+   ```bash
+   git diff --stat HEAD~N -- jittda/  # N = plan_completed_at 이후 커밋 수
+   ```
+
+2. **DDD 계층 매핑**:
+   | 파일 경로 패턴 | Obsidian MOC |
+   |---------------|-------------|
+   | `jittda/backend/src/domain/` | `domain/MOC.md` |
+   | `jittda/backend/src/infrastructure/` | `infrastructure/MOC.md` |
+   | `jittda/backend/src/application/` | `application/MOC.md` |
+   | `jittda/backend/src/interface/` | `interface/MOC.md` |
+
+3. **Obsidian MOC 조회 + 비교**:
+   ```bash
+   obsidian_vault_get "{layer}/MOC.md"
+   ```
+   각 변경 파일이 Obsidian MOC의 "구현 파일 맵" 또는 "구현 상태" 테이블에 반영되었는지 확인.
+
+4. **판정**:
+   - ✅ **Pass**: 모든 변경 파일이 Obsidian에 반영됨 → Step 2 (phase-sync) 진행
+   - ⚠️ **Warning**: 경미한 불일치 (상태 표시 누락 등) → 경고 출력 + 진행 허용
+   - ❌ **Fail**: 새 파일/모듈이 Obsidian에 없음 → 불일치 목록 출력 + 사용자에게 수정 필요 안내
+
+### 출력 형식
+
+```
+[Phase-Pipeline] Gate 1.5: Obsidian 정합성 검증
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+변경 파일: {count}개 (domain: {n}, infra: {n}, app: {n}, interface: {n})
+
+| 계층 | Obsidian 반영 | 불일치 |
+|------|-------------|--------|
+| domain | ✅ | - |
+| infrastructure | ⚠️ | 새 어댑터 `xxx.py` 미반영 |
+| application | ✅ | - |
+| interface | ✅ | - |
+
+결과: {PASS/WARN/FAIL} — {메시지}
 ```
 
 ---
