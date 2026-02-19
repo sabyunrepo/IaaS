@@ -1,39 +1,23 @@
 {
-  "current_phase": 3,
+  "current_phase": 4,
   "step": "awaiting_implementation",
-  "plan_completed_at": "2026-02-19T15:36:00+09:00",
+  "plan_completed_at": "2026-02-19T16:45:00+09:00",
   "sync_completed_at": null,
-  "milestone_id": "f702db1a-f228-40de-8bba-61516c035019",
-  "milestone_name": "Phase 3: Application Layer",
+  "milestone_id": "d7af726c-0bbe-427d-ab73-664e0a27245e",
+  "milestone_name": "Phase 4: Integration Verification & Checkpoint",
   "issues": [
-    "JIT-252",
-    "JIT-253",
-    "JIT-254",
-    "JIT-255",
-    "JIT-256",
-    "JIT-257"
+    "JIT-258",
+    "JIT-259",
+    "JIT-260",
+    "JIT-261",
+    "JIT-262",
+    "JIT-263",
+    "JIT-264"
   ],
   "planning_discoveries": [
     {
-      "type": "mismatch",
-      "source": "plan/v5-design/phase3-application.md Linear 티켓 매핑",
-      "target": "Linear JIT-100~105",
-      "description": "설계 문서에 JIT-100~105로 매핑되어 있으나, 해당 번호는 이미 Phase 1-2 이슈에 사용됨. JIT-252~257로 새로 생성.",
-      "resolved": true
-    },
-    {
-      "type": "missing",
-      "source": "plan/v5-design/phase3-application.md §10.3",
-      "target": "infrastructure/",
-      "description": "Vibector(WPM 분석)과 CLAVE(스타일로메트리) 전용 어댑터 미존재. instructor_client.py(LLM) 기반으로 구현 필요.",
-      "resolved": false
-    },
-    {
-      "type": "missing",
-      "source": "plan/v5-design/phase3-application.md §10.1.1",
-      "target": "infrastructure/persistence/",
-      "description": "analysis_results 테이블 Repository(CRUD) 미구현. Reference Passing 패턴에 필수. persistence/__init__.py만 존재.",
-      "resolved": false
+      "type": "note",
+      "description": "Phase 4는 원래 Question Generation이었으나, 사용자 요청으로 통합 검증 체크포인트로 재설계. 질문 생성은 Phase 5로 이동."
     }
   ]
 }

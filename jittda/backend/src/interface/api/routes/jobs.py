@@ -91,6 +91,6 @@ async def job_websocket(websocket: WebSocket, job_id: str):
 async def _run_analysis_task(job_id: str) -> None:
     """백그라운드에서 분석을 실행한다."""
     try:
-        await run_analysis(job_id)
+        await run_analysis(job_id, on_event=ws_manager.broadcast)
     except Exception:
         pass  # 에러는 run_analysis 내부에서 DB에 저장됨
