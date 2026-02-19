@@ -1,5 +1,9 @@
 import { useTranslation } from 'react-i18next'
-import { ActionButton } from '../../seed-design/ui'
+import {
+  ActionButton,
+  DialogRoot, DialogPositioner, DialogBackdrop,
+  DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '../../seed-design/ui'
 
 interface Props {
   onAccept: () => void
@@ -10,30 +14,29 @@ export function EmailNotificationModal({ onAccept, onDecline }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 backdrop-blur-sm">
-      <div className="bg-[--color-bg-surface] rounded-xl shadow-2xl p-6 max-w-sm mx-4">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-em-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-em-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-semibold text-[--color-text-primary] mb-2">
-            {t('email_notification_title')}
-          </h3>
-          <p className="text-sm text-[--color-text-secondary] mb-6">
-            {t('email_notification_desc')}
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <ActionButton variant="neutralOutline" size="medium" onClick={onDecline} className="flex-1">
-            {t('email_notification_no')}
-          </ActionButton>
-          <ActionButton variant="brandSolid" size="medium" onClick={onAccept} className="flex-1">
-            {t('email_notification_yes')}
-          </ActionButton>
-        </div>
-      </div>
-    </div>
+    <DialogRoot open onOpenChange={(details) => { if (!details.open) onDecline() }}>
+      <DialogBackdrop />
+      <DialogPositioner>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <div className="w-12 h-12 bg-em-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-em-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <DialogTitle className="text-center">{t('email_notification_title')}</DialogTitle>
+            <DialogDescription className="text-center">{t('email_notification_desc')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <ActionButton variant="neutralOutline" size="medium" onClick={onDecline} className="flex-1">
+              {t('email_notification_no')}
+            </ActionButton>
+            <ActionButton variant="brandSolid" size="medium" onClick={onAccept} className="flex-1">
+              {t('email_notification_yes')}
+            </ActionButton>
+          </DialogFooter>
+        </DialogContent>
+      </DialogPositioner>
+    </DialogRoot>
   )
 }
