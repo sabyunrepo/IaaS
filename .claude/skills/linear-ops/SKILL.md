@@ -52,7 +52,7 @@ linear_list_project_issues "project-id" [limit]  # 프로젝트 이슈 목록
 3. 수락 기준이 없을 경우 → 사용자에게 "수락 기준을 먼저 정의할까요?" 확인
 4. 코드베이스에서 수정 필요 지점 분석 → 사용자에게 영향 범위 출력
 5. `linear_update_status "JIT-N" in_progress` → 상태 변경
-6. Git 브랜치 생성: `but branch new feat/JIT-{N}-{slug}` 또는 `but branch new fix/JIT-{N}-{slug}`
+6. Git 브랜치 생성: `git checkout -b feat/JIT-{N}-{slug}` 또는 `git checkout -b fix/JIT-{N}-{slug}`
 
 ### 새 티켓 생성 시
 1. `linear_list_teams` → 팀 ID 확인
@@ -174,13 +174,13 @@ linear_add_comment "JIT-N" @/tmp/review_comment.md
 ### 3-2. 상태 업데이트
 - `linear_update_status "JIT-N" in_review`
 
-### 3-3. GitButler 커밋, PR, 머지 및 완료 (but-ops 스킬 참조)
-1. 스테이징: `but stage <file-id> {branch}`
-2. 커밋 (Claude가 메시지 작성): `but commit --only -m "feat: {설명} [JIT-{N}]" {branch}`
-3. 푸시: `but push {branch}`
-4. PR 생성: `but pr {branch}`
-5. 머지: `but merge {branch}`
-6. `but pull` → 타겟 브랜치 동기화
+### 3-3. Git 커밋, PR, 머지 및 완료 (git-ops 스킬 참조)
+1. 스테이징: `git add <file>`
+2. 커밋 (Claude가 메시지 작성): `git commit -m "feat: {설명} [JIT-{N}]"`
+3. 푸시: `git push -u origin {branch}`
+4. PR 생성: `gh pr create --title "feat: {설명} [JIT-{N}]"`
+5. 머지: `gh pr merge <PR번호> --squash`
+6. `git pull origin main` → 타겟 브랜치 동기화
 7. `linear_update_status "JIT-N" done` → 티켓 완료 처리
 
 ---
@@ -208,7 +208,7 @@ linear_add_comment "JIT-N" @/tmp/review_comment.md
     |   +- 수락 기준 확인 (없으면 → 사용자 확인)
     |   +- 코드베이스 영향 분석
     |   +- linear_update_status → in_progress
-    |   +- but branch new feat/JIT-26-slug
+    |   +- git checkout -b feat/JIT-26-slug
     |
     +- Phase 2: TDD Implementation
     |   +- 수락 기준 → 테스트 케이스 도출
@@ -221,11 +221,11 @@ linear_add_comment "JIT-N" @/tmp/review_comment.md
     +- Phase 3: Finalize (테스트 통과 시만)
         +- linear_add_comment → 결과 기록
         +- linear_update_status → in_review
-        +- but commit -m "msg" branch (Claude 메시지 작성)
-        +- but push branch
-        +- but pr branch
-        +- but merge branch
-        +- but pull
+        +- git add → git commit -m "msg" (Claude 메시지 작성)
+        +- git push -u origin branch
+        +- gh pr create
+        +- gh pr merge --squash
+        +- git pull origin main
         +- linear_update_status → done
 ```
 
