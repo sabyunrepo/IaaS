@@ -21,13 +21,13 @@ dependencies = [
     "uvicorn>=0.30.0",
     "websockets>=14.0",
 
-    # AST & Static Analysis (native bindings)
-    "tree-sitter>=0.24.7",
-    "tree-sitter-python>=0.23.0",
-    "tree-sitter-javascript>=0.23.0",
+    # AST & Static Analysis (native bindings) — ADR-0006: 0.25.x QueryCursor API
+    "tree-sitter>=0.25.2",
+    "tree-sitter-python>=0.23.6",
+    "tree-sitter-javascript>=0.23.1",
     "tree-sitter-typescript>=0.23.0",
-    "tree-sitter-java>=0.23.0",
-    "tree-sitter-go>=0.23.0",
+    "tree-sitter-java>=0.23.5",
+    "tree-sitter-go>=0.23.4",
     "radon>=6.0.1",
     "lizard>=1.17.10",
     "bandit>=1.8.0",
@@ -66,6 +66,8 @@ line-length = 100
 select = ["E", "F", "I", "N", "W", "UP"]
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.pytest-asyncio]
+asyncio_mode = "auto"
