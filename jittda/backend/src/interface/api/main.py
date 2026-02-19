@@ -19,6 +19,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # API 라우터 등록
+    from interface.api.routes.jobs import router as jobs_router
+    from interface.api.routes.jobs import ws_router
+
+    application.include_router(jobs_router)
+    application.include_router(ws_router)
+
     @application.get("/health")
     async def health_check():
         return {"status": "ok", "version": "5.0.0"}
