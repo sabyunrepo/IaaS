@@ -1,0 +1,20 @@
+{
+  "name": "@jittda/frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "dev:public": "pnpm --filter @jittda/public dev",
+    "dev:admin": "pnpm --filter @jittda/admin dev",
+    "build": "pnpm -r run build",
+    "build:public": "pnpm --filter @jittda/public build",
+    "build:admin": "pnpm --filter @jittda/admin build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "clean": "pnpm -r run clean"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}
