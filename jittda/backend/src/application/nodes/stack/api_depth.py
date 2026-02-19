@@ -6,6 +6,7 @@ AST에서 추출한 함수 호출 패턴을 분석하여 라이브러리/프레�
 """
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
@@ -13,6 +14,8 @@ from pydantic import BaseModel, Field
 
 from application.states.stack_state import StackState
 from infrastructure.llm.instructor_client import InstructorClient
+
+logger = logging.getLogger(__name__)
 
 
 class APIDepthScore(BaseModel):
@@ -82,13 +85,16 @@ async def api_depth_worker(state: StackState) -> dict[str, Any]:
         s[:2000] for s in code_samples
     )
 
-    result = await client.create(
-        response_model=APIDepthResult,
-        messages=[
-            {"role": "system", "content": API_DEPTH_PROMPT},
-            {"role": "user", "content": context},
-        ],
-        temperature=0.3,
-    )
-
-    return {"api_depth_scores": [s.model_dump() for s in result.api_scores]}
+    try:
+        result = await client.create(
+            response_model=APIDepthResult,
+            messages=[
+                {"role": "system", "content": API_DEPTH_PROMPT},
+                {"role": "user", "content": context},
+            ],
+            temperature=0.3,
+        )
+        return {"api_depth_scores": [s.model_dump() for s in result.api_scores]}
+    except Exception as e:
+        logger.error("api_depth_worker failed: %s", e)
+        return {"api_depth_scores": []}

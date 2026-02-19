@@ -6,12 +6,15 @@ LLM 기반: 후보자의 코딩 스타일 지문을 추출하여 일관성을 �
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 from application.states.forensic_state import ForensicState
 from infrastructure.llm.instructor_client import InstructorClient
+
+logger = logging.getLogger(__name__)
 
 
 class StyleFingerprint(BaseModel):
@@ -69,13 +72,16 @@ async def clave_worker(state: ForensicState) -> dict[str, Any]:
 
     sample_text = "\n---\n".join(s[:3000] for s in code_samples)
 
-    fingerprint = await client.create(
-        response_model=StyleFingerprint,
-        messages=[
-            {"role": "system", "content": CLAVE_SYSTEM_PROMPT},
-            {"role": "user", "content": f"Analyze the coding style:\n\n{sample_text}"},
-        ],
-        temperature=0.3,
-    )
-
-    return {"clave_fingerprint": fingerprint.model_dump()}
+    try:
+        fingerprint = await client.create(
+            response_model=StyleFingerprint,
+            messages=[
+                {"role": "system", "content": CLAVE_SYSTEM_PROMPT},
+                {"role": "user", "content": f"Analyze the coding style:\n\n{sample_text}"},
+            ],
+            temperature=0.3,
+        )
+        return {"clave_fingerprint": fingerprint.model_dump()}
+    except Exception as e:
+        logger.error("clave_worker failed: %s", e)
+        return {"clave_fingerprint": None}

@@ -6,6 +6,7 @@ ArchitectureEvaluator Worker (W11) — 아키텍처 패턴 평가.
 """
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
@@ -13,6 +14,8 @@ from pydantic import BaseModel, Field
 
 from application.states.stack_state import StackState
 from infrastructure.llm.instructor_client import InstructorClient
+
+logger = logging.getLogger(__name__)
 
 
 class ArchitectureEvaluation(BaseModel):
@@ -77,13 +80,16 @@ async def architecture_evaluator_worker(state: StackState) -> dict[str, Any]:
         if bodies:
             context += f"# {diff.get('file_path', '')}\n{bodies[0][:1500]}\n---\n"
 
-    result = await client.create(
-        response_model=ArchitectureEvaluation,
-        messages=[
-            {"role": "system", "content": ARCHITECTURE_PROMPT},
-            {"role": "user", "content": context},
-        ],
-        temperature=0.3,
-    )
-
-    return {"architecture_eval": result.model_dump()}
+    try:
+        result = await client.create(
+            response_model=ArchitectureEvaluation,
+            messages=[
+                {"role": "system", "content": ARCHITECTURE_PROMPT},
+                {"role": "user", "content": context},
+            ],
+            temperature=0.3,
+        )
+        return {"architecture_eval": result.model_dump()}
+    except Exception as e:
+        logger.error("architecture_evaluator_worker failed: %s", e)
+        return {"architecture_eval": None}

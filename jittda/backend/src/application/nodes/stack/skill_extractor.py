@@ -6,6 +6,7 @@ JD 요구사항과 매칭하여 숙련도를 평가한다.
 """
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
@@ -13,6 +14,8 @@ from pydantic import BaseModel, Field
 
 from application.states.stack_state import StackState
 from infrastructure.llm.instructor_client import InstructorClient
+
+logger = logging.getLogger(__name__)
 
 
 class ExtractedSkill(BaseModel):
@@ -88,13 +91,16 @@ async def skill_extractor_worker(state: StackState) -> dict[str, Any]:
             f"{a.get('total_classes', 0)} classes\n"
         )
 
-    result = await client.create(
-        response_model=SkillExtractionResult,
-        messages=[
-            {"role": "system", "content": SKILL_EXTRACTION_PROMPT},
-            {"role": "user", "content": context},
-        ],
-        temperature=0.3,
-    )
-
-    return {"skill_extraction": result.model_dump()}
+    try:
+        result = await client.create(
+            response_model=SkillExtractionResult,
+            messages=[
+                {"role": "system", "content": SKILL_EXTRACTION_PROMPT},
+                {"role": "user", "content": context},
+            ],
+            temperature=0.3,
+        )
+        return {"skill_extraction": result.model_dump()}
+    except Exception as e:
+        logger.error("skill_extractor_worker failed: %s", e)
+        return {"skill_extraction": None}
