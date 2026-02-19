@@ -67,7 +67,7 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Instructor + Lan
 | 설계/분석 | architecture, design, security, 성능 | sequential, context7 | /design, /analyze |
 | 검색/조사 | research, 코드 검색, 사용처 | brave-search, qmd | /research |
 | 문서/기억 | obsidian, vault, 이전 대화 | claude-mem | /obsidian-api |
-| Git/워크플로 | git, commit, PR, plan, brainstorm | superpowers | /but-ops, /brainstorm |
+| Git/워크플로 | git, commit, PR, plan, brainstorm | superpowers | /git-ops, /brainstorm |
 | Phase 자동화 | phase-plan, phase-sync, pipeline, 마일스톤, 동기화, 회고 | - | /phase-plan, /phase-sync, /phase-pipeline |
 
 상세 → `.claude/skills/routing/SKILL.md`
