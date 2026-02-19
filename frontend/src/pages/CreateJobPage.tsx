@@ -7,6 +7,7 @@ import { getToken } from '../lib/api'
 import { SectionCard } from '../components/SectionCard'
 import { FileUploadField, type FileUpload } from '../components/FileUploadField'
 import { EmailNotificationModal } from '../components/EmailNotificationModal'
+import { ActionButton } from '../../seed-design/ui'
 
 
 // 지원 언어 목록
@@ -354,35 +355,26 @@ export function CreateJobPage() {
 
         {/* Submit Buttons */}
         <div className="flex items-center justify-end gap-3 border-t border-[--color-border-default] pt-6">
-          <button
+          <ActionButton
+            variant="neutralOutline"
+            size="medium"
             type="button"
             onClick={() => navigate('/interview')}
-            className="rounded-lg border border-[--color-border-default] bg-[--color-bg-surface] px-5 py-2.5 text-sm font-medium text-[--color-text-secondary] transition-colors hover:bg-[--color-bg-surface-hover]"
           >
             {t('cancel')}
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
+            variant="brandSolid"
+            size="medium"
             type="submit"
+            loading={submitting}
             disabled={!canSubmit}
-            className="inline-flex items-center gap-2 rounded-lg bg-[--color-bg-accent] px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[--color-bg-accent-hover] hover:shadow-[0_0_20px_-5px_hsl(160_60%_45%/0.2)] disabled:cursor-not-allowed disabled:bg-ink-300 disabled:shadow-none"
           >
-            {submitting ? (
-              <>
-                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                {t('loading')}
-              </>
-            ) : (
-              <>
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                {t('create_interview_script')}
-              </>
-            )}
-          </button>
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            {t('create_interview_script')}
+          </ActionButton>
         </div>
       </form>
 

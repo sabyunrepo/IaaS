@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
+import { ActionButton } from '../../seed-design/ui'
 
 const PAGE_SIZE = 10
 
@@ -111,12 +112,9 @@ export function JobListPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         <p className="mt-3 text-sm font-medium text-red-800">{t('fetch_error')}</p>
-        <button
-          onClick={() => fetchJobs()}
-          className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-        >
+        <ActionButton variant="criticalSolid" size="small" onClick={() => fetchJobs()} className="mt-4">
           {t('retry')}
-        </button>
+        </ActionButton>
       </div>
     )
   }
@@ -225,29 +223,31 @@ export function JobListPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-center gap-2">
-              <button
+              <ActionButton
+                variant="neutralOutline"
+                size="small"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="inline-flex items-center gap-1 rounded-lg border border-[--color-border-default] bg-[--color-bg-surface] px-3 py-2 text-sm font-medium text-[--color-text-secondary] hover:bg-[--color-bg-surface-hover] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 {t('prev')}
-              </button>
+              </ActionButton>
               <span className="px-4 text-sm text-[--color-text-secondary]">
                 {page} / {totalPages}
               </span>
-              <button
+              <ActionButton
+                variant="neutralOutline"
+                size="small"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="inline-flex items-center gap-1 rounded-lg border border-[--color-border-default] bg-[--color-bg-surface] px-3 py-2 text-sm font-medium text-[--color-text-secondary] hover:bg-[--color-bg-surface-hover] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {t('next')}
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
+              </ActionButton>
             </div>
           )}
         </>

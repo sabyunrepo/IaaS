@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
+import { ActionButton } from '../../seed-design/ui'
 
 export function SettingsPage() {
   const { t, i18n } = useTranslation()
@@ -101,13 +102,16 @@ export function SettingsPage() {
         </div>
 
         {/* Save Button */}
-        <button
+        <ActionButton
+          variant="brandSolid"
+          size="medium"
           onClick={handleSaveProfile}
+          loading={saving}
           disabled={saving || !displayName.trim()}
-          className="w-full rounded-lg bg-[--color-bg-accent] px-4 py-3 text-sm font-medium text-white shadow-sm transition-all hover:bg-[--color-bg-accent-hover] hover:shadow-[0_0_20px_-5px_hsl(160_60%_45%/0.2)] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full"
         >
-          {saving ? t('saving') : t('settings_save')}
-        </button>
+          {t('settings_save')}
+        </ActionButton>
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { ActionButton } from '../../seed-design/ui'
 
 interface Props {
   onAccept: () => void
@@ -25,18 +26,12 @@ export function EmailNotificationModal({ onAccept, onDecline }: Props) {
           </p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={onDecline}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-[--color-text-secondary] bg-[--color-bg-neutral] rounded-lg hover:bg-ink-200 transition-colors"
-          >
+          <ActionButton variant="neutralOutline" size="medium" onClick={onDecline} className="flex-1">
             {t('email_notification_no')}
-          </button>
-          <button
-            onClick={onAccept}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-[--color-bg-accent] rounded-lg hover:bg-[--color-bg-accent-hover] transition-colors"
-          >
+          </ActionButton>
+          <ActionButton variant="brandSolid" size="medium" onClick={onAccept} className="flex-1">
             {t('email_notification_yes')}
-          </button>
+          </ActionButton>
         </div>
       </div>
     </div>

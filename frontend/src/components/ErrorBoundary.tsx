@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react'
 import i18n from '../i18n'
+import { ActionButton } from '../../seed-design/ui'
 
 interface Props {
   children: ReactNode
@@ -38,12 +39,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-red-600 text-sm mb-4">
               {this.state.error?.message || i18n.t('unknown_error')}
             </p>
-            <button
+            <ActionButton
+              variant="criticalSolid"
+              size="small"
               onClick={() => this.setState({ hasError: false, error: null })}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
             >
               {i18n.t('retry')}
-            </button>
+            </ActionButton>
           </div>
         </div>
       )

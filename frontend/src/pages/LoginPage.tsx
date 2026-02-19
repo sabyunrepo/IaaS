@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { setToken } from '../lib/api'
+import { ActionButton } from '../../seed-design/ui'
 
 // Google Icon SVG
 function GoogleIcon({ className }: { className?: string }) {
@@ -85,14 +86,16 @@ export function LoginPage() {
 
           {/* Dev Login Button - only in development */}
           {import.meta.env.DEV && (
-            <button
+            <ActionButton
+              variant="brandOutline"
+              size="medium"
               onClick={handleDevLogin}
+              loading={devLoading}
               disabled={devLoading}
-              className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-dashed border-[--color-border-accent] bg-[--color-bg-accent-subtle] px-4 py-3 text-sm font-medium text-[--color-text-accent-strong] transition-all hover:bg-em-100 focus:outline-none focus:ring-2 focus:ring-[--color-border-accent] focus:ring-offset-2 disabled:opacity-50"
+              className="mt-3 w-full"
             >
-              <span>🔧</span>
-              <span>{devLoading ? t('loading') : t('dev_login')}</span>
-            </button>
+              <span>🔧</span> {t('dev_login')}
+            </ActionButton>
           )}
 
           {/* Divider */}
