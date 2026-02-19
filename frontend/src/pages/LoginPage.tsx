@@ -46,7 +46,7 @@ export function LoginPage() {
       if (!res.ok) throw new Error('Dev login failed')
       const data = await res.json()
       setToken(data.token)
-      window.location.href = '/'
+      window.location.href = import.meta.env.BASE_URL
     } catch {
       setDevLoading(false)
     }
@@ -56,19 +56,19 @@ export function LoginPage() {
     <div className="flex min-h-[80vh] items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
+        <div className="rounded-2xl border border-[--color-border-default] bg-[--color-bg-surface] p-8 shadow-lg">
           {/* Header */}
           <div className="mb-8 text-center">
-            <img src="/logo-full.png" alt="JittDa" className="h-20 mx-auto" />
-            <h1 className="text-2xl font-bold text-gray-900">{t('app_title')}</h1>
-            <p className="mt-2 text-sm text-gray-600">{t('login_subtitle')}</p>
+            <img src={`${import.meta.env.BASE_URL}logo-full.png`} alt="JittDa" className="h-20 mx-auto" />
+            <h1 className="text-2xl font-bold text-[--color-text-primary]">{t('app_title')}</h1>
+            <p className="mt-2 text-sm text-[--color-text-secondary]">{t('login_subtitle')}</p>
           </div>
 
           {/* OAuth Buttons */}
           <div className="space-y-3">
             <a
               href={`/auth/google/login`}
-              className="group flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2"
+              className="group flex w-full items-center justify-center gap-3 rounded-lg border border-[--color-border-default] bg-white px-4 py-3 text-sm font-medium text-[--color-text-secondary] transition-all hover:border-ink-300 hover:bg-[--color-bg-surface-hover] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[--color-border-accent] focus:ring-offset-2"
             >
               <GoogleIcon className="h-5 w-5" />
               <span>{t('login_with_google')}</span>
@@ -88,7 +88,7 @@ export function LoginPage() {
             <button
               onClick={handleDevLogin}
               disabled={devLoading}
-              className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-dashed border-brand-400 bg-brand-50 px-4 py-3 text-sm font-medium text-brand-700 transition-all hover:bg-brand-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50"
+              className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-dashed border-[--color-border-accent] bg-[--color-bg-accent-subtle] px-4 py-3 text-sm font-medium text-[--color-text-accent-strong] transition-all hover:bg-em-100 focus:outline-none focus:ring-2 focus:ring-[--color-border-accent] focus:ring-offset-2 disabled:opacity-50"
             >
               <span>🔧</span>
               <span>{devLoading ? t('loading') : t('dev_login')}</span>
@@ -98,15 +98,15 @@ export function LoginPage() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
+              <div className="w-full border-t border-[--color-border-subtle]"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-4 text-gray-500">{t('login_secure_note')}</span>
+              <span className="bg-[--color-bg-surface] px-4 text-[--color-text-tertiary]">{t('login_secure_note')}</span>
             </div>
           </div>
 
           {/* Features */}
-          <div className="space-y-3 text-sm text-gray-600">
+          <div className="space-y-3 text-sm text-[--color-text-secondary]">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-green-100">
                 <svg className="h-3 w-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -147,7 +147,7 @@ export function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-xs text-gray-500">
+        <p className="mt-6 text-center text-xs text-[--color-text-tertiary]">
           {t('login_terms')}
         </p>
       </div>
