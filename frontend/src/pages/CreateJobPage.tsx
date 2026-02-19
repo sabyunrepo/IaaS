@@ -7,7 +7,7 @@ import { getToken } from '../lib/api'
 import { SectionCard } from '../components/SectionCard'
 import { FileUploadField, type FileUpload } from '../components/FileUploadField'
 import { EmailNotificationModal } from '../components/EmailNotificationModal'
-import { ActionButton } from '../../seed-design/ui'
+import { ActionButton, Divider } from '../../seed-design/ui'
 
 
 // 지원 언어 목록
@@ -354,7 +354,8 @@ export function CreateJobPage() {
         )}
 
         {/* Submit Buttons */}
-        <div className="flex items-center justify-end gap-3 border-t border-[--color-border-default] pt-6">
+        <Divider className="mb-6" />
+        <div className="flex items-center justify-end gap-3">
           <ActionButton
             variant="neutralOutline"
             size="medium"

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { setToken } from '../lib/api'
-import { ActionButton } from '../../seed-design/ui'
+import { ActionButton, Divider } from '../../seed-design/ui'
 
 // Google Icon SVG
 function GoogleIcon({ className }: { className?: string }) {
@@ -101,7 +101,7 @@ export function LoginPage() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[--color-border-subtle]"></div>
+              <Divider />
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="bg-[--color-bg-surface] px-4 text-[--color-text-tertiary]">{t('login_secure_note')}</span>

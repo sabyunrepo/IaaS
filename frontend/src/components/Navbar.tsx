@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Divider } from '../../seed-design/ui'
 
 interface NavbarProps {
   user: {
@@ -174,7 +175,8 @@ export function Navbar({ user, onLogout }: NavbarProps) {
                         {i18n.language === 'ko' ? 'English' : '한국어'}
                       </button>
 
-                      <div className="border-t border-[--color-border-subtle] mt-1 pt-1">
+                      <Divider className="my-1" />
+                      <div>
                         <button
                           onClick={() => {
                             setMenuOpen(false)
