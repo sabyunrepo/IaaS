@@ -277,70 +277,78 @@ async def output_assembler_node(state: MetaState) -> dict[str, Any]:
     job_id = state["job_id"]
     db_url = os.environ.get("DATABASE_URL", "")
 
-    analysis_repo = AnalysisRepository(db_url)
-    job_repo = JobRepository(db_url)
-
-    # 모든 결과 로드
-    profile_ref = state.get("profile_ref")
-    questions_ref = state.get("questions_ref")
-    forensic_ref = state.get("forensic_result_ref")
-    logic_ref = state.get("logic_result_ref")
-    stack_ref = state.get("stack_result_ref")
-    candidate_scores = state.get("candidate_scores")
-
-    profile_data = await analysis_repo.get_result(profile_ref) if profile_ref else None
-    questions_data = await analysis_repo.get_result(questions_ref) if questions_ref else None
-    forensic_data = await analysis_repo.get_result(forensic_ref) if forensic_ref else None
-    logic_data = await analysis_repo.get_result(logic_ref) if logic_ref else None
-    stack_data = await analysis_repo.get_result(stack_ref) if stack_ref else None
-
-    profile_result = profile_data.get("result_data", {}) if profile_data else {}
-    questions_result = questions_data.get("result_data", {}) if questions_data else {}
-    forensic_result = forensic_data.get("result_data", {}) if forensic_data else {}
-    logic_result = logic_data.get("result_data", {}) if logic_data else {}
-    stack_result = stack_data.get("result_data", {}) if stack_data else {}
-
-    # 4개 섹션 조립
-    intel_brief = _build_intel_brief(candidate_scores, profile_result, forensic_result)
-    deep_analysis = _build_deep_analysis(forensic_result, logic_result, stack_result)
-    interview_script = _build_interview_script(questions_result)
-    decision_support = _build_decision_support(
-        candidate_scores, forensic_result, profile_result
-    )
-
-    # 최종 구조화 결과
-    result = {
-        "job_id": job_id,
-        "version": "5.0",
-        "intel_brief": intel_brief,
-        "deep_analysis": deep_analysis,
-        "interview_script": interview_script,
-        "decision_support": decision_support,
-        "candidate_scores": candidate_scores,
-        "errors": state.get("errors", []),
-        "status": "completed",
-    }
-
-    # DB에 최종 결과 저장
     try:
-        await job_repo.save_result_data(job_id, result)
+        analysis_repo = AnalysisRepository(db_url)
+        job_repo = JobRepository(db_url)
+
+        # 모든 결과 로드
+        profile_ref = state.get("profile_ref")
+        questions_ref = state.get("questions_ref")
+        forensic_ref = state.get("forensic_result_ref")
+        logic_ref = state.get("logic_result_ref")
+        stack_ref = state.get("stack_result_ref")
+        candidate_scores = state.get("candidate_scores")
+
+        profile_data = await analysis_repo.get_result(profile_ref) if profile_ref else None
+        questions_data = await analysis_repo.get_result(questions_ref) if questions_ref else None
+        forensic_data = await analysis_repo.get_result(forensic_ref) if forensic_ref else None
+        logic_data = await analysis_repo.get_result(logic_ref) if logic_ref else None
+        stack_data = await analysis_repo.get_result(stack_ref) if stack_ref else None
+
+        profile_result = profile_data.get("result_data", {}) if profile_data else {}
+        questions_result = questions_data.get("result_data", {}) if questions_data else {}
+        forensic_result = forensic_data.get("result_data", {}) if forensic_data else {}
+        logic_result = logic_data.get("result_data", {}) if logic_data else {}
+        stack_result = stack_data.get("result_data", {}) if stack_data else {}
+
+        # 4개 섹션 조립
+        intel_brief = _build_intel_brief(candidate_scores, profile_result, forensic_result)
+        deep_analysis = _build_deep_analysis(forensic_result, logic_result, stack_result)
+        interview_script = _build_interview_script(questions_result)
+        decision_support = _build_decision_support(
+            candidate_scores, forensic_result, profile_result
+        )
+
+        # 최종 구조화 결과
+        result = {
+            "job_id": job_id,
+            "version": "5.0",
+            "intel_brief": intel_brief,
+            "deep_analysis": deep_analysis,
+            "interview_script": interview_script,
+            "decision_support": decision_support,
+            "candidate_scores": candidate_scores,
+            "errors": state.get("errors", []),
+            "status": "completed",
+        }
+
+        # DB에 최종 결과 저장
+        try:
+            await job_repo.save_result_data(job_id, result)
+        except Exception as e:
+            logger.error("output_assembler: failed to save result: %s", e)
+            return {
+                "status": "failed",
+                "current_phase": "output",
+                "errors": state.get("errors", []) + [f"output_assembler: {e}"],
+            }
+
+        logger.info(
+            "output_assembler completed: job=%s grade=%s questions=%d recommendation=%s",
+            job_id,
+            intel_brief.get("grade", "N/A"),
+            interview_script.get("total_questions", 0),
+            decision_support.get("recommendation", "N/A"),
+        )
+
+        return {
+            "status": "completed",
+            "current_phase": "output",
+        }
     except Exception as e:
-        logger.error("output_assembler: failed to save result: %s", e)
+        logger.error("output_assembler_node failed for job %s: %s", job_id, e)
         return {
             "status": "failed",
             "current_phase": "output",
             "errors": state.get("errors", []) + [f"output_assembler: {e}"],
         }
-
-    logger.info(
-        "output_assembler completed: job=%s grade=%s questions=%d recommendation=%s",
-        job_id,
-        intel_brief.get("grade", "N/A"),
-        interview_script.get("total_questions", 0),
-        decision_support.get("recommendation", "N/A"),
-    )
-
-    return {
-        "status": "completed",
-        "current_phase": "output",
-    }

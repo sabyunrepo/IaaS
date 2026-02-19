@@ -68,6 +68,9 @@ select = ["E", "F", "I", "N", "W", "UP"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "benchmark: performance benchmark tests (deselect with '-m \"not benchmark\"')",
+]
 
 [tool.pytest-asyncio]
 asyncio_mode = "auto"
