@@ -32,7 +32,7 @@ allowed-tools: Bash, Read, Grep, Glob
 | `git diff` | `but diff` | 미커밋 변경사항 |
 | `git log` | `but show <branch>` | 브랜치별 커밋 이력 |
 | `gh pr create` | `but pr` | GitHub PR 자동 생성 |
-| `git merge` | `but merge <branch>` | 타겟 브랜치에 머지 |
+| `git merge` | `but merge <branch>` | 로컬 타겟만. 원격 PR 머지는 `gh pr merge` |
 | `git stash` | 불필요 | 병렬 브랜치로 대체 |
 | (없음) | `but undo` | 마지막 작업 되돌리기 |
 | (없음) | `but absorb` | 변경사항을 적절한 커밋에 자동 흡수 |
@@ -98,13 +98,18 @@ but push <branch-name>
 ### 6. PR 생성
 
 ```bash
-but pr <branch-name>
+but pr new <branch-name> -m "제목
+본문"
 ```
 
 ### 7. 머지
 
 ```bash
+# 로컬 타겟(gb-local)일 때
 but merge <branch-name>
+
+# GitHub PR 원격 머지 (but v0.19.2 미지원 → gh 사용)
+gh pr merge <PR번호> --merge
 ```
 
 ### 8. 되돌리기
