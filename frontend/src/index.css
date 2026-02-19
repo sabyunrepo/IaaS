@@ -97,7 +97,7 @@
 }
 .animate-slideDown { animation: slideDown 0.2s ease-out forwards; }
 
-/* Custom scrollbar (navy-tinted) */
+/* Custom scrollbar (ink-tinted) */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ccd4e0; border-radius: 3px; }
@@ -131,7 +131,7 @@
   width: 100%;
 }
 
-/* Skeleton loading (navy-tinted) */
+/* Skeleton loading (ink-tinted) */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
