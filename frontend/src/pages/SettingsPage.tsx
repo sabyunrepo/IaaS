@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
-import { ActionButton } from '../../seed-design/ui'
+import { ActionButton, TextFieldRoot, TextFieldInput } from '../../seed-design/ui'
 
 export function SettingsPage() {
   const { t, i18n } = useTranslation()
@@ -43,12 +43,12 @@ export function SettingsPage() {
         {/* Profile Info */}
         <div className="p-6 bg-[--color-bg-surface] rounded-xl border border-[--color-border-default]">
           <h3 className="text-sm font-medium text-[--color-text-primary] mb-4">{t('settings_display_name')}</h3>
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            className="w-full rounded-lg border border-[--color-border-default] px-3 py-2 text-sm focus:border-[--color-border-accent] focus:outline-none focus:ring-2 focus:ring-em-500/20"
-          />
+          <TextFieldRoot>
+            <TextFieldInput
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
+          </TextFieldRoot>
         </div>
 
         {/* Email */}

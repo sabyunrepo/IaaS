@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getToken } from '../lib/api'
+import { TextFieldRoot, TextFieldInput } from '../../seed-design/ui'
 
 export interface GitHubRepo {
   name: string
@@ -127,13 +128,13 @@ export function GitHubRepoSelector({
     <div className="space-y-3">
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('repo_search_placeholder')}
-          className="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-[--color-border-accent] focus:outline-none focus:ring-1 focus:ring-[--color-border-accent]"
-        />
+        <TextFieldRoot className="flex-1 min-w-[160px]">
+          <TextFieldInput
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t('repo_search_placeholder')}
+          />
+        </TextFieldRoot>
         <select
           value={langFilter}
           onChange={e => setLangFilter(e.target.value)}
