@@ -1,39 +1,39 @@
 {
-  "current_phase": 2,
+  "current_phase": 3,
   "step": "awaiting_implementation",
-  "plan_completed_at": "2026-02-19T15:10:00+09:00",
+  "plan_completed_at": "2026-02-19T15:36:00+09:00",
   "sync_completed_at": null,
-  "milestone_id": "5f93ef5e-8f6e-482c-ae72-2d9ad77dfd25",
-  "milestone_name": "Phase 2: Infrastructure Layer",
+  "milestone_id": "f702db1a-f228-40de-8bba-61516c035019",
+  "milestone_name": "Phase 3: Application Layer",
   "issues": [
-    "JIT-243",
-    "JIT-244",
-    "JIT-245",
-    "JIT-246",
-    "JIT-247",
-    "JIT-248",
-    "JIT-249",
-    "JIT-250",
-    "JIT-251"
+    "JIT-252",
+    "JIT-253",
+    "JIT-254",
+    "JIT-255",
+    "JIT-256",
+    "JIT-257"
   ],
   "planning_discoveries": [
     {
       "type": "mismatch",
-      "source": "plan/v5-design/phase2-infrastructure.md §9.0",
-      "target": "decisions/0006-tree-sitter-025.md",
-      "description": "설계 문서는 Tree-sitter 0.24 기준이나, ADR-0006에서 0.25.x로 마이그레이션 결정됨. QueryCursor 분리 패턴(Query+QueryCursor) 필요. JIT-245에 반영 완료."
+      "source": "plan/v5-design/phase3-application.md Linear 티켓 매핑",
+      "target": "Linear JIT-100~105",
+      "description": "설계 문서에 JIT-100~105로 매핑되어 있으나, 해당 번호는 이미 Phase 1-2 이슈에 사용됨. JIT-252~257로 새로 생성.",
+      "resolved": true
     },
     {
       "type": "missing",
-      "source": "infrastructure/MOC.md",
-      "target": "plan/v5-design/phase2-infrastructure.md",
-      "description": "Obsidian vault에 voice-pipeline 어댑터가 있지만 Phase 2 설계 문서에는 미포함. Jittda Live(Phase 5+)에 속하므로 Phase 2에서 스킵."
+      "source": "plan/v5-design/phase3-application.md §10.3",
+      "target": "infrastructure/",
+      "description": "Vibector(WPM 분석)과 CLAVE(스타일로메트리) 전용 어댑터 미존재. instructor_client.py(LLM) 기반으로 구현 필요.",
+      "resolved": false
     },
     {
-      "type": "mismatch",
-      "source": "plan/v5-design/phase2-infrastructure.md §9.2",
-      "target": "Obsidian infrastructure/",
-      "description": "설계 문서의 AnalysisStrategy는 infrastructure/analysis/strategy.py에 위치하나, Obsidian vault에서는 tree-sitter-ast/와 complexity-analysis/로 분리됨. 구현 시 analysis/ 디렉토리에 통합 또는 각 어댑터 내부에 Strategy 패턴 적용 결정 필요."
+      "type": "missing",
+      "source": "plan/v5-design/phase3-application.md §10.1.1",
+      "target": "infrastructure/persistence/",
+      "description": "analysis_results 테이블 Repository(CRUD) 미구현. Reference Passing 패턴에 필수. persistence/__init__.py만 존재.",
+      "resolved": false
     }
   ]
 }
