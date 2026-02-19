@@ -16,5 +16,12 @@
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"
+  },
+  "dependencies": {
+    "@seed-design/css": "^1.2.2"
+  },
+  "devDependencies": {
+    "@seed-design/vite-plugin": "^1.1.0",
+    "vite-tsconfig-paths": "^6.1.1"
   }
 }
