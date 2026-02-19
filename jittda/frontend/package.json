@@ -22,6 +22,9 @@
   },
   "devDependencies": {
     "@seed-design/vite-plugin": "^1.1.0",
+    "@types/node": "^25.3.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "vite-tsconfig-paths": "^6.1.1"
   }
 }
