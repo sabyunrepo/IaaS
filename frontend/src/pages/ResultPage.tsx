@@ -5,7 +5,7 @@ import { apiFetch } from '../lib/api'
 import type { InterviewScript, ResultTab, InterviewQuestion } from '../types/interview'
 import { IntelBriefTab, DeepAnalysisTab, LiveInterviewTab, DecisionTab, V1SummaryTab, V1GuideTab } from '../components/tabs'
 import { QuestionCard, type Question } from '../components/QuestionCard'
-import { ActionButton, Badge } from '../../seed-design/ui'
+import { ActionButton, Badge, Skeleton } from '../../seed-design/ui'
 
 
 function downloadJSON(data: unknown, filename: string) {
@@ -74,18 +74,18 @@ export function ResultPage() {
     return (
       <div className="space-y-6 py-6">
         <div className="flex items-center gap-4">
-          <div className="skeleton h-14 w-14 rounded-2xl" />
+          <Skeleton className="h-14 w-14 rounded-2xl" />
           <div className="space-y-2">
-            <div className="skeleton h-6 w-48" />
-            <div className="skeleton h-4 w-32" />
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
           </div>
         </div>
-        <div className="skeleton h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="skeleton h-40" />
-          <div className="skeleton h-40" />
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
         </div>
-        <div className="skeleton h-60 w-full" />
+        <Skeleton className="h-60 w-full" />
       </div>
     )
   }

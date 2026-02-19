@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
-import { ActionButton, Badge } from '../../seed-design/ui'
+import { ActionButton, Badge, Skeleton } from '../../seed-design/ui'
 
 const PAGE_SIZE = 10
 
@@ -80,13 +80,13 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-3">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="animate-pulse rounded-xl border border-[--color-border-default] bg-[--color-bg-surface] p-5">
+        <div key={i} className="rounded-xl border border-[--color-border-default] bg-[--color-bg-surface] p-5">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <div className="h-4 w-32 rounded bg-ink-200"></div>
-              <div className="h-3 w-48 rounded bg-[--color-bg-neutral]"></div>
+              <Skeleton className="h-4 w-32 rounded" />
+              <Skeleton className="h-3 w-48 rounded" />
             </div>
-            <div className="h-6 w-16 rounded-full bg-ink-200"></div>
+            <Skeleton className="h-6 w-16 rounded-full" />
           </div>
         </div>
       ))}
