@@ -110,25 +110,25 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
     return (
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="bg-[--color-bg-surface] rounded-xl border border-[--color-border-default] p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">{t('live_select_questions')}</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <h3 className="text-lg font-semibold text-[--color-text-primary]">{t('live_select_questions')}</h3>
+              <p className="text-sm text-[--color-text-tertiary] mt-1">
                 {t('live_select_desc', { count: selectedQuestions.size })}
               </p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={selectAll}
-                className="px-3 py-1.5 text-sm font-medium text-navy-700 hover:bg-navy-50 rounded-lg transition-colors"
+                className="px-3 py-1.5 text-sm font-medium text-em-700 hover:bg-em-50 rounded-lg transition-colors"
               >
                 {t('live_select_all')}
               </button>
               <button
                 onClick={startInterview}
                 disabled={selectedQuestions.size === 0}
-                className="px-4 py-1.5 text-sm font-medium text-white bg-navy-700 hover:bg-navy-800 disabled:bg-gray-300 rounded-lg transition-colors"
+                className="px-4 py-1.5 text-sm font-medium text-white bg-[--color-bg-accent] hover:bg-[--color-bg-accent-hover] disabled:bg-ink-300 rounded-lg transition-colors"
               >
                 {t('live_start_interview')}
               </button>
@@ -140,9 +140,9 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
         {/* Questions by Category */}
         {Object.entries(questionsByCategory).map(([category, categoryQuestions]) => (
           <div key={category} className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
+            <h4 className="text-sm font-semibold text-[--color-text-secondary] uppercase tracking-wide flex items-center gap-2">
               {category}
-              <span className="text-xs font-normal text-gray-400">
+              <span className="text-xs font-normal text-[--color-text-tertiary]">
                 ({categoryQuestions.filter(q => selectedQuestions.has(q.id)).length}/{categoryQuestions.length})
               </span>
             </h4>
@@ -152,15 +152,15 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
                 onClick={() => toggleQuestion(q.id)}
                 className={`card-hover w-full text-left p-4 rounded-xl border transition-all ${
                   selectedQuestions.has(q.id)
-                    ? 'bg-navy-50 border-navy-300 ring-1 ring-navy-200'
-                    : 'bg-white border-gray-200 hover:border-gray-300'
+                    ? 'bg-em-50 border-em-300 ring-1 ring-em-200'
+                    : 'bg-[--color-bg-surface] border-[--color-border-default] hover:border-ink-300'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center ${
                     selectedQuestions.has(q.id)
-                      ? 'bg-navy-700 border-navy-700'
-                      : 'border-gray-300'
+                      ? 'bg-em-600 border-em-600'
+                      : 'border-ink-300'
                   }`}>
                     {selectedQuestions.has(q.id) && (
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,14 +171,14 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       {q.title && (
-                        <span className="font-semibold text-gray-900">{q.title}</span>
+                        <span className="font-semibold text-[--color-text-primary]">{q.title}</span>
                       )}
                       {q.is_risk && (
                         <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded">{t('live_risk')}</span>
                       )}
                       <span className={`px-1.5 py-0.5 text-xs rounded ${
                         q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
-                        q.difficulty === 'Medium' ? 'bg-brand-100 text-brand-700' :
+                        q.difficulty === 'Medium' ? 'bg-amber-100 text-amber-700' :
                         'bg-green-100 text-green-700'
                       }`}>
                         {q.difficulty}
@@ -193,7 +193,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{q.question_text}</p>
+                    <p className="text-sm text-[--color-text-secondary] line-clamp-2">{q.question_text}</p>
                   </div>
                 </div>
               </button>
@@ -225,40 +225,40 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
     return (
       <div className="space-y-6">
         {/* 총점 헤더 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm text-center">
+        <div className="bg-[--color-bg-surface] rounded-xl border border-[--color-border-default] p-8 shadow-sm text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
             <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-1">{t('live_interview_complete')}</h3>
-          <p className="text-sm text-gray-500 mb-6">
+          <h3 className="text-xl font-bold text-[--color-text-primary] mb-1">{t('live_interview_complete')}</h3>
+          <p className="text-sm text-[--color-text-tertiary] mb-6">
             {t('live_scored_count', { scored: scoredCount, total: interviewQuestions.length })}
           </p>
-          <div className="text-5xl font-bold text-navy-700 mb-2">
+          <div className="text-5xl font-bold text-em-700 mb-2">
             {scorePercent}%
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[--color-text-tertiary]">
             {totalScore} / {maxScore} {t('live_points_unit')}
           </p>
         </div>
 
         {/* 카테고리별 점수 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h4 className="text-base font-semibold text-gray-900 mb-4">{t('live_category_scores')}</h4>
+        <div className="bg-[--color-bg-surface] rounded-xl border border-[--color-border-default] p-6 shadow-sm">
+          <h4 className="text-base font-semibold text-[--color-text-primary] mb-4">{t('live_category_scores')}</h4>
           <div className="space-y-3">
             {Object.entries(categoryScores).map(([cat, data]) => {
               const pct = data.max > 0 ? Math.round((data.total / data.max) * 100) : 0
               return (
                 <div key={cat}>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="font-medium text-gray-700">{cat}</span>
-                    <span className="text-gray-500">{data.total}/{data.max} ({pct}%)</span>
+                    <span className="font-medium text-[--color-text-secondary]">{cat}</span>
+                    <span className="text-[--color-text-tertiary]">{data.total}/{data.max} ({pct}%)</span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-[--color-bg-neutral] rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-brand-500' : 'bg-red-500'
+                        pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'
                       }`}
                       style={{ width: `${pct}%` }}
                     />
@@ -273,13 +273,13 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
         <div className="flex justify-center gap-3">
           <button
             onClick={() => { setPhase('interview'); setCurrentIndex(0) }}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium text-[--color-text-secondary] bg-[--color-bg-surface] border border-[--color-border-default] rounded-lg hover:bg-[--color-bg-surface-hover]"
           >
             {t('live_review_questions')}
           </button>
           <button
             onClick={() => { setPhase('select'); setCurrentIndex(0); setScores({}); setSelectedQuestions(new Set()) }}
-            className="px-4 py-2 text-sm font-medium text-white bg-navy-700 rounded-lg hover:bg-navy-800"
+            className="px-4 py-2 text-sm font-medium text-white bg-[--color-bg-accent] rounded-lg hover:bg-[--color-bg-accent-hover]"
           >
             {t('live_new_interview')}
           </button>
@@ -296,10 +296,10 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
   if (!currentQuestion) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">{t('live_no_questions')}</p>
+        <p className="text-[--color-text-tertiary]">{t('live_no_questions')}</p>
         <button
           onClick={() => setPhase('select')}
-          className="mt-4 px-4 py-2 text-navy-700 hover:bg-navy-50 rounded-lg"
+          className="mt-4 px-4 py-2 text-em-700 hover:bg-em-50 rounded-lg"
         >
           {t('live_back_to_select')}
         </button>
@@ -310,31 +310,31 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
   return (
     <div className="space-y-6">
       {/* Progress Bar */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+      <div className="bg-[--color-bg-surface] rounded-xl border border-[--color-border-default] p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPhase('select')}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-[--color-text-tertiary] hover:text-[--color-text-secondary]"
             >
               {t('live_go_select')}
             </button>
-            <span className="text-gray-300">|</span>
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-ink-300">|</span>
+            <span className="text-sm font-medium text-[--color-text-primary]">
               {t('live_question_progress', { current: currentIndex + 1, total: interviewQuestions.length })}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">{t('live_total_score')}</span>
-            <span className="text-lg font-bold text-navy-700">{totalScore}</span>
+            <span className="text-sm text-[--color-text-tertiary]">{t('live_total_score')}</span>
+            <span className="text-lg font-bold text-em-700">{totalScore}</span>
             {maxScore > 0 && (
-              <span className="text-sm text-gray-400">/ {maxScore}</span>
+              <span className="text-sm text-[--color-text-tertiary]">/ {maxScore}</span>
             )}
           </div>
         </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2 bg-[--color-bg-neutral] rounded-full overflow-hidden">
           <div
-            className="h-full bg-navy-500 transition-all"
+            className="h-full bg-em-500 transition-all"
             style={{ width: `${((currentIndex + 1) / interviewQuestions.length) * 100}%` }}
           />
         </div>
@@ -354,7 +354,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
         <button
           onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
           disabled={currentIndex === 0}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 text-sm font-medium text-[--color-text-secondary] bg-[--color-bg-surface] border border-[--color-border-default] rounded-lg hover:bg-[--color-bg-surface-hover] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t('live_prev_question')}
         </button>
@@ -368,7 +368,7 @@ export const LiveInterviewTab = memo(function LiveInterviewTab({ questions }: Li
         ) : (
           <button
             onClick={() => setCurrentIndex(currentIndex + 1)}
-            className="px-4 py-2 text-sm font-medium text-white bg-navy-700 rounded-lg hover:bg-navy-800"
+            className="px-4 py-2 text-sm font-medium text-white bg-[--color-bg-accent] rounded-lg hover:bg-[--color-bg-accent-hover]"
           >
             {t('live_next_question')}
           </button>
