@@ -62,7 +62,7 @@ export function FileUploadField({
       )}
       {fileState.uploading && (
         <div className="mt-2 flex items-center gap-2 text-sm text-[--color-text-accent-strong]">
-          <ProgressCircle size="small" tone="brand" />
+          <ProgressCircle size="24" tone="brand" />
           {t('uploading')}
         </div>
       )}

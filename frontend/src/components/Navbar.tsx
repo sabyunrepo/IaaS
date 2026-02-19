@@ -102,7 +102,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
                     aria-expanded={menuOpen}
                     aria-haspopup="true"
                   >
-                    <AvatarRoot size="32" className="ring-2 ring-em-200">
+                    <AvatarRoot size="36" className="ring-2 ring-em-200">
                       <AvatarImage src={user.avatar_url} alt={user.display_name || 'User'} />
                       <AvatarFallback className="bg-gradient-to-br from-em-500 to-teal-400 text-sm font-medium text-white">
                         {(user.display_name || 'U').charAt(0).toUpperCase()}

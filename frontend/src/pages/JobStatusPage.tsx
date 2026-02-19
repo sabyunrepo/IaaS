@@ -118,7 +118,7 @@ function TimelineStep({
       </span>
       {isActive && !isFailed && phase !== 'completed' && (
         <span className="ml-auto">
-          <ProgressCircle size="small" tone="brand" />
+          <ProgressCircle size="24" tone="brand" />
         </span>
       )}
     </div>
@@ -176,7 +176,7 @@ export function JobStatusPage() {
     return (
       <div className="mx-auto max-w-2xl">
         <div className="flex flex-col items-center justify-center py-20">
-          <ProgressCircle size="large" tone="brand" />
+          <ProgressCircle size="40" tone="brand" />
           <p className="mt-4 text-sm font-medium text-[--color-text-tertiary]">{t('loading')}</p>
         </div>
       </div>

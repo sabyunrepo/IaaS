@@ -192,7 +192,7 @@ export function GitHubRepoSelector({
               >
                 <CheckboxHiddenInput />
                 <CheckboxControl>
-                  <CheckboxIndicator />
+                  <CheckboxIndicator checked={isSelected} />
                 </CheckboxControl>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

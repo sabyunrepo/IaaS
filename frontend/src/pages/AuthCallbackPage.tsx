@@ -22,7 +22,7 @@ export function AuthCallbackPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <ProgressCircle size="large" tone="brand" className="mx-auto mb-4" />
+        <ProgressCircle size="40" tone="brand" className="mx-auto mb-4" />
         <p className="text-gray-600">{t('auth_callback_processing')}</p>
       </div>
     </div>

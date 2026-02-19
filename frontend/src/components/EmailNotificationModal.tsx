@@ -14,7 +14,7 @@ export function EmailNotificationModal({ onAccept, onDecline }: Props) {
   const { t } = useTranslation()
 
   return (
-    <DialogRoot open onOpenChange={(details) => { if (!details.open) onDecline() }}>
+    <DialogRoot open onOpenChange={(open) => { if (!open) onDecline() }}>
       <DialogBackdrop />
       <DialogPositioner>
         <DialogContent className="max-w-sm">
