@@ -1,0 +1,1391 @@
+=== Entry 1 ===
+[187d92dc][user][2026-02-15T01:19:38.059Z]:
+<command-message>superpowers:brainstorming</command-message>
+<command-name>/superpowers:brainstorming</command-name>
+<command-args>plan 폴더의 souce 마크다운 파일들 읽어보고 현재 프로젝트를 전면 개선할거야, 병렬로 최대한 속도도 빠르게 하고 플랜도 각각의 상황에 플랜 에이전트가 에이전트 로직을 생성하면 해당 방식대로 에이전트들이 움직일수 있도록(현재를 플랜만 세우지 실제로는 랭체인 형식으로 진행되는것같은데) 랭그래프와 도구, 를 사용해서 에이전트 효율을 높이고 인풋 컨텍스트를 최대한 줄이고 백터 검색을 통해 유의미한 정보만을 골라서 아웃풋을 낼수있도록, 인풋 아웃풋이 다음 에이전트에 넘어갈때 연결성이 제대로 확보되도록, 실질적으로 에이전트 로직이 유기적으로 동적으로 피드백을 주고 받으면서 작동할수 있도록 결과물도 최선의 유의미한 결과물이 나올수 있도록프롬포트도 구체적및 퓨샷 적용으로 작성하고.  디자인 패턴을 사용해서 하드코딩 되지 않도록 디자인 패턴 사용해서 설계를 진행하고 원하는 아웃풋을 위해 라이브러리,주력 방식,적합한 상황
+Instructor,Pydantic 기반 Tool Calling,대부분의 상용 API(OpenAI 등) 사용 시
+Outlines,FSM (유한 상태 오토마톤) 제어,"로컬 모델(vLLM, Llama-cpp) 최적화 시"
+Marvin,객체 지향적 추상화,아주 간단한 데이터 추출 작업 시 기능들 사용고려해보고 sdk 쓸수있는것들은 해당 sdk 사용하고 정적 분석 프로그램 사용등 구조 변경시 인프라수정계획 부터 단계별로 최종 플랜까지의 계획과 테스트 시나리오 상세 구현계획을 리니어 티켓으로 순차적으로 생성해서 등록할거야, 일단 종합 적인 계획을 md 파일로 단계별로 plan 파일에 작성해서 (아키텍쳐 구조및 워크플로우, 각각의 에이전트가 진행하는일 및 구성및 구조, 도구, 출력내용및 인풋내용, 분석내용분석 프로그램 뭘 분석하는지, 어디에 어떤 것들이 어떤에이전트에 들어가는지, 프론트 표시계획등 전체적인 마이그레이션및 설계계획을 구체적으로 작성해줘</command-args>
+
+=== Entry 2 ===
+[187d92dc][user][2026-02-15T01:19:38.059Z]:
+Base directory for this skill: /Users/sabyun/.claude/plugins/cache/superpowers-marketplace/superpowers/4.3.0/skills/brainstorming
+
+# Brainstorming Ideas Into Designs
+
+## Overview
+
+Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
+
+Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+
+<HARD-GATE>
+Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+</HARD-GATE>
+
+## Anti-Pattern: "This Is Too Simple To Need A Design"
+
+Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+
+## Checklist
+
+You MUST create a task for each of these items and complete them in order:
+
+1. **Explore project context** — check files, docs, recent commits
+2. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+3. **Propose 2-3 approaches** — with trade-offs and your recommendation
+4. **Present design** — in sections scaled to their complexity, get user approval after each section
+5. **Write design doc** — save to `docs/plans/YYYY-MM-DD-<topic>-design.md` and commit
+6. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+
+## Process Flow
+
+```dot
+digraph brainstorming {
+    "Explore project context" [shape=box];
+    "Ask clarifying questions" [shape=box];
+    "Propose 2-3 approaches" [shape=box];
+    "Present design sections" [shape=box];
+    "User approves design?" [shape=diamond];
+    "Write design doc" [shape=box];
+    "Invoke writing-plans skill" [shape=doublecircle];
+
+    "Explore project context" -> "Ask clarifying questions";
+    "Ask clarifying questions" -> "Propose 2-3 approaches";
+    "Propose 2-3 approaches" -> "Present design sections";
+    "Present design sections" -> "User approves design?";
+    "User approves design?" -> "Present design sections" [label="no, revise"];
+    "User approves design?" -> "Write design doc" [label="yes"];
+    "Write design doc" -> "Invoke writing-plans skill";
+}
+```
+
+**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+
+## The Process
+
+**Understanding the idea:**
+- Check out the current project state first (files, docs, recent commits)
+- Ask questions one at a time to refine the idea
+- Prefer multiple choice questions when possible, but open-ended is fine too
+- Only one question per message - if a topic needs more exploration, break it into multiple questions
+- Focus on understanding: purpose, constraints, success criteria
+
+**Exploring approaches:**
+- Propose 2-3 different approaches with trade-offs
+- Present options conversationally with your recommendation and reasoning
+- Lead with your recommended option and explain why
+
+**Presenting the design:**
+- Once you believe you understand what you're building, present the design
+- Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
+- Ask after each section whether it looks right so far
+- Cover: architecture, components, data flow, error handling, testing
+- Be ready to go back and clarify if something doesn't make sense
+
+## After the Design
+
+**Documentation:**
+- Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- Use elements-of-style:writing-clearly-and-concisely skill if available
+- Commit the design document to git
+
+**Implementation:**
+- Invoke the writing-plans skill to create a detailed implementation plan
+- Do NOT invoke any other skill. writing-plans is the next step.
+
+## Key Principles
+
+- **One question at a time** - Don't overwhelm with multiple questions
+- **Multiple choice preferred** - Easier to answer than open-ended when possible
+- **YAGNI ruthlessly** - Remove unnecessary features from all designs
+- **Explore alternatives** - Always propose 2-3 approaches before settling
+- **Incremental validation** - Present design, get approval before moving on
+- **Be flexible** - Go back and clarify when something doesn't make sense
+
+
+ARGUMENTS: plan 폴더의 souce 마크다운 파일들 읽어보고 현재 프로젝트를 전면 개선할거야, 병렬로 최대한 속도도 빠르게 하고 플랜도 각각의 상황에 플랜 에이전트가 에이전트 로직을 생성하면 해당 방식대로 에이전트들이 움직일수 있도록(현재를 플랜만 세우지 실제로는 랭체인 형식으로 진행되는것같은데) 랭그래프와 도구, 를 사용해서 에이전트 효율을 높이고 인풋 컨텍스트를 최대한 줄이고 백터 검색을 통해 유의미한 정보만을 골라서 아웃풋을 낼수있도록, 인풋 아웃풋이 다음 에이전트에 넘어갈때 연결성이 제대로 확보되도록, 실질적으로 에이전트 로직이 유기적으로 동적으로 피드백을 주고 받으면서 작동할수 있도록 결과물도 최선의 유의미한 결과물이 나올수 있도록프롬포트도 구체적및 퓨샷 적용으로 작성하고.  디자인 패턴을 사용해서 하드코딩 되지 않도록 디자인 패턴 사용해서 설계를 진행하고 원하는 아웃풋을 위해 라이브러리,주력 방식,적합한 상황
+Instructor,Pydantic 기반 Tool Calling,대부분의 상용 API(OpenAI 등) 사용 시
+Outlines,FSM (유한 상태 오토마톤) 제어,"로컬 모델(vLLM, Llama-cpp) 최적화 시"
+Marvin,객체 지향적 추상화,아주 간단한 데이터 추출 작업 시 기능들 사용고려해보고 sdk 쓸수있는것들은 해당 sdk 사용하고 정적 분석 프로그램 사용등 구조 변경시 인프라수정계획 부터 단계별로 최종 플랜까지의 계획과 테스트 시나리오 상세 구현계획을 리니어 티켓으로 순차적으로 생성해서 등록할거야, 일단 종합 적인 계획을 md 파일로 단계별로 plan 파일에 작성해서 (아키텍쳐 구조및 워크플로우, 각각의 에이전트가 진행하는일 및 구성및 구조, 도구, 출력내용및 인풋내용, 분석내용분석 프로그램 뭘 분석하는지, 어디에 어떤 것들이 어떤에이전트에 들어가는지, 프론트 표시계획등 전체적인 마이그레이션및 설계계획을 구체적으로 작성해줘
+
+=== Entry 3 ===
+[187d92dc][assistant][2026-02-15T01:19:43.090Z]:
+
+
+**Brainstorming 스킬을 사용하여 프로젝트 전면 개선 설계를 진행합니다.**
+
+먼저 프로젝트 컨텍스트를 파악하겠습니다. plan 폴더의 소스 마크다운 파일들과 현재 아키텍처를 병렬로 탐색합니다.
+
+=== Entry 4 ===
+[187d92dc][assistant][2026-02-15T01:23:27.918Z]:
+프로젝트 컨텍스트 분석 완료. 현재 상태와 plan 문서들의 비전 사이에 상당한 갭이 있습니다. 정리하면:
+
+## 현재 vs 비전
+
+| 영역 | 현재 (Temporal Pipeline) | 비전 (souce1-6) |
+|------|------------------------|-----------------|
+| 오케스트레이션 | Temporal.io 고정 4-Phase | HMAS 3계층 (Meta-Supervisor-Worker) |
+| 에이전트 패턴 | 이름만 Agent, 실제는 단일 LLM 호출 | LangGraph StateGraph 동적 라우팅 |
+| 데이터 전달 | plain dict, 암묵적 키 합의 | 타입 안전 State |
+| 분석 도구 | PyGithub + PyDriller + Kimi LLM | + AST(Tree-sitter) + Radon/Lizard + SonarQube |
+| 벡터/RAG | pgvector 부분 사용 (KG 구축용) | 전면 RAG 기반 컨텍스트 검색 |
+| 질문 생성 | 4소스 순차 수집 + LLM | Negative Selection/Intentional Complexity/Evolution 3전략 |
+| 프론트엔드 | Vite + React 19 | D3.js 레이더차트 + 드릴다운 트리맵 |
+
+첫 번째 명확화 질문입니다:
+
+=== Entry 5 ===
+[187d92dc][assistant][2026-02-15T01:24:49.865Z]:
+LangGraph 전면 교체를 선택하셨습니다. 기존 Temporal의 durability, retry, observability를 LangGraph에서 재구현해야 하므로 가장 도전적인 경로입니다. 다음 질문입니다:
+
+=== Entry 6 ===
+[187d92dc][assistant][2026-02-15T01:27:29.420Z]:
+좋습니다. 핵심 결정사항이 확정되었습니다:
+
+1. **오케스트레이션**: LangGraph 전면 교체 (Temporal 제거)
+2. **구조화 출력**: Instructor + Pydantic
+3. **정적 분석**: Full Stack (Tree-sitter + Radon/Lizard + SonarQube + Datasketch)
+4. **마이그레이션**: Big Bang (일괄 전환)
+
+이제 2-3가지 접근법을 설계하겠습니다.
+
+=== Entry 7 ===
+[187d92dc][assistant][2026-02-15T01:28:50.424Z]:
+추가로 제공해주신 상세 Toolchain 정보 확인했습니다. 정적 분석 도구 관련 질문에 답하면:
+
+**SonarQube가 이미 커버하는 것**: 코드 중복(CPD), 린트 규칙, 인지적 복잡도, 기술 부채. **추가로 권장하는 것**:
+- **cloc**: 정확한 LOC/언어 통계 (경량, SonarQube 보완)
+- **pydeps/dependency-cruiser**: 의존성 그래프 분석 (아키텍처 패턴 평가에 필수)
+
+나머지는 선정된 Full Toolchain이 충분히 커버합니다.
+
+---
+
+## 3가지 접근법 비교
+
+### 접근법 A: Pure LangGraph HMAS (추천)
+
+전체를 LangGraph StateGraph로 구현. 3계층 서브그래프 중첩.
+
+```
+MetaGraph
+├── ForensicSupervisor (수집/정제/진정성)
+│   └── Collector, Cleaner, Vibector, CLAVE Workers
+├── LogicSupervisor (복잡도/품질)
+│   └── ASTAnalyzer, ComplexityMeter, QualityScanner, PatternDetector Workers
+└── StackSupervisor (전문성/스택)
+    └── SkillExtractor, APIDepthAnalyzer, ArchitectureEvaluator Workers
+```
+
+| 장점 | 단점 |
+|------|------|
+| plan 문서 비전과 직접 매핑 | LangGraph 서브그래프 디버깅 복잡 |
+| 의존성 최소 (LangGraph만) | Temporal의 durability를 Checkpointer로 재구현 |
+| 동적 라우팅/피드백 루프 자유 | 분산 실행 시 LangGraph Cloud 필요할 수 있음 |
+| Checkpointer로 상태 지속성 확보 | 새 기술 학습 곡선 |
+
+### 접근법 B: LangGraph + Celery Workers
+
+LangGraph를 오케스트레이션에, 중량 분석 작업(SonarQube, AST 파싱, PyDriller)은 Celery 분산 워커로 실행.
+
+| 장점 | 단점 |
+|------|------|
+| 중량 작업 수평 스케일링 | 2개 시스템(LangGraph + Celery) 관리 |
+| Redis 이미 있음 (Celery Broker) | 에이전트-워커 간 비동기 통신 복잡 |
+| 기존 인프라 활용도 높음 | LangGraph의 장점(상태 그래프)이 반감 |
+
+### 접근법 C: LangGraph + CrewAI
+
+CrewAI의 Agent/Task 추상화를 활용하여 에이전트 정의를 단순화.
+
+| 장점 | 단점 |
+|------|------|
+| 에이전트 정의 직관적 | CrewAI 추상화가 LangGraph와 중복 |
+| 내장 메모리/협업 | 커스터마이징 제한 (CrewAI 프레임워크 한계) |
+| 빠른 프로토타이핑 | 성능 오버헤드, 디버깅 어려움 |
+
+### 추천: 접근법 A (Pure LangGraph HMAS)
+
+이유:
+1. **단일 프레임워크**로 전체 파이프라인 통제 — 디버깅 포인트 최소화
+2. plan 문서의 HMAS 비전을 **서브그래프 중첩**으로 자연스럽게 구현
+3. PostgreSQL Checkpointer로 Temporal 수준의 **durability** 확보
+4. Instructor + Pydantic State로 **타입 안전한 에이전트 간 통신**
+5. Tool-calling 패턴으로 정적 분석 도구들을 **동적으로 선택/실행**
+
+이 접근법으로 진행할까요, 아니면 다른 접근법이 더 적합하다고 생각하시나요?
+
+=== Entry 8 ===
+[187d92dc][assistant][2026-02-15T01:32:09.312Z]:
+접근법 A (Pure LangGraph HMAS) 확정. 이제 상세 설계 문서를 작성합니다.
+
+=== Entry 9 ===
+[187d92dc][assistant][2026-02-15T01:38:28.607Z]:
+설계 문서 작성 완료. 섹션별로 승인을 진행하겠습니다.
+
+## 설계 요약 (승인 요청)
+
+**17개 섹션의 종합 설계서**를 `plan/2026-02-15-langgraph-hmas-migration-design.md`에 작성했습니다.
+
+### 핵심 아키텍처 결정:
+
+1. **3계층 HMAS**: MetaAgent → 3 Supervisors (Forensic/Logic/Stack) → 11 Workers
+2. **병렬 실행**: Forensic + Logic 병렬 → Stack은 Logic AST 결과 의존 → Fan-in
+3. **11개 Worker 도구 매핑**: PyGithub, PyDriller, Tree-sitter, Radon/Lizard, SonarQube, Datasketch, Vibector, CLAVE
+4. **4대 지표**: 논리력(30%) + 전문성(30%) + 안정성(20%) + 진정성(20%)
+5. **Instructor + Pydantic**: LLM 출력 자동 검증/재시도
+6. **벡터 검색 RAG**: 질문 생성 시 LLM 입력 90% 축소
+7. **6 Phase 마이그레이션**: 인프라 → Worker → Graph → 질문 → 프론트 → 테스트
+8. **25개 Linear 티켓** 예정
+
+=== Entry 10 ===
+[187d92dc][assistant][2026-02-15T02:20:57.696Z]:
+리뷰 내용을 확인했습니다. 핵심 비판점을 정리하면:
+
+1. **Identity Resolution 부재**: 단순 수집이 아닌 Git 포렌식 (blame -w -M -C + 동적 mailmap + AST 프루닝)
+2. **JD 적합성 선별 부재**: 모든 레포 분석은 토큰 낭비 → Funnel Selection (메타데이터 → 벡터 유사도 → 기여도 임계치)
+3. **DDD 미적용**: LangGraph 노드에 비즈니스 로직 혼재 → Domain/Application/Infrastructure 분리
+4. **기존 코드 선별적 마이그레이션**: 맹목적 포팅 금지 → 전수 조사 후 통합/폐기 결정
+
+Plan Mode로 재설계를 진행합니다. 먼저 기존 코드를 심층 탐색하겠습니다.
+
+=== Entry 11 ===
+[187d92dc][assistant][2026-02-15T02:28:39.255Z]:
+Plan 에이전트의 결과를 리뷰합니다. 모든 리뷰 피드백이 반영되었는지 확인 후 최종 plan 파일을 작성합니다.
+
+=== Entry 12 ===
+[187d92dc][user][2026-02-15T02:32:26.153Z]:
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the entire conversation:
+
+1. **Session Start**: Multiple system reminders loaded showing Docker status, Git branch (main), recent commits, and context about past work on the IaaS project (Vantict Sniper).
+
+2. **User's Initial Request (Brainstorming Skill)**: The user invoked the brainstorming skill with a massive request to:
+   - Read plan folder source markdown files (souce1-6.md)
+   - Comprehensively improve the project
+   - Use LangGraph and tools for agent efficiency
+   - Minimize input context via vector search
+   - Ensure agent input/output connectivity
+   - Use design patterns (no hardcoding)
+   - Consider Instructor/Pydantic, Outlines (FSM), Marvin
+   - Use SDKs where possible, static analysis programs
+   - Create infrastructure modification plans step-by-step
+   - Register Linear tickets sequentially
+   - Write comprehensive plan in MD file covering architecture, workflows, agent composition, tools, I/O, analysis programs, frontend display plans
+
+3. **Exploration Phase**: Three parallel subagents were launched:
+   - Agent 1: Read all 6 plan/souce*.md files and created comprehensive summary of the vision documents
+   - Agent 2: Analyzed current workflow architecture (interview_workflow.py, workflow_constants.py, etc.)
+   - Agent 3: Analyzed Activity implementation patterns across 7 activity files
+
+4. **Clarifying Questions (4 rounds)**:
+   - Q1: Temporal vs LangGraph relationship → User chose "LangGraph 전면 교체" (full replacement)
+   - Q2: Structured Output library → User chose "Instructor + Pydantic"
+   - Q3: Static analysis scope → User chose "Full Stack" (Tree-sitter + Radon/Lizard + SonarQube + Datasketch)
+   - Q4: Migration strategy → User chose "Big Bang (일괄 전환)"
+
+5. **Approach Selection**: Three approaches presented:
+   - A: Pure LangGraph HMAS (recommended)
+   - B: LangGraph + Celery Workers
+   - C: LangGraph + CrewAI
+   - User chose Approach A
+
+6. **User's Additional Message**: While processing, user provided a detailed static analysis toolchain list covering:
+   - Complexity (Radon, Lizard, Eclipse JDT, Esprima/Babel)
+   - Quality (SonarQube, Snyk/Bandit)
+   - Structure (Tree-sitter, AST pattern detection)
+   - Forensics (PyDriller, git-filter-repo, Datasketch, Vibector, CLAVE)
+   - Asked "정적분석도 구 더 있어야하는거 아냐?" (shouldn't there be more static analysis?)
+
+7. **Initial Design Document Created**: `plan/2026-02-15-langgraph-hmas-migration-design.md` with 17 sections covering:
+   - Executive Summary, Architecture, LangGraph Graph Design, Worker Agent Details
+   - Pydantic + Instructor Integration, Vector Search Strategy, Prompt Engineering
+   - Design Patterns, Infrastructure Changes, Frontend Changes, 4-Axis Scoring System
+   - Agent Data Flow, Code Reuse List, Test Strategy, Migration Phases (6 phases)
+   - Risk Mitigation, Linear Ticket Structure (25 tickets)
+
+8. **User's Review Response**: Instead of approving, user pointed to `plan/review1.md` for design review feedback.
+
+9. **Review Document Analysis**: The review (`plan/review1.md`) contained critical feedback:
+   - Identity Resolution: Need git blame -w -M -C, dynamic mailmap, AST semantic pruning
+   - JD Relevance: Need Funnel Selection Architecture (metadata → LLM → vector similarity)
+   - DDD: Need Domain/Application/Infrastructure separation
+   - Selective Migration: Audit existing code before porting
+   - UI/UX: AI Code Heatmap, real-time streaming improvements
+
+10. **Plan Mode Activated**: System entered plan mode after reading review.
+
+11. **Deep Exploration Phase (3 parallel agents)**:
+    - Agent 1: Identity Resolution deep analysis - Found existing 8-step heuristic, AuthorMatch/AuthorIdentityResult models, cross-repo verification, GitHub API fallback, but missing git blame -w -M -C, mailmap, AST pruning
+    - Agent 2: DDD audit - Found 60% reusable (scoring_formulas 899 lines pure logic, data models), 30% needs refactoring (Activity → Service), 10% deprecate (Temporal-specific)
+    - Agent 3: JD selection/vector search analysis - Found regex-based tech extraction (15 languages only), metadata scoring (lang 30% + size 30% + keyword 40%), missing LLM tech_stack utilization, JD-repo vector matching
+
+12. **Plan Agent**: Launched to create comprehensive redesign plan incorporating all review feedback. Produced detailed plan covering DDD folder structure, Identity Resolution Pipeline, Funnel Selection Architecture, LangGraph HMAS with DDD integration, selective migration mapping (file-by-file decisions), infrastructure changes, DB migration, and phase-by-phase implementation.
+
+13. **Final Plan Written**: Written to `/Users/sabyun/.claude/plans/gleaming-singing-sphinx.md` with:
+    - Phase 0: Scaffolding (3 days)
+    - Phase 1: Domain Layer (5 days)
+    - Phase 2: Infrastructure Layer (7 days)
+    - Phase 3: LangGraph Graph Construction (7 days)
+    - Phase 4: Temporal Removal (3 days)
+    - Phase 5: Frontend (separate track)
+
+Key files examined:
+- plan/souce1-6.md (vision documents)
+- backend/app/workflows/interview_workflow.py (main workflow, ~667 lines)
+- backend/app/workflows/workflow_code_analysis.py
+- backend/app/workflows/activities/*.py (16 activity files)
+- backend/app/services/github_service.py (1094 lines, identity resolution)
+- backend/app/services/scoring_formulas.py (899 lines, pure business logic)
+- backend/app/services/code_analyzer.py (681 lines)
+- backend/app/services/vector_store.py (227 lines)
+- backend/app/models/ (all model files)
+- docker-compose.yml
+- frontend/src/ structure
+- plan/review1.md (design review)
+
+The conversation ended with the plan file written and the system still in Plan Mode, waiting to call ExitPlanMode for user approval.
+
+Summary:
+1. Primary Request and Intent:
+   The user requested a comprehensive redesign and migration of the IaaS project (Vantict Sniper v4.0 → Jittda Sniper v5.0). The core intent is to:
+   - Replace Temporal.io with LangGraph for a Hierarchical Multi-Agent System (HMAS) with 3 tiers (Meta-Supervisor-Worker)
+   - Use Instructor + Pydantic for structured LLM output
+   - Integrate Full Stack static analysis tools (Tree-sitter, Radon/Lizard, SonarQube, Datasketch, Vibector, CLAVE)
+   - Minimize LLM input context via vector search (RAG)
+   - Apply design patterns (Strategy, Factory, Template Method, Observer, etc.) to avoid hardcoding
+   - Apply DDD (Domain-Driven Design) architecture separating Domain/Application/Infrastructure
+   - Implement Identity Resolution Pipeline (git blame -w -M -C, dynamic mailmap, AST semantic pruning)
+   - Implement Funnel Selection Architecture (metadata → LLM → vector similarity for repo filtering)
+   - Write few-shot, specific prompts with 3 question generation strategies (Negative Selection, Intentional Complexity, Evolution)
+   - Create comprehensive migration plan as markdown, then register as Linear tickets
+   - Big Bang migration strategy (full cutover, not gradual)
+
+2. Key Technical Concepts:
+   - **LangGraph StateGraph**: 3-tier HMAS (MetaAgent → 3 Supervisors → 11 Workers) with PostgreSQL Checkpointer, subgraph composition, fan-out/fan-in parallel execution, conditional edges for quality gate loops
+   - **Instructor + Pydantic**: Structured output with automatic validation/retry (max 3), replacing direct JSON parsing
+   - **DDD Architecture**: Domain layer (pure business logic, zero external dependencies), Application layer (LangGraph orchestration, use cases), Infrastructure layer (external service adapters)
+   - **Identity Resolution**: GitHub GraphQL node_id (databaseId) → 8-step heuristic → dynamic mailmap (Levenshtein clustering) → git blame -w -M -C --line-porcelain → Tree-sitter AST semantic pruning
+   - **Funnel Selection**: Stage 1 (hard filter: fork/size/push date) → Stage 2 (LLM tech_stack scoring) → Stage 3 (vector similarity JD-repo README cosine)
+   - **4-Axis Scoring System**: Logic 30% (CC, Halstead, Cognitive) + Mastery 30% (API depth, patterns, SOLID) + Stability 20% (tech debt, code smells, churn) + Authenticity 20% (WPM, pure contribution, plagiarism, style)
+   - **Static Analysis Toolchain**: Tree-sitter (AST), Radon/Lizard (complexity), SonarQube (quality), Datasketch MinHash/LSH (plagiarism), Vibector (AI code detection via WPM), CLAVE (stylometry), PyDriller (git forensics), git-filter-repo (noise removal), Bandit (Python security)
+   - **Vector Search (RAG)**: pgvector with text-embedding-3-small (1536D), code chunks split by AST function/class boundaries, context budget management (8000 token max per LLM call)
+   - **Selective Migration**: 60% reuse (scoring_formulas, models, cached_llm), 30% redesign (github_service → domain/identity + infrastructure/github, activities → LangGraph nodes), 10% deprecate (Temporal-specific code)
+   - **Langfuse-First Prompts**: Langfuse primary → YAML fallback, preserved across migration
+
+3. Files and Code Sections:
+
+   - **plan/souce1-6.md** (Vision Documents)
+     - 6 source documents describing the original vision for Project Jitta
+     - souce1: 3 parallel agents (Collector, Forensic, Metric), tech stack selection
+     - souce4: HMAS 3-tier architecture (most important - Meta/Supervisor/Worker)
+     - souce5: Question generation engine with 3 strategies + UI/UX design
+     - souce6: Data collection strategy and risks
+
+   - **plan/review1.md** (Design Review - Critical)
+     - Contains the review that redirected the entire design approach
+     - 4 core criticisms: Identity Resolution, JD Relevance, DDD, Selective Migration
+     - Specific recommendations for git blame -w -M -C, dynamic mailmap, Funnel Selection Architecture, DDD layer separation
+
+   - **plan/2026-02-15-langgraph-hmas-migration-design.md** (Initial Design - Superseded)
+     - 17-section initial design document created before review feedback
+     - Contains LangGraph graph code examples, Worker specifications, Pydantic models, infrastructure plans
+     - This was the first design that was then critiqued
+
+   - **backend/app/workflows/interview_workflow.py** (~667 lines)
+     - Current Temporal 4-Phase pipeline orchestrator
+     - TO BE REPLACED by `application/graphs/meta_graph.py`
+     - Phase 0: Input Enrichment → Phase 1: Planning → Phase 2: Parallel Analysis (asyncio.gather) → Phase 2.5: Non-blocking Enrichment → Phase 3: Question Generation → Phase 4: Quality Review + Finalization
+
+   - **backend/app/services/github_service.py** (1094 lines)
+     - Contains `resolve_author_by_identity()` - 8-step heuristic author matching
+     - Contains `select_relevant_repos()` - repo filtering with scoring formula
+     - Contains `verify_cross_repo()` - cross-repo author verification
+     - TO BE SPLIT into `domain/identity/` + `infrastructure/github/`
+     - Key methods: AuthorMatch priorities (github_profile 0.95, name_exact 1.0, noreply_email 0.95, email_prefix 0.9, name_substring 0.7, email_domain_match 0.6, commit_pattern_analysis 0.5)
+
+   - **backend/app/services/scoring_formulas.py** (899 lines)
+     - Pure business logic - NO external dependencies
+     - Contains `calculate_radar_scores()`, `calculate_code_quality_score()`, `calculate_overall_match()`, `classify_experience_level()`
+     - TO BE MOVED as-is to `domain/scoring/formulas.py`
+
+   - **backend/app/services/code_analyzer.py** (681 lines)
+     - PyDriller integration, 3-Stage HYBRID analysis (Overview → Deep → Synthesis)
+     - `analyze_with_pydriller()` with multi-author support (JIT-36)
+     - TO BE SPLIT into `infrastructure/analysis/` adapters + LangGraph nodes
+
+   - **backend/app/services/vector_store.py** (227 lines)
+     - pgvector wrapper with text-embedding-3-small (1536D)
+     - `store_profile()`, `store_code()`, `store_static_analysis()`
+     - Cosine similarity search via `<=>` operator
+     - TO BE EXTENDED with `compute_jd_repo_similarity()` for Funnel Stage 3
+
+   - **backend/app/models/author_identity.py** (23 lines)
+     - `AuthorMatch` and `AuthorIdentityResult` Pydantic models
+     - TO BE EXTENDED in `domain/identity/models.py` with MailmapEntry, IdentityCluster, BlameLineAttribution, PureContribution
+
+   - **backend/app/services/cached_llm.py** (772 lines)
+     - Redis cache layer + Langfuse integration
+     - 2-tier caching: global + job-scoped
+     - TO BE MOVED to `infrastructure/llm/cached_client.py`
+
+   - **backend/app/workflows/activities/*.py** (16 activity files)
+     - All use `@activity.defn` decorator (Temporal-specific)
+     - Pattern: `get_prompt_with_config()` → `CachedLLMService` → `run_llm_with_heartbeat()`
+     - TO BE CONVERTED to LangGraph node functions in `application/nodes/`
+
+   - **docker-compose.yml**
+     - Current: 8 services (backend, frontend, postgres, redis, temporal, temporal-ui, phoenix, worker)
+     - TO BE MODIFIED: Remove temporal/temporal-ui/worker, Add sonarqube
+
+   - **/Users/sabyun/.claude/plans/gleaming-singing-sphinx.md** (Final Plan File)
+     - The most recent and authoritative plan document
+     - Contains Phase 0-5 implementation plan with DDD structure
+     - Incorporates all review feedback
+
+4. Errors and Fixes:
+   - **No runtime errors encountered** - this was a design/planning session, no code was executed
+   - **Design Review Rejection**: The initial design in `plan/2026-02-15-langgraph-hmas-migration-design.md` was rejected via `plan/review1.md` with 4 critical issues:
+     - Fix: Complete redesign incorporating Identity Resolution Pipeline, Funnel Selection Architecture, DDD separation, and selective migration audit
+   - **User feedback on static analysis**: User provided additional detailed toolchain and asked "정적분석도 구 더 있어야하는거 아냐?" (shouldn't there be more static analysis tools?)
+     - Fix: Confirmed SonarQube covers most needs, recommended adding cloc and pydeps/dependency-cruiser as supplements
+
+5. Problem Solving:
+   - **Temporal → LangGraph durability gap**: Solved by using PostgreSQL Checkpointer (`AsyncPostgresSaver.from_conn_string()`) for state persistence, replacing Temporal's built-in durability
+   - **Temporal heartbeat replacement**: Solved by LangGraph streaming (`graph.astream()` with `stream_mode="updates"`) + WebSocket broadcasting
+   - **Temporal Worker replacement**: LangGraph runs inside FastAPI as background task, eliminating need for separate worker process
+   - **Dict-based data passing type safety**: Solved by TypedDict State definitions with `Annotated[dict, merge_dicts]` for parallel fan-in
+   - **StackSupervisor dependency on LogicSupervisor's AST results**: Solved by making StackSupervisor execute after LogicSupervisor (not fully parallel), while Forensic and Logic run in parallel
+   - **Embedding model inconsistency**: Identified that Vector Store uses text-embedding-3-small (1536D) while Skill Normalizer uses all-MiniLM-L6-v2 (384D) — flagged for unification
+
+6. All User Messages:
+   - **Message 1 (Brainstorming invocation)**: Comprehensive request to read plan folder 
+
+=== Entry 13 ===
+[187d92dc][assistant][2026-02-15T02:38:11.655Z]:
+`plan/2026-02-15-v5-migration-implementation-plan.md` 파일로 작성 완료했습니다.
+
+내용 요약:
+- **Phase 0**: Scaffolding — DDD 구조, Docker/SonarQube, DB 마이그레이션 (3일)
+- **Phase 1**: Domain Layer — Identity Resolution, Scoring 이전, Funnel Selection (5일)
+- **Phase 2**: Infrastructure Layer — Git/GitHub/정적분석/LLM/벡터 어댑터 (7일)
+- **Phase 3**: LangGraph 그래프 — State 정의, 3계층 HMAS, FastAPI 통합 (7일)
+- **Phase 4**: Temporal 제거 + 정리 (3일)
+- **Phase 5**: 프론트엔드 + 출력 (별도 트랙)
+- **선별적 마이그레이션**: 60% 이전 / 30% 재설계 / 10% 폐기
+- **4대 지표**: 논리력 30% + 전문성 30% + 안정성 20% + 진정성 20%
+- **Linear 티켓**: 25개 (Phase별 구조화)
+
+=== Entry 14 ===
+[187d92dc][user][2026-02-15T02:42:26.774Z]:
+plan/review2.md 리뷰 반영해서 최종 설계계획 전체적으로 작성해서 md 파일 로 작성해줘 
+
+=== Entry 15 ===
+[187d92dc][assistant][2026-02-15T02:42:51.573Z]:
+review2.md 리뷰를 확인했습니다. 핵심 변경점:
+
+1. **"마이그레이션" → "재건축(Clean Slate)"** — `jittda/` 신규 디렉토리에서 시작
+2. **Phase 4(Temporal 제거) 삭제** — 애초에 설치하지 않음
+3. **Fresh Init SQL** — Alembic 히스토리 없이 clean schema
+4. **Cloudflare Tunnel 필수** — docker-compose에 고정
+5. **DDD 의존성 규칙 엄격화** — domain은 infrastructure를 절대 import 금지, interface/api 계층 분리
+6. **파일 복사 금지, 로직 이식만 허용** — scoring은 클래스 구조로 재작성
+
+기존 코드베이스와 비전 문서를 종합 탐색하겠습니다.
+
+=== Entry 16 ===
+[187d92dc][assistant][2026-02-15T02:44:16.234Z]:
+탐색 완료. 이제 review1 + review2 피드백을 모두 반영한 최종 설계 계획을 설계합니다.
+
+=== Entry 17 ===
+[187d92dc][assistant][2026-02-15T02:54:49.844Z]:
+Plan 에이전트가 review1 + review2를 모두 반영한 최종 설계를 완성했습니다. 이제 plan 파일에 작성합니다.
+
+=== Entry 18 ===
+[d49aafca][user][2026-02-15T02:55:25.342Z]:
+Implement the following plan:
+
+# Jittda Sniper v5.0 — Clean Slate 재건축 최종 설계
+
+## Context
+review2.md 핵심: "마이그레이션이 아닌 재건축". `jittda/` 신규 디렉토리, Fresh init.sql, Cloudflare Tunnel, DDD 엄격 의존성, "Port Logic, Rewrite Code" 원칙. Phase별 42개 Linear 티켓, 46일 구현.
+
+## 산출물
+`plan/2026-02-15-v5-final-design.md` — 18개 섹션 종합 설계 문서 작성
+
+## Verification
+plan/review1.md + plan/review2.md 모든 지적사항 반영 확인
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/sabyun/.claude/projects/-Users-sabyun-goinfre-IaaS/187d92dc-19a2-4001-97fb-b88e7670a7e3.jsonl
+
+=== Entry 19 ===
+[d49aafca][assistant][2026-02-15T03:04:21.101Z]:
+`plan/2026-02-15-v5-final-design.md` 작성 완료했습니다. 18개 섹션 종합 설계 문서입니다.
+
+### review1.md 반영 확인
+
+| 지적사항 | 반영 섹션 |
+|----------|----------|
+| Identity Resolution Pipeline (GitHub Node ID + 동적 .mailmap + 3단계 포렌식) | §7 |
+| JD 기반 Funnel Selection (Hard Filter → Relevance Score → Vector) | §8 |
+| DDD + Clean Infrastructure | §4 |
+| Cloudflare Tunnel 도입 | §15 |
+| AI Code Heatmap (Human vs AI 비율) | §16 |
+| D3.js + 실시간 WebSocket 스트리밍 | §16 |
+
+### review2.md 반영 확인
+
+| 지적사항 | 반영 섹션 |
+|----------|----------|
+| Clean Slate — `jittda/` 신규 디렉토리 | §3 |
+| "Temporal 제거" Phase 삭제 (처음부터 미포함) | §18 |
+| Fresh `init.sql` (Alembic 히스토리 금지) | §15 |
+| Legacy = Read-only 참조, Port Logic / Rewrite Code | §3 |
+| DDD 의존성 규칙 엄격화 (domain→infrastructure import 금지) | §4 |
+| Interface Layer 분리 (interface/api) | §4 |
+| Makefile 표준화 (up/down/logs/shell/test/clean/infra-clean) | §15 |
+
+### 산출물 구성
+
+- 42개 Linear 티켓, 6 Phase, 42일 구현 로드맵
+- 11개 Worker Agent 상세 설계 + BaseWorker Template Method
+- Identity Resolution 3단계 + Funnel Selection 3단계 도메인 로직
+- 4대 지표(논리력/전문성/안정성/진정성) 가중 합산 모델
+- Docker Compose (Cloudflare Tunnel 포함) + Fresh init.sql
+- 프론트엔드 7개 D3.js 차트 + 5개 탭 구조
+
+=== Entry 20 ===
+[d49aafca][user][2026-02-15T03:25:25.199Z]:
+plan/extra.md 파일 확인해서 해당 2026-02-15-v5-final-design.md 최종적으로 업데이트 해줘 파일에서 논의된 사항 확인해서 
+
+=== Entry 21 ===
+[d49aafca][assistant][2026-02-15T03:25:56.693Z]:
+extra.md의 핵심 변경사항을 파악했습니다. 주요 반영 포인트:
+
+1. **의존성 최신화** — LangGraph 1.0.8+, Tree-sitter 0.24.7+ (Breaking Change), Instructor 1.7.0+ 등
+2. **Reference Passing** — State에 Raw Data 대신 DB ID만 전달 (State Bloat 방지)
+3. **SonarQube On-Demand** — Docker Profile로 필요 시만 구동
+4. **Monorepo 구조 변경** — `backend/src/`, `frontend/`, `infra/` 물리적 격리
+5. **Cloudflare Tunnel 분리** — `infra-tunnel/` 독립 프로젝트로 생명주기 분리
+6. **Tree-sitter 0.24 Breaking Change** — Python 패키지 네이티브 바인딩
+7. **Backend/Frontend Dockerfile** — Multi-stage build, Hot Reload
+
+설계 문서를 업데이트하겠습니다.
+
+=== Entry 22 ===
+[d49aafca][assistant][2026-02-15T03:26:12.227Z]:
+섹션별로 순차 업데이트하겠습니다. 먼저 §1 헤더 + Executive Summary를 업데이트합니다.
+
+=== Entry 23 ===
+[d49aafca][assistant][2026-02-15T03:28:57.423Z]:
+§9 Worker Agent에 Tree-sitter 0.24 Breaking Change 대응을 추가합니다.
+
+=== Entry 24 ===
+[d49aafca][user][2026-02-15T03:30:21.083Z]:
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the conversation:
+
+1. **First user message**: "Implement the following plan: # Jittda Sniper v5.0 — Clean Slate 재건축 최종 설계 / Context: review2.md 핵심... / 산출물: plan/2026-02-15-v5-final-design.md — 18개 섹션 종합 설계 문서 작성 / Verification: plan/review1.md + plan/review2.md 모든 지적사항 반영 확인"
+
+   The user also referenced a plan transcript at a specific path.
+
+2. **My actions for the first request**:
+   - Read all source documents (souce1-6.md, review1.md, review2.md, the existing implementation plan, and the initial design document)
+   - Created a comprehensive 18-section design document at `plan/2026-02-15-v5-final-design.md`
+   - The document covered all review points from review1.md and review2.md
+
+3. **Second user message**: "plan/extra.md 파일 확인해서 해당 2026-02-15-v5-final-design.md 최종적으로 업데이트 해줘 파일에서 논의된 사항 확인해서"
+
+4. **My actions for the second request**:
+   - Read `plan/extra.md` which contained 7 major changes:
+     1. Dependency updates (LangGraph 1.0.8+, Tree-sitter 0.24.7+, etc.)
+     2. Reference Passing (State Bloat prevention)
+     3. SonarQube On-Demand (Docker Profile)
+     4. Monorepo directory structure (backend/src/, frontend/, infra/)
+     5. Cloudflare Tunnel separation (infra-tunnel/ independent project)
+     6. Tree-sitter 0.24 Breaking Change
+     7. Backend/Frontend separate Dockerfiles
+   - Started updating the design document section by section:
+     - Updated header/version
+     - Updated §1 Executive Summary table
+     - Added extra.md reflection table
+     - Updated §2 principles (added Reference Passing)
+     - Updated §4 directory structure (Monorepo)
+     - Updated §5 tech stack versions
+     - Updated §5.4 pyproject.toml dependencies
+     - Updated §9 with Tree-sitter 0.24 Breaking Change
+
+   **Remaining sections still need updating:**
+   - §10 LangGraph graph design needs Reference Passing MetaState update
+   - §12 Pydantic v2 ConfigDict update
+   - §15 Infrastructure needs Docker Compose rewrite (tunnel separation, SonarQube profile, backend/frontend Dockerfiles, init.sql with checkpoint table)
+   - §15 Makefile update
+   - Appendices may need updates
+
+Let me identify all the key files:
+
+**Files Read:**
+- plan/souce1.md through souce6.md (vision documents)
+- plan/review1.md (first design review)
+- plan/review2.md (implementation plan review)
+- plan/2026-02-15-v5-migration-implementation-plan.md (existing implementation plan)
+- plan/2026-02-15-langgraph-hmas-migration-design.md (initial design document)
+- plan/extra.md (architecture optimization feedback)
+
+**Files Created/Modified:**
+- plan/2026-02-15-v5-final-design.md (created, then multiple edits)
+
+The work was interrupted mid-way through updating the document with extra.md changes. Specifically, I had completed updates to sections 1, 2, 4, 5, and 9, but sections 10, 12, 15, and appendices still need the extra.md changes applied.
+
+Summary:
+1. Primary Request and Intent:
+   - **First request**: Create a comprehensive 18-section design document (`plan/2026-02-15-v5-final-design.md`) for "Jittda Sniper v5.0 — Clean Slate 재건축", ensuring all feedback from `plan/review1.md` and `plan/review2.md` is reflected. Key principles: new `jittda/` directory (not migration), Fresh init.sql, Cloudflare Tunnel, DDD strict dependencies, "Port Logic, Rewrite Code".
+   - **Second request**: Read `plan/extra.md` and update the final design document with the additional architectural optimizations discussed in that file.
+
+2. Key Technical Concepts:
+   - **Clean Slate Reconstruction** — New `jittda/` project directory, NOT migrating from existing `backend/`
+   - **DDD 4-Layer Architecture** — Interface → Application → Domain ← Infrastructure (strict dependency rules)
+   - **3-Tier HMAS** — MetaAgent (Level 1) → Supervisor (Level 2) → Worker (Level 3) using LangGraph StateGraph
+   - **Identity Resolution Pipeline** — GitHub Node ID + dynamic .mailmap + 3-level forensic blame (`git blame -w -M -C -C`)
+   - **JD-based Funnel Selection** — 3-stage filter (Hard Filter → Relevance Score → Vector Similarity) to select top 3-5 repos
+   - **Reference Passing** (from extra.md) — State objects carry DB IDs not raw data; nodes follow Load→Process→Save→Return Ref pattern
+   - **Tree-sitter 0.24 Breaking Change** (from extra.md) — `.so` build deprecated; use Python package native bindings
+   - **SonarQube On-Demand** (from extra.md) — Docker Profile `["analysis"]` instead of always-on
+   - **Monorepo Structure** (from extra.md) — `backend/src/` (DDD layers), `frontend/`, `infra/` physically separated
+   - **Cloudflare Tunnel Separation** (from extra.md) — `infra-tunnel/` as independent project with shared Docker network `jittda-public`
+   - **4 Core Metrics** — Logic (30%), Mastery (30%), Stability (20%), Authenticity (20%)
+   - **11 Worker Agents** — W1-W5 (Forensic), W6-W8 (Logic), W9-W11 (Stack)
+   - **Instructor + Pydantic v2** — Structured LLM output with auto-retry
+   - **Langfuse-first** — Prompt management with YAML fallback
+   - **42 Linear tickets across 6 Phases, 42-day implementation**
+
+3. Files and Code Sections:
+
+   - **plan/review1.md** (Read)
+     - First design review identifying 4 critical flaws: Identity Resolution, JD Relevance Filtering, DDD architecture, Clean Infrastructure (Cloudflare Tunnel)
+   
+   - **plan/review2.md** (Read)
+     - Implementation plan review emphasizing: "Migration이 아닌 Reconstruction", Clean Slate in `jittda/`, Fresh init.sql, no Temporal removal phase, strict DDD dependency rules, Interface Layer separation, Port Logic/Rewrite Code principle
+
+   - **plan/extra.md** (Read)
+     - Architecture optimization feedback with 7 major changes: dependency updates, Reference Passing, SonarQube On-Demand, Monorepo structure, Tunnel separation, Tree-sitter 0.24, Dockerfiles
+     - Contains full docker-compose.yml for both `infra-tunnel/` and `jittda/`
+     - Contains Backend Dockerfile (python:3.11-slim) and Frontend Dockerfile (multi-stage with Nginx)
+     - Contains Monorepo directory tree with `backend/src/` containing DDD layers
+     - Contains Reference Passing MetaState definition and node implementation pattern
+
+   - **plan/souce1.md - souce6.md** (Read)
+     - Vision documents covering: tech stack (GraphQL, PyDriller, Tree-sitter, Radon/Lizard, SonarQube, Datasketch, LangGraph), agent parallelization pipeline, 4 core metrics with sub-metrics, HMAS architecture, question generation strategies (Negative Selection, Intentional Complexity, Evolution), frontend dashboard design
+
+   - **plan/2026-02-15-langgraph-hmas-migration-design.md** (Read)
+     - Initial 17-section design document with detailed LangGraph code, Worker definitions, Pydantic models, infrastructure plans
+
+   - **plan/2026-02-15-v5-migration-implementation-plan.md** (Read)
+     - Implementation plan with Phase 0-5, DDD directory structure, DB migration, Linear ticket structure
+
+   - **plan/2026-02-15-v5-final-design.md** (Created, then partially updated)
+     - Created as comprehensive 18-section document (~29K tokens)
+     - Then partially updated with extra.md changes (sections 1, 2, 4, 5, 9 completed; sections 10, 12, 15 still pending)
+     - **Completed edits:**
+       - Header: Updated to v5.1, added extra.md reference, added "Reference Passing" to principles
+       - §1 Executive Summary table: Added Reference Passing, Tree-sitter 0.24+, Docker Profile, infra-tunnel separation, Monorepo
+       - Added extra.md reflection table (9 items checked)
+       - §2 Principles: Replaced "Deterministic" with "Reference Passing" as principle #5
+       - §4 Directory Structure: Complete rewrite to Monorepo structure with `infra-tunnel/`, `jittda/backend/src/`, `frontend/`, `infra/`
+       - §5.1 Backend table: Updated all version numbers (LangGraph 1.0.8+, Instructor 1.7.0+, etc.)
+       - §5.4 pyproject.toml: Updated all dependency versions to 2026-02 latest
+       - §9: Added §9.0 Tree-sitter 0.24 Breaking Change section with full TreeSitterAdapter code
+
+4. Errors and fixes:
+   - File too large to read in one pass (28922 tokens > 25000 limit) — Used partial reads with offset/limit parameters and section-by-section editing instead of full rewrite
+   - No user feedback corrections were needed
+
+5. Problem Solving:
+   - Successfully synthesized 6 source documents + 2 review documents + 1 extra optimization document into a single coherent 18-section design document
+   - Addressed all review feedback points with explicit tracking tables
+   - Currently solving the problem of incrementally updating the large document with extra.md changes
+
+6. All user messages:
+   - "Implement the following plan: # Jittda Sniper v5.0 — Clean Slate 재건축 최종 설계 / Context: review2.md 핵심: '마이그레이션이 아닌 재건축'... / 산출물: `plan/2026-02-15-v5-final-design.md` — 18개 섹션 종합 설계 문서 작성 / Verification: plan/review1.md + plan/review2.md 모든 지적사항 반영 확인"
+   - "plan/extra.md 파일 확인해서 해당 2026-02-15-v5-final-design.md 최종적으로 업데이트 해줘 파일에서 논의된 사항 확인해서"
+
+7. Pending Tasks:
+   - **Complete extra.md updates to remaining sections of `plan/2026-02-15-v5-final-design.md`:**
+     - §10 LangGraph 그래프 설계: Update MetaState to Reference Passing pattern (DB IDs instead of raw data), add Load→Process→Save→Ref node implementation pattern
+     - §12 Pydantic 모델: Add `model_config = ConfigDict(strict=True)` for Pydantic v2 compliance
+     - §15 인프라 구성: Major rewrite needed — separate `infra-tunnel/docker-compose.yml` (creates `jittda-public` network), rewrite `jittda/docker-compose.yml` (SonarQube with `profiles: ["analysis"]`, backend/frontend with separate build contexts, external network reference), add Backend Dockerfile, add Frontend Dockerfile (multi-stage), update init.sql to include LangGraph checkpoint table for 3.0.x compatibility, update Makefile
+     - Appendices may need version updates
+
+8. Current Work:
+   Was in the middle of updating `plan/2026-02-15-v5-final-design.md` with extra.md changes. Completed edits to sections §1, §2, §4, §5, §9. The last edit added the Tree-sitter 0.24 Breaking Change section (§9.0) with the full `TreeSitterAdapter` code. Task #2 ("extra.md 반영하여 최종 설계 문서 업데이트") is still marked as `in_progress`.
+
+9. Optional Next Step:
+   Continue updating the remaining sections of `plan/2026-02-15-v5-final-design.md` with extra.md changes. The next sections to update are:
+   - §10: Replace MetaState with Reference Passing version (from extra.md: `input_data_ref`, `forensic_result_ref`, etc.) and add the Load→Process→Save→Ref node pattern
+   - §12: Add Pydantic v2 ConfigDict
+   - §15: Major infrastructure rewrite (tunnel separation, Docker Compose split, Dockerfiles, init.sql with checkpoint table)
+   
+   This directly continues the user's request: "plan/extra.md 파일 확인해서 해당 2026-02-15-v5-final-design.md 최종적으로 업데이트 해줘 파일에서 논의된 사항 확인해서"
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/sabyun/.claude/projects/-Users-sabyun-goinfre-IaaS/d49aafca-fb8b-4928-bbb3-6a0b53d5a06d.jsonl
+Please continue the conversation from where we left off without asking the user any further questions. Continue with the last task that you were asked to work on.
+
+=== Entry 25 ===
+[d49aafca][assistant][2026-02-15T03:30:26.442Z]:
+이전 세션에서 `plan/extra.md` 반영 작업을 이어서 진행하겠습니다. 남은 섹션(§10, §12, §15)을 업데이트해야 합니다.
+
+먼저 현재 파일 상태와 extra.md를 확인하겠습니다.
+
+=== Entry 26 ===
+[d49aafca][assistant][2026-02-15T03:30:32.927Z]:
+현재 파일 상태를 확인했습니다. extra.md의 내용과 비교해보니, 이전 세션에서 이미 **모든 섹션이 업데이트된 상태**입니다. 정확히 확인하기 위해 §10, §12, §15 섹션의 현재 상태를 확인하겠습니다.
+
+=== Entry 27 ===
+[d49aafca][assistant][2026-02-15T03:30:49.772Z]:
+§10의 MetaState가 아직 Reference Passing으로 업데이트되지 않았습니다. 나머지 부분도 확인하겠습니다.
+
+=== Entry 28 ===
+[d49aafca][assistant][2026-02-15T03:31:23.784Z]:
+이제 상태를 파악했습니다. 이전 세션에서 반영 추적 테이블(§1)은 업데이트했지만, **실제 본문 내용은 §10, §12, §15에서 아직 업데이트가 안 되어 있습니다.** 지금 바로 수정하겠습니다.
+
+**§10** MetaState를 Reference Passing으로, **§12** Pydantic v2 ConfigDict, **§15** 인프라 전면 재작성을 진행합니다.
+
+=== Entry 29 ===
+[d49aafca][assistant][2026-02-15T03:31:46.284Z]:
+§10 MetaState + 노드 패턴 완료. 이제 §12 Pydantic v2 ConfigDict를 업데이트합니다.
+
+=== Entry 30 ===
+[d49aafca][assistant][2026-02-15T03:32:08.067Z]:
+이제 가장 큰 변경인 **§15 인프라 구성**을 전면 재작성합니다. extra.md의 핵심 변경점:
+1. infra-tunnel 독립 프로젝트 + jittda-public 네트워크
+2. SonarQube `profiles: ["analysis"]`
+3. Backend/Frontend 별도 빌드 컨텍스트 + Dockerfile
+4. init.sql에 LangGraph Checkpoint 테이블
+
+=== Entry 31 ===
+[d49aafca][assistant][2026-02-15T03:33:31.641Z]:
+모든 섹션 업데이트가 완료되었습니다. 최종 검증을 위해 변경된 섹션들이 올바르게 반영되었는지 확인하겠습니다.
+
+=== Entry 32 ===
+[d49aafca][assistant][2026-02-15T03:33:41.323Z]:
+6개 섹션 모두 `extra.md 반영` 주석이 포함되어 있고, 키워드(Reference Passing, ConfigDict, profiles:analysis, jittda-public, checkpoint)가 40회 등장합니다.
+
+이제 Task를 완료 처리하겠습니다.
+
+=== Entry 33 ===
+[d49aafca][assistant][2026-02-15T03:33:53.624Z]:
+## 완료 요약
+
+`plan/2026-02-15-v5-final-design.md`에 `extra.md`의 모든 지적사항이 반영되었습니다.
+
+### 이번 세션에서 업데이트한 섹션
+
+| 섹션 | 변경 내용 |
+|------|----------|
+| **§10** LangGraph 그래프 설계 | MetaState를 **Reference Passing** 방식으로 전면 교체 (DB ID만 전달). `Load→Process→Save→Return Ref` 노드 패턴 추가 |
+| **§12** Pydantic 모델 | 모든 BaseModel에 `model_config = ConfigDict(strict=True)` 추가 (Pydantic v2 준수) |
+| **§15** 인프라 구성 | 전면 재작성 — `infra-tunnel/` 독립 프로젝트 분리, SonarQube `profiles: ["analysis"]` On-Demand, Backend/Frontend 별도 Dockerfile + 빌드 컨텍스트, init.sql에 LangGraph Checkpoint 테이블 추가, Makefile에 `tunnel-up/tunnel-down` 명령 추가 |
+
+### 이전 세션에서 업데이트된 섹션 (확인 완료)
+
+| 섹션 | 변경 내용 |
+|------|----------|
+| **§1** Executive Summary | extra.md 반영 추적 테이블 추가 |
+| **§2** 설계 철학 | Reference Passing 원칙 #5 추가 |
+| **§4** 디렉토리 구조 | Monorepo 구조로 전면 교체 |
+| **§5** 기술 스택 | 2026-02 최신 버전 반영 |
+| **§9** Worker 설계 | Tree-sitter 0.24 Breaking Change 대응 코드 추가 |
+
+=== Entry 34 ===
+[9ceacdc7][user][2026-02-15T03:37:08.661Z]:
+<local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat>
+
+=== Entry 35 ===
+[9ceacdc7][user][2026-02-15T03:37:08.511Z]:
+<command-name>/clear</command-name>
+            <command-message>clear</command-message>
+            <command-args></command-args>
+
+=== Entry 36 ===
+[9ceacdc7][user][2026-02-15T03:39:00.293Z]:
+<command-message>superpowers:writing-plans</command-message>
+<command-name>/superpowers:writing-plans</command-name>
+<command-args>plan/2026-02-15-v5-final-design.md에  내용을 기반으로  단계별 계획을 작성해줘. 세부적으로 작성해줘 리니어 프로젝트를 생성해서 해당 프로젝트의 이슈나 마일드 스톤등을 활용해서 각각의 단계별로 세부적으로 작성해줘 plan/2026-02-15-v5-final-design.md 도 그에 맞게 나눠서 각각의 이슈나 마일드 스톤에서 참조할수 있도록 하면 좋을것같아 리니어 로 만들어줘</command-args>
+
+=== Entry 37 ===
+[9ceacdc7][user][2026-02-15T03:39:00.293Z]:
+Base directory for this skill: /Users/sabyun/.claude/plugins/cache/superpowers-marketplace/superpowers/4.3.0/skills/writing-plans
+
+# Writing Plans
+
+## Overview
+
+Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+
+Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+
+**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+
+**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
+
+**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+
+## Bite-Sized Task Granularity
+
+**Each step is one action (2-5 minutes):**
+- "Write the failing test" - step
+- "Run it to make sure it fails" - step
+- "Implement the minimal code to make the test pass" - step
+- "Run the tests and make sure they pass" - step
+- "Commit" - step
+
+## Plan Document Header
+
+**Every plan MUST start with this header:**
+
+```markdown
+# [Feature Name] Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** [One sentence describing what this builds]
+
+**Architecture:** [2-3 sentences about approach]
+
+**Tech Stack:** [Key technologies/libraries]
+
+---
+```
+
+## Task Structure
+
+````markdown
+### Task N: [Component Name]
+
+**Files:**
+- Create: `exact/path/to/file.py`
+- Modify: `exact/path/to/existing.py:123-145`
+- Test: `tests/exact/path/to/test.py`
+
+**Step 1: Write the failing test**
+
+```python
+def test_specific_behavior():
+    result = function(input)
+    assert result == expected
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `pytest tests/path/test.py::test_name -v`
+Expected: FAIL with "function not defined"
+
+**Step 3: Write minimal implementation**
+
+```python
+def function(input):
+    return expected
+```
+
+**Step 4: Run test to verify it passes**
+
+Run: `pytest tests/path/test.py::test_name -v`
+Expected: PASS
+
+**Step 5: Commit**
+
+```bash
+git add tests/path/test.py src/path/file.py
+git commit -m "feat: add specific feature"
+```
+````
+
+## Remember
+- Exact file paths always
+- Complete code in plan (not "add validation")
+- Exact commands with expected output
+- Reference relevant skills with @ syntax
+- DRY, YAGNI, TDD, frequent commits
+
+## Execution Handoff
+
+After saving the plan, offer execution choice:
+
+**"Plan complete and saved to `docs/plans/<filename>.md`. Two execution options:**
+
+**1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
+
+**2. Parallel Session (separate)** - Open new session with executing-plans, batch execution with checkpoints
+
+**Which approach?"**
+
+**If Subagent-Driven chosen:**
+- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
+- Stay in this session
+- Fresh subagent per task + code review
+
+**If Parallel Session chosen:**
+- Guide them to open new session in worktree
+- **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
+
+
+ARGUMENTS: plan/2026-02-15-v5-final-design.md에  내용을 기반으로  단계별 계획을 작성해줘. 세부적으로 작성해줘 리니어 프로젝트를 생성해서 해당 프로젝트의 이슈나 마일드 스톤등을 활용해서 각각의 단계별로 세부적으로 작성해줘 plan/2026-02-15-v5-final-design.md 도 그에 맞게 나눠서 각각의 이슈나 마일드 스톤에서 참조할수 있도록 하면 좋을것같아 리니어 로 만들어줘
+
+=== Entry 38 ===
+[9ceacdc7][assistant][2026-02-15T03:39:03.488Z]:
+
+
+I'm using the writing-plans skill to create the implementation plan.
+
+먼저 설계 문서와 Linear API 스킬을 확인하겠습니다.
+
+=== Entry 39 ===
+[9ceacdc7][user][2026-02-15T03:39:37.684Z]:
+Base directory for this skill: /Users/sabyun/goinfre/IaaS/.claude/skills/linear-ops
+
+# Linear-Ops Skill
+
+> linear-api.sh 셸 함수를 활용하여 **[티켓 분석 → 코드 수정 → 테스트 검증 → 결과 보고]**를 하나의 트랜잭션으로 처리한다.
+
+---
+
+## 사용법
+
+```
+/linear-ops JIT-26              # 기존 티켓 작업 시작 (identifier 자동 resolve)
+/linear-ops create "제목"        # 새 티켓 생성 후 작업
+/linear-ops list                 # 할당된 이슈 목록 조회
+/linear-ops search "키워드"      # 이슈 검색
+```
+
+---
+
+## Linear API 셋업
+
+모든 Linear 호출은 linear-api.sh를 source하여 사용한다.
+API 키는 자동으로 settings.local.json에서 감지된다.
+
+```bash
+source /Users/sabyun/goinfre/IaaS/.claude/skills/linear-ops/linear-api.sh
+
+# 주요 함수 (JIT-26 형식 identifier 또는 UUID 모두 지원)
+linear_search_issues "JIT-26" 5       # 이슈 검색
+linear_get_issue "JIT-26"             # 이슈 상세 조회
+linear_update_status "JIT-26" done    # 상태 변경
+linear_add_comment "JIT-26" "본문"    # 코멘트 추가
+linear_create_issue "제목" "팀ID"     # 이슈 생성
+linear_list_teams                     # 팀 목록
+```
+
+---
+
+## Phase 1: Initialize (작업 시작 및 컨텍스트 동기화)
+
+### 기존 티켓 작업 시
+1. `linear_get_issue "JIT-N"` → 최신 본문, 라벨, 우선순위 읽기
+2. 티켓 본문에서 **수락 기준(Acceptance Criteria)** 추출
+3. 수락 기준이 없을 경우 → 사용자에게 "수락 기준을 먼저 정의할까요?" 확인
+4. 코드베이스에서 수정 필요 지점 분석 → 사용자에게 영향 범위 출력
+5. `linear_update_status "JIT-N" in_progress` → 상태 변경
+6. Git 브랜치 생성: `git checkout -b feat/JIT-{N}-{slug}` 또는 `fix/JIT-{N}-{slug}`
+
+### 새 티켓 생성 시
+1. `linear_list_teams` → 팀 ID 확인
+2. `linear_create_issue "제목" "팀ID" "설명" priority` → 이슈 생성
+3. description에 반드시 아래 섹션 포함:
+   ```markdown
+   ## 수락 기준 (Acceptance Criteria)
+   - [ ] 기준 1
+   - [ ] 기준 2
+
+   ## 테스트 시나리오
+   - [ ] 시나리오 1: [입력] → [기대 결과]
+   - [ ] 시나리오 2: [엣지 케이스] → [기대 결과]
+   ```
+4. 생성된 이슈를 In Progress로 변경 후 Phase 2 진입
+
+### 목록/검색
+- list: `linear_list_issues` → 상태별 정리하여 출력
+- search: `linear_search_issues "키워드"` → 결과 테이블 출력
+
+---
+
+## Phase 2: TDD Implementation (티켓 기반 테스트 주도 개발)
+
+### 2-1. 테스트 먼저 (Test First)
+
+수락 기준에서 테스트 케이스를 도출하고, **코드 수정 전에 테스트를 먼저 작성/업데이트**한다.
+
+**Backend (pytest):**
+```
+backend/tests/test_{feature}.py  → 신규 기능 테스트
+backend/tests/                   → 기존 테스트 업데이트
+```
+- 실행: `docker compose exec backend pytest tests/test_{feature}.py -v --tb=short`
+- 실패 확인 후 구현 진행 (Red → Green → Refactor)
+
+**Frontend (vitest/playwright):**
+```
+frontend/src/**/*.test.ts        → 단위 테스트
+frontend/e2e/*.spec.ts           → E2E 테스트
+```
+- 단위: `docker compose exec frontend npx vitest run --reporter=verbose`
+- E2E: `cd frontend && npx playwright test`
+
+### 2-2. 구현 (Implementation)
+
+1. 수정 파일별 변경 사항 적용
+2. 프로젝트 네이밍/배치 규칙 준수 (CLAUDE.md 참조)
+3. 파일 300줄 초과 시 분리 검토
+
+### 2-3. 테스트 실행 및 검증
+
+```
+# Backend 전체 테스트
+docker compose exec backend pytest --tb=short -q
+
+# Frontend 단위 테스트
+docker compose exec frontend npx vitest run
+
+# 실패한 테스트만 재실행
+docker compose exec backend pytest --last-failed -v
+
+# 커버리지 확인
+docker compose exec backend pytest --cov=app --cov-report=term-missing
+```
+
+### 2-4. 테스트 실패 대응
+
+테스트 실패 시 **절대 Linear 티켓을 업데이트하지 않는다.**
+
+1. 에러 로그 분석 → 근본 원인 식별
+2. 코드 재수정 → 테스트 재실행
+3. 3회 실패 시 → 사용자에게 에러 리포트:
+   ```
+   [Test Failure Report]
+   - 실패 테스트: test_name
+   - 에러 메시지: ...
+   - 시도한 수정: ...
+   - 제안: ...
+   ```
+4. 전체 테스트 커버리지가 감소하지 않았는지 확인
+
+---
+
+## Phase 3: Finalize (결과 보고 및 클로징)
+
+### 조건: 모든 테스트 통과 시에만 진행
+
+### 3-1. 티켓 업데이트 (코멘트 추가)
+
+코멘트 본문에 마크다운 특수문자가 많으면 파일 기반 입력을 사용한다:
+
+```bash
+# 직접 본문 전달
+linear_add_comment "JIT-N" "## 구현 완료\n\n### 수정 파일\n- file1.py"
+
+# 파일에서 읽기 (권장 — 특수문자 안전)
+linear_add_comment "JIT-N" @/tmp/review_comment.md
+```
+
+코멘트 본문 템플릿:
+```markdown
+## 구현 결과
+
+### [Summary]
+{구현된 기능의 기술적 요약}
+
+### [Files Changed]
+- path/to/file1.py — 변경 내용 요약
+
+### [Test Result]
+- 결과: ALL PASSED (X passed, 0 failed)
+
+### [Commit]
+- 브랜치: feat/JIT-{N}-slug
+- 커밋: {커밋 해시}
+```
+
+### 3-2. 상태 업데이트
+- `linear_update_status "JIT-N" in_review`
+
+### 3-3. Git 커밋, PR, 머지 및 완료
+1. 커밋 메시지에 티켓 ID 포함: `feat: {설명} [JIT-{N}]`
+2. `git push -u origin {branch}`
+3. `gh pr create --title "feat: {설명} [JIT-{N}]" --body "..."`
+4. PR 본문에 Linear 티켓 링크 포함
+5. `gh pr merge --merge` → PR 머지
+6. `git checkout main && git pull` → main 브랜치 동기화
+7. `linear_update_status "JIT-N" done` → 티켓 완료 처리
+
+---
+
+## 예외 처리 (Guardrails)
+
+| 상황 | 대응 |
+|------|------|
+| Linear API 권한 오류 | 즉시 사용자에게 알림 → API Key 확인 요청 |
+| 수락 기준 없는 티켓 | 작업 시작 전 "수락 기준을 먼저 정의할까요?" 확인 |
+| 테스트 실패 | Linear 업데이트 금지, 에러 분석 후 재시도 또는 사용자 리포트 |
+| 티켓 ID 미발견 | linear_search_issues로 유사 이슈 검색 후 제안 |
+| 모호한 요구사항 | 사용자에게 구체화 질문 후 진행 |
+| 커버리지 감소 | 추가 테스트 작성 후 재검증 |
+
+---
+
+## 워크플로우 다이어그램
+
+```
+/linear-ops JIT-26
+    |
+    +- Phase 1: Initialize
+    |   +- linear_get_issue → 티켓 읽기
+    |   +- 수락 기준 확인 (없으면 → 사용자 확인)
+    |   +- 코드베이스 영향 분석
+    |   +- linear_update_status → in_progress
+    |   +- git checkout -b feat/JIT-26-slug
+    |
+    +- Phase 2: TDD Implementation
+    |   +- 수락 기준 → 테스트 케이스 도출
+    |   +- 테스트 작성 (Red)
+    |   +- 코드 구현 (Green)
+    |   +- 리팩토링 (Refactor)
+    |   +- 전체 테스트 실행
+    |   +- [실패 시] 재수정 루프 (최대 3회)
+    |
+    +- Phase 3: Finalize (테스트 통과 시만)
+        +- linear_add_comment → 결과 기록
+        +- linear_update_status → in_review
+        +- git commit + push
+        +- gh pr create
+        +- gh pr merge --merge
+        +- git checkout main && git pull
+        +- linear_update_status → done
+```
+
+---
+
+## 활용 MCP 서버
+
+| 서버 | 용도 |
+|------|------|
+| sequential | 복잡한 티켓 분석, 수정 영향 범위 추론 |
+| context7 | 프레임워크/라이브러리 공식 문서 참조 |
+| docker | 컨테이너 내 테스트 실행 |
+
+---
+
+## 출력 포맷
+
+### 작업 시작 시
+```
+[Linear-Ops] JIT-26 작업 시작
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+제목: {title}
+우선순위: {priority}
+상태: → In Progress
+
+수락 기준:
+  - 기준 1
+  - 기준 2
+
+영향 파일:
+  backend/app/services/foo.py (L45-78)
+  frontend/src/components/Bar.tsx (L12-30)
+
+브랜치: feat/JIT-26-slug
+```
+
+### 작업 완료 시
+```
+[Linear-Ops] JIT-26 작업 완료
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+수정 파일: 3개
+테스트: 12 passed, 0 failed
+커버리지: 85% (변동 없음)
+상태: → In Review
+PR: #270 (feat: 설명 [JIT-26])
+```
+
+
+ARGUMENTS: 프로젝트 생성 및 마일스톤/이슈 관리
+
+=== Entry 40 ===
+[9ceacdc7][assistant][2026-02-15T03:39:44.628Z]:
+Linear-Ops 스킬을 확인했습니다. 먼저 Linear API에서 프로젝트/마일스톤 생성 기능을 확인하고, 팀 정보를 가져오겠습니다.
+
+=== Entry 41 ===
+[9ceacdc7][assistant][2026-02-15T03:40:22.124Z]:
+### Task 1: Linear 프로젝트 및 마일스톤 생성
+
+Linear에서 프로젝트를 생성하고 Phase별 마일스톤을 만들겠습니다.
+
+=== Entry 42 ===
+[9ceacdc7][assistant][2026-02-15T03:40:59.005Z]:
+### Task 2: Linear 이슈 42개 생성
+
+이제 42개 이슈를 Phase별로 생성합니다. 각 이슈에 프로젝트와 마일스톤을 연결하겠습니다.
+
+=== Entry 43 ===
+[9ceacdc7][assistant][2026-02-15T03:46:59.518Z]:
+### Task 3: 설계서를 Phase별 참조 문서로 분할
+
+설계서를 Phase별로 나눠서 각 이슈에서 참조할 수 있도록 하겠습니다.
+
+=== Entry 44 ===
+[9ceacdc7][assistant][2026-02-15T03:57:48.767Z]:
+### Task 4: 상세 구현 계획서 작성
+
+이제 `docs/plans/`에 TDD 기반 상세 구현 계획을 작성합니다.
+
+=== Entry 45 ===
+[9ceacdc7][assistant][2026-02-15T04:01:00.027Z]:
+모든 작업이 완료되었습니다. 결과를 정리합니다.
+
+---
+
+## 완료 요약
+
+### Linear 프로젝트
+- **프로젝트:** Jittda Sniper v5.0 — Clean Slate Reconstruction
+- **팀:** Jittda (JIT)
+
+### 7개 마일스톤
+
+| Phase | 마일스톤 | 기간 | 티켓 수 |
+|-------|---------|------|---------|
+| 0 | Scaffolding | 3일 | 4개 |
+| 1 | Domain Layer | 5일 | 6개 |
+| 2 | Infrastructure Layer | 7일 | 8개 |
+| 3 | Application Layer — Graphs | 7일 | 6개 |
+| 4 | 질문 생성 + Enhancement | 5일 | 5개 |
+| 5 | 출력 + 프론트엔드 | 10일 | 9개 |
+| 6 | 통합 테스트 + 정리 | 5일 | 4개 |
+
+### 42개 이슈 (JIT-82 ~ JIT-123)
+
+| 범위 | Phase | 예시 |
+|------|-------|------|
+| JIT-82~85 | Phase 0 | 프로젝트 초기화, Docker, DB, Makefile |
+| JIT-86~91 | Phase 1 | Identity Resolution, Funnel, Scoring |
+| JIT-92~99 | Phase 2 | Git, GitHub, Tree-sitter, Instructor, pgvector |
+| JIT-100~105 | Phase 3 | State, Forensic/Logic/Stack Graph, MetaAgent |
+| JIT-106~110 | Phase 4 | TopicSelector, QuestionCrafter, QualityGate |
+| JIT-111~119 | Phase 5 | OutputAssembler, D3.js 차트, ResultPage 탭 |
+| JIT-120~123 | Phase 6 | Domain 테스트, E2E, Playwright, 벤치마크 |
+
+### 생성된 파일
+
+| 파일 | 용도 |
+|------|------|
+| `plan/v5-design/phase0-scaffolding.md` | Phase 0 설계 참조 |
+| `plan/v5-design/phase1-domain.md` | Phase 1 설계 참조 |
+| `plan/v5-design/phase2-infrastructure.md` | Phase 2 설계 참조 |
+| `plan/v5-design/phase3-application.md` | Phase 3 설계 참조 |
+| `plan/v5-design/phase4-questions.md` | Phase 4 설계 참조 |
+| `plan/v5-design/phase5-output-frontend.md` | Phase 5 설계 참조 |
+| `plan/v5-design/phase6-testing.md` | Phase 6 설계 참조 |
+| `docs/plans/2026-02-15-jittda-v5-reconstruction.md` | TDD 기반 상세 구현 계획 |
+
+---
+
+**Plan complete and saved to `docs/plans/2026-02-15-jittda-v5-reconstruction.md`.**
+
+실행 방법 2가지:
+
+**1. Subagent-Driven (이 세션)** — Task별로 서브에이전트 파견, 사이사이 리뷰, 빠른 반복
+
+**2. Parallel Session (별도 세션)** — 새 세션에서 executing-plans로 배치 실행 + 체크포인트
+
+어떤 방식으로 진행할까요?
+
+=== Entry 46 ===
+[9ceacdc7][user][2026-02-15T05:00:13.754Z]:
+분산된 설계도를 마스터 프롬포트에서 각각의 주제별로 레퍼로 해당 md 파일참조할수 있도록 마스터 프롬포트 추가해줘 뭐할떄 뭐봐야하는지.
+
+=== Entry 47 ===
+[9ceacdc7][assistant][2026-02-15T05:01:28.191Z]:
+마스터 CLAUDE.md 업데이트 완료. 변경 내용 요약:
+
+1. **타이틀** — `v4.0` → `v5.0` + 재건축 상태 표시
+2. **Tech Stack** — LangGraph, D3.js, Instructor, Tree-sitter 반영
+3. **Operation Rules** — v5.0 Phase 설계 문서 필수 참조 규칙 + DDD 규칙 추가
+4. **Auto-Routing** — v5.0 키워드 8개 추가 (jittda, identity, funnel, tree-sitter, instructor, StateGraph, D3 등) → 각각 해당 Phase 문서로 라우팅
+5. **Context Mapping** — v5.0 참조 테이블 21행 추가 (작업별 → 읽을 문서 → Linear 티켓 매핑), 기존 v4.0 문서는 "레거시 — Read-only" 섹션으로 분리
+
+=== Entry 48 ===
+[9ceacdc7][assistant][2026-02-15T05:03:28.657Z]:
+설계서에 LinkedIn은 **언급만 있고, 전용 구현 티켓이 빠져 있습니다.** 현재 상태를 정리하면:
+
+### 현재 설계서에서 LinkedIn이 등장하는 곳
+
+| 위치 | 내용 | 상태 |
+|------|------|------|
+| 디렉토리 구조 §4.2 | `infrastructure/linkedin/brightdata_client` | 디렉토리만 정의 |
+| Worker 총괄표 §9.1 W1 | CollectorWorker 입력에 `linkedin_url` | 입력 파라미터 |
+| ForensicState §10.3 | `linkedin_url: str \| None` | State 필드 |
+| 임베딩 §13 | `kind: linkedin` 청크 타입 | 벡터 저장 종류 |
+| DB init.sql §15.5 | `kind VARCHAR — linkedin` | embeddings 테이블 |
+| 테스트 §17.3 | Happy Path에 LinkedIn 포함 | 테스트 시나리오 |
+
+### 빠진 것
+
+- **`infrastructure/linkedin/brightdata_client.py`** 구현 티켓이 없음
+- CollectorWorker(W1)가 BrightData API로 LinkedIn 프로필을 스크레이핑하는 로직이 Phase 2 이슈에 포함되지 않음
+- LinkedIn 프로필 파싱/정규화 도메인 모델이 없음
+
+기존 v4.0에서 LinkedIn 수집은 BrightData Scraping Browser를 사용하고 있었죠. v5.0에도 이 기능을 포함시킬까요?
+
+포함시킨다면 다음 이슈를 추가해야 합니다:
+
+1. **[P2] LinkedIn 어댑터 — BrightData 클라이언트 + 프로필 파싱** (infrastructure)
+2. **[P1] LinkedIn 프로필 도메인 모델** (domain — 경력/스킬/학력 구조화)
+
+추가할까요?
+
+=== Entry 49 ===
+[9ceacdc7][assistant][2026-02-15T07:10:33.487Z]:
+Linear 이슈 생성 완료 (JIT-124, JIT-125). 이제 관련 문서들을 업데이트합니다.
+
+=== Entry 50 ===
+[9ceacdc7][assistant][2026-02-15T07:13:21.559Z]:
+완료. 업데이트 요약:
+
+### 추가된 Linear 이슈
+
+| 티켓 | Phase | 제목 |
+|------|-------|------|
+| **JIT-124** | Phase 1 (Domain) | LinkedIn 프로필 도메인 모델 — 경력/스킬/학력 구조화 |
+| **JIT-125** | Phase 2 (Infrastructure) | LinkedIn 어댑터 — BrightData 클라이언트 + 프로필 스크레이핑 |
+
+### 업데이트된 문서 (5개)
+
+| 문서 | 변경 내용 |
+|------|----------|
+| `plan/v5-design/phase1-domain.md` | §7.4 LinkedIn 도메인 모델 설계 추가 + 티켓 매핑 |
+| `plan/v5-design/phase2-infrastructure.md` | LinkedIn 어댑터 설계 (BrightData, 정규화, ForensicSupervisor 연동) 추가 |
+| `CLAUDE.md` | Context Mapping에 JIT-124, JIT-125 행 추가 |
+| `docs/plans/...reconstruction.md` | Task 9b(JIT-124), Task 18b(JIT-125) TDD 계획 + 의존성 그래프 업데이트 |
+
+총 이슈: **42개 → 44개** (JIT-82 ~ JIT-125)
+
+=== Entry 51 ===
+[9ceacdc7][user][2026-02-15T07:13:45.744Z]:
+<local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat>
+
+=== Entry 52 ===
+[9ceacdc7][user][2026-02-15T07:13:45.744Z]:
+<command-name>/exit</command-name>
+            <command-message>exit</command-message>
+            <command-args></command-args>
+
+=== Entry 53 ===
+[9ceacdc7][user][2026-02-15T07:13:45.744Z]:
+<local-command-stdout>Goodbye!</local-command-stdout>
+
