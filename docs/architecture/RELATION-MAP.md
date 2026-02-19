@@ -46,6 +46,7 @@ graph TB
         WS[WebSocket]
         EA[Electron App]
         D3[D3 Charts]
+        WF[Web Frontend]
     end
 
     %% Domain → Infrastructure 의존
@@ -76,6 +77,9 @@ graph TB
     WS -->|streams| MA
     EA -->|hosts| LS
     D3 -->|renders| SC
+    WF --> RA
+    WF --> WS
+    WF --> D3
 ```
 
 ## 범례

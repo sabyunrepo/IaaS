@@ -73,12 +73,37 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     return user
 ```
 
+## Public API (비인증 접근)
+
+지원자용 Public App은 일부 엔드포인트에 인증 없이 접근 가능:
+
+| 엔드포인트 | 설명 | 인증 |
+|-----------|------|------|
+| `POST /api/v1/public/applications` | 지원서 제출 | 불필요 |
+| `GET /api/v1/public/jobs/{job_id}` | 공고 상세 조회 | 불필요 |
+| `POST /api/v1/public/verify-email` | 이메일 인증 토큰 확인 | 불필요 |
+
+### 이메일 인증 플로우
+
+```mermaid
+sequenceDiagram
+    participant A as Applicant (Public App)
+    participant API as FastAPI
+    participant Email as Email Service
+
+    A->>API: POST /api/v1/public/applications (email)
+    API->>Email: 인증 링크 발송
+    Email-->>A: 이메일 수신
+    A->>API: GET /api/v1/public/verify-email?token=...
+    API-->>A: 200 OK (이메일 인증 완료)
+```
+
 ## API 보안 계층
 
 | 계층 | 기술 | 설정 |
 |------|------|------|
 | CORS | FastAPI CORSMiddleware | 프로덕션: 허용 도메인 제한 |
-| Rate Limiting | Redis 기반 | 100 req/min per user |
+| Rate Limiting | Redis 기반 | 인증 사용자: 100 req/min / Public: 20 req/min |
 | Input Validation | Pydantic v2 strict mode | 모든 요청 스키마 검증 |
 | SQL Injection | Parameterized queries (psycopg3) | ORM 미사용, 직접 쿼리 |
 | GitHub Token | 서버사이드 환경변수 | 클라이언트 노출 금지 |

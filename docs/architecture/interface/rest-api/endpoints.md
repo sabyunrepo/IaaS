@@ -25,12 +25,15 @@ tags: [fastapi, endpoints, rest, api]
 ```
 src/interface/api/
 ├── routes/
-│   ├── jobs.py        # Job CRUD + 분석 트리거 + WebSocket 스트리밍
-│   ├── auth.py        # OAuth 인증 (Google, GitHub)
-│   └── health.py      # 헬스체크
-├── middleware/         # CORS, Rate Limit, Error Handler
-├── schemas/           # Pydantic 요청/응답 스키마
-└── main.py            # FastAPI 앱 인스턴스
+│   ├── jobs.py           # Job CRUD + 분석 트리거 + WebSocket 스트리밍
+│   ├── auth.py           # OAuth 인증 (Google, GitHub)
+│   ├── companies.py      # 멀티테넌트 회사 + 멤버 관리
+│   ├── public.py         # 비인증 지원자 엔드포인트
+│   ├── applications.py   # 지원서 + 분석 연동
+│   └── health.py         # 헬스체크
+├── middleware/            # CORS, Rate Limit, Error Handler
+├── schemas/              # Pydantic 요청/응답 스키마
+└── main.py               # FastAPI 앱 인스턴스
 ```
 
 ## 엔드포인트 전체 목록
@@ -65,6 +68,35 @@ src/interface/api/
 | `POST` | `/api/v1/live/sessions/{session_id}/end` | 세션 종료 + 후처리 트리거 |
 | `GET` | `/api/v1/live/candidates/{id}/bundle` | 분석 번들 다운로드 (LanceDB 용) |
 | `GET` | `/api/v1/live/candidates/{id}/embeddings` | 벡터 데이터 다운로드 |
+
+### Company (`/api/v1/companies`) -- 멀티테넌트 회사 관리
+
+| Method | Path | 설명 | 인증 |
+|--------|------|------|------|
+| `POST` | `/api/v1/companies/` | 회사 생성 | 필요 (Admin) |
+| `GET` | `/api/v1/companies/{company_id}` | 회사 정보 조회 | 필요 |
+| `PATCH` | `/api/v1/companies/{company_id}` | 회사 정보 수정 | 필요 (Admin) |
+| `GET` | `/api/v1/companies/{company_id}/members` | 회사 멤버 목록 | 필요 |
+| `POST` | `/api/v1/companies/{company_id}/members` | 멤버 초대 | 필요 (Admin) |
+| `DELETE` | `/api/v1/companies/{company_id}/members/{user_id}` | 멤버 제거 | 필요 (Admin) |
+
+### Public (`/api/v1/public`) -- 비인증 지원자용
+
+| Method | Path | 설명 | 인증 |
+|--------|------|------|------|
+| `GET` | `/api/v1/public/jobs/{job_id}` | 공고 상세 조회 | 불필요 |
+| `POST` | `/api/v1/public/applications` | 지원서 제출 (GitHub URL + 이메일) | 불필요 |
+| `GET` | `/api/v1/public/verify-email` | 이메일 인증 토큰 확인 | 불필요 |
+| `GET` | `/api/v1/public/applications/{application_id}/status` | 지원 현황 조회 | 불필요 |
+
+### Application Flow (`/api/v1/applications`) -- 지원 + 분석 연동
+
+| Method | Path | 설명 | 인증 |
+|--------|------|------|------|
+| `GET` | `/api/v1/applications/` | 회사 지원서 목록 | 필요 |
+| `GET` | `/api/v1/applications/{application_id}` | 지원서 상세 조회 | 필요 |
+| `POST` | `/api/v1/applications/{application_id}/trigger-analysis` | HMAS 분석 트리거 | 필요 |
+| `PATCH` | `/api/v1/applications/{application_id}/status` | 지원 상태 변경 (합격/불합격) | 필요 |
 
 ### Health
 
@@ -119,9 +151,12 @@ app.add_middleware(
 )
 
 # 라우트 등록
-from interface.api.routes import jobs, auth, health
+from interface.api.routes import jobs, auth, health, companies, public, applications
 app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["jobs"])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(companies.router, prefix="/api/v1/companies", tags=["companies"])
+app.include_router(public.router, prefix="/api/v1/public", tags=["public"])
+app.include_router(applications.router, prefix="/api/v1/applications", tags=["applications"])
 app.include_router(health.router, tags=["health"])
 ```
 

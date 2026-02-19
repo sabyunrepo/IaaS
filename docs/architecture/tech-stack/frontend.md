@@ -16,6 +16,49 @@ tags: [frontend, react, d3, tailwind, tech-stack]
 
 > React 19 + Vite + Tailwind 4 + D3.js v7 기반 웹 프론트엔드.
 > WebSocket 실시간 스트리밍 + TanStack Query 데이터 페칭.
+> pnpm workspace 모노레포로 Public App(지원자)과 Admin App(관리자)을 분리 관리.
+
+## 모노레포 구조 (pnpm workspace)
+
+```
+frontend/                          # pnpm workspace root
+├── package.json                   # workspaces: ["apps/*", "packages/*"]
+├── pnpm-workspace.yaml
+├── apps/
+│   ├── public/                    # 지원자용 Public App (Vite + React 19)
+│   │   ├── package.json
+│   │   ├── src/
+│   │   │   ├── pages/             # 공고 목록, 지원서 제출, 이메일 인증
+│   │   │   └── components/
+│   │   └── Dockerfile
+│   └── admin/                     # 관리자용 Admin App (Vite + React 19)
+│       ├── package.json
+│       ├── src/
+│       │   ├── pages/             # Job 관리, 분석 결과, 채용 퍼널
+│       │   └── components/
+│       └── Dockerfile
+└── packages/
+    ├── ui/                        # 공유 UI 컴포넌트 라이브러리
+    ├── api-client/                # 자동 생성 API 클라이언트 (OpenAPI)
+    └── d3-charts/                 # 공유 D3 시각화 컴포넌트
+```
+
+### workspace 명령 예시
+
+```bash
+# 전체 의존성 설치
+pnpm install
+
+# 특정 앱만 개발 서버 실행
+pnpm --filter @jittda/public dev
+pnpm --filter @jittda/admin dev
+
+# 공유 패키지 빌드
+pnpm --filter @jittda/ui build
+
+# 전체 빌드
+pnpm -r build
+```
 
 ## 핵심 의존성
 

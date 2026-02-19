@@ -21,6 +21,7 @@ parent: "[[MOC]]"
 | [[websocket/MOC\|WebSocket]] | 실시간 분석 진행률 스트리밍 | FastAPI WebSocket |
 | [[electron-app/MOC\|Electron App]] | Jittda Live 데스크톱 클라이언트 | Electron / Tauri |
 | [[d3-charts/MOC\|D3 Charts]] | 4축 Radar, Treemap, Heatmap 시각화 | D3.js v7 |
+| [[interface/web-frontend/MOC\|Web Frontend]] | React 19, Vite, pnpm | Public App (지원자) + Admin App (관리자) |
 
 ## 문서 목록
 

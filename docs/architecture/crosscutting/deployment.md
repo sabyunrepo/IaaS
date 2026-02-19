@@ -60,6 +60,8 @@ graph LR
 | `redis` | redis:7-alpine | 6379 | internal_net | LLM 캐시 |
 | `backend` | ./backend/Dockerfile | 8000 | internal_net | FastAPI + LangGraph |
 | `frontend` | ./frontend/Dockerfile | 3000 | internal_net + external_tunnel_net | React 19 + Vite |
+| `frontend-public` | ./apps/public/Dockerfile | 3001 | internal_net + external_tunnel_net | 지원자용 Public App (pnpm workspace) |
+| `frontend-admin` | ./apps/admin/Dockerfile | 3002 | internal_net | 관리자용 Admin App (pnpm workspace) |
 | `sonarqube` | sonarqube:community | 9000 | internal_net | Profile: analysis (On-Demand) |
 | `sonar-scanner` | sonar-scanner-cli | - | internal_net | Profile: analysis |
 

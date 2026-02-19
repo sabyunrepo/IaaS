@@ -22,6 +22,8 @@ parent: "[[MOC]]"
 | [[funnel-selection/MOC\|Funnel Selection]] | JD 매칭 레포 선별 (3단계 퍼널) | HardFilter, RelevanceScore |
 | [[question-generation/MOC\|Question Generation]] | 코드 기반 면접 질문 생성 (3전략) | QuestionDeck, Strategy |
 | [[linkedin-profile/MOC\|LinkedIn Profile]] | LinkedIn 프로필 도메인 모델 | LinkedInProfile, Experience |
+| [[domain/company/MOC\|Company]] | Company, CompanyMember | 멀티테넌트 회사 관리 |
+| [[domain/application-flow/MOC\|Application Flow]] | JobPosting, Application | 공고 + 지원 + 분석 연동 |
 
 ## 문서 목록
 
