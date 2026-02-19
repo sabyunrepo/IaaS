@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActionButton } from '../../seed-design/ui'
+import { ActionButton, Badge } from '../../seed-design/ui'
 
 // Backend returns this structure from finalization
 export interface Question {
@@ -49,18 +49,18 @@ function getConfidenceLabel(confidence?: number): string {
   return 'Very Low'
 }
 
-function getRevisionTypeBadge(type: string | undefined, t: (key: string) => string): { color: string; label: string } | null {
+function getRevisionTypeBadge(type: string | undefined, t: (key: string) => string): { tone: 'brand' | 'informative' | 'critical' | 'positive' | 'neutral'; label: string } | null {
   if (!type) return null
-  const badges: Record<string, { color: string; labelKey: string }> = {
-    'duplicate_merge': { color: 'bg-em-100 text-em-700', labelKey: 'badge_duplicate_merge' },
-    'clarity_fix': { color: 'bg-blue-100 text-blue-700', labelKey: 'badge_clarity_fix' },
-    'hallucination_fix': { color: 'bg-red-100 text-red-700', labelKey: 'badge_hallucination_fix' },
-    'evidence_improvement': { color: 'bg-green-100 text-green-700', labelKey: 'badge_evidence_improvement' },
-    'scope_adjustment': { color: 'bg-em-100 text-em-700', labelKey: 'badge_scope_adjustment' },
+  const badges: Record<string, { tone: 'brand' | 'informative' | 'critical' | 'positive' | 'neutral'; labelKey: string }> = {
+    'duplicate_merge': { tone: 'brand', labelKey: 'badge_duplicate_merge' },
+    'clarity_fix': { tone: 'informative', labelKey: 'badge_clarity_fix' },
+    'hallucination_fix': { tone: 'critical', labelKey: 'badge_hallucination_fix' },
+    'evidence_improvement': { tone: 'positive', labelKey: 'badge_evidence_improvement' },
+    'scope_adjustment': { tone: 'brand', labelKey: 'badge_scope_adjustment' },
   }
   const badge = badges[type]
-  if (!badge) return { color: 'bg-[--color-bg-neutral] text-[--color-text-secondary]', label: type }
-  return { color: badge.color, label: t(badge.labelKey) }
+  if (!badge) return { tone: 'neutral', label: type }
+  return { tone: badge.tone, label: t(badge.labelKey) }
 }
 
 export function QuestionCard({ question, index, onScoreChange }: QuestionCardProps) {
@@ -102,9 +102,9 @@ export function QuestionCard({ question, index, onScoreChange }: QuestionCardPro
 
             {/* Revision type badge */}
             {revisionBadge && (
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${revisionBadge.color}`}>
+              <Badge tone={revisionBadge.tone} variant="weak">
                 {revisionBadge.label}
-              </span>
+              </Badge>
             )}
 
             {/* Confidence score */}

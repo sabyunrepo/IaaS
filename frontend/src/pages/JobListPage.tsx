@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
-import { ActionButton } from '../../seed-design/ui'
+import { ActionButton, Badge } from '../../seed-design/ui'
 
 const PAGE_SIZE = 10
 
@@ -10,23 +10,32 @@ const PAGE_SIZE = 10
 function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation()
 
-  const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: 'bg-[--color-bg-neutral]', text: 'text-[--color-text-secondary]', label: t('phase_pending') },
-    enriching: { bg: 'bg-blue-100', text: 'text-blue-700', label: t('phase_enriching') },
-    planning: { bg: 'bg-em-100', text: 'text-em-700', label: t('phase_planning') },
-    analyzing: { bg: 'bg-em-100', text: 'text-em-800', label: t('phase_analyzing') },
-    generating: { bg: 'bg-em-100', text: 'text-em-700', label: t('phase_generating') },
-    reviewing: { bg: 'bg-cyan-100', text: 'text-cyan-700', label: t('phase_reviewing') },
-    completed: { bg: 'bg-green-100', text: 'text-green-700', label: t('phase_completed') },
-    failed: { bg: 'bg-red-100', text: 'text-red-700', label: t('phase_failed') },
+  const toneMap: Record<string, 'positive' | 'critical' | 'warning' | 'neutral' | 'informative' | 'brand'> = {
+    pending: 'neutral',
+    enriching: 'informative',
+    planning: 'brand',
+    analyzing: 'brand',
+    generating: 'brand',
+    reviewing: 'informative',
+    completed: 'positive',
+    failed: 'critical',
   }
 
-  const config = statusConfig[status] || { bg: 'bg-[--color-bg-neutral]', text: 'text-[--color-text-secondary]', label: status }
+  const labelMap: Record<string, string> = {
+    pending: t('phase_pending'),
+    enriching: t('phase_enriching'),
+    planning: t('phase_planning'),
+    analyzing: t('phase_analyzing'),
+    generating: t('phase_generating'),
+    reviewing: t('phase_reviewing'),
+    completed: t('phase_completed'),
+    failed: t('phase_failed'),
+  }
 
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.bg} ${config.text}`}>
-      {config.label}
-    </span>
+    <Badge tone={toneMap[status] || 'neutral'} variant="weak">
+      {labelMap[status] || status}
+    </Badge>
   )
 }
 

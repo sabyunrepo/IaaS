@@ -5,7 +5,7 @@ import { apiFetch } from '../lib/api'
 import type { InterviewScript, ResultTab, InterviewQuestion } from '../types/interview'
 import { IntelBriefTab, DeepAnalysisTab, LiveInterviewTab, DecisionTab, V1SummaryTab, V1GuideTab } from '../components/tabs'
 import { QuestionCard, type Question } from '../components/QuestionCard'
-import { ActionButton } from '../../seed-design/ui'
+import { ActionButton, Badge } from '../../seed-design/ui'
 
 
 function downloadJSON(data: unknown, filename: string) {
@@ -149,9 +149,9 @@ export function ResultPage() {
               {script.metadata?.experience_level && (
                 <>
                   <span>·</span>
-                  <span className="px-2 py-0.5 rounded-full bg-em-100 text-em-800 text-xs font-medium">
+                  <Badge tone="brand" variant="weak">
                     {script.metadata.experience_level}
-                  </span>
+                  </Badge>
                 </>
               )}
             </div>

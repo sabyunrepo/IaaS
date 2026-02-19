@@ -5,6 +5,7 @@ import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DeepAnalysis } from '../../types/interview'
 import { RadarChart } from '../charts'
+import { Badge } from '../../../seed-design/ui'
 
 interface DeepAnalysisTabProps {
   analysis: DeepAnalysis
@@ -252,16 +253,18 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                     <td className="px-6 py-4 text-sm font-medium text-[--color-text-primary]">{row.skill}</td>
                     <td className="px-6 py-4 text-sm text-[--color-text-secondary]">{row.candidate}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        row.type === 'exact' ? 'bg-emerald-100 text-emerald-800' :
-                        row.type === 'similar' ? 'bg-blue-100 text-blue-800' :
-                        row.type === 'partial' ? 'bg-amber-100 text-amber-800' :
-                        'bg-[--color-bg-neutral] text-[--color-text-primary]'
-                      }`}>
+                      <Badge
+                        tone={
+                          row.type === 'exact' ? 'positive' :
+                          row.type === 'similar' ? 'informative' :
+                          row.type === 'partial' ? 'warning' : 'neutral'
+                        }
+                        variant="weak"
+                      >
                         {row.type === 'exact' ? t('deep_match_exact') :
                          row.type === 'similar' ? t('deep_match_similar') :
                          row.type === 'partial' ? t('deep_match_partial') : t('deep_match_none')}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-[--color-text-tertiary]">{row.evidence}</div>
@@ -284,9 +287,9 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
                       {row.related_questions && row.related_questions.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {row.related_questions.map((qNum) => (
-                            <span key={qNum} className="inline-flex items-center px-1.5 py-0.5 rounded bg-em-50 text-em-800 text-xs font-medium">
+                            <Badge key={qNum} tone="brand" variant="weak">
                               Q{qNum}
-                            </span>
+                            </Badge>
                           ))}
                         </div>
                       ) : (

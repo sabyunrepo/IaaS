@@ -5,6 +5,7 @@ import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { IntelBrief, Candidate, LinkedInProfile } from '../../types/interview'
 import { ContributionChart } from '../charts'
+import { Badge } from '../../../seed-design/ui'
 
 interface IntelBriefTabProps {
   intel: IntelBrief
@@ -212,9 +213,9 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
                   <h5 className="text-xs font-medium text-[--color-text-tertiary] mb-2">{t('intel_tech_stack')}</h5>
                   <div className="flex flex-wrap gap-1.5">
                     {techStack.map((tech) => (
-                      <span key={tech} className="px-2 py-0.5 bg-em-100 text-em-800 rounded-full text-xs font-medium">
+                      <Badge key={tech} tone="brand" variant="weak">
                         {tech}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -342,13 +343,9 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
                     r && (r.includes(skill.toLowerCase()) || skill.toLowerCase().includes(r))
                   );
                   return (
-                    <span key={i} className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
-                      isJdMatch
-                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                        : 'bg-ink-100 text-ink-800 border-ink-200'
-                    }`}>
+                    <Badge key={i} tone={isJdMatch ? "positive" : "neutral"} variant="weak">
                       {skill}
-                    </span>
+                    </Badge>
                   );
                 })}
               </div>
@@ -436,9 +433,9 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
                 </svg>
                 {t('intel_recommendations')}
                 {linkedinProfile.recommendations && (
-                  <span className="bg-em-200 text-em-700 text-xs px-2 py-0.5 rounded-full">
+                  <Badge tone="brand" variant="weak">
                     {linkedinProfile.recommendations.length}
-                  </span>
+                  </Badge>
                 )}
               </h4>
               <p className="text-sm text-[--color-text-secondary]">{linkedinProfile.recommendations_summary}</p>
@@ -454,9 +451,9 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
                 </svg>
                 {t('intel_volunteer')}
                 {linkedinProfile.volunteer_experience && (
-                  <span className="bg-teal-200 text-teal-700 text-xs px-2 py-0.5 rounded-full">
+                  <Badge tone="brand" variant="weak">
                     {linkedinProfile.volunteer_experience.length}
-                  </span>
+                  </Badge>
                 )}
               </h4>
               <p className="text-sm text-[--color-text-secondary]">{linkedinProfile.volunteer_summary}</p>
@@ -474,9 +471,9 @@ export const IntelBriefTab = memo(function IntelBriefTab({ intel, candidate, tec
               </h4>
               <div className="flex flex-wrap gap-2">
                 {linkedinProfile.languages.map((lang, i) => (
-                  <span key={i} className="px-2.5 py-1 bg-teal-50 text-teal-700 border border-teal-200 rounded-full text-xs font-medium">
+                  <Badge key={i} tone="brand" variant="weak">
                     {lang}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             </div>
