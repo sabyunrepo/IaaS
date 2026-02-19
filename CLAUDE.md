@@ -45,6 +45,7 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Instructor + Lan
 | e2e, playwright | playwright, context7 | /test |
 | API, endpoint, REST | context7, db | /implement --type api |
 | React, UI, Tailwind | context7, magic | /implement --type component |
+| design token, color, 디자인 시스템 | context7, magic | /jittda-design-system |
 | quality, eval, 환각 | context7, sequential | - |
 | LLM, prompt, 질문 생성 | context7, sequential | - |
 | 코드 검색, 구현 위치, 사용처, 호출 관계 | qmd | - |
