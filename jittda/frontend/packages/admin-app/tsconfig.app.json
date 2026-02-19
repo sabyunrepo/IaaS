@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "paths": {
+      "@jittda/ui": ["../ui/src"],
+      "@jittda/ui/*": ["../ui/src/*"]
+    }
+  },
+  "include": ["src"]
+}
