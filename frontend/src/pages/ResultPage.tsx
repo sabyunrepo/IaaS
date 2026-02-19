@@ -108,11 +108,11 @@ export function ResultPage() {
 
   if (!script) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-6 py-12">
-        <svg className="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex flex-col items-center justify-center rounded-xl border border-[--color-border-default] bg-[--color-bg-page] px-6 py-12">
+        <svg className="h-12 w-12 text-[--color-text-tertiary]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <p className="mt-3 text-sm font-medium text-gray-800">{t('result_error')}</p>
+        <p className="mt-3 text-sm font-medium text-[--color-text-primary]">{t('result_error')}</p>
       </div>
     )
   }
@@ -134,21 +134,21 @@ export function ResultPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-navy-700 to-navy-600 shadow-lg">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-em-500 to-teal-500 shadow-lg">
             <svg className="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('interview_script')}</h1>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <h1 className="text-2xl font-bold text-[--color-text-primary]">{t('interview_script')}</h1>
+            <div className="flex items-center gap-2 text-sm text-[--color-text-tertiary]">
               <span>#{jobId?.slice(0, 8)}</span>
               <span>·</span>
               <span>{t('result_question_count', { count: questions.length })}</span>
               {script.metadata?.experience_level && (
                 <>
                   <span>·</span>
-                  <span className="px-2 py-0.5 rounded-full bg-navy-100 text-navy-800 text-xs font-medium">
+                  <span className="px-2 py-0.5 rounded-full bg-em-100 text-em-800 text-xs font-medium">
                     {script.metadata.experience_level}
                   </span>
                 </>
@@ -159,11 +159,11 @@ export function ResultPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           {maxScore > 0 && (
-            <div className="flex items-center gap-2 rounded-lg border border-navy-200 bg-navy-50 px-3 py-2">
-              <svg className="h-5 w-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-2 rounded-lg border border-em-200 bg-em-50 px-3 py-2">
+              <svg className="h-5 w-5 text-em-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              <span className="text-sm font-semibold text-navy-800">
+              <span className="text-sm font-semibold text-em-800">
                 {totalScore}/{maxScore} ({scorePercent}%)
               </span>
             </div>
@@ -172,7 +172,7 @@ export function ResultPage() {
           <div className="flex gap-2 no-print">
             <button
               onClick={() => downloadJSON(script, `interview-${jobId?.slice(0, 8)}.json`)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[--color-border-default] bg-[--color-bg-surface] px-3 py-2 text-sm font-medium text-[--color-text-secondary] transition-colors hover:bg-[--color-bg-surface-hover]"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -181,7 +181,7 @@ export function ResultPage() {
             </button>
             <button
               onClick={() => window.print()}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[--color-border-default] bg-[--color-bg-surface] px-3 py-2 text-sm font-medium text-[--color-text-secondary] transition-colors hover:bg-[--color-bg-surface-hover]"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -195,7 +195,7 @@ export function ResultPage() {
       {/* Tab Navigation */}
       {hasV2Data ? (
         // v2 4-tab navigation (underline style)
-        <div role="tablist" aria-label={t('interview_script')} className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
+        <div role="tablist" aria-label={t('interview_script')} className="flex border-b border-[--color-border-default] no-print overflow-x-auto scrollbar-hide">
           <button
             role="tab"
             id="tab-intel"
@@ -205,7 +205,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('intel')}
             onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'intel' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'intel' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +222,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('analysis')}
             onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'analysis' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'analysis' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,7 +239,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('interview')}
             onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'interview' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'interview' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,7 +256,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('decision')}
             onKeyDown={(e) => handleTabKeyDown(e, v2TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'decision' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'decision' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@ export function ResultPage() {
         </div>
       ) : (
         // v1 3-tab navigation (underline style)
-        <div role="tablist" aria-label={t('interview_script')} className="flex border-b border-gray-200 no-print overflow-x-auto scrollbar-hide">
+        <div role="tablist" aria-label={t('interview_script')} className="flex border-b border-[--color-border-default] no-print overflow-x-auto scrollbar-hide">
           <button
             role="tab"
             id="tab-questions"
@@ -277,7 +277,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('questions')}
             onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'questions' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'questions' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
             }`}
           >
             {t('result_tab_questions')} ({questions.length})
@@ -291,7 +291,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('summary')}
             onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'summary' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'summary' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
             }`}
           >
             {t('result_tab_summary')}
@@ -305,7 +305,7 @@ export function ResultPage() {
             onClick={() => setActiveTab('guide')}
             onKeyDown={(e) => handleTabKeyDown(e, v1TabIds)}
             className={`tab-underline flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
-              activeTab === 'guide' ? 'active text-navy-800' : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'guide' ? 'active text-em-700' : 'text-[--color-text-tertiary] hover:text-[--color-text-secondary]'
             }`}
           >
             {t('result_tab_guide')}
@@ -313,35 +313,41 @@ export function ResultPage() {
         </div>
       )}
 
-      {/* V2 Tabs */}
+      {/* V2 Tabs — 항상 마운트, CSS로 숨김 (LiveInterviewTab 등 내부 state 보존) */}
       {hasV2Data && (
-        <div key={activeTab} id={`tabpanel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="animate-fadeIn">
-          {activeTab === 'intel' && script.intel && (
-            <IntelBriefTab
-              intel={script.intel}
-              candidate={script.candidate}
-              techStack={script.metadata?.code_analysis_tech_stack}
-              linkedinProfile={script.linkedin_profile}
-            />
-          )}
+        <>
+          <div id="tabpanel-intel" role="tabpanel" aria-labelledby="tab-intel" style={{ display: activeTab === 'intel' ? undefined : 'none' }}>
+            {script.intel && (
+              <IntelBriefTab
+                intel={script.intel}
+                candidate={script.candidate}
+                techStack={script.metadata?.code_analysis_tech_stack}
+                linkedinProfile={script.linkedin_profile}
+              />
+            )}
+          </div>
 
-          {activeTab === 'analysis' && script.analysis && (
-            <DeepAnalysisTab analysis={script.analysis} />
-          )}
+          <div id="tabpanel-analysis" role="tabpanel" aria-labelledby="tab-analysis" style={{ display: activeTab === 'analysis' ? undefined : 'none' }}>
+            {script.analysis && (
+              <DeepAnalysisTab analysis={script.analysis} />
+            )}
+          </div>
 
-          {activeTab === 'interview' && (
+          <div id="tabpanel-interview" role="tabpanel" aria-labelledby="tab-interview" style={{ display: activeTab === 'interview' ? undefined : 'none' }}>
             <LiveInterviewTab
               questions={questions as InterviewQuestion[]}
             />
-          )}
+          </div>
 
-          {activeTab === 'decision' && script.decision && (
-            <DecisionTab
-              decision={script.decision}
-              overallMatch={script.analysis?.overall_match}
-            />
-          )}
-        </div>
+          <div id="tabpanel-decision" role="tabpanel" aria-labelledby="tab-decision" style={{ display: activeTab === 'decision' ? undefined : 'none' }}>
+            {script.decision && (
+              <DecisionTab
+                decision={script.decision}
+                overallMatch={script.analysis?.overall_match}
+              />
+            )}
+          </div>
+        </>
       )}
 
       {/* V1 Tabs (Fallback) */}
@@ -351,11 +357,11 @@ export function ResultPage() {
           {activeTab === 'questions' && (
             <div className="space-y-4">
               {questions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-gray-50 py-12">
-                  <svg className="h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex flex-col items-center justify-center rounded-xl border border-[--color-border-default] bg-[--color-bg-page] py-12">
+                  <svg className="h-12 w-12 text-ink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <p className="mt-3 text-sm text-gray-500">{t('result_no_questions')}</p>
+                  <p className="mt-3 text-sm text-[--color-text-tertiary]">{t('result_no_questions')}</p>
                 </div>
               ) : (
                 questions.map((q, i) => (
@@ -386,7 +392,7 @@ export function ResultPage() {
       <div className="flex justify-center pt-4 no-print">
         <Link
           to="/interview"
-          className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+          className="inline-flex items-center gap-2 text-sm font-medium text-[--color-text-tertiary] hover:text-[--color-text-secondary]"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
