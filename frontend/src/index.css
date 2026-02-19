@@ -59,6 +59,18 @@
   --color-border-default: var(--color-ink-200);
   --color-border-subtle: var(--color-ink-100);
   --color-border-accent: var(--color-em-500);
+
+  /* Seed Design: carrot → emerald override */
+  --seed-color-palette-carrot-100: #f0fdf8;
+  --seed-color-palette-carrot-200: #ccfbe9;
+  --seed-color-palette-carrot-300: #99f6d3;
+  --seed-color-palette-carrot-400: #5eecb9;
+  --seed-color-palette-carrot-500: #2fd990;
+  --seed-color-palette-carrot-600: #2db882;
+  --seed-color-palette-carrot-700: #1f9a6a;
+  --seed-color-palette-carrot-800: #167a52;
+  --seed-color-palette-carrot-900: #115c3d;
+  --seed-color-palette-carrot-1000: #071f15;
 }
 
 body {
