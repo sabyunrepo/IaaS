@@ -3,7 +3,7 @@
 # Usage: source /Users/sabyun/goinfre/IaaS/.claude/skills/obsidian-api/obsidian-api.sh
 
 # ─── Configuration ─────────────────────────────────────────────
-OBSIDIAN_API_KEY="${OBSIDIAN_API_KEY:-da60c2df6467309306df22a4a0f75c049f4bc88a8d5e018f37c271f9402f4729}"
+OBSIDIAN_API_KEY="${OBSIDIAN_API_KEY:-d9d0f6e22d569d7cae2a55948971755b1aa9cbea955c5022b98bc775f27703d0}"
 OBSIDIAN_PORT="${OBSIDIAN_PORT:-27124}"
 OBSIDIAN_HOST="${OBSIDIAN_HOST:-127.0.0.1}"
 OBSIDIAN_BASE="https://${OBSIDIAN_HOST}:${OBSIDIAN_PORT}"
