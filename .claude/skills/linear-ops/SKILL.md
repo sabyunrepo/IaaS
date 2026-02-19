@@ -37,6 +37,9 @@ linear_update_status "JIT-26" done    # 상태 변경
 linear_add_comment "JIT-26" "본문"    # 코멘트 추가
 linear_create_issue "제목" "팀ID"     # 이슈 생성
 linear_list_teams                     # 팀 목록
+linear_create_project "이름" "팀ID" ["설명"]  # 프로젝트(마일스톤) 생성
+linear_assign_issue_to_project "JIT-26" "project-id"  # 이슈 → 프로젝트 할당
+linear_list_project_issues "project-id" [limit]  # 프로젝트 이슈 목록
 ```
 
 ---
