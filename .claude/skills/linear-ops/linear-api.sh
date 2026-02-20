@@ -267,3 +267,59 @@ linear_list_projects() {
     }
   ' "$(jq -n --argjson first "$first" '{first: $first}')"
 }
+
+# ── Milestone (Project) 함수 ──
+
+linear_create_project() {
+  # 프로젝트(마일스톤) 생성
+  # Usage: linear_create_project "이름" "team-uuid" ["설명"]
+  local name="$1"
+  local team_id="$2"
+  local description="${3:-}"
+  _linear_gql '
+    mutation($name: String!, $teamIds: [String!]!, $desc: String) {
+      projectCreate(input: { name: $name, teamIds: $teamIds, description: $desc }) {
+        success
+        project { id name state slugId url }
+      }
+    }
+  ' "$(jq -n --arg n "$name" --arg tid "$team_id" --arg d "$description" '{name: $n, teamIds: [$tid], desc: $d}')"
+}
+
+linear_assign_issue_to_project() {
+  # 이슈를 프로젝트(마일스톤)에 할당
+  # Usage: linear_assign_issue_to_project "issue-id" "project-id"
+  local input="$1"
+  local project_id="$2"
+  local issue_id
+  issue_id=$(_linear_resolve_id "$input") || return 1
+  _linear_gql '
+    mutation($id: String!, $projectId: String!) {
+      issueUpdate(id: $id, input: { projectId: $projectId }) {
+        success
+        issue { id identifier title project { name } }
+      }
+    }
+  ' "$(jq -n --arg id "$issue_id" --arg pid "$project_id" '{id: $id, projectId: $pid}')"
+}
+
+linear_list_project_issues() {
+  # 프로젝트(마일스톤)의 이슈 목록 조회
+  # Usage: linear_list_project_issues "project-id" [limit]
+  local project_id="$1"
+  local first="${2:-50}"
+  _linear_gql '
+    query($pid: String!, $first: Int) {
+      project(id: $pid) {
+        name state
+        issues(first: $first) {
+          nodes {
+            id identifier title
+            state { name }
+            priority priorityLabel
+          }
+        }
+      }
+    }
+  ' "$(jq -n --arg pid "$project_id" --argjson first "$first" '{pid: $pid, first: $first}')"
+}

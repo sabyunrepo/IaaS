@@ -1,0 +1,12 @@
+# Development overrides — auto-loaded by Docker Compose
+# For production: docker compose -f docker-compose.yml up
+services:
+  backend:
+    volumes:
+      - ./backend/src:/app/src
+    command: ["uvicorn", "interface.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  frontend:
+    build:
+      args:
+        APP: admin-app

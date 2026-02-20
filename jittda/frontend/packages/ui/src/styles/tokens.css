@@ -1,0 +1,99 @@
+/* ═══════════════════════════════════════════════════
+   Jittda Design Tokens (Seed Design 2-tier 구조)
+   Brand: Navy #1B3A5C + Orange #E87E24
+   참조: .claude/skills/jittda-design-system/SKILL.md
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Tier 1: Scale Tokens (raw values) ─── */
+@theme {
+  /* Navy palette (primary) */
+  --color-navy-50: #f0f4f8;
+  --color-navy-100: #d9e2ec;
+  --color-navy-200: #bcccdc;
+  --color-navy-300: #9fb3c8;
+  --color-navy-400: #6d8eab;
+  --color-navy-500: #3e6b8a;
+  --color-navy-600: #2d5577;
+  --color-navy-700: #1f4060;
+  --color-navy-800: #1B3A5C;
+  --color-navy-900: #142d47;
+  --color-navy-950: #0d1f33;
+
+  /* Brand Orange palette (accent) */
+  --color-brand-50: #fff8f0;
+  --color-brand-100: #feebd0;
+  --color-brand-200: #fdd5a0;
+  --color-brand-300: #f9b86a;
+  --color-brand-400: #f29a3e;
+  --color-brand-500: #E87E24;
+  --color-brand-600: #cc6a17;
+  --color-brand-700: #a85414;
+  --color-brand-800: #874316;
+  --color-brand-900: #6e3815;
+  --color-brand-950: #3d1c08;
+
+  /* Neutral */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* Status */
+  --color-red-50: #fef2f2;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-green-50: #f0fdf4;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-yellow-50: #fefce8;
+  --color-yellow-500: #eab308;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px 0 rgba(27, 58, 92, 0.06), 0 1px 2px -1px rgba(27, 58, 92, 0.06);
+  --shadow-card-hover: 0 4px 12px -2px rgba(27, 58, 92, 0.10), 0 2px 6px -2px rgba(27, 58, 92, 0.06);
+  --shadow-elevated: 0 10px 25px -5px rgba(27, 58, 92, 0.12), 0 8px 10px -6px rgba(27, 58, 92, 0.06);
+}
+
+/* ─── Tier 2: Semantic Tokens (intent-based) ─── */
+:root {
+  /* Backgrounds */
+  --color-bg-primary: var(--color-navy-50);
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-hover: var(--color-navy-100);
+  --color-bg-accent: var(--color-brand-500);
+  --color-bg-accent-hover: var(--color-brand-600);
+  --color-bg-brand: var(--color-navy-800);
+  --color-bg-brand-hover: var(--color-navy-700);
+  --color-bg-neutral: var(--color-gray-100);
+  --color-bg-danger: var(--color-red-50);
+  --color-bg-success: var(--color-green-50);
+  --color-bg-warning: var(--color-yellow-50);
+
+  /* Text */
+  --color-text-primary: var(--color-navy-900);
+  --color-text-secondary: var(--color-navy-600);
+  --color-text-tertiary: var(--color-navy-400);
+  --color-text-on-accent: #ffffff;
+  --color-text-on-brand: #ffffff;
+  --color-text-accent: var(--color-brand-600);
+  --color-text-danger: var(--color-red-600);
+  --color-text-success: var(--color-green-600);
+
+  /* Borders */
+  --color-border-default: var(--color-navy-200);
+  --color-border-strong: var(--color-navy-400);
+  --color-border-accent: var(--color-brand-500);
+
+  /* Focus */
+  --color-focus-ring: var(--color-navy-800);
+
+  /* Typography */
+  --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', sans-serif;
+}
