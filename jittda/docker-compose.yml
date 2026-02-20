@@ -85,7 +85,12 @@ services:
       - BRIGHTDATA_SCRAPING_BROWSER_URL=${BRIGHTDATA_SCRAPING_BROWSER_URL:-}
       # Auth
       - JWT_SECRET=${JWT_SECRET:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3001}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3001}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -96,6 +101,7 @@ services:
       - "8001:8000"
     networks:
       - internal_net
+      - jittda-public
 
   frontend:
     build:
@@ -103,6 +109,7 @@ services:
       dockerfile: Dockerfile
       args:
         APP: admin-app
+        VITE_API_BASE: ${VITE_API_BASE:-}
     container_name: jittda_frontend
     restart: unless-stopped
     depends_on:
@@ -117,6 +124,7 @@ services:
       - "3001:80"
     networks:
       - internal_net
+      - jittda-public
 
   sonar-scanner:
     image: sonarsource/sonar-scanner-cli:latest
@@ -136,3 +144,5 @@ volumes:
 networks:
   internal_net:
     driver: bridge
+  jittda-public:
+    external: true

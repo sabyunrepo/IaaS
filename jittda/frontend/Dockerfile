@@ -10,6 +10,8 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/ packages/
 RUN pnpm install --frozen-lockfile
 ARG APP
+ARG VITE_API_BASE=""
+ENV VITE_API_BASE=${VITE_API_BASE}
 RUN pnpm --filter @jittda/${APP} build
 
 # Stage 2: Serve
