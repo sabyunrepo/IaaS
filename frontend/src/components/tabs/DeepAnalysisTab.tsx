@@ -216,7 +216,7 @@ export const DeepAnalysisTab = memo(function DeepAnalysisTab({ analysis }: DeepA
           </h3>
           <div className="space-y-3">
             {risk_flags.map((flag, i) => (
-              <div key={i} className="card-hover bg-white rounded-lg p-4 border border-red-200">
+              <div key={i} className="card-hover bg-[--color-bg-surface] rounded-lg p-4 border border-red-200">
                 <div className="font-medium text-red-900">{flag.label}</div>
                 <div className="text-sm text-red-700 mt-1">{flag.detail}</div>
               </div>

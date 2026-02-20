@@ -43,7 +43,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
 
   return (
     <nav
-      className="sticky top-0 z-50 border-b border-[--color-border-default]/50 bg-white/80 backdrop-blur-lg"
+      className="sticky top-0 z-50 border-b border-[--color-border-default]/50 bg-[--color-bg-surface]/80 backdrop-blur-lg"
       aria-label={t('nav_label')}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -86,7 +86,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
                 {/* New Script CTA */}
                 <Link
                   to="/interview/new"
-                  className="hidden sm:flex items-center gap-1.5 rounded-lg bg-[--color-bg-accent] px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[--color-bg-accent-hover] hover:shadow-[0_0_20px_-5px_hsl(160_60%_45%/0.2)]"
+                  className="hidden sm:flex items-center gap-1.5 rounded-lg bg-em-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-em-600 hover:shadow-[0_0_20px_-5px_hsl(160_60%_45%/0.2)]"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -114,7 +114,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
                   </button>
 
                   {menuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-xl border border-[--color-border-default] bg-white/90 backdrop-blur-md py-1 shadow-elevated z-50 animate-slideDown">
+                    <div className="absolute right-0 mt-2 w-48 rounded-xl border border-[--color-border-default] bg-[--color-bg-surface]/90 backdrop-blur-md py-1 shadow-elevated z-50 animate-slideDown">
                       <div className="px-4 py-2 border-b border-[--color-border-subtle]">
                         <p className="text-sm font-medium text-[--color-text-primary] truncate">{user.display_name}</p>
                         <p className="text-xs text-[--color-text-tertiary] truncate">
@@ -192,7 +192,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
             ) : (
               <Link
                 to="/login"
-                className="flex items-center gap-1.5 rounded-lg bg-[--color-bg-accent] px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-[--color-bg-accent-hover] hover:shadow-md"
+                className="flex items-center gap-1.5 rounded-lg bg-em-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-em-600 hover:shadow-md"
               >
                 {t('login')}
               </Link>

@@ -5,6 +5,7 @@ backend/app/workflows/workflow_code_analysis.py
 Extracted from interview_workflow.py for SRP compliance.
 """
 import asyncio
+import copy
 import logging
 from datetime import timedelta
 
@@ -61,8 +62,8 @@ async def run_parallel_code_analysis(
     manager_result = await workflow.execute_activity(
         analyze_code,
         args=[all_github_urls, enriched_input_data, execution_plan],
-        start_to_close_timeout=timedelta(minutes=15),
-        heartbeat_timeout=timedelta(seconds=120),
+        start_to_close_timeout=timedelta(minutes=20),
+        heartbeat_timeout=timedelta(seconds=180),
         retry_policy=EXTERNAL_API_RETRY,
     )
 
@@ -72,7 +73,7 @@ async def run_parallel_code_analysis(
     # Case 1: 분석 결과가 이미 있으면 바로 반환
     if repositories:
         logger.info(f"Code analysis already completed with {len(repositories)} repos")
-        return manager_result
+        return _trim_for_workflow(manager_result)
 
     # Case 2: target_repos가 없으면 빈 결과 반환
     if not target_repos:
@@ -97,8 +98,8 @@ async def run_parallel_code_analysis(
         task = workflow.execute_activity(
             analyze_single_repo,
             args=[repo_with_meta, jd_tech_stack, per_repo_username, job_id],
-            start_to_close_timeout=timedelta(minutes=10),
-            heartbeat_timeout=timedelta(seconds=120),
+            start_to_close_timeout=timedelta(minutes=15),
+            heartbeat_timeout=timedelta(seconds=180),
             retry_policy=RetryPolicy(
                 initial_interval=timedelta(seconds=2),
                 backoff_coefficient=2.0,
@@ -158,8 +159,8 @@ async def run_parallel_code_analysis(
                     retry_result = await workflow.execute_activity(
                         analyze_single_repo,
                         args=[original_repo, jd_tech_stack, candidate_username, job_id],
-                        start_to_close_timeout=timedelta(minutes=15),
-                        heartbeat_timeout=timedelta(seconds=120),
+                        start_to_close_timeout=timedelta(minutes=20),
+                        heartbeat_timeout=timedelta(seconds=180),
                         retry_policy=RetryPolicy(
                             initial_interval=timedelta(seconds=3),
                             backoff_coefficient=2.0,
@@ -175,7 +176,7 @@ async def run_parallel_code_analysis(
                 final_results.append(result)
 
     # Step 5: 결과 집계
-    return aggregate_code_analysis(final_results)
+    return _trim_for_workflow(aggregate_code_analysis(final_results))
 
 
 def aggregate_code_analysis(repo_results: list[dict]) -> dict:
@@ -243,3 +244,102 @@ def aggregate_code_analysis(repo_results: list[dict]) -> dict:
         "top_question_candidates": sorted_notables[:20],
         "hybrid_summary": hybrid_summary,
     }
+
+
+# ── Payload trimming (gRPC 4MB limit 방어) ──────────────────────────
+
+_SNIPPET_LIMIT = 300
+_NOTABLE_LIMIT = 200
+_MAX_AST_FUNCTIONS = 20
+
+
+def _truncate(text: str | None, limit: int) -> str:
+    if not text or not isinstance(text, str):
+        return ""
+    return text[:limit] + "…" if len(text) > limit else text
+
+
+def _trim_notable(item: dict) -> dict:
+    """notable_implementation 항목에서 대용량 텍스트 축소"""
+    trimmed = copy.copy(item)
+    trimmed["code_snippet"] = _truncate(item.get("code_snippet"), _SNIPPET_LIMIT)
+    trimmed["why_notable"] = _truncate(item.get("why_notable"), _NOTABLE_LIMIT)
+    return trimmed
+
+
+def _trim_repo(repo: dict) -> dict:
+    """레포 결과에서 하류 미사용 대용량 필드 제거
+
+    보존: repo_name, repo_url, language, commit_count, candidate_commits,
+          monthly_contributions, analysis.tech_stack, analysis.patterns[:5],
+          ast_analysis.functions[:20] (name만), hybrid_metadata,
+          notable_implementations (trimmed), quality_metrics
+    제거: key_files, static_analysis (이미 vector store에 저장됨),
+          analysis 내 LLM 원문, AST 상세
+    """
+    trimmed = {}
+
+    # 기본 메타데이터 (항상 보존)
+    for key in (
+        "repo_name", "repo_url", "language", "commit_count",
+        "candidate_commits", "candidate_additions", "candidate_deletions",
+        "avg_complexity", "monthly_contributions", "quality_metrics",
+        "hybrid_metadata", "candidate_identification",
+    ):
+        if key in repo:
+            trimmed[key] = repo[key]
+
+    # analysis: tech_stack + patterns (이름만, 최대 5개)
+    analysis = repo.get("analysis", {})
+    trimmed["analysis"] = {
+        "tech_stack": analysis.get("tech_stack", []),
+        "patterns": [
+            p.get("name", p) if isinstance(p, dict) else p
+            for p in analysis.get("patterns", [])[:5]
+        ],
+        "quality_score": analysis.get("quality_score"),
+    }
+
+    # ast_analysis: 함수 이름만 (최대 20개)
+    ast = repo.get("ast_analysis", {})
+    trimmed["ast_analysis"] = {
+        "functions": [
+            {"name": fn.get("name", "")} if isinstance(fn, dict) else {"name": str(fn)}
+            for fn in ast.get("functions", [])[:_MAX_AST_FUNCTIONS]
+        ],
+    }
+
+    # notable_implementations: 텍스트 축소
+    notables = repo.get("notable_implementations", [])
+    if isinstance(notables, list):
+        trimmed["notable_implementations"] = [
+            _trim_notable(n) for n in notables if isinstance(n, dict)
+        ]
+
+    return trimmed
+
+
+def _trim_for_workflow(result: dict) -> dict:
+    """워크플로우 상태에 저장할 코드 분석 결과를 트리밍
+
+    gRPC 4MB 제한 방어: 5.7MB → ~2.5MB 수준으로 축소.
+    하류 Activity(질문 생성, intel, analysis, decision, finalization)에서
+    실제 사용하는 필드만 보존.
+    """
+    trimmed = copy.copy(result)
+
+    # 레포별 트리밍
+    repos = result.get("repositories", [])
+    trimmed["repositories"] = [_trim_repo(r) for r in repos if isinstance(r, dict)]
+
+    # top_question_candidates 트리밍
+    candidates = result.get("top_question_candidates", [])
+    trimmed["top_question_candidates"] = [
+        _trim_notable(c) for c in candidates[:20] if isinstance(c, dict)
+    ]
+
+    # 하류 미사용 대용량 필드 제거
+    trimmed.pop("target_repos", None)
+    trimmed.pop("repo_contribution_breakdown", None)
+
+    return trimmed

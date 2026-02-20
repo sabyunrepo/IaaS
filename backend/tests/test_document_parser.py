@@ -78,24 +78,18 @@ class TestParseDocumentValidation:
         assert result.parser_used == "plaintext"
 
 
-class TestGeminiOCR:
-    """Gemini 2.5 Flash OCR 관련 테스트"""
+class TestOpenAIVisionOCR:
+    """OpenAI GPT-4.1 mini vision OCR 관련 테스트"""
 
     @pytest.mark.asyncio
-    async def test_gemini_ocr_fallback_when_pymupdf_short(self, tmp_path, monkeypatch):
-        """pymupdf4llm 결과가 짧을 때 Gemini OCR로 폴백"""
-        from unittest.mock import AsyncMock
+    async def test_openai_vision_primary_when_api_key_present(self, tmp_path, monkeypatch):
+        """OPENAI_API_KEY 설정 시 OpenAI vision을 primary로 사용"""
         import app.services.document_parser as dp
 
-        # PDF 파일 생성
         pdf_file = tmp_path / "test.pdf"
         pdf_file.write_bytes(b"%PDF-1.4 fake pdf content")
 
-        # pymupdf4llm이 짧은 텍스트 반환하도록 모킹
-        monkeypatch.setattr(dp, "_extract_with_pymupdf", AsyncMock(return_value="short"))
-
-        # Gemini API 모킹 - 텍스트가 PDF_PARSER_MIN_CHARS(200) 이상이어야 함
-        gemini_text = (
+        vision_text = (
             "# Resume\n"
             "## 경력\n"
             "Python 백엔드 개발자로 5년간 다양한 프로젝트를 수행했습니다.\n"
@@ -107,59 +101,58 @@ class TestGeminiOCR:
             "## 학력\n"
             "서울대학교 컴퓨터공학과 학사 졸업\n"
         )
-        monkeypatch.setattr(dp, "_extract_with_gemini", AsyncMock(return_value=gemini_text))
 
-        # settings 모킹 - patch the config module that gets imported
         class MockSettings:
-            GEMINI_API_KEY = "fake-key"
-            PDF_PARSER_MIN_CHARS = 200
+            OPENAI_API_KEY = "fake-key"
 
         monkeypatch.setattr("app.core.config.settings", MockSettings())
+        monkeypatch.setattr(dp, "_extract_with_openai_vision", AsyncMock(return_value=vision_text))
 
         result = await dp._parse_pdf(str(pdf_file))
-        assert result.parser_used == "gemini-2.5-flash"
+        assert result.parser_used == "openai-gpt-4.1-mini"
         assert "경력" in result.text
         assert result.metadata.get("ocr") is True
 
     @pytest.mark.asyncio
-    async def test_gemini_used_when_api_key_present(self, tmp_path, monkeypatch):
-        """GEMINI_API_KEY 설정 시 Gemini-only 파싱 사용"""
-        from unittest.mock import AsyncMock
+    async def test_pymupdf_fallback_when_openai_fails(self, tmp_path, monkeypatch):
+        """OpenAI vision 실패 시 pymupdf4llm fallback 사용"""
         import app.services.document_parser as dp
 
         pdf_file = tmp_path / "test.pdf"
         pdf_file.write_bytes(b"%PDF-1.4 fake pdf content")
 
-        gemini_text = "A" * 500  # Gemini가 반환하는 텍스트
+        pymupdf_text = "A" * 500
 
         class MockSettings:
-            GEMINI_API_KEY = "fake-key"
-            PDF_PARSER_MIN_CHARS = 200
+            OPENAI_API_KEY = "fake-key"
 
         monkeypatch.setattr("app.core.config.settings", MockSettings())
-        monkeypatch.setattr(dp, "_extract_with_gemini", AsyncMock(return_value=gemini_text))
+        monkeypatch.setattr(dp, "_extract_with_openai_vision", AsyncMock(side_effect=ValueError("API error")))
+        monkeypatch.setattr(dp, "_extract_with_pymupdf", AsyncMock(return_value=pymupdf_text))
 
         result = await dp._parse_pdf(str(pdf_file))
-        assert result.parser_used == "gemini-2.5-flash"
+        assert result.parser_used == "pymupdf4llm"
         assert len(result.text) == 500
-        assert result.metadata.get("ocr") is True
 
     @pytest.mark.asyncio
-    async def test_gemini_raises_when_no_api_key(self, tmp_path, monkeypatch):
-        """GEMINI_API_KEY 미설정 시 ValueError 발생"""
+    async def test_pymupdf_only_when_no_openai_key(self, tmp_path, monkeypatch):
+        """OPENAI_API_KEY 미설정 시 pymupdf4llm만 사용"""
         import app.services.document_parser as dp
 
         pdf_file = tmp_path / "test.pdf"
         pdf_file.write_bytes(b"%PDF-1.4 fake pdf content")
 
+        pymupdf_text = "B" * 500
+
         class MockSettings:
-            GEMINI_API_KEY = None  # 미설정
-            PDF_PARSER_MIN_CHARS = 200
+            OPENAI_API_KEY = None
 
         monkeypatch.setattr("app.core.config.settings", MockSettings())
+        monkeypatch.setattr(dp, "_extract_with_pymupdf", AsyncMock(return_value=pymupdf_text))
 
-        with pytest.raises(ValueError, match="Gemini API key is not configured"):
-            await dp._parse_pdf(str(pdf_file))
+        result = await dp._parse_pdf(str(pdf_file))
+        assert result.parser_used == "pymupdf4llm"
+        assert len(result.text) == 500
 
 
 class TestDocumentAnalysisActivity:

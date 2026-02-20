@@ -69,7 +69,7 @@ export function LoginPage() {
           <div className="space-y-3">
             <a
               href={`/auth/google/login`}
-              className="group flex w-full items-center justify-center gap-3 rounded-lg border border-[--color-border-default] bg-white px-4 py-3 text-sm font-medium text-[--color-text-secondary] transition-all hover:border-ink-300 hover:bg-[--color-bg-surface-hover] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[--color-border-accent] focus:ring-offset-2"
+              className="group flex w-full items-center justify-center gap-3 rounded-lg border border-[--color-border-default] bg-[--color-bg-surface] px-4 py-3 text-sm font-medium text-[--color-text-secondary] transition-all hover:border-ink-300 hover:bg-[--color-bg-surface-hover] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[--color-border-accent] focus:ring-offset-2"
             >
               <GoogleIcon className="h-5 w-5" />
               <span>{t('login_with_google')}</span>

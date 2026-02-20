@@ -9,3 +9,21 @@ limit.maxIDLength:
 frontend.enableClientVersionCheck:
   - value: true
     constraints: {}
+
+# gRPC payload size limits (기본 4MB → 16MB)
+# 코드 분석 결과가 큰 경우 워크플로우 활성화 메시지 초과 방지
+limit.blobSize.error:
+  - value: 16777216
+    constraints: {}
+
+limit.blobSize.warn:
+  - value: 8388608
+    constraints: {}
+
+limit.historySize.error:
+  - value: 209715200
+    constraints: {}
+
+limit.historySize.warn:
+  - value: 104857600
+    constraints: {}

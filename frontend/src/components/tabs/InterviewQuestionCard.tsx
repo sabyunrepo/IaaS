@@ -31,7 +31,7 @@ export function InterviewQuestionCard({
   const [expandedKeyword, setExpandedKeyword] = useState<number | null>(null)
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+    <div className="bg-[--color-bg-surface] rounded-xl border border-gray-200 p-6 shadow-sm">
       {/* Question Header */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">

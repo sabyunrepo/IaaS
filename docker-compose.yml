@@ -5,8 +5,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: iaas-frontend
     restart: unless-stopped
     depends_on:
@@ -83,7 +83,7 @@ services:
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
       # === URLs ===
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173/demo}
       - BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
       - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev-internal-token}
     volumes:
@@ -201,8 +201,6 @@ services:
       retries: 5
     networks:
       - iaas_internal
-    ports:
-      - "5432:5432"
 
   redis:
     image: redis:7-alpine
@@ -223,8 +221,6 @@ services:
         max-file: "3"
     networks:
       - iaas_internal
-    ports:
-      - "6379:6379"
 
   # ============================================
   # Temporal (Workflow Engine, 내부망만)

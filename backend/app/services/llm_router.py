@@ -50,6 +50,18 @@ def _build_model_list() -> list[dict]:
                 "description": "Cost-effective OpenAI model",
             }
         })
+        # GPT-4.1 mini (JD 분석 등 저컨텍스트 구조화 작업용)
+        model_list.append({
+            "model_name": "gpt-4.1-mini",
+            "litellm_params": {
+                "model": "openai/gpt-4.1-mini",
+                "api_key": settings.OPENAI_API_KEY,
+            },
+            "model_info": {
+                "id": "openai-gpt41-mini",
+                "description": "GPT-4.1 mini for structured extraction tasks",
+            }
+        })
 
     # 2. Anthropic Claude (Fallback)
     if settings.ANTHROPIC_API_KEY:
@@ -143,6 +155,15 @@ def _build_fallback_config() -> list[dict]:
         claude_fallbacks.append("glm-free")
     if claude_fallbacks:
         fallbacks.append({"claude-sonnet": claude_fallbacks})
+
+    # gpt-4.1-mini 실패 시 fallback
+    gpt41_mini_fallbacks = []
+    if settings.OPENAI_API_KEY:
+        gpt41_mini_fallbacks.append("gpt-4o-mini")
+    if settings.ZAI_API_KEY:
+        gpt41_mini_fallbacks.append("glm-free")
+    if gpt41_mini_fallbacks:
+        fallbacks.append({"gpt-4.1-mini": gpt41_mini_fallbacks})
 
     # glm-coder 실패 시 무료 모델로
     if settings.ZAI_API_KEY:

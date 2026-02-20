@@ -12,7 +12,7 @@ export function V1GuideTab({ guide }: V1GuideTabProps) {
     <div className="space-y-6">
       {/* Interview Overview */}
       {guide.interview_overview && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-[--color-bg-surface] p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_interview_overview')}</h2>
           <div className="grid gap-4 sm:grid-cols-4">
             <div className="text-center p-3 bg-em-50 rounded-lg">
@@ -45,7 +45,7 @@ export function V1GuideTab({ guide }: V1GuideTabProps) {
 
       {/* Interview Flow */}
       {guide.interview_flow && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-[--color-bg-surface] p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_interview_flow_order')}</h2>
           <div className="space-y-4">
             {guide.interview_flow.opening && (
@@ -88,7 +88,7 @@ export function V1GuideTab({ guide }: V1GuideTabProps) {
 
       {/* Evaluation Matrix */}
       {guide.evaluation_matrix && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-[--color-bg-surface] p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_evaluation_criteria')}</h2>
           <div className="grid gap-4 sm:grid-cols-3 mb-4">
             <div className="text-center p-3 bg-gray-50 rounded-lg">

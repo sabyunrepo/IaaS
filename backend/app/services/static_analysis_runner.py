@@ -31,6 +31,44 @@ CLONE_TIMEOUT = 60
 # Analysis timeout per tool (seconds)
 TOOL_TIMEOUT = 120
 
+# 분석 대상 코드 파일 확장자 (바이너리/미디어 파일 제외)
+CODE_EXTENSIONS = frozenset({
+    ".py", ".js", ".jsx", ".ts", ".tsx", ".java", ".go", ".rs",
+    ".c", ".h", ".cpp", ".hpp", ".cs", ".rb", ".php", ".swift",
+    ".kt", ".scala", ".lua", ".sh", ".bash", ".zsh",
+    ".html", ".css", ".scss", ".less", ".sass",
+    ".sql", ".graphql", ".proto",
+    ".yaml", ".yml", ".json", ".toml", ".xml", ".ini", ".cfg",
+    ".md", ".rst", ".txt",
+    ".dockerfile", ".makefile",
+})
+
+
+def _is_code_file(filepath: str) -> bool:
+    """코드 파일 여부 판별 (바이너리/미디어 파일 제외)"""
+    ext = Path(filepath).suffix.lower()
+    # 확장자 없는 파일 중 코드 관련 파일명
+    if not ext:
+        basename = Path(filepath).name.lower()
+        return basename in {"makefile", "dockerfile", "jenkinsfile", "vagrantfile", "gemfile", "rakefile"}
+    return ext in CODE_EXTENSIONS
+
+
+async def _run_subprocess(cmd: list[str], timeout: float = TOOL_TIMEOUT) -> tuple[bytes, bytes]:
+    """subprocess 실행 + communicate까지 timeout 적용 + 초과 시 kill"""
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    try:
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+        return stdout, stderr
+    except asyncio.TimeoutError:
+        proc.kill()
+        await proc.wait()
+        raise
+
 
 class StaticAnalysisRunner:
     """정적 분석 도구 실행 관리자
@@ -99,19 +137,20 @@ class StaticAnalysisRunner:
             clone_url = clone_url.rstrip("/") + ".git"
 
         try:
-            proc = await asyncio.wait_for(
-                asyncio.create_subprocess_exec(
-                    "git", "clone", "--depth=1", "--single-branch",
-                    clone_url, clone_dir,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                ),
-                timeout=CLONE_TIMEOUT,
+            proc = await asyncio.create_subprocess_exec(
+                "git", "clone", "--depth=1", "--single-branch",
+                clone_url, clone_dir,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
-            stdout, stderr = await proc.communicate()
+            stdout, stderr = await asyncio.wait_for(
+                proc.communicate(), timeout=CLONE_TIMEOUT,
+            )
             if proc.returncode != 0:
                 raise RuntimeError(f"git clone failed: {stderr.decode()[:500]}")
         except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
             shutil.rmtree(clone_dir, ignore_errors=True)
             raise RuntimeError(f"git clone timed out after {CLONE_TIMEOUT}s")
 
@@ -123,10 +162,9 @@ class StaticAnalysisRunner:
         """Lizard: 17개 언어 CC + NLOC (per-function)"""
         cmd = ["lizard", "--xml"]
         if target_files:
-            # Lizard accepts file paths as arguments
             existing = [
                 os.path.join(clone_dir, f) for f in target_files
-                if os.path.exists(os.path.join(clone_dir, f))
+                if _is_code_file(f) and os.path.exists(os.path.join(clone_dir, f))
             ]
             if not existing:
                 return {}
@@ -135,17 +173,9 @@ class StaticAnalysisRunner:
             cmd.append(clone_dir)
 
         try:
-            proc = await asyncio.wait_for(
-                asyncio.create_subprocess_exec(
-                    *cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                ),
-                timeout=TOOL_TIMEOUT,
-            )
-            stdout, stderr = await proc.communicate()
-            if proc.returncode != 0 and not stdout:
-                logger.warning(f"Lizard returned non-zero: {stderr.decode()[:200]}")
+            stdout, stderr = await _run_subprocess(cmd, timeout=TOOL_TIMEOUT)
+            if not stdout:
+                logger.warning(f"Lizard returned no output: {stderr.decode()[:200]}")
                 return {}
             return self._parse_lizard_xml(stdout.decode(), clone_dir)
         except (asyncio.TimeoutError, FileNotFoundError) as e:
@@ -234,7 +264,8 @@ class StaticAnalysisRunner:
         ]
 
         if target_files:
-            for f in target_files:
+            code_files = [f for f in target_files if _is_code_file(f)]
+            for f in code_files:
                 full_path = os.path.join(clone_dir, f)
                 if os.path.exists(full_path):
                     cmd.extend(["--include", f])
@@ -242,15 +273,7 @@ class StaticAnalysisRunner:
         cmd.append(clone_dir)
 
         try:
-            proc = await asyncio.wait_for(
-                asyncio.create_subprocess_exec(
-                    *cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                ),
-                timeout=TOOL_TIMEOUT,
-            )
-            stdout, stderr = await proc.communicate()
+            stdout, stderr = await _run_subprocess(cmd, timeout=TOOL_TIMEOUT)
             # Semgrep returns non-zero when findings exist
             if not stdout:
                 return {}
@@ -335,16 +358,8 @@ class StaticAnalysisRunner:
         cmd = ["radon", "mi", "-s", "-j"] + py_targets
 
         try:
-            proc = await asyncio.wait_for(
-                asyncio.create_subprocess_exec(
-                    *cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                ),
-                timeout=TOOL_TIMEOUT,
-            )
-            stdout, stderr = await proc.communicate()
-            if proc.returncode != 0 and not stdout:
+            stdout, stderr = await _run_subprocess(cmd, timeout=TOOL_TIMEOUT)
+            if not stdout:
                 return {}
             return self._parse_radon_json(stdout.decode(), clone_dir)
         except (asyncio.TimeoutError, FileNotFoundError) as e:

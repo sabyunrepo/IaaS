@@ -211,9 +211,9 @@ async def oauth_callback(
         "plan": user.plan,
     })
 
-    # 6. 프론트엔드로 리다이렉트 (같은 도메인 뒤 nginx 프록시)
-    base_url = _get_public_base_url(request)
-    return RedirectResponse(url=f"{base_url}/auth/callback?token={jwt_token}")
+    # 6. 프론트엔드로 리다이렉트 (FRONTEND_URL 사용 → /demo prefix 포함)
+    frontend_url = settings.FRONTEND_URL.rstrip("/")
+    return RedirectResponse(url=f"{frontend_url}/auth/callback?token={jwt_token}")
 
 
 # --- API Key Management ---

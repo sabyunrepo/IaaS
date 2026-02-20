@@ -2,6 +2,7 @@
 backend/app/services/job_service.py
 Job 비즈니스 로직
 """
+import logging
 import uuid
 from datetime import datetime, timezone
 
@@ -11,6 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.exceptions import JobNotFoundError, AuthorizationError
 from app.models.database import JobDB
 from app.models.enums import JobStatus
+
+logger = logging.getLogger(__name__)
 
 
 async def create_job(
@@ -78,8 +81,21 @@ async def list_jobs(user_id: uuid.UUID, db: AsyncSession, limit: int = 20, offse
 
 
 async def delete_job(job_id: str, user_id: uuid.UUID, db: AsyncSession) -> None:
-    """Job 삭제"""
+    """Job 삭제 — Temporal 워크플로우도 함께 terminate"""
     job = await get_job(job_id, user_id, db)
+
+    # Temporal 워크플로우 종료 (실행 중인 경우)
+    if job.temporal_workflow_id:
+        try:
+            from app.core.temporal import get_temporal_client
+            client = await get_temporal_client()
+            handle = client.get_workflow_handle(job.temporal_workflow_id)
+            await handle.terminate(reason=f"Job {job_id} deleted by user")
+            logger.info(f"Terminated Temporal workflow {job.temporal_workflow_id}")
+        except Exception as e:
+            # 이미 완료/종료된 워크플로우는 무시
+            logger.debug(f"Temporal terminate skipped for {job.temporal_workflow_id}: {e}")
+
     await db.delete(job)
 
 

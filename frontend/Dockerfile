@@ -1,28 +1,45 @@
-# Frontend Production Dockerfile
-# Multi-stage build for optimized production image
+# Frontend + Landing Page Production Dockerfile
+# Multi-stage build: Landing page + Frontend SPA → single Nginx container
 
-# Stage 1: Build
-FROM node:20-alpine AS builder
+# ============================================
+# Stage 1: Landing Page Build
+# ============================================
+FROM node:20-alpine AS landing-builder
 
 WORKDIR /app
 
-# Install dependencies
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+COPY jittda-landingpage/package.json jittda-landingpage/package-lock.json* ./
 RUN npm ci || npm install
 
-# Copy source and build
-COPY . .
-
+COPY jittda-landingpage/ .
 RUN npm run build
 
-# Stage 2: Production
+# ============================================
+# Stage 2: Frontend App Build
+# ============================================
+FROM node:20-alpine AS app-builder
+
+WORKDIR /app
+
+COPY frontend/package.json frontend/package-lock.json* frontend/yarn.lock* frontend/pnpm-lock.yaml* ./
+RUN npm ci || npm install
+
+COPY frontend/ .
+RUN npm run build
+
+# ============================================
+# Stage 3: Production (Nginx)
+# ============================================
 FROM nginx:alpine
 
-# Copy built assets
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Landing page → html 루트 (jittda.com/)
+COPY --from=landing-builder /app/dist /usr/share/nginx/html
 
-# Copy nginx config for SPA routing
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Frontend app → /demo 서브디렉토리 (jittda.com/demo)
+COPY --from=app-builder /app/dist /usr/share/nginx/html/demo
+
+# Nginx config
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
