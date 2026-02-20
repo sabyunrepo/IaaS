@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from application.states.logic_state import LogicState
+from domain.matching.language_extensions import get_extensions_for_languages
 from infrastructure.analysis.tree_sitter_adapter import TreeSitterAdapter
 
 
@@ -16,8 +17,10 @@ async def ast_analyzer_worker(state: LogicState) -> dict[str, Any]:
     """Tree-sitter로 AST 분석을 수행한다."""
     repo_paths = state.get("repo_local_paths", [])
     cleaned_diffs = state.get("cleaned_diffs", [])
+    jd_languages = state.get("jd_languages", [])
 
     adapter = TreeSitterAdapter()
+    ext_map = get_extensions_for_languages(jd_languages)
     results = []
 
     # cleaned_diffs 기반 분석 (이미 정제된 코드)
@@ -52,19 +55,11 @@ async def ast_analyzer_worker(state: LogicState) -> dict[str, Any]:
         except Exception:
             continue
 
-    # 리포 디렉토리 기반 추가 분석
+    # 리포 디렉토리 기반 추가 분석 (jd_languages 기반 동적 확장자)
     for repo_path_str in repo_paths:
         repo_path = Path(repo_path_str)
         if not repo_path.exists():
             continue
-
-        ext_map = {
-            ".py": "python",
-            ".js": "javascript",
-            ".ts": "typescript",
-            ".java": "java",
-            ".go": "go",
-        }
 
         for ext, lang in ext_map.items():
             for src_file in list(repo_path.rglob(f"*{ext}"))[:20]:

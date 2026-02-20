@@ -189,6 +189,14 @@ class JobRepository:
                     (status, job_id),
                 )
 
+    async def update_input_data(self, job_id: str, input_data: dict[str, Any]) -> None:
+        """Job의 input_data를 업데이트한다 (JD 자동 파싱 결과 반영 등)."""
+        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+            await conn.execute(
+                "UPDATE jobs SET input_data = %s::jsonb, updated_at = NOW() WHERE id = %s::uuid",
+                (json.dumps(input_data, default=str), job_id),
+            )
+
     async def save_result_data(self, job_id: str, result_data: dict[str, Any]) -> None:
         """Job 최종 결과를 저장한다."""
         async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:

@@ -19,6 +19,9 @@ class MetaState(TypedDict):
     # Identity Resolution (identity_resolutions 테이블 ID)
     identity_cluster_ref: str | None
 
+    # Repo Collection Reference (analysis_results 테이블 ID)
+    repo_paths_ref: str | None  # Phase 8: clone 결과 독립 저장
+
     # Analysis Result References (analysis_results 테이블 ID)
     forensic_result_ref: str | None
     logic_result_ref: str | None

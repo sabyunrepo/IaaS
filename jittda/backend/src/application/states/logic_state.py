@@ -13,6 +13,7 @@ class LogicState(TypedDict):
     job_id: str
     cleaned_diffs: list[dict]  # ForensicSupervisor 또는 직접 주입
     repo_local_paths: list[str]
+    jd_languages: list[str]  # JD 요구 언어 (확장자 필터링용, 비어있으면 전체)
 
     # ASTAnalyzer Worker (W6) 결과
     ast_analysis: list[dict]  # 함수/클래스 구조, 패턴, 의존성
