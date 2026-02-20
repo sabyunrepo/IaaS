@@ -214,3 +214,6 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 .worktrees/
+
+# Claude pipeline state (local only)
+.claude/pipeline-state.json
