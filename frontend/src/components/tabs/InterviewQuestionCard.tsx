@@ -31,11 +31,11 @@ export function InterviewQuestionCard({
   const [expandedKeyword, setExpandedKeyword] = useState<number | null>(null)
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+    <div className="bg-[--color-bg-surface] rounded-xl border border-gray-200 p-6 shadow-sm">
       {/* Question Header */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-navy-100 text-navy-800 font-semibold">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-em-100 text-em-800 font-semibold">
             {questionIndex + 1}
           </span>
           {question.title && (
@@ -87,7 +87,7 @@ export function InterviewQuestionCard({
                   kw.importance === 'must'
                     ? 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'
                     : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
-                } ${expandedKeyword === i ? 'ring-2 ring-navy-300' : ''}`}
+                } ${expandedKeyword === i ? 'ring-2 ring-em-300' : ''}`}
               >
                 {kw.keyword}
                 <span className="ml-1 text-[10px] opacity-60">
@@ -97,7 +97,7 @@ export function InterviewQuestionCard({
             ))}
           </div>
           {expandedKeyword !== null && question.answer_keywords[expandedKeyword]?.explanation && (
-            <div className="mt-2 p-3 bg-navy-50 rounded-lg border border-navy-200 text-sm text-navy-800 animate-fadeIn">
+            <div className="mt-2 p-3 bg-em-50 rounded-lg border border-em-200 text-sm text-em-800 animate-fadeIn">
               <strong>{question.answer_keywords[expandedKeyword].keyword}:</strong>{' '}
               {question.answer_keywords[expandedKeyword].explanation}
             </div>
@@ -109,20 +109,20 @@ export function InterviewQuestionCard({
       {question.terminology && question.terminology.length > 0 && (
         <div className="mb-6">
           <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-em-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
             {t('live_terminology')}
           </h5>
           <div className="space-y-2">
             {question.terminology.map((term, i) => (
-              <div key={i} className="p-3 bg-brand-50 rounded-lg border border-brand-200">
-                <div className="font-medium text-sm text-brand-900">{term.term}</div>
-                <div className="text-sm text-brand-800 mt-1">
+              <div key={i} className="p-3 bg-em-50 rounded-lg border border-em-200">
+                <div className="font-medium text-sm text-em-900">{term.term}</div>
+                <div className="text-sm text-em-800 mt-1">
                   {term.plain_language_explanation || term.definition}
                 </div>
                 {(term.business_context || term.business_relevance) && (
-                  <div className="text-xs text-brand-700 mt-1">
+                  <div className="text-xs text-em-700 mt-1">
                     <strong>{t('live_term_business')}</strong> {term.business_context || term.business_relevance}
                   </div>
                 )}
@@ -165,20 +165,20 @@ export function InterviewQuestionCard({
               onClick={() => onScenarioSelect(question.id, scenario.level, scenario.score)}
               className={`card-hover p-4 rounded-xl border-2 text-left transition-all ${
                 score?.selectedLevel === scenario.level
-                  ? 'border-navy-700 bg-navy-50 ring-2 ring-navy-200'
+                  ? 'border-em-600 bg-em-50 ring-2 ring-em-200'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className={`font-semibold ${
                   scenario.level === 'Expert' ? 'text-emerald-700' :
-                  scenario.level === 'Mid' ? 'text-brand-700' :
+                  scenario.level === 'Mid' ? 'text-em-700' :
                   'text-red-700'
                 }`}>
                   {scenario.level === 'Expert' ? `🌟 ${t('scenario_expert')}` :
                    scenario.level === 'Mid' ? `📊 ${t('scenario_mid')}` : `📉 ${t('scenario_low')}`}
                 </span>
-                <span className="text-lg font-bold text-navy-700">{t('live_points', { score: scenario.score })}</span>
+                <span className="text-lg font-bold text-em-700">{t('live_points', { score: scenario.score })}</span>
               </div>
               <p className="text-sm text-gray-600 mb-2">{scenario.text}</p>
               <p className="text-xs text-gray-500">{scenario.depth_expectations}</p>
@@ -227,7 +227,7 @@ export function InterviewQuestionCard({
               </div>
             )}
             {detail.coaching_tip && (
-              <div className="p-2 bg-brand-50 rounded-lg border border-brand-200 text-sm text-brand-800">
+              <div className="p-2 bg-em-50 rounded-lg border border-em-200 text-sm text-em-800">
                 <strong>{t('live_coaching_tip')}</strong> {detail.coaching_tip}
               </div>
             )}
@@ -325,25 +325,25 @@ export function InterviewQuestionCard({
 
       {/* Interviewer Note */}
       {question.interviewer_note && (
-        <div className="mt-6 p-4 bg-navy-50 rounded-xl border border-navy-200">
-          <h5 className="text-xs font-semibold text-navy-800 uppercase mb-2">{t('live_interviewer_note')}</h5>
+        <div className="mt-6 p-4 bg-em-50 rounded-xl border border-em-200">
+          <h5 className="text-xs font-semibold text-em-800 uppercase mb-2">{t('live_interviewer_note')}</h5>
           {question.interviewer_note.business_interpretation && (
-            <p className="text-sm text-navy-800 mb-2">
+            <p className="text-sm text-em-800 mb-2">
               <strong>{t('live_business_interpretation')}</strong> {question.interviewer_note.business_interpretation}
             </p>
           )}
           {question.interviewer_note.daily_analogy && (
-            <p className="text-sm text-navy-800 mb-2">
+            <p className="text-sm text-em-800 mb-2">
               <strong>{t('live_daily_analogy')}</strong> {question.interviewer_note.daily_analogy}
             </p>
           )}
           {question.interviewer_note.level_expectation && (
-            <p className="text-sm text-navy-800 mb-2">
+            <p className="text-sm text-em-800 mb-2">
               <strong>{t('live_level_expectation')}</strong> {question.interviewer_note.level_expectation}
             </p>
           )}
           {question.interviewer_note.what_to_listen_for && (
-            <p className="text-sm text-navy-800 mb-2">
+            <p className="text-sm text-em-800 mb-2">
               <strong>{t('live_listen_for')}</strong> {question.interviewer_note.what_to_listen_for}
             </p>
           )}
@@ -372,7 +372,7 @@ export function InterviewQuestionCard({
             </div>
           )}
           {question.interviewer_note.time_guidance && (
-            <p className="text-xs text-navy-700 mt-2 italic">
+            <p className="text-xs text-em-700 mt-2 italic">
               {question.interviewer_note.time_guidance}
             </p>
           )}

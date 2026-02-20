@@ -92,6 +92,30 @@ async def analyze_code(
             "repos": [r.get("name", "unknown") for r in target_repos],
         })
 
+    # GitHub profile 1회 fetch → 레포별 재사용 (API quota 절약)
+    _github_profile_cache = None
+    if candidate_username:
+        activity.heartbeat("Fetching GitHub profile...")
+        try:
+            import httpx
+            profile_headers = {"Accept": "application/vnd.github.v3+json"}
+            if settings.GITHUB_TOKEN:
+                profile_headers["Authorization"] = f"token {settings.GITHUB_TOKEN}"
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.get(
+                    f"https://api.github.com/users/{candidate_username}",
+                    headers=profile_headers,
+                )
+                if resp.status_code == 200:
+                    profile_data = resp.json()
+                    _github_profile_cache = {
+                        "name": profile_data.get("name"),
+                        "email": profile_data.get("email"),
+                    }
+                    logger.info(f"GitHub profile cached for {candidate_username}")
+        except Exception as e:
+            logger.debug(f"GitHub profile fetch failed for {candidate_username}: {e}")
+
     # JIT-65: HYBRID 파이프라인만 사용 (legacy 경로 제거)
     # Phase 2-4: 레포별 분석
     repositories = []
@@ -113,6 +137,7 @@ async def analyze_code(
             jd_tech_stack=jd_tech_stack,
             candidate_username=candidate_username,
             job_id=job_id or "",
+            github_profile=_github_profile_cache,
         )
         repositories.append(repo_result)
 
@@ -425,6 +450,7 @@ async def _run_single_repo_hybrid(
     jd_tech_stack: list[str],
     candidate_username: str | None,
     job_id: str | None = None,
+    github_profile: dict | None = None,
 ) -> dict:
     """JIT-25: analyze_code()에서 HYBRID 경로 호출용 내부 함수
 
@@ -436,6 +462,7 @@ async def _run_single_repo_hybrid(
         jd_tech_stack=jd_tech_stack,
         candidate_username=candidate_username,
         job_id=job_id,
+        github_profile=github_profile,
     )
 
 
@@ -482,6 +509,7 @@ async def _analyze_single_repo_impl(
     jd_tech_stack: list[str],
     candidate_username: str | None,
     job_id: str | None = None,
+    github_profile: dict | None = None,
 ) -> dict:
     """analyze_single_repo 핵심 구현 (Activity wrapper와 내부 호출 공유)"""
     from app.services.code_analyzer import CodeAnalyzer
@@ -565,41 +593,55 @@ async def _analyze_single_repo_impl(
             try:
                 from app.services.github_service import GitHubService
 
-                # JIT-81: clone 깊이 확장 — author 추출 정확도 향상
-                try:
-                    deepen_proc = await asyncio.create_subprocess_exec(
-                        "git", "-C", clone_dir, "fetch", "--deepen=49",
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE,
-                    )
-                    await asyncio.wait_for(deepen_proc.communicate(), timeout=15)
-                except Exception:
-                    pass  # non-fatal: depth=1로 계속 진행
-
+                # JIT-81: 조건부 clone 깊이 확장
+                # Step 1: depth=1로 먼저 author 확인 → 매칭되면 deepen 스킵
                 git_authors = await GitHubService.extract_git_authors(clone_dir)
+                _need_deepen = True
+                if git_authors:
+                    _shallow_names = [a["name"] for a in git_authors]
+                    if candidate_username in _shallow_names:
+                        _need_deepen = False
+                        logger.debug(
+                            f"Author {candidate_username} found at depth=1 for {repo_name} — skipping deepen"
+                        )
+
+                # Step 2: 매칭 실패 시에만 deepen + 재추출
+                if _need_deepen:
+                    try:
+                        deepen_proc = await asyncio.create_subprocess_exec(
+                            "git", "-C", clone_dir, "fetch", "--deepen=49",
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE,
+                        )
+                        await asyncio.wait_for(deepen_proc.communicate(), timeout=15)
+                    except Exception:
+                        pass  # non-fatal: depth=1로 계속 진행
+                    git_authors = await GitHubService.extract_git_authors(clone_dir)
+
                 if git_authors:
                     author_names = [a["name"] for a in git_authors]
                     if candidate_username not in author_names:
                         # JIT-72: GitHub API profile로 name/email 크로스 매칭
-                        github_profile = None
-                        try:
-                            import httpx
-                            profile_headers = {"Accept": "application/vnd.github.v3+json"}
-                            if settings.GITHUB_TOKEN:
-                                profile_headers["Authorization"] = f"token {settings.GITHUB_TOKEN}"
-                            async with httpx.AsyncClient(timeout=5.0) as client:
-                                resp = await client.get(
-                                    f"https://api.github.com/users/{candidate_username}",
-                                    headers=profile_headers,
-                                )
-                                if resp.status_code == 200:
-                                    profile_data = resp.json()
-                                    github_profile = {
-                                        "name": profile_data.get("name"),
-                                        "email": profile_data.get("email"),
-                                    }
-                        except Exception as profile_err:
-                            logger.debug(f"GitHub profile fetch failed for {candidate_username}: {profile_err}")
+                        # github_profile은 analyze_code()에서 1회 fetch 후 캐시 전달
+                        if not github_profile:
+                            try:
+                                import httpx
+                                profile_headers = {"Accept": "application/vnd.github.v3+json"}
+                                if settings.GITHUB_TOKEN:
+                                    profile_headers["Authorization"] = f"token {settings.GITHUB_TOKEN}"
+                                async with httpx.AsyncClient(timeout=5.0) as client:
+                                    resp = await client.get(
+                                        f"https://api.github.com/users/{candidate_username}",
+                                        headers=profile_headers,
+                                    )
+                                    if resp.status_code == 200:
+                                        profile_data = resp.json()
+                                        github_profile = {
+                                            "name": profile_data.get("name"),
+                                            "email": profile_data.get("email"),
+                                        }
+                            except Exception as profile_err:
+                                logger.debug(f"GitHub profile fetch failed for {candidate_username}: {profile_err}")
 
                         identity_result = GitHubService.resolve_author_by_identity(
                             candidate_username, git_authors, repo_name=repo_name,
@@ -609,7 +651,9 @@ async def _analyze_single_repo_impl(
 
                         # JIT-81: 휴리스틱 실패 시 GitHub Commits API fallback
                         if not identity_result.best_match:
-                            repo_full_name = repo_url.replace("https://github.com/", "").rstrip("/").rstrip(".git")
+                            repo_full_name = repo_url.replace("https://github.com/", "").rstrip("/")
+                            if repo_full_name.endswith(".git"):
+                                repo_full_name = repo_full_name[:-4]
                             api_match = await GitHubService.resolve_author_by_github_api(
                                 candidate_username, repo_full_name, token=settings.GITHUB_TOKEN,
                             )
@@ -643,6 +687,7 @@ async def _analyze_single_repo_impl(
 
                             # JIT-37: confidence < 0.5 → author 필터 비적용
                             if best.confidence < 0.5:
+                                original_low = candidate_username
                                 logger.warning(
                                     f"Low confidence ({best.confidence}) for "
                                     f"{candidate_username} in {repo_name} — "
@@ -653,7 +698,7 @@ async def _analyze_single_repo_impl(
                                     "method": f"git_author_validation/{best.method}",
                                     "confidence": "low",
                                     "confidence_score": best.confidence,
-                                    "original_username": candidate_username,
+                                    "original_username": original_low,
                                     "resolved_username": None,
                                     "skipped_low_confidence": True,
                                 }
@@ -715,13 +760,70 @@ async def _analyze_single_repo_impl(
         file_types = _jd_to_file_types(jd_tech_stack)
         # JIT-36: 다중 author 목록이 있으면 list로 전달, 없으면 단일 author 호환
         pydriller_author = candidate_author_names if candidate_author_names else candidate_username
-        driller_result = await analyzer.analyze_with_pydriller(
-            repo_url=repo_url,
-            job_id=job_id or "",
-            author=pydriller_author,
-            since_years=settings.GITHUB_ANALYSIS_YEARS,
-            file_types=file_types,
+        driller_result = await run_with_heartbeat(
+            analyzer.analyze_with_pydriller(
+                repo_url=repo_url,
+                job_id=job_id or "",
+                author=pydriller_author,
+                since_years=settings.GITHUB_ANALYSIS_YEARS,
+                file_types=file_types,
+            ),
+            interval=30.0,
+            message=f"PyDriller analyzing {repo_name}...",
         )
+
+        # primary_lang: early exit에서도 필요하므로 PyDriller 직후 계산
+        primary_lang = max(
+            repo_info.get("languages", {}),
+            key=repo_info.get("languages", {}).get,
+            default=None
+        )
+
+        # ================================================================
+        # JIT-39 Early Exit: Zero-contribution → skip expensive LLM phases
+        # PyDriller에서 커밋 0이면 LLM 3-Stage 분석 비용 절감
+        # ================================================================
+        total_commits_early = driller_result["stats"]["total_commits"]
+        if total_commits_early == 0 and candidate_username:
+            logger.info(
+                f"[JIT-39] Early exit for {repo_name}: "
+                f"zero commits by {candidate_username} — skipping LLM analysis"
+            )
+            if alog:
+                await alog.result(f"Skipped {repo_name} (zero contributions)", {
+                    "reason": "zero_contribution_early_exit",
+                    "candidate_username": candidate_username,
+                })
+            return {
+                "repo_url": repo_url,
+                "repo_name": repo_name,
+                "language": primary_lang,
+                "candidate_commits": 0,
+                "commit_count": 0,
+                "candidate_additions": 0,
+                "candidate_deletions": 0,
+                "avg_complexity": 0,
+                "monthly_contributions": [0] * 12,
+                "ast_analysis": {"functions": [], "classes": []},
+                "analysis": {"tech_stack": [], "patterns": [], "quality_score": 0.0},
+                "notable_implementations": [],
+                "quality_metrics": {},
+                "static_analysis": None,
+                "key_files": [],
+                "candidate_identification": candidate_identification,
+                "_identity_result": repo_identity_result,
+                "hybrid_metadata": {
+                    "key_files_count": 0,
+                    "deep_analyses_count": 0,
+                    "failed_analyses_count": 0,
+                    "model_used": KIMI_CODER_MODEL,
+                    "has_static_analysis": False,
+                    "used_clone_fallback": False,
+                    "use_ast_pipeline": False,
+                    "ranked_chunks_count": 0,
+                    "skipped_reason": "zero_contribution_early_exit",
+                },
+            }
 
         # ================================================================
         # Phase 2.1: PyDriller 빈 결과 → clone 소스 fallback (JIT-20)
@@ -748,12 +850,16 @@ async def _analyze_single_repo_impl(
                 logger.info(f"Clone fallback: {len(clone_files)} files for {repo_name}")
 
         # ================================================================
-        # Phase 2.5: Static Analysis (optional, non-blocking)
-        # clone_dir 공유 — 중복 clone 방지
+        # Phase 2.5 + Phase 3: 병렬 실행 (Static Analysis ∥ AST 분석)
+        # 두 단계는 driller_result를 read-only로 사용, 서로 의존성 없음
         # ================================================================
-        static_analysis = None
-        candidate_file_paths = [f.get("filename", "") for f in driller_result.get("files", []) if f.get("filename")]
-        if candidate_file_paths:
+        use_ast_pipeline = settings.USE_AST_PIPELINE
+
+        async def _run_static_analysis() -> dict | None:
+            """Phase 2.5: Static Analysis (non-blocking)"""
+            candidate_file_paths = [f.get("filename", "") for f in driller_result.get("files", []) if f.get("filename")]
+            if not candidate_file_paths:
+                return None
             activity.heartbeat(f"Phase 2.5: Static analysis for {repo_name}")
             if alog:
                 await alog.progress(f"Phase 2.5: Static analysis for {repo_name}", {
@@ -761,42 +867,45 @@ async def _analyze_single_repo_impl(
                     "target_files_count": len(candidate_file_paths),
                 })
             try:
-                static_result = await runner.run_analysis(
-                    repo_url=repo_url,
-                    target_files=candidate_file_paths,
-                    clone_dir=clone_dir,
-                    cleanup=False,
+                static_result = await run_with_heartbeat(
+                    runner.run_analysis(
+                        repo_url=repo_url,
+                        target_files=candidate_file_paths,
+                        clone_dir=clone_dir,
+                        cleanup=False,
+                    ),
+                    interval=30.0,
+                    message=f"Static analysis for {repo_name}...",
                 )
-                static_analysis = static_result.model_dump()
-                activity.heartbeat("Static analysis completed")
+                return static_result.model_dump()
             except Exception as e:
                 logger.warning(f"Static analysis failed for {repo_name} (non-fatal): {e}")
+                return None
 
-        # ================================================================
-        # Phase 3: AST 분석 + JD Scoring (JIT-24: feature flag 분기)
-        # ================================================================
-        primary_lang = max(
-            repo_info.get("languages", {}),
-            key=repo_info.get("languages", {}).get,
-            default=None
+        async def _run_ast_analysis() -> tuple[list[dict], dict]:
+            """Phase 3: AST 분석"""
+            activity.heartbeat(f"Phase 3: AST for {repo_name}")
+            if alog:
+                await alog.progress(f"Phase 3: AST for {repo_name}", {
+                    "phase": 3,
+                    "files_count": len(driller_result.get("files", [])),
+                    "use_ast_pipeline": use_ast_pipeline,
+                })
+            _top_files = analyzer.select_top_files(
+                files=driller_result["files"],
+                jd_tech_stack=jd_tech_stack,
+                max_files=20,
+            )
+            return _top_files, await run_with_heartbeat(
+                analyzer.analyze_ast(files=_top_files, primary_language=primary_lang),
+                interval=30.0,
+                message=f"AST analysis for {repo_name}...",
+            )
+
+        static_analysis, (top_files, ast_result) = await asyncio.gather(
+            _run_static_analysis(),
+            _run_ast_analysis(),
         )
-        use_ast_pipeline = settings.USE_AST_PIPELINE
-
-        # 공통: AST 분석 (기존 호환용)
-        activity.heartbeat(f"Phase 3: AST for {repo_name}")
-        if alog:
-            await alog.progress(f"Phase 3: AST for {repo_name}", {
-                "phase": 3,
-                "files_count": len(driller_result.get("files", [])),
-                "use_ast_pipeline": use_ast_pipeline,
-            })
-
-        top_files = analyzer.select_top_files(
-            files=driller_result["files"],
-            jd_tech_stack=jd_tech_stack,
-            max_files=20,
-        )
-        ast_result = await analyzer.analyze_ast(files=top_files, primary_language=primary_lang)
 
         # JIT-24: AST 파이프라인 — clone_dir에서 직접 청크 추출 + JD 스코어링
         ranked_chunks: list[dict] = []
@@ -1180,6 +1289,17 @@ async def validate_code_analysis(
     issues = []
     suggestions = []
     repo_name = repo_result.get("repo_name", "unknown")
+
+    # JIT-39 Early Exit 결과는 검증 스킵 (재분석해도 동일 결과)
+    hybrid_meta = repo_result.get("hybrid_metadata", {})
+    if hybrid_meta.get("skipped_reason") == "zero_contribution_early_exit":
+        return {
+            "valid": True,
+            "issues": [],
+            "suggestions": [],
+            "repo_name": repo_name,
+            "metrics": {"commit_count": 0, "skipped": True},
+        }
 
     # 1. 기본 데이터 검증
     commit_count = repo_result.get("candidate_commits", 0)

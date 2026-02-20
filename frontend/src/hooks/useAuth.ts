@@ -59,7 +59,7 @@ export function useAuth() {
   const logout = useCallback(() => {
     clearToken()
     setUser(null)
-    window.location.href = '/login'
+    window.location.href = import.meta.env.BASE_URL + 'login'
   }, [])
 
   const updateRole = useCallback(async (role: string) => {

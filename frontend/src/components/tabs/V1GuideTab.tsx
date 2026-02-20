@@ -12,29 +12,29 @@ export function V1GuideTab({ guide }: V1GuideTabProps) {
     <div className="space-y-6">
       {/* Interview Overview */}
       {guide.interview_overview && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-[--color-bg-surface] p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_interview_overview')}</h2>
           <div className="grid gap-4 sm:grid-cols-4">
-            <div className="text-center p-3 bg-navy-50 rounded-lg">
-              <div className="text-2xl font-bold text-navy-700">
+            <div className="text-center p-3 bg-em-50 rounded-lg">
+              <div className="text-2xl font-bold text-em-700">
                 {t('result_duration', { min: guide.interview_overview.total_duration_minutes })}
               </div>
               <div className="text-sm text-gray-500">{t('result_total_duration')}</div>
             </div>
-            <div className="text-center p-3 bg-navy-50 rounded-lg">
-              <div className="text-2xl font-bold text-navy-700">
+            <div className="text-center p-3 bg-em-50 rounded-lg">
+              <div className="text-2xl font-bold text-em-700">
                 {t('result_count_unit', { count: guide.interview_overview.question_count })}
               </div>
               <div className="text-sm text-gray-500">{t('result_question_count_label')}</div>
             </div>
-            <div className="text-center p-3 bg-navy-50 rounded-lg">
-              <div className="text-lg font-bold text-navy-700">
+            <div className="text-center p-3 bg-em-50 rounded-lg">
+              <div className="text-lg font-bold text-em-700">
                 {guide.interview_overview.experience_level}
               </div>
               <div className="text-sm text-gray-500">{t('result_experience_level_label')}</div>
             </div>
-            <div className="text-center p-3 bg-navy-50 rounded-lg">
-              <div className="text-lg font-bold text-navy-700">
+            <div className="text-center p-3 bg-em-50 rounded-lg">
+              <div className="text-lg font-bold text-em-700">
                 {guide.interview_overview.interview_style}
               </div>
               <div className="text-sm text-gray-500">{t('result_interview_style')}</div>
@@ -45,7 +45,7 @@ export function V1GuideTab({ guide }: V1GuideTabProps) {
 
       {/* Interview Flow */}
       {guide.interview_flow && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-[--color-bg-surface] p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_interview_flow_order')}</h2>
           <div className="space-y-4">
             {guide.interview_flow.opening && (
@@ -75,11 +75,11 @@ export function V1GuideTab({ guide }: V1GuideTabProps) {
               </div>
             )}
             {guide.interview_flow.closing && (
-              <div className="p-4 bg-brand-50 rounded-lg border border-brand-200">
-                <h3 className="font-medium text-brand-900 mb-2">
+              <div className="p-4 bg-em-50 rounded-lg border border-em-200">
+                <h3 className="font-medium text-em-900 mb-2">
                   🏁 {t('result_closing')} ({t('result_duration', { min: guide.interview_flow.closing.duration_minutes })})
                 </h3>
-                <p className="text-sm text-brand-800">{guide.interview_flow.closing.script}</p>
+                <p className="text-sm text-em-800">{guide.interview_flow.closing.script}</p>
               </div>
             )}
           </div>
@@ -88,7 +88,7 @@ export function V1GuideTab({ guide }: V1GuideTabProps) {
 
       {/* Evaluation Matrix */}
       {guide.evaluation_matrix && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-[--color-bg-surface] p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_evaluation_criteria')}</h2>
           <div className="grid gap-4 sm:grid-cols-3 mb-4">
             <div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -103,8 +103,8 @@ export function V1GuideTab({ guide }: V1GuideTabProps) {
               </div>
               <div className="text-sm text-gray-500">{t('result_passing_threshold')}</div>
             </div>
-            <div className="text-center p-3 bg-navy-50 rounded-lg">
-              <div className="text-lg font-bold text-navy-700">
+            <div className="text-center p-3 bg-em-50 rounded-lg">
+              <div className="text-lg font-bold text-em-700">
                 ≥ {guide.evaluation_matrix.strong_hire_threshold}
               </div>
               <div className="text-sm text-gray-500">{t('result_strong_hire')}</div>

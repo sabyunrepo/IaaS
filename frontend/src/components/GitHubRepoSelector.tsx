@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getToken } from '../lib/api'
+import { TextFieldRoot, TextFieldInput, CalloutRoot, CalloutContent, CalloutTitle, CalloutDescription, CheckboxRoot, CheckboxControl, CheckboxIndicator, CheckboxHiddenInput } from '../../seed-design/ui'
 
 export interface GitHubRepo {
   name: string
@@ -54,17 +55,12 @@ export function GitHubRepoSelector({
 
   if (!githubConnected) {
     return (
-      <div className="rounded-lg border border-brand-200 bg-brand-50 p-4">
-        <div className="flex items-center gap-3">
-          <svg className="h-5 w-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <div>
-            <p className="text-sm font-medium text-brand-800">{t('github_not_connected')}</p>
-            <p className="mt-0.5 text-xs text-brand-600">{t('github_connect_hint')}</p>
-          </div>
-        </div>
-      </div>
+      <CalloutRoot tone="warning">
+        <CalloutContent>
+          <CalloutTitle>{t('github_not_connected')}</CalloutTitle>
+          <CalloutDescription>{t('github_connect_hint')}</CalloutDescription>
+        </CalloutContent>
+      </CalloutRoot>
     )
   }
 
@@ -72,11 +68,11 @@ export function GitHubRepoSelector({
     return (
       <div className="space-y-2">
         {[1, 2, 3].map(i => (
-          <div key={i} className="animate-pulse rounded-lg border border-gray-200 p-3">
+          <div key={i} className="animate-pulse rounded-lg border border-[--color-border-default] p-3">
             <div className="flex items-center gap-3">
-              <div className="h-4 w-4 rounded bg-gray-200" />
-              <div className="h-4 w-32 rounded bg-gray-200" />
-              <div className="ml-auto h-3 w-16 rounded bg-gray-100" />
+              <div className="h-4 w-4 rounded bg-ink-200" />
+              <div className="h-4 w-32 rounded bg-ink-200" />
+              <div className="ml-auto h-3 w-16 rounded bg-[--color-bg-neutral]" />
             </div>
           </div>
         ))}
@@ -86,9 +82,11 @@ export function GitHubRepoSelector({
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-        {error}
-      </div>
+      <CalloutRoot tone="critical">
+        <CalloutContent>
+          <CalloutDescription>{error}</CalloutDescription>
+        </CalloutContent>
+      </CalloutRoot>
     )
   }
 
@@ -127,17 +125,17 @@ export function GitHubRepoSelector({
     <div className="space-y-3">
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('repo_search_placeholder')}
-          className="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700"
-        />
+        <TextFieldRoot className="flex-1 min-w-[160px]">
+          <TextFieldInput
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t('repo_search_placeholder')}
+          />
+        </TextFieldRoot>
         <select
           value={langFilter}
           onChange={e => setLangFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700"
+          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-[--color-border-accent] focus:outline-none focus:ring-1 focus:ring-[--color-border-accent]"
         >
           <option value="">{t('all_languages')}</option>
           {languages.map(lang => (
@@ -147,7 +145,7 @@ export function GitHubRepoSelector({
         <select
           value={sortBy}
           onChange={e => setSortBy(e.target.value as 'updated' | 'stars')}
-          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700"
+          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-[--color-border-accent] focus:outline-none focus:ring-1 focus:ring-[--color-border-accent]"
         >
           <option value="updated">{t('sort_updated')}</option>
           <option value="stars">{t('sort_stars')}</option>
@@ -156,7 +154,7 @@ export function GitHubRepoSelector({
 
       {/* Selection counter */}
       <div className="flex items-center justify-between text-sm">
-        <span className={`font-medium ${selectedRepos.length >= maxSelection ? 'text-brand-600' : 'text-gray-600'}`}>
+        <span className={`font-medium ${selectedRepos.length >= maxSelection ? 'text-[--color-text-accent]' : 'text-[--color-text-secondary]'}`}>
           {t('repos_selected', { count: selectedRepos.length, max: maxSelection })}
         </span>
         {selectedRepos.length > 0 && (
@@ -171,7 +169,7 @@ export function GitHubRepoSelector({
       </div>
 
       {/* Repo list */}
-      <div className="max-h-80 space-y-1.5 overflow-y-auto rounded-lg border border-gray-200 p-2">
+      <div className="max-h-80 space-y-1.5 overflow-y-auto rounded-lg border border-[--color-border-default] p-2">
         {filtered.length === 0 ? (
           <p className="py-6 text-center text-sm text-gray-400">{t('no_repos_found')}</p>
         ) : (
@@ -179,28 +177,28 @@ export function GitHubRepoSelector({
             const isSelected = selectedRepos.includes(repo.html_url)
             const isDisabled = !isSelected && selectedRepos.length >= maxSelection
             return (
-              <label
+              <CheckboxRoot
                 key={repo.full_name}
+                checked={isSelected}
+                onCheckedChange={() => toggleRepo(repo.html_url)}
+                disabled={isDisabled}
                 className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
                   isSelected
-                    ? 'border-navy-200 bg-navy-50'
+                    ? 'border-em-200 bg-em-50'
                     : isDisabled
                     ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-50'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    : 'border-[--color-border-default] hover:bg-[--color-bg-surface-hover]'
                 }`}
               >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggleRepo(repo.html_url)}
-                  disabled={isDisabled}
-                  className="h-4 w-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700"
-                />
+                <CheckboxHiddenInput />
+                <CheckboxControl>
+                  <CheckboxIndicator checked={isSelected} />
+                </CheckboxControl>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="truncate text-sm font-medium text-gray-900">{repo.name}</span>
                     {repo.private && (
-                      <span className="rounded bg-gray-200 px-1.5 py-0.5 text-[10px] font-medium text-gray-600">
+                      <span className="rounded bg-ink-200 px-1.5 py-0.5 text-[10px] font-medium text-[--color-text-secondary]">
                         private
                       </span>
                     )}
@@ -212,7 +210,7 @@ export function GitHubRepoSelector({
                 <div className="flex flex-shrink-0 items-center gap-3 text-xs text-gray-400">
                   {repo.language && (
                     <span className="flex items-center gap-1">
-                      <span className="h-2.5 w-2.5 rounded-full bg-navy-600" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-em-600" />
                       {repo.language}
                     </span>
                   )}
@@ -226,7 +224,7 @@ export function GitHubRepoSelector({
                   )}
                   <span className="hidden sm:inline">{formatDate(repo.updated_at)}</span>
                 </div>
-              </label>
+              </CheckboxRoot>
             )
           })
         )}

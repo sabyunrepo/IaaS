@@ -12,6 +12,8 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@seed-design/css": "^1.2.2",
+    "@seed-design/react": "^1.2.4",
     "@tailwindcss/vite": "^4.1.18",
     "i18next": "^25.8.0",
     "react": "^19.2.0",
@@ -21,8 +23,10 @@
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
-    "@playwright/test": "^1.50.0",
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.50.0",
+    "@seed-design/cli": "^1.2.1",
+    "@seed-design/vite-plugin": "^1.1.0",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
@@ -33,6 +37,7 @@
     "globals": "^16.5.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "vite-tsconfig-paths": "^6.1.1"
   }
 }

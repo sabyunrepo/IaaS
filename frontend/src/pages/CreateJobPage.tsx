@@ -7,6 +7,7 @@ import { getToken } from '../lib/api'
 import { SectionCard } from '../components/SectionCard'
 import { FileUploadField, type FileUpload } from '../components/FileUploadField'
 import { EmailNotificationModal } from '../components/EmailNotificationModal'
+import { ActionButton, Divider, TextFieldRoot, TextFieldInput, TextFieldTextarea, TextFieldPrefixIcon } from '../../seed-design/ui'
 
 
 // 지원 언어 목록
@@ -186,14 +187,14 @@ export function CreateJobPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-navy-700 to-navy-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-em-500 to-teal-500">
             <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('create_interview_script')}</h1>
-            <p className="mt-0.5 text-sm text-gray-500">{t('create_subtitle')}</p>
+            <h1 className="text-2xl font-bold text-[--color-text-primary]">{t('create_interview_script')}</h1>
+            <p className="mt-0.5 text-sm text-[--color-text-tertiary]">{t('create_subtitle')}</p>
           </div>
         </div>
       </div>
@@ -205,17 +206,18 @@ export function CreateJobPage() {
           description={t('jd_section_desc')}
           required
         >
-          <textarea
-            value={jdText}
-            onChange={(e) => setJdText(e.target.value)}
-            placeholder={t('jd_placeholder')}
-            rows={8}
-            className="w-full rounded-lg border border-gray-300 p-4 text-gray-900 placeholder-gray-400 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
-            required
-            minLength={50}
-          />
+          <TextFieldRoot>
+            <TextFieldTextarea
+              value={jdText}
+              onChange={(e) => setJdText(e.target.value)}
+              placeholder={t('jd_placeholder')}
+              className="min-h-[200px]"
+              required
+              minLength={50}
+            />
+          </TextFieldRoot>
           <div className="mt-2 flex items-center justify-between text-sm">
-            <span className={`${jdText.length >= 50 ? 'text-green-600' : 'text-gray-500'}`}>
+            <span className={`${jdText.length >= 50 ? 'text-green-600' : 'text-[--color-text-tertiary]'}`}>
               {jdText.length >= 50 ? (
                 <span className="flex items-center gap-1">
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -267,13 +269,13 @@ export function CreateJobPage() {
         <SectionCard title={t('candidate_info')}>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label className="mb-1.5 block text-sm font-medium text-[--color-text-secondary]">
                 {t('experience_level')} <span className="text-red-500">*</span>
               </label>
               <select
                 value={experienceLevel}
                 onChange={(e) => setExperienceLevel(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
+                className="w-full rounded-lg border border-[--color-border-default] px-3 py-2.5 text-[--color-text-primary] transition-colors focus:border-[--color-border-accent] focus:outline-none focus:ring-2 focus:ring-em-500/20"
               >
                 <option value="신입">{t('level_entry')}</option>
                 <option value="주니어">{t('level_junior')}</option>
@@ -284,13 +286,13 @@ export function CreateJobPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label className="mb-1.5 block text-sm font-medium text-[--color-text-secondary]">
                 {t('output_language')} <span className="text-red-500">*</span>
               </label>
               <select
                 value={outputLanguage}
                 onChange={(e) => setOutputLanguage(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
+                className="w-full rounded-lg border border-[--color-border-default] px-3 py-2.5 text-[--color-text-primary] transition-colors focus:border-[--color-border-accent] focus:outline-none focus:ring-2 focus:ring-em-500/20"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
@@ -303,44 +305,58 @@ export function CreateJobPage() {
 
           {/* LinkedIn URL */}
           <div className="mt-4">
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label className="mb-1.5 block text-sm font-medium text-[--color-text-secondary]">
               {t('linkedin_url')}
             </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+            <TextFieldRoot>
+              <TextFieldPrefixIcon svg={
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                 </svg>
-              </div>
-              <input
+              } />
+              <TextFieldInput
                 type="url"
                 value={linkedinUrl}
                 onChange={(e) => setLinkedinUrl(e.target.value)}
                 placeholder="https://linkedin.com/in/username"
-                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
               />
-            </div>
-            <p className="mt-1.5 text-sm text-gray-500">{t('linkedin_hint')}</p>
+            </TextFieldRoot>
+            <p className="mt-1.5 text-sm text-[--color-text-tertiary]">{t('linkedin_hint')}</p>
           </div>
         </SectionCard>
 
         {/* Git URL */}
         <SectionCard title={t('git_url')} description={t('git_url_hint')}>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+          <TextFieldRoot>
+            <TextFieldPrefixIcon svg={
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                 <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd"/>
               </svg>
-            </div>
-            <input
+            } />
+            <TextFieldInput
               type="url"
               value={gitUrl}
               onChange={(e) => setGitUrl(e.target.value)}
               placeholder="https://github.com/username"
-              className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 transition-colors focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
             />
-          </div>
+          </TextFieldRoot>
         </SectionCard>
+
+        {/* Info Notices */}
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+            <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <span className="text-sm text-amber-800 dark:text-amber-200">{t('code_analysis_notice')}</span>
+          </div>
+          <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+            <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <span className="text-sm text-blue-800 dark:text-blue-200">{t('analysis_time_notice')}</span>
+          </div>
+        </div>
 
         {/* Error Display */}
         {error && (
@@ -353,36 +369,28 @@ export function CreateJobPage() {
         )}
 
         {/* Submit Buttons */}
-        <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-6">
-          <button
+        <Divider className="mb-6" />
+        <div className="flex items-center justify-end gap-3">
+          <ActionButton
+            variant="neutralOutline"
+            size="medium"
             type="button"
             onClick={() => navigate('/interview')}
-            className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             {t('cancel')}
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
+            variant="brandSolid"
+            size="medium"
             type="submit"
+            loading={submitting}
             disabled={!canSubmit}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-navy-700 to-navy-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-navy-800 hover:to-navy-700 hover:shadow-md disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-400 disabled:shadow-none"
           >
-            {submitting ? (
-              <>
-                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                {t('loading')}
-              </>
-            ) : (
-              <>
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                {t('create_interview_script')}
-              </>
-            )}
-          </button>
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            {t('create_interview_script')}
+          </ActionButton>
         </div>
       </form>
 

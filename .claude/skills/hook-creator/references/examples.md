@@ -9,7 +9,7 @@ IaaS 프로젝트에 적용된 훅 예제.
   "matcher": "*",
   "hooks": [{
     "type": "command",
-    "command": "cd /Users/sabyun/goinfre/IaaS && echo '--- Docker Status ---' && docker compose ps --format 'table {{.Name}}\t{{.Status}}' 2>/dev/null | head -15; echo '--- Git Branch ---' && git branch --show-current; echo '--- Recent Commits ---' && git log --oneline -3"
+    "command": "cd /home/sabyun/IaaS && echo '--- Docker Status ---' && docker compose ps --format 'table {{.Name}}\t{{.Status}}' 2>/dev/null | head -15; echo '--- Git Branch ---' && git branch --show-current; echo '--- Recent Commits ---' && git log --oneline -3"
   }]
 }
 ```
@@ -35,7 +35,7 @@ IaaS 프로젝트에 적용된 훅 예제.
   "matcher": "Bash",
   "hooks": [{
     "type": "command",
-    "command": "bash -c 'INPUT=$(cat); CMD=$(echo \"$INPUT\" | jq -r \".tool_input.command // empty\" 2>/dev/null); if echo \"$CMD\" | grep -q \"git commit\"; then BRANCH=$(cd /Users/sabyun/goinfre/IaaS && git branch --show-current 2>/dev/null); if [ \"$BRANCH\" = \"main\" ] || [ \"$BRANCH\" = \"master\" ]; then echo \"[Git Hook] BLOCKED: main/master 브랜치에 직접 커밋 금지.\"; exit 2; fi; fi'"
+    "command": "bash -c 'INPUT=$(cat); CMD=$(echo \"$INPUT\" | jq -r \".tool_input.command // empty\" 2>/dev/null); if echo \"$CMD\" | grep -q \"git commit\"; then BRANCH=$(cd /home/sabyun/IaaS && git branch --show-current 2>/dev/null); if [ \"$BRANCH\" = \"main\" ] || [ \"$BRANCH\" = \"master\" ]; then echo \"[Git Hook] BLOCKED: main/master 브랜치에 직접 커밋 금지.\"; exit 2; fi; fi'"
   }]
 }
 ```

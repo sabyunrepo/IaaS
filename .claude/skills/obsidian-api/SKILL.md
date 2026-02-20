@@ -14,7 +14,7 @@ allowed-tools: Bash, Read, Write
 ## 셋업
 
 ```bash
-source /Users/sabyun/goinfre/IaaS/.claude/skills/obsidian-api/obsidian-api.sh
+source /home/sabyun/IaaS/.claude/skills/obsidian-api/obsidian-api.sh
 ```
 
 API 키와 포트는 자동 설정됨 (HTTPS 27124, self-signed cert).
@@ -55,7 +55,7 @@ API 키와 포트는 자동 설정됨 (HTTPS 27124, self-signed cert).
 obsidian_vault_put "architecture/MOC.md" @/tmp/moc.md
 
 # 로컬 파일을 Vault에 업로드
-obsidian_vault_put_file "/Users/sabyun/goinfre/IaaS/docs/architecture/MOC.md" "architecture/MOC.md"
+obsidian_vault_put_file "/home/sabyun/IaaS/docs/architecture/MOC.md" "architecture/MOC.md"
 ```
 
 ---
@@ -66,10 +66,10 @@ obsidian_vault_put_file "/Users/sabyun/goinfre/IaaS/docs/architecture/MOC.md" "a
 
 ```bash
 # 로컬 docs/architecture/ → Vault의 architecture/ 경로
-obsidian_sync_dir "/Users/sabyun/goinfre/IaaS/docs/architecture" "architecture"
+obsidian_sync_dir "/home/sabyun/IaaS/docs/architecture" "architecture"
 
 # Vault 루트에 직접 동기화
-obsidian_sync_dir "/Users/sabyun/goinfre/IaaS/docs/architecture"
+obsidian_sync_dir "/home/sabyun/IaaS/docs/architecture"
 ```
 
 ---
@@ -80,7 +80,7 @@ obsidian_sync_dir "/Users/sabyun/goinfre/IaaS/docs/architecture"
 ```bash
 source .claude/skills/obsidian-api/obsidian-api.sh
 obsidian_status
-obsidian_sync_dir "/Users/sabyun/goinfre/IaaS/docs/architecture"
+obsidian_sync_dir "/home/sabyun/IaaS/docs/architecture"
 ```
 
 ### 2. 특정 문서 업데이트

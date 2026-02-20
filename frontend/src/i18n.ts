@@ -4,7 +4,7 @@ import { initReactI18next } from 'react-i18next'
 const resources = {
   ko: {
     translation: {
-      app_title: 'HireReady',
+      app_title: 'JittDa',
       login: '로그인',
       logout: '로그아웃',
       // Navigation - "Job" → "면접 스크립트" 변경
@@ -299,6 +299,8 @@ const resources = {
       jd_section_desc: '채용 포지션에 대한 상세한 직무 설명을 입력해주세요',
       jd_length_ok: '충분한 길이입니다',
       file_select: '파일을 선택하세요',
+      code_analysis_notice: '현재 코드 분석은 Python, TypeScript, JavaScript만 지원됩니다. 다른 언어는 추후 지원 예정입니다.',
+      analysis_time_notice: '분석에 약 30~40분이 소요됩니다. 이메일 알림을 설정하시면 분석 완료 시 알림을 받으실 수 있습니다.',
       // QuestionCard - revision badges
       badge_duplicate_merge: '중복 병합',
       badge_clarity_fix: '명확성 개선',
@@ -512,7 +514,7 @@ const resources = {
   },
   en: {
     translation: {
-      app_title: 'HireReady',
+      app_title: 'JittDa',
       login: 'Login',
       logout: 'Logout',
       // Navigation - "Jobs" → "Interview Scripts" change
@@ -807,6 +809,8 @@ const resources = {
       jd_section_desc: 'Enter a detailed job description for the hiring position',
       jd_length_ok: 'Sufficient length',
       file_select: 'Select a file',
+      code_analysis_notice: 'Code analysis currently supports Python, TypeScript, and JavaScript only. Other languages will be supported in the future.',
+      analysis_time_notice: 'Analysis takes approximately 30-40 minutes. Set up email notifications to get notified when the analysis is complete.',
       // QuestionCard - revision badges
       badge_duplicate_merge: 'Merged',
       badge_clarity_fix: 'Clarity Fix',

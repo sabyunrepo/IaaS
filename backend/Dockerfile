@@ -1,21 +1,19 @@
+# syntax=docker/dockerfile:1
 FROM python:3.11-slim AS base
 
 WORKDIR /app
 
-# System dependencies (Docling: tesseract, poppler / PyDriller: git)
-RUN apt-get update && apt-get install -y \
+# System dependencies (PyDriller: git, PDF: poppler)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
-    tesseract-ocr \
     poppler-utils \
-    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Python dependencies
+# Python dependencies (BuildKit cache mount로 재빌드 가속)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Semgrep CLI (installed separately — large package, ~100MB)
-RUN pip install --no-cache-dir semgrep>=1.50.0
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt && \
+    pip install semgrep>=1.50.0
 
 # Source code
 COPY . .
@@ -26,5 +24,5 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload
 
 # Production target
 FROM base AS production
-RUN pip install gunicorn
+RUN --mount=type=cache,target=/root/.cache/pip pip install gunicorn
 CMD ["gunicorn", "app.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]

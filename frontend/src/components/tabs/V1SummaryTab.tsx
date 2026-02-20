@@ -12,9 +12,9 @@ export function V1SummaryTab({ summary }: V1SummaryTabProps) {
     <div className="space-y-6">
       {/* Candidate Overview */}
       {summary.candidate_overview && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-[--color-bg-surface] p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <svg className="h-5 w-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 text-em-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             {t('result_candidate_overview')}
@@ -59,7 +59,7 @@ export function V1SummaryTab({ summary }: V1SummaryTabProps) {
           </h2>
           <div className="space-y-3">
             {summary.key_strengths.map((item, i) => (
-              <div key={i} className="bg-white rounded-lg p-4 border border-green-200">
+              <div key={i} className="bg-[--color-bg-surface] rounded-lg p-4 border border-green-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-green-900">{item.strength}</span>
                   <span className="text-sm text-green-600">{t('result_confidence', { value: Math.round(item.confidence * 100) })}</span>
@@ -88,7 +88,7 @@ export function V1SummaryTab({ summary }: V1SummaryTabProps) {
           </h2>
           <div className="space-y-3">
             {summary.risk_flags.map((item, i) => (
-              <div key={i} className="bg-white rounded-lg p-4 border border-red-200">
+              <div key={i} className="bg-[--color-bg-surface] rounded-lg p-4 border border-red-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-red-900">{item.concern}</span>
                   <span className={`text-xs px-2 py-1 rounded-full ${
@@ -113,9 +113,9 @@ export function V1SummaryTab({ summary }: V1SummaryTabProps) {
 
       {/* Technical Expertise */}
       {summary.technical_expertise && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-[--color-bg-surface] p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <svg className="h-5 w-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 text-em-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
             {t('result_technical_expertise')}
@@ -126,7 +126,7 @@ export function V1SummaryTab({ summary }: V1SummaryTabProps) {
                 <h3 className="text-sm font-medium text-gray-500 mb-2">{t('result_languages')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {summary.technical_expertise.languages.map((lang, i) => (
-                    <span key={i} className="px-3 py-1 rounded-full bg-brand-100 text-brand-700 text-sm">
+                    <span key={i} className="px-3 py-1 rounded-full bg-em-100 text-em-700 text-sm">
                       {lang.skill} ({lang.proficiency})
                     </span>
                   ))}
@@ -163,11 +163,11 @@ export function V1SummaryTab({ summary }: V1SummaryTabProps) {
 
       {/* Data Quality Assessment */}
       {summary.data_quality_assessment && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-[--color-bg-surface] p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('result_data_quality')}</h2>
           <div className="grid gap-4 sm:grid-cols-4">
             <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-navy-700">
+              <div className="text-2xl font-bold text-em-700">
                 {Math.round(summary.data_quality_assessment.overall_confidence * 100)}%
               </div>
               <div className="text-sm text-gray-500">{t('result_overall_confidence')}</div>
@@ -185,7 +185,7 @@ export function V1SummaryTab({ summary }: V1SummaryTabProps) {
               <div className="text-sm text-gray-500">LinkedIn</div>
             </div>
             <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-brand-600">
+              <div className="text-2xl font-bold text-em-600">
                 {Math.round(summary.data_quality_assessment.github_quality * 100)}%
               </div>
               <div className="text-sm text-gray-500">GitHub</div>

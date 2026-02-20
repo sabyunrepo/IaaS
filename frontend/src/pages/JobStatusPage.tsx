@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useJob } from '../hooks/useJob'
 import { useWebSocket } from '../hooks/useWebSocket'
+import { ProgressCircle } from '../../seed-design/ui'
 
 const PHASE_KEYS: Record<string, string> = {
   pending: 'phase_pending',
@@ -17,11 +18,11 @@ const PHASE_KEYS: Record<string, string> = {
 
 // Phase configuration with colors and icons
 const PHASE_CONFIG: Record<string, { color: string; bgColor: string; icon: string }> = {
-  pending: { color: 'text-gray-600', bgColor: 'bg-gray-100', icon: 'clock' },
+  pending: { color: 'text-[--color-text-secondary]', bgColor: 'bg-[--color-bg-neutral]', icon: 'clock' },
   enriching: { color: 'text-blue-600', bgColor: 'bg-blue-100', icon: 'search' },
-  planning: { color: 'text-brand-600', bgColor: 'bg-brand-100', icon: 'clipboard' },
-  analyzing: { color: 'text-navy-700', bgColor: 'bg-navy-100', icon: 'chart' },
-  generating: { color: 'text-brand-600', bgColor: 'bg-brand-100', icon: 'sparkles' },
+  planning: { color: 'text-em-600', bgColor: 'bg-em-100', icon: 'clipboard' },
+  analyzing: { color: 'text-em-700', bgColor: 'bg-em-100', icon: 'chart' },
+  generating: { color: 'text-em-600', bgColor: 'bg-em-100', icon: 'sparkles' },
   reviewing: { color: 'text-cyan-600', bgColor: 'bg-cyan-100', icon: 'check' },
   completed: { color: 'text-green-600', bgColor: 'bg-green-100', icon: 'done' },
   failed: { color: 'text-red-600', bgColor: 'bg-red-100', icon: 'error' },
@@ -98,10 +99,10 @@ function TimelineStep({
           isActive
             ? isFailed
               ? 'bg-red-100 text-red-600'
-              : 'bg-navy-100 text-navy-700 ring-4 ring-navy-50'
+              : 'bg-em-100 text-em-700 ring-4 ring-em-50'
             : isCompleted
             ? 'bg-green-100 text-green-600'
-            : 'bg-gray-100 text-gray-400'
+            : 'bg-[--color-bg-neutral] text-[--color-text-tertiary]'
         }`}
       >
         {isCompleted && !isActive ? (
@@ -112,15 +113,12 @@ function TimelineStep({
           <PhaseIcon phase={phase} className="h-5 w-5" />
         )}
       </div>
-      <span className={`text-sm font-medium ${isActive ? config.color : isCompleted ? 'text-green-600' : 'text-gray-400'}`}>
+      <span className={`text-sm font-medium ${isActive ? config.color : isCompleted ? 'text-green-600' : 'text-[--color-text-tertiary]'}`}>
         {label}
       </span>
       {isActive && !isFailed && phase !== 'completed' && (
         <span className="ml-auto">
-          <svg className="h-4 w-4 animate-spin text-navy-700" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+          <ProgressCircle size="24" tone="brand" />
         </span>
       )}
     </div>
@@ -178,13 +176,8 @@ export function JobStatusPage() {
     return (
       <div className="mx-auto max-w-2xl">
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="relative">
-            <div className="h-16 w-16 animate-spin rounded-full border-4 border-navy-200 border-t-navy-700"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-navy-700 to-navy-600"></div>
-            </div>
-          </div>
-          <p className="mt-4 text-sm font-medium text-gray-500">{t('loading')}</p>
+          <ProgressCircle size="40" tone="brand" />
+          <p className="mt-4 text-sm font-medium text-[--color-text-tertiary]">{t('loading')}</p>
         </div>
       </div>
     )
@@ -206,14 +199,14 @@ export function JobStatusPage() {
   return (
     <div className="mx-auto max-w-2xl">
       {/* Header Card */}
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-6 rounded-xl border border-[--color-border-default] bg-[--color-bg-surface] p-6 shadow-sm">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${config.bgColor}`}>
               <PhaseIcon phase={status} className={`h-7 w-7 ${config.color}`} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{t('status_title', { id: jobId?.slice(0, 8) })}</h1>
+              <h1 className="text-xl font-bold text-[--color-text-primary]">{t('status_title', { id: jobId?.slice(0, 8) })}</h1>
               <div className="mt-1 flex items-center gap-2">
                 <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${config.bgColor} ${config.color}`}>
                   {!isTerminal && (
@@ -225,11 +218,11 @@ export function JobStatusPage() {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-400">{t('created_at')}</p>
-            <p className="text-sm font-medium text-gray-600">
+            <p className="text-xs text-[--color-text-tertiary]">{t('created_at')}</p>
+            <p className="text-sm font-medium text-[--color-text-secondary]">
               {job.created_at ? new Date(String(job.created_at)).toLocaleDateString() : '-'}
             </p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[--color-text-tertiary]">
               {job.created_at ? new Date(String(job.created_at)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
             </p>
           </div>
@@ -238,13 +231,13 @@ export function JobStatusPage() {
         {/* Progress bar */}
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="font-medium text-gray-700">{t('progress_label')}</span>
+            <span className="font-medium text-[--color-text-secondary]">{t('progress_label')}</span>
             <span className={`font-semibold ${config.color}`}>{progressPercent}%</span>
           </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-ink-200">
             <div
               className={`h-2.5 rounded-full transition-all duration-700 ease-out ${
-                status === 'failed' ? 'bg-red-500' : 'bg-gradient-to-r from-navy-700 to-navy-600'
+                status === 'failed' ? 'bg-red-500' : 'bg-gradient-to-r from-em-500 to-teal-500'
               }`}
               style={{ width: `${progressPercent}%` }}
             />
@@ -254,8 +247,8 @@ export function JobStatusPage() {
 
 
       {/* Timeline */}
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-sm font-semibold text-gray-900">{t('processing_steps')}</h2>
+      <div className="mb-6 rounded-xl border border-[--color-border-default] bg-[--color-bg-surface] p-6 shadow-sm">
+        <h2 className="mb-4 text-sm font-semibold text-[--color-text-primary]">{t('processing_steps')}</h2>
         <div className="space-y-4">
           {phases.map((phase, index) => {
             const isActive = phase === status
@@ -267,7 +260,7 @@ export function JobStatusPage() {
                 {index < phases.length - 1 && (
                   <div
                     className={`absolute left-5 top-10 h-4 w-0.5 ${
-                      isCompleted ? 'bg-green-300' : 'bg-gray-200'
+                      isCompleted ? 'bg-green-300' : 'bg-ink-200'
                     }`}
                   />
                 )}

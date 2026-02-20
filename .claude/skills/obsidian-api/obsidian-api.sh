@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Obsidian Local REST API Shell Wrapper
-# Usage: source /Users/sabyun/goinfre/IaaS/.claude/skills/obsidian-api/obsidian-api.sh
+# Usage: source /home/sabyun/IaaS/.claude/skills/obsidian-api/obsidian-api.sh
 
 # ─── Configuration ─────────────────────────────────────────────
 OBSIDIAN_API_KEY="${OBSIDIAN_API_KEY:-d9d0f6e22d569d7cae2a55948971755b1aa9cbea955c5022b98bc775f27703d0}"

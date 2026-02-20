@@ -1,9 +1,9 @@
 """
 backend/app/services/document_parser.py
 PDF/DOCX 텍스트 추출
-- pymupdf4llm (primary, fast)
-- Gemini 2.5 Flash (OCR fallback for scanned PDFs)
-- Docling (optional, for complex tables)
+- OpenAI GPT-4.1 mini vision (primary, 고품질 OCR + 구조화 추출)
+- pymupdf4llm (fallback, 무료 텍스트 기반 PDF)
+- Docling (DOCX 처리)
 """
 import asyncio
 import base64
@@ -13,22 +13,24 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
-# Gemini API rate limiter (2000 RPM = ~33 RPS, use conservative 5 concurrent)
-_gemini_semaphore: asyncio.Semaphore | None = None
+# OpenAI vision rate limiter (conservative 5 concurrent)
+_openai_vision_semaphore: asyncio.Semaphore | None = None
 
 
-def _get_gemini_semaphore() -> asyncio.Semaphore:
-    """Get or create Gemini API semaphore for rate limiting."""
-    global _gemini_semaphore
-    if _gemini_semaphore is None:
-        # Allow up to 5 concurrent Gemini API calls
-        # Conservative limit to stay well under 2000 RPM
-        _gemini_semaphore = asyncio.Semaphore(5)
-    return _gemini_semaphore
+def _get_openai_vision_semaphore() -> asyncio.Semaphore:
+    """Get or create OpenAI vision API semaphore for rate limiting."""
+    global _openai_vision_semaphore
+    if _openai_vision_semaphore is None:
+        _openai_vision_semaphore = asyncio.Semaphore(5)
+    return _openai_vision_semaphore
+
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".doc", ".txt", ".md", ".html"}
 MAX_FILE_SIZE_MB = 50
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+
+# pymupdf4llm 텍스트 추출 결과가 이 길이 미만이면 스캔 PDF로 간주 → OCR fallback
+MIN_TEXT_LENGTH_FOR_OCR_FALLBACK = 100
 
 
 @dataclass
@@ -50,9 +52,9 @@ async def parse_document(file_path: str) -> ParseResult:
     """파일에서 구조화된 파싱 결과 반환
 
     Fallback 순서:
-    1. pymupdf4llm (빠름, 텍스트 기반 PDF)
-    2. Gemini 2.5 Flash (스캔/이미지 PDF OCR)
-    3. Docling (복잡한 테이블, 선택적)
+    1. OpenAI GPT-4.1 mini vision (고품질 OCR + 구조화 추출)
+    2. pymupdf4llm (무료 fallback, 텍스트 기반 PDF)
+    3. Docling (DOCX 전용)
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
@@ -71,18 +73,18 @@ async def parse_document(file_path: str) -> ParseResult:
     if ext == ".pdf":
         return await _parse_pdf(file_path)
 
-    # DOCX 파일: Docling 시도
+    # DOCX 파일: python-docx
     if ext in (".docx", ".doc"):
         try:
-            text = await _extract_with_docling(file_path)
+            text = await _extract_with_docx(file_path)
             return ParseResult(
                 text=text,
                 metadata={"source": file_path, "format": ext},
                 sections=_extract_sections(text),
-                parser_used="docling",
+                parser_used="python-docx",
             )
         except Exception as e:
-            logger.warning(f"Docling failed for {file_path}: {e}")
+            logger.warning(f"python-docx failed for {file_path}: {e}")
             raise ValueError(f"Failed to parse DOCX: {file_path}")
 
     # Plain text files
@@ -99,110 +101,195 @@ async def parse_document(file_path: str) -> ParseResult:
 
 
 async def _parse_pdf(file_path: str) -> ParseResult:
-    """PDF 파일 파싱 (Gemini-only LLM 방식)"""
+    """PDF 파일 파싱
+
+    1차: OpenAI GPT-4.1 mini vision (고품질 OCR + 구조화 추출)
+    2차: pymupdf4llm (무료 fallback)
+    """
     from app.core.config import settings
 
-    if not settings.GEMINI_API_KEY:
-        logger.error("GEMINI_API_KEY is not set. Cannot parse PDF with LLM.")
-        raise ValueError("Gemini API key is not configured.")
+    # Step 1: OpenAI GPT-4.1 mini vision (primary)
+    if settings.OPENAI_API_KEY:
+        try:
+            text = await _extract_with_openai_vision(file_path)
+            logger.info(
+                f"OpenAI vision extracted {len(text)} chars from {file_path}"
+            )
+            return ParseResult(
+                text=text,
+                metadata={"source": file_path, "format": ".pdf", "ocr": True},
+                sections=_extract_sections(text),
+                parser_used="openai-gpt-4.1-mini",
+            )
+        except Exception as e:
+            logger.warning(
+                f"OpenAI vision failed for {file_path}: {e}, "
+                f"falling back to pymupdf4llm"
+            )
 
+    # Step 2: pymupdf4llm fallback (무료, 텍스트 기반 PDF)
     try:
-        text = await _extract_with_gemini(file_path)
-        logger.info(f"Successfully parsed {file_path} with Gemini OCR: {len(text)} chars")
-        return ParseResult(
-            text=text,
-            metadata={"source": file_path, "format": ".pdf", "ocr": True},
-            sections=_extract_sections(text),
-            parser_used="gemini-2.5-flash",
+        text = await _extract_with_pymupdf(file_path)
+        if text and len(text.strip()) >= MIN_TEXT_LENGTH_FOR_OCR_FALLBACK:
+            logger.info(
+                f"pymupdf4llm extracted {len(text)} chars from {file_path}"
+            )
+            return ParseResult(
+                text=text,
+                metadata={"source": file_path, "format": ".pdf"},
+                sections=_extract_sections(text),
+                parser_used="pymupdf4llm",
+            )
+        logger.warning(
+            f"pymupdf4llm returned only {len(text.strip()) if text else 0} chars"
         )
     except Exception as e:
-        logger.error(f"Gemini-only PDF parsing failed for {file_path}: {e}")
-        raise ValueError(f"Failed to parse PDF with Gemini: {file_path}") from e
+        logger.error(f"pymupdf4llm also failed for {file_path}: {e}")
+
+    raise ValueError(f"Failed to parse PDF with all methods: {file_path}")
 
 
-async def _extract_with_gemini(file_path: str) -> str:
-    """Gemini 2.0 Flash로 PDF OCR 텍스트 추출
+async def _extract_with_openai_vision(file_path: str) -> str:
+    """OpenAI GPT-4.1 mini vision으로 PDF OCR 텍스트 추출
 
-    장점:
-    - 네이티브 텍스트 추출 무료 (토큰 미청구)
-    - 스캔/이미지 PDF 지원
-    - 한글 OCR 품질 우수
-    - 1000페이지까지 처리 가능
-
-    Rate Limiting:
-    - Semaphore로 동시 요청 제한 (5 concurrent)
-    - 2000 RPM 제한 대비 보수적 설정
+    PDF 페이지를 이미지로 변환 → GPT-4.1 mini vision API로 텍스트 추출
+    - 비용: $0.40/$1.60 per 1M tokens (이미지 토큰 포함)
+    - 이력서 1장 기준: ~$0.01 이하
+    - 최대 20페이지까지 처리 (이력서/포트폴리오 충분)
     """
     import httpx
     from app.core.config import settings
 
-    # PDF를 base64로 인코딩
-    with open(file_path, "rb") as f:
-        pdf_b64 = base64.b64encode(f.read()).decode()
+    # PDF → 이미지 변환 (pymupdf/fitz 사용)
+    page_images = await _pdf_to_images(file_path, max_pages=20)
+    if not page_images:
+        raise ValueError(f"Failed to convert PDF to images: {file_path}")
 
     file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
-    logger.info(f"Sending {file_size_mb:.1f}MB PDF to Gemini OCR")
+    logger.info(
+        f"Sending {len(page_images)} pages ({file_size_mb:.1f}MB PDF) "
+        f"to OpenAI GPT-4.1 mini vision"
+    )
 
-    # Google AI Studio API 직접 호출 (LiteLLM 콜백 호환성 문제 우회)
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}"
+    # 메시지 구성: 프롬프트 + 페이지 이미지들
+    content: list[dict] = [
+        {
+            "type": "text",
+            "text": (
+                "이 PDF 문서의 전체 내용을 텍스트로 추출해주세요.\n"
+                "요구사항:\n"
+                "1. 원본의 구조와 형식을 최대한 유지하세요\n"
+                "2. 섹션 제목은 마크다운 헤더(#, ##)로 표시하세요\n"
+                "3. 표가 있으면 마크다운 테이블로 변환하세요\n"
+                "4. 이미지나 차트의 내용도 텍스트로 설명하세요\n"
+                "5. 요약하지 말고 전체 내용을 그대로 추출하세요"
+            ),
+        }
+    ]
+
+    for img_b64 in page_images:
+        content.append({
+            "type": "image_url",
+            "image_url": {
+                "url": f"data:image/png;base64,{img_b64}",
+                "detail": "high",
+            },
+        })
 
     payload = {
-        "contents": [{
-            "parts": [
-                {
-                    "text": (
-                        "이 PDF 문서의 전체 내용을 텍스트로 추출해주세요.\n"
-                        "요구사항:\n"
-                        "1. 원본의 구조와 형식을 최대한 유지하세요\n"
-                        "2. 섹션 제목은 마크다운 헤더(#, ##)로 표시하세요\n"
-                        "3. 표가 있으면 마크다운 테이블로 변환하세요\n"
-                        "4. 이미지나 차트의 내용도 텍스트로 설명하세요\n"
-                        "5. 요약하지 말고 전체 내용을 그대로 추출하세요"
-                    )
-                },
-                {
-                    "inline_data": {
-                        "mime_type": "application/pdf",
-                        "data": pdf_b64
-                    }
-                }
-            ]
-        }],
-        "generationConfig": {
-            "maxOutputTokens": 16000
-        }
+        "model": "gpt-4.1-mini",
+        "messages": [{"role": "user", "content": content}],
+        "max_tokens": 16000,
+        "temperature": 0.0,
     }
 
-    # Use semaphore to limit concurrent Gemini API calls
-    semaphore = _get_gemini_semaphore()
+    semaphore = _get_openai_vision_semaphore()
     async with semaphore:
-        logger.debug("Acquired Gemini semaphore, sending request...")
         async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(url, json=payload)
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
             response.raise_for_status()
             result = response.json()
 
-    # 응답에서 텍스트 추출
     try:
-        text = result["candidates"][0]["content"]["parts"][0]["text"]
-        return text
+        return result["choices"][0]["message"]["content"]
     except (KeyError, IndexError) as e:
-        logger.error(f"Gemini API response parsing failed: {result}")
-        raise ValueError(f"Gemini API response parsing failed: {e}")
+        logger.error(f"OpenAI vision response parsing failed: {result}")
+        raise ValueError(f"OpenAI vision response parsing failed: {e}")
 
 
-async def _extract_with_docling(file_path: str) -> str:
-    """IBM Docling으로 구조화된 텍스트 추출"""
-    from docling.document_converter import DocumentConverter
-    converter = DocumentConverter()
-    result = converter.convert(file_path)
-    return result.document.export_to_markdown()
+async def _pdf_to_images(
+    file_path: str,
+    max_pages: int = 20,
+    dpi: int = 200,
+) -> list[str]:
+    """PDF 페이지를 PNG 이미지(base64)로 변환
+
+    pymupdf(fitz)를 사용하여 추가 시스템 의존성 없이 변환.
+    CPU-bound 작업이므로 asyncio.to_thread()로 실행.
+    """
+    return await asyncio.to_thread(_pdf_to_images_sync, file_path, max_pages, dpi)
+
+
+def _pdf_to_images_sync(
+    file_path: str,
+    max_pages: int = 20,
+    dpi: int = 200,
+) -> list[str]:
+    """PDF 페이지를 PNG 이미지(base64)로 변환 (동기 구현)"""
+    import fitz
+
+    try:
+        doc = fitz.open(file_path)
+    except Exception as e:
+        logger.error(f"Failed to open PDF with fitz: {file_path}: {e}")
+        return []
+
+    images = []
+    page_count = min(len(doc), max_pages)
+    zoom = dpi / 72  # fitz 기본 72 DPI
+    matrix = fitz.Matrix(zoom, zoom)
+
+    for i in range(page_count):
+        try:
+            page = doc[i]
+            pix = page.get_pixmap(matrix=matrix)
+            img_bytes = pix.tobytes("png")
+            img_b64 = base64.b64encode(img_bytes).decode()
+            images.append(img_b64)
+        except Exception as e:
+            logger.warning(f"Failed to render page {i+1}: {e}")
+            continue
+
+    doc.close()
+    logger.debug(f"Converted {len(images)}/{page_count} pages to images")
+    return images
+
+
+async def _extract_with_docx(file_path: str) -> str:
+    """python-docx로 DOCX 텍스트 추출 (경량, GPU 불필요)"""
+    from docx import Document
+
+    def _read() -> str:
+        doc = Document(file_path)
+        return "\n\n".join(p.text for p in doc.paragraphs if p.text.strip())
+
+    return await asyncio.to_thread(_read)
 
 
 async def _extract_with_pymupdf(file_path: str) -> str:
-    """pymupdf4llm으로 PDF 텍스트 추출 (빠른 fallback)"""
+    """pymupdf4llm으로 PDF 텍스트 추출 (무료 fallback)
+
+    CPU-bound 작업이므로 asyncio.to_thread()로 실행.
+    """
     import pymupdf4llm
-    return pymupdf4llm.to_markdown(file_path)
+    return await asyncio.to_thread(pymupdf4llm.to_markdown, file_path)
 
 
 def _extract_sections(text: str) -> list[dict]:

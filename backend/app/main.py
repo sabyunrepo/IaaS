@@ -25,6 +25,7 @@ from app.api.routes.analysis_logs import router as analysis_logs_router
 from app.api.routes.internal import router as internal_router
 from app.api.routes.storage import router as storage_router
 from app.api.routes.candidates import router as candidates_router
+from app.api.routes.waitlist import router as waitlist_router
 
 # Phoenix evals (optional - requires arize-phoenix package)
 try:
@@ -153,6 +154,7 @@ app.include_router(analysis_logs_router)
 app.include_router(internal_router)
 app.include_router(storage_router)
 app.include_router(candidates_router)
+app.include_router(waitlist_router)
 
 # Phoenix evals (optional)
 if EVALS_AVAILABLE and evals_router:

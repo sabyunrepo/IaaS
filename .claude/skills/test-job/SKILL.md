@@ -43,7 +43,7 @@ print(jwt.encode(payload, settings.JWT_SECRET, algorithm='HS256'))
 JWT_TOKEN="<Step1 결과>"
 curl -s -X POST "http://localhost:8000/api/v1/upload/portfolio" \
   -H "Authorization: Bearer $JWT_TOKEN" \
-  -F "file=@/Users/sabyun/goinfre/IaaS/backend/potpolio.pdf" | python3 -m json.tool
+  -F "file=@/home/sabyun/IaaS/backend/potpolio.pdf" | python3 -m json.tool
 ```
 
 ### Step 3: 잡 생성

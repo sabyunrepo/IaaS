@@ -168,6 +168,11 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
         # JIT-29: AST 소스 스니펫 + JD relevance score 포함 (backward compatible)
         evidence = dict(impl)
         relevance = impl.get("relevance_score", {})
+        # 타입 가드: LLM이 float으로 반환하는 경우 대응
+        if isinstance(relevance, (int, float)):
+            relevance = {"jd_keyword_score": float(relevance)}
+        elif not isinstance(relevance, dict):
+            relevance = {}
         if relevance:
             evidence["jd_keyword_score"] = relevance.get("jd_keyword_score", 0)
             evidence["interview_potential"] = relevance.get("interview_potential", 0)

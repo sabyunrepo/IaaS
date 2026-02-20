@@ -21,7 +21,7 @@ services:
       - iaas_internal  # 메인 서비스(frontend, backend 등) 접근용
     # 헬스체크
     healthcheck:
-      test: ["CMD", "cloudflared", "tunnel", "info"]
+      test: ["CMD", "cloudflared", "version"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -33,3 +33,5 @@ networks:
     driver: bridge
   iaas_internal:
     external: true  # 메인 docker-compose에서 생성된 네트워크 참조
+  langfuse_default:
+    external: true

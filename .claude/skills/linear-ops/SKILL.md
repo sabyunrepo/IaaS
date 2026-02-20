@@ -28,7 +28,7 @@ allowed-tools: Read, Grep, Bash, Write, Edit, Glob
 API 키는 자동으로 settings.local.json에서 감지된다.
 
 ```bash
-source /Users/sabyun/goinfre/IaaS/.claude/skills/linear-ops/linear-api.sh
+source /home/sabyun/IaaS/.claude/skills/linear-ops/linear-api.sh
 
 # 주요 함수 (JIT-26 형식 identifier 또는 UUID 모두 지원)
 linear_search_issues "JIT-26" 5       # 이슈 검색
