@@ -31,7 +31,7 @@ _linear_key() {
   fi
 
   # 2. settings.local.json에서 자동 추출
-  local settings_file="${CLAUDE_SETTINGS_PATH:-/home/sabyun/IaaS/.claude/settings.local.json}"
+  local settings_file="${CLAUDE_SETTINGS_PATH:-/Users/sabyun/goinfre/IaaS/.claude/settings.local.json}"
   if [[ -f "$settings_file" ]]; then
     local key
     key=$(grep -o 'LINEAR_API_KEY=\\"[^"]*\\"' "$settings_file" 2>/dev/null | head -1 | sed 's/LINEAR_API_KEY=\\"//' | sed 's/\\"//')
