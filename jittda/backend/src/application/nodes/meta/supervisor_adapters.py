@@ -25,11 +25,24 @@ logger = logging.getLogger(__name__)
 
 
 async def forensic_supervisor_node(state: MetaState) -> dict[str, Any]:
-    """ForensicSupervisor 서브그래프를 실행하고 결과를 DB에 저장한다."""
+    """ForensicSupervisor 서브그래프를 실행하고 결과를 DB에 저장한다.
+
+    Phase 8: repo_collector가 이미 clone을 완료했으므로 repo_paths_ref에서 로딩.
+    """
     job_id = state["job_id"]
     db_url = os.environ.get("DATABASE_URL", "")
 
-    # 1. Load: MetaState → ForensicState 입력 구성
+    # 1. Load: repo_paths_ref에서 clone 결과 로딩 + input_data
+    analysis_repo_loader = AnalysisRepository(db_url)
+    repo_paths_ref = state.get("repo_paths_ref")
+    repo_data = await analysis_repo_loader.get_result(repo_paths_ref) if repo_paths_ref else None
+
+    collected_repos = []
+    repo_local_paths = []
+    if repo_data:
+        collected_repos = repo_data.get("result_data", {}).get("collected_repos", [])
+        repo_local_paths = repo_data.get("result_data", {}).get("repo_local_paths", [])
+
     job_repo = JobRepository(db_url)
     job = await job_repo.get(job_id)
     input_data = job.get("input_data", {}) if job else {}
@@ -41,8 +54,8 @@ async def forensic_supervisor_node(state: MetaState) -> dict[str, Any]:
         "linkedin_url": input_data.get("linkedin_url"),
         "jd_languages": input_data.get("jd_languages", []),
         "jd_tech_stack": input_data.get("jd_tech_stack", []),
-        "collected_repos": [],
-        "repo_local_paths": [],
+        "collected_repos": collected_repos,
+        "repo_local_paths": repo_local_paths,
         "identity_cluster": None,
         "blame_attributions": [],
         "pure_contributions": [],
@@ -111,23 +124,32 @@ async def forensic_supervisor_node(state: MetaState) -> dict[str, Any]:
 
 
 async def logic_supervisor_node(state: MetaState) -> dict[str, Any]:
-    """LogicSupervisor 서브그래프를 실행하고 결과를 DB에 저장한다."""
+    """LogicSupervisor 서브그래프를 실행하고 결과를 DB에 저장한다.
+
+    Phase 8: repo_paths_ref에서 직접 로딩 (forensic과 병렬 실행 가능).
+    """
     job_id = state["job_id"]
     db_url = os.environ.get("DATABASE_URL", "")
 
-    # 1. Load: ForensicSupervisor 결과에서 repo_local_paths 획득
+    # 1. Load: repo_paths_ref에서 repo_local_paths 로딩 (forensic 결과와 독립)
     analysis_repo = AnalysisRepository(db_url)
-    forensic_ref = state.get("forensic_result_ref")
-    forensic_data = await analysis_repo.get_result(forensic_ref) if forensic_ref else None
+    repo_paths_ref = state.get("repo_paths_ref")
+    repo_data = await analysis_repo.get_result(repo_paths_ref) if repo_paths_ref else None
 
     repo_local_paths = []
-    if forensic_data:
-        repo_local_paths = forensic_data.get("result_data", {}).get("repo_local_paths", [])
+    if repo_data:
+        repo_local_paths = repo_data.get("result_data", {}).get("repo_local_paths", [])
+
+    # jd_languages 로딩 (확장자 필터링용)
+    job_repo = JobRepository(db_url)
+    job = await job_repo.get(job_id)
+    input_data = job.get("input_data", {}) if job else {}
 
     logic_input = {
         "job_id": job_id,
         "cleaned_diffs": [],
         "repo_local_paths": repo_local_paths,
+        "jd_languages": input_data.get("jd_languages", []),
         "ast_analysis": [],
         "complexity_metrics": [],
         "quality_report": None,
@@ -186,12 +208,17 @@ async def stack_supervisor_node(state: MetaState) -> dict[str, Any]:
     if logic_data:
         ast_analysis = logic_data.get("result_data", {}).get("ast_analysis", [])
 
-    # ForensicSupervisor 결과에서 repo_local_paths 획득
-    forensic_ref = state.get("forensic_result_ref")
-    forensic_data = await analysis_repo.get_result(forensic_ref) if forensic_ref else None
+    # Phase 8: repo_paths_ref에서 직접 로딩 (forensic_result_ref fallback)
+    repo_paths_ref = state.get("repo_paths_ref")
+    repo_data = await analysis_repo.get_result(repo_paths_ref) if repo_paths_ref else None
     repo_local_paths = []
-    if forensic_data:
-        repo_local_paths = forensic_data.get("result_data", {}).get("repo_local_paths", [])
+    if repo_data:
+        repo_local_paths = repo_data.get("result_data", {}).get("repo_local_paths", [])
+    if not repo_local_paths:
+        forensic_ref = state.get("forensic_result_ref")
+        forensic_data = await analysis_repo.get_result(forensic_ref) if forensic_ref else None
+        if forensic_data:
+            repo_local_paths = forensic_data.get("result_data", {}).get("repo_local_paths", [])
 
     job_repo = JobRepository(db_url)
     job = await job_repo.get(job_id)

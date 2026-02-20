@@ -2,7 +2,7 @@
 MetaAgent Graph — 전체 파이프라인 오케스트레이션 (Level 1).
 
 Phase 0-1: input_router → plan_generator (순차)
-Phase 2: forensic → logic → stack (순차, repo_local_paths 전달)
+Phase 2: repo_collector → [forensic, logic] (fan-out) → stack (fan-in, AST 의존)
 Phase 2.5: profile_synthesizer (Fan-in)
 Phase 3: question_orchestrator → enhancement_agents (5개 병렬)
 Phase 4: quality_gate (조건부 루프, 최대 2회)
@@ -17,6 +17,7 @@ from application.nodes.meta.profile_synthesizer import profile_synthesizer_node
 from application.nodes.meta.quality_gate import quality_gate_node, should_revise
 from application.nodes.meta.enhancement_agents import enhancement_agents_node
 from application.nodes.meta.question_orchestrator import question_orchestrator_node
+from application.nodes.meta.repo_collector import repo_collector_node
 from application.nodes.meta.supervisor_adapters import (
     forensic_supervisor_node,
     logic_supervisor_node,
@@ -32,6 +33,7 @@ def build_meta_graph() -> StateGraph:
     # 노드 등록
     builder.add_node("input_router", input_router_node)
     builder.add_node("plan_generator", plan_generator_node)
+    builder.add_node("repo_collector", repo_collector_node)
     builder.add_node("forensic_supervisor", forensic_supervisor_node)
     builder.add_node("logic_supervisor", logic_supervisor_node)
     builder.add_node("stack_supervisor", stack_supervisor_node)
@@ -45,11 +47,12 @@ def build_meta_graph() -> StateGraph:
     builder.add_edge(START, "input_router")
     builder.add_edge("input_router", "plan_generator")
 
-    # Phase 2: 순차 (forensic → logic → stack)
-    # forensic의 collector가 repo를 clone → repo_local_paths를 logic/stack에 전달
-    builder.add_edge("plan_generator", "forensic_supervisor")
-    builder.add_edge("forensic_supervisor", "logic_supervisor")
-    builder.add_edge("logic_supervisor", "stack_supervisor")  # AST 의존
+    # Phase 2: repo_collector → [forensic, logic] fan-out → stack fan-in
+    builder.add_edge("plan_generator", "repo_collector")
+    builder.add_edge("repo_collector", "forensic_supervisor")  # fan-out
+    builder.add_edge("repo_collector", "logic_supervisor")     # fan-out
+    builder.add_edge("forensic_supervisor", "stack_supervisor")  # fan-in (identity 필요)
+    builder.add_edge("logic_supervisor", "stack_supervisor")     # fan-in (AST 필요)
 
     # Phase 2.5: Profile synthesis
     builder.add_edge("stack_supervisor", "profile_synthesizer")
