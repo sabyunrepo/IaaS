@@ -101,7 +101,6 @@ services:
       - "8001:8000"
     networks:
       - internal_net
-      - jittda-public
 
   frontend:
     build:

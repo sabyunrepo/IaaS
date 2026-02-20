@@ -9,7 +9,9 @@ export const API_BASE: string =
   import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 export const WS_BASE: string =
-  import.meta.env.VITE_WS_BASE || 'ws://localhost:8000';
+  import.meta.env.VITE_WS_BASE ||
+  API_BASE.replace(/^http/, 'ws') ||
+  'ws://localhost:8000';
 
 const TOKEN_KEY = 'jittda_token';
 
