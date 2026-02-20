@@ -37,7 +37,10 @@ oauth.register(
 
 
 def _get_redirect_base() -> str:
-    return os.environ.get("ALLOWED_ORIGINS", "http://localhost:3001").split(",")[0]
+    return (
+        os.environ.get("FRONTEND_URL")
+        or os.environ.get("ALLOWED_ORIGINS", "http://localhost:3001").split(",")[0]
+    )
 
 
 @router.get("/google")
