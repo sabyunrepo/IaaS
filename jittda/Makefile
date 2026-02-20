@@ -1,4 +1,4 @@
-.PHONY: up down logs shell test lint clean tunnel-up tunnel-down sonar-scan
+.PHONY: up down logs shell test lint clean tunnel-up tunnel-down sonar-scan prod-up prod-down prod-build
 
 # --- Cloudflare Tunnel (독립 생명주기) ---
 tunnel-up:
@@ -52,6 +52,19 @@ sonar-scan:
 	@echo "Waiting for SonarQube to start..."
 	@sleep 30
 	docker compose --profile analysis up sonar-scanner
+
+# --- 프로덕션 ---
+prod-build:
+	docker compose -f docker-compose.yml build
+
+prod-up:
+	docker compose -f docker-compose.yml up -d
+
+prod-down:
+	docker compose -f docker-compose.yml down
+
+prod-logs:
+	docker compose -f docker-compose.yml logs -f
 
 # --- 정리 ---
 clean:
