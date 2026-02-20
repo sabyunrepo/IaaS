@@ -13,6 +13,59 @@ from typing import Any
 import psycopg
 
 
+class UserRepository:
+    """users 테이블 CRUD — OAuth 사용자 관리."""
+
+    def __init__(self, conninfo: str) -> None:
+        self._conninfo = conninfo
+
+    async def upsert_oauth_user(
+        self,
+        email: str,
+        name: str,
+        oauth_provider: str,
+        oauth_id: str,
+    ) -> dict[str, Any]:
+        """OAuth 사용자를 생성하거나 기존 사용자를 반환한다."""
+        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+            row = await conn.execute(
+                """
+                INSERT INTO users (email, name, oauth_provider, oauth_id)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (email) DO UPDATE SET
+                    name = EXCLUDED.name,
+                    oauth_provider = EXCLUDED.oauth_provider,
+                    oauth_id = EXCLUDED.oauth_id
+                RETURNING id, email, name, oauth_provider
+                """,
+                (email, name, oauth_provider, oauth_id),
+            )
+            result = await row.fetchone()
+            return {
+                "id": str(result[0]),
+                "email": result[1],
+                "name": result[2],
+                "oauth_provider": result[3],
+            }
+
+    async def get_by_id(self, user_id: str) -> dict[str, Any] | None:
+        """사용자 ID로 조회한다."""
+        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+            row = await conn.execute(
+                "SELECT id, email, name, oauth_provider FROM users WHERE id = %s::uuid",
+                (user_id,),
+            )
+            result = await row.fetchone()
+            if result is None:
+                return None
+            return {
+                "id": str(result[0]),
+                "email": result[1],
+                "name": result[2],
+                "oauth_provider": result[3],
+            }
+
+
 class AnalysisRepository:
     """analysis_results 테이블 CRUD — Worker별 분석 결과 저장소."""
 
