@@ -16,6 +16,7 @@ import os
 import uuid
 from typing import Any
 
+from domain.analysis.context_budget import ContextBudget
 from domain.question.models import (
     InterviewQuestion,
     InterviewScript,
@@ -223,9 +224,11 @@ async def question_orchestrator_node(state: MetaState) -> dict[str, Any]:
             job_id, jd_tech_stack, embedding_service, vector_store
         )
 
-        # 4. 컨텍스트 구성
+        # 4. 컨텍스트 구성 (ContextBudget으로 토큰 예산 관리)
+        budget = ContextBudget()
+
         scores = profile_result.get("scores", {})
-        profile_context = (
+        raw_profile = (
             f"Logic score: {scores.get('logic', {}).get('normalized_score', 'N/A')}\n"
             f"Mastery score: {scores.get('mastery', {}).get('normalized_score', 'N/A')}\n"
             f"Authenticity score: {scores.get('authenticity', {}).get('normalized_score', 'N/A')}\n"
@@ -233,27 +236,30 @@ async def question_orchestrator_node(state: MetaState) -> dict[str, Any]:
             f"Skills detected: {stack_result.get('stack_summary', {}).get('total_skills_detected', 0)}\n"
             f"Architecture score: {stack_result.get('stack_summary', {}).get('architecture_score', 'N/A')}\n"
         )
+        profile_context = budget.allocate("candidate_profile", raw_profile)
 
-        code_context = ""
+        raw_code = ""
         for chunk in relevant_chunks[:10]:
-            code_context += f"[similarity={chunk['similarity']:.2f}] {chunk['content'][:500]}\n---\n"
-        if not code_context:
-            # fallback: forensic 결과에서 코드 정보 추출
-            code_context = f"Forensic summary: {str(forensic_result.get('forensic_summary', {}))[:2000]}\n"
+            raw_code += f"[similarity={chunk['similarity']:.2f}] {chunk['content']}\n---\n"
+        if not raw_code:
+            raw_code = f"Forensic summary: {str(forensic_result.get('forensic_summary', {}))}\n"
+        code_context = budget.allocate("code_chunks", raw_code)
 
-        complexity_context = (
-            f"Logic summary: {str(logic_result.get('logic_summary', {}))[:1500]}\n"
+        raw_complexity = (
+            f"Logic summary: {str(logic_result.get('logic_summary', {}))}\n"
             f"Avg cyclomatic complexity: {logic_result.get('avg_cyclomatic_complexity', 'N/A')}\n"
             f"Avg maintainability index: {logic_result.get('avg_maintainability_index', 'N/A')}\n"
         )
+        complexity_context = budget.allocate("topic_context", raw_complexity)
 
         evolution_context = (
             f"Total files analyzed: {forensic_result.get('total_files_analyzed', 0)}\n"
             f"Style consistency: {forensic_result.get('style_consistency', 'N/A')}\n"
-            f"AI detection: {str(forensic_result.get('ai_detection', {}))[:1000]}\n"
+            f"AI detection: {str(forensic_result.get('ai_detection', {}))}\n"
         )
 
-        jd_context = f"Required tech stack: {jd_tech_stack}"
+        jd_context = budget.allocate("jd_context", f"Required tech stack: {jd_tech_stack}")
+        logger.info("Context budget: %s", budget.summary())
 
         # 5. 3전략 병렬 실행
         llm_client = InstructorClient(

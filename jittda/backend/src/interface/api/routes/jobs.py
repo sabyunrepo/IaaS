@@ -11,10 +11,11 @@ from __future__ import annotations
 import asyncio
 import os
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, WebSocket, WebSocketDisconnect
 
 from application.use_cases.run_analysis import run_analysis
 from infrastructure.persistence.repository import JobRepository
+from interface.api.middleware.auth import get_current_user, get_optional_user
 from interface.api.schemas.job_schemas import (
     JobCreateRequest,
     JobDetailResponse,
@@ -30,6 +31,7 @@ ws_router = APIRouter()
 async def create_job(
     request: JobCreateRequest,
     background_tasks: BackgroundTasks,
+    user: dict = Depends(get_optional_user),
 ):
     """분석 Job을 생성하고 백그라운드에서 실행한다."""
     db_url = os.environ.get("DATABASE_URL", "")
@@ -40,7 +42,8 @@ async def create_job(
         raise HTTPException(400, "github_urls 또는 candidate_username이 필요합니다.")
 
     # Job 생성
-    job_id = await repo.create(request.model_dump())
+    user_id = user["user_id"] if user else None
+    job_id = await repo.create(request.model_dump(), user_id=user_id)
 
     # 백그라운드 실행
     background_tasks.add_task(_run_analysis_task, job_id)
