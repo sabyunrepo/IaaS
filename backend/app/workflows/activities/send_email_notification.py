@@ -14,7 +14,7 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.core.database import async_session
 from app.models.database import JobDB, UserDB
-from app.workflows.activities.email_template import render_email_template
+from app.workflows.activities.email_template import EMAIL_TEXTS, render_email_template
 
 logger = logging.getLogger(__name__)
 
@@ -73,16 +73,21 @@ async def send_email_notification(job_id: str) -> dict:
     # JD에서 후보자/포지션 정보 추출
     input_data = job.input_data or {}
     candidate_info = input_data.get("jd_text", "")[:80]
+
+    # output_language 추출
+    output_language = input_data.get("language_config", {}).get("output_language", "ko")
+
     if not candidate_info:
-        candidate_info = "면접 스크립트"
+        candidate_info = "면접 스크립트" if output_language == "ko" else "Interview Script"
 
     user_name = user.name or user.email.split("@")[0]
 
-    # 이메일 제목
+    # 이메일 제목 (언어별)
+    texts = EMAIL_TEXTS.get(output_language, EMAIL_TEXTS["en"])
     if job.status == "completed":
-        subject = "[Jittda] 면접 스크립트가 준비되었습니다"
+        subject = texts["completed_subject"]
     else:
-        subject = "[Jittda] 분석 중 문제가 발생했습니다"
+        subject = texts["failed_subject"]
 
     # HTML 렌더링
     html = render_email_template(
@@ -91,6 +96,7 @@ async def send_email_notification(job_id: str) -> dict:
         job_id=job_id,
         candidate_info=candidate_info,
         frontend_url=settings.FRONTEND_URL,
+        lang=output_language,
     )
 
     # 발송

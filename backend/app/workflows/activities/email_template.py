@@ -3,6 +3,31 @@ backend/app/workflows/activities/email_template.py
 이메일 알림 HTML 템플릿
 """
 
+EMAIL_TEXTS = {
+    "ko": {
+        "completed_subject": "[Jittda] 면접 스크립트가 준비되었습니다",
+        "completed_title": "면접 스크립트가 준비되었습니다",
+        "completed_message": "<b>{candidate_info}</b> 포지션의 면접 스크립트 생성이 완료되었습니다.",
+        "completed_button": "결과 확인하기",
+        "failed_subject": "[Jittda] 분석 중 문제가 발생했습니다",
+        "failed_title": "분석 중 문제가 발생했습니다",
+        "failed_message": "<b>{candidate_info}</b> 포지션의 면접 스크립트 생성 중 문제가 발생했습니다.",
+        "failed_button": "다시 시도하기",
+        "greeting": "{user_name}님, 안녕하세요.",
+    },
+    "en": {
+        "completed_subject": "[Jittda] Your Interview Script is Ready",
+        "completed_title": "Interview Script Ready",
+        "completed_message": "The interview script for the <b>{candidate_info}</b> position has been generated.",
+        "completed_button": "View Results",
+        "failed_subject": "[Jittda] Analysis Issue Detected",
+        "failed_title": "Analysis Issue Detected",
+        "failed_message": "An issue occurred while generating the interview script for <b>{candidate_info}</b>.",
+        "failed_button": "Try Again",
+        "greeting": "Hello, {user_name}.",
+    },
+}
+
 
 def render_email_template(
     status: str,
@@ -10,6 +35,7 @@ def render_email_template(
     job_id: str,
     candidate_info: str,
     frontend_url: str,
+    lang: str = "ko",
 ) -> str:
     """이메일 HTML 템플릿 렌더링.
 
@@ -19,24 +45,29 @@ def render_email_template(
         job_id: Job UUID
         candidate_info: JD 요약 또는 후보자 정보
         frontend_url: 프론트엔드 도메인 URL
+        lang: 이메일 언어 ("ko", "en")
     """
+    texts = EMAIL_TEXTS.get(lang, EMAIL_TEXTS["en"])
+
     if status == "completed":
-        title = "면접 스크립트가 준비되었습니다"
-        message = f"<b>{candidate_info}</b> 포지션의 면접 스크립트 생성이 완료되었습니다."
-        button_text = "결과 확인하기"
+        title = texts["completed_title"]
+        message = texts["completed_message"].format(candidate_info=candidate_info)
+        button_text = texts["completed_button"]
         button_url = f"{frontend_url}/interview/{job_id}/result"
         button_color = "#10b981"
         icon = "&#9989;"
     else:
-        title = "분석 중 문제가 발생했습니다"
-        message = f"<b>{candidate_info}</b> 포지션의 면접 스크립트 생성에 실패했습니다."
-        button_text = "다시 시도하기"
+        title = texts["failed_title"]
+        message = texts["failed_message"].format(candidate_info=candidate_info)
+        button_text = texts["failed_button"]
         button_url = f"{frontend_url}/jobs"
         button_color = "#ef4444"
         icon = "&#10060;"
 
+    greeting = texts["greeting"].format(user_name=user_name)
+
     return f"""<!DOCTYPE html>
-<html lang="ko">
+<html lang="{lang}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
 <body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 20px;">
@@ -49,7 +80,7 @@ def render_email_template(
         </td></tr>
         <!-- Body -->
         <tr><td style="padding:40px;">
-          <p style="font-size:16px;color:#374151;margin:0 0 8px;">{user_name}님, 안녕하세요.</p>
+          <p style="font-size:16px;color:#374151;margin:0 0 8px;">{greeting}</p>
           <h2 style="font-size:20px;color:#111827;margin:16px 0;">{icon} {title}</h2>
           <p style="font-size:15px;color:#4b5563;line-height:1.6;margin:0 0 32px;">{message}</p>
           <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
