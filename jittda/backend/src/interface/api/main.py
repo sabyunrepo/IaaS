@@ -97,9 +97,10 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
     )
 
-    # Session middleware (required for OAuth state)
-    jwt_secret = os.environ.get("JWT_SECRET", "dev-secret-change-me")
-    application.add_middleware(SessionMiddleware, secret_key=jwt_secret)
+    # Session middleware (required for OAuth state) — auth.py와 동일 시크릿 사용
+    from interface.api.middleware.auth import _get_secret
+
+    application.add_middleware(SessionMiddleware, secret_key=_get_secret())
 
     # Request logging middleware
     @application.middleware("http")
@@ -140,7 +141,8 @@ def create_app() -> FastAPI:
                     await conn.execute("SELECT 1")
                 checks["postgres"] = "ok"
         except Exception as e:
-            checks["postgres"] = f"error: {e}"
+            logger.error("health_postgres_error", error=str(e))
+            checks["postgres"] = "unavailable"
             checks["status"] = "degraded"
 
         # Redis check
@@ -150,11 +152,14 @@ def create_app() -> FastAPI:
             redis_url = os.environ.get("REDIS_URL", "")
             if redis_url:
                 r = aioredis.from_url(redis_url)
-                await r.ping()
-                await r.aclose()
-                checks["redis"] = "ok"
+                try:
+                    await r.ping()
+                    checks["redis"] = "ok"
+                finally:
+                    await r.aclose()
         except Exception as e:
-            checks["redis"] = f"error: {e}"
+            logger.error("health_redis_error", error=str(e))
+            checks["redis"] = "unavailable"
             checks["status"] = "degraded"
 
         # Temporal check
@@ -165,6 +170,16 @@ def create_app() -> FastAPI:
             if temporal_host:
                 checks["temporal"] = "not connected"
                 checks["status"] = "degraded"
+
+        # Langfuse check — offline은 정상 (YAML fallback 사용), degraded 아님
+        try:
+            from infrastructure.llm.prompt_loader import get_prompt_loader
+
+            loader = get_prompt_loader()
+            checks["langfuse"] = "ok" if loader.has_langfuse else "offline (YAML fallback)"
+        except Exception as e:
+            logger.error("health_langfuse_error", error=str(e))
+            checks["langfuse"] = "unavailable"
 
         return checks
 

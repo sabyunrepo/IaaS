@@ -176,3 +176,296 @@ class TestWorkflowStructure:
         from application.temporal import TASK_QUEUE
 
         assert TASK_QUEUE == "jittda-analysis"
+
+
+# ===========================================================================
+# 에러 분류 테스트
+# ===========================================================================
+
+
+class TestClassifyAndRaise:
+    """_classify_and_raise 에러 분류 로직 검증."""
+
+    def test_fatal_errors_raise_non_retryable(self) -> None:
+        """Fatal 에러 타입은 ApplicationError(non_retryable=True)로 래핑된다."""
+        from temporalio.exceptions import ApplicationError
+
+        from application.temporal.activities import _classify_and_raise
+
+        fatal_errors = [
+            ValueError("bad value"),
+            KeyError("missing_key"),
+            TypeError("wrong type"),
+            AttributeError("no attr"),
+            ImportError("no module"),
+        ]
+        for err in fatal_errors:
+            with pytest.raises(ApplicationError) as exc_info:
+                _classify_and_raise(err, "test_activity")
+            assert exc_info.value.non_retryable is True
+            assert "test_activity" in str(exc_info.value)
+
+    def test_recoverable_errors_reraise_original(self) -> None:
+        """Recoverable 에러는 원본 예외를 그대로 re-raise한다."""
+        from application.temporal.activities import _classify_and_raise
+
+        recoverable_errors = [
+            ConnectionError("network down"),
+            TimeoutError("timed out"),
+            OSError("io error"),
+            RuntimeError("runtime fail"),
+        ]
+        for err in recoverable_errors:
+            with pytest.raises(type(err)):
+                _classify_and_raise(err, "test_activity")
+
+    def test_fatal_error_preserves_cause(self) -> None:
+        """Fatal 에러가 원본 예외를 __cause__로 보존한다."""
+        from temporalio.exceptions import ApplicationError
+
+        from application.temporal.activities import _classify_and_raise
+
+        original = ValueError("original error")
+        with pytest.raises(ApplicationError) as exc_info:
+            _classify_and_raise(original, "test_activity")
+        assert exc_info.value.__cause__ is original
+
+
+# ===========================================================================
+# Worker 환경변수 검증 테스트
+# ===========================================================================
+
+
+class TestValidateEnv:
+    """_validate_env 환경변수 검증 로직."""
+
+    def test_all_required_present(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """모든 필수 변수 설정 시 required missing 없음."""
+        from worker import _validate_env
+
+        monkeypatch.setenv("DATABASE_URL", "postgresql://localhost/test")
+        monkeypatch.setenv("REDIS_URL", "redis://localhost:6379")
+        monkeypatch.setenv("TEMPORAL_HOST", "localhost:7233")
+        monkeypatch.setenv("LLM_API_KEY", "sk-test")
+        monkeypatch.setenv("GITHUB_TOKEN", "ghp_test")
+
+        missing = _validate_env()
+        required_missing = [m for m in missing if m.startswith("[REQUIRED]")]
+        assert len(required_missing) == 0
+
+    def test_missing_required_detected(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """필수 변수 누락 시 감지된다."""
+        from worker import _validate_env
+
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+        monkeypatch.delenv("REDIS_URL", raising=False)
+        monkeypatch.delenv("TEMPORAL_HOST", raising=False)
+
+        missing = _validate_env()
+        required_missing = [m for m in missing if m.startswith("[REQUIRED]")]
+        assert len(required_missing) == 3
+
+    def test_missing_recommended_detected(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """추천 변수 누락 시 감지되지만 required는 아님."""
+        from worker import _validate_env
+
+        monkeypatch.setenv("DATABASE_URL", "postgresql://localhost/test")
+        monkeypatch.setenv("REDIS_URL", "redis://localhost:6379")
+        monkeypatch.setenv("TEMPORAL_HOST", "localhost:7233")
+        monkeypatch.delenv("LLM_API_KEY", raising=False)
+        monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+
+        missing = _validate_env()
+        required_missing = [m for m in missing if m.startswith("[REQUIRED]")]
+        recommended_missing = [m for m in missing if m.startswith("[RECOMMENDED]")]
+        assert len(required_missing) == 0
+        assert len(recommended_missing) == 2
+
+
+# ===========================================================================
+# Activity 이벤트 발행 테스트
+# ===========================================================================
+
+
+class TestPublishEvent:
+    """_publish_event Redis 이벤트 발행 로직."""
+
+    @pytest.mark.asyncio
+    async def test_publish_event_formats_correctly(self) -> None:
+        """노드 진행률 이벤트가 올바른 형식으로 발행된다."""
+        import json
+
+        from application.temporal.activities import _publish_event, NODE_PROGRESS
+
+        published = {}
+
+        async def mock_publish(channel, data):
+            published["channel"] = channel
+            published["data"] = json.loads(data)
+
+        mock_redis = AsyncMock()
+        mock_redis.publish = mock_publish
+
+        with patch("application.temporal.activities._get_redis", return_value=mock_redis):
+            await _publish_event("job-123", "input_router")
+
+        assert published["channel"] == "job:job-123:events"
+        assert published["data"]["type"] == "node_complete"
+        assert published["data"]["node"] == "input_router"
+        assert published["data"]["progress"] == 0.05
+        assert published["data"]["label"] == "입력 분석"
+
+    @pytest.mark.asyncio
+    async def test_publish_event_ignores_redis_failure(self) -> None:
+        """Redis 실패 시 예외를 삼키고 경고만 출력한다."""
+        from application.temporal.activities import _publish_event
+
+        mock_redis = AsyncMock()
+        mock_redis.publish = AsyncMock(side_effect=ConnectionError("redis down"))
+
+        with patch("application.temporal.activities._get_redis", return_value=mock_redis):
+            # 예외가 전파되지 않아야 함
+            await _publish_event("job-123", "input_router")
+
+    @pytest.mark.asyncio
+    async def test_publish_event_noop_when_no_redis(self) -> None:
+        """Redis가 없으면 아무 동작도 하지 않는다."""
+        from application.temporal.activities import _publish_event
+
+        with patch("application.temporal.activities._get_redis", return_value=None):
+            await _publish_event("job-123", "input_router")  # 에러 없이 완료
+
+
+# ===========================================================================
+# API 스키마 테스트
+# ===========================================================================
+
+
+class TestJobSchemas:
+    """Job API 스키마 검증."""
+
+    def test_jd_text_alias(self) -> None:
+        """jd_text alias가 jd_description으로 매핑된다."""
+        from interface.api.schemas.job_schemas import JobCreateRequest
+
+        req = JobCreateRequest(
+            candidate_username="test",
+            jd_text="Backend Engineer",
+        )
+        assert req.jd_description == "Backend Engineer"
+
+    def test_jd_description_direct(self) -> None:
+        """jd_description 직접 사용도 가능하다."""
+        from interface.api.schemas.job_schemas import JobCreateRequest
+
+        req = JobCreateRequest(
+            candidate_username="test",
+            jd_description="Frontend Developer",
+        )
+        assert req.jd_description == "Frontend Developer"
+
+    def test_uuid_validation_helper(self) -> None:
+        """_validate_uuid가 잘못된 UUID에서 HTTPException을 발생시킨다."""
+        from fastapi import HTTPException
+
+        from interface.api.routes.jobs import _validate_uuid
+
+        # 유효한 UUID — 에러 없음
+        _validate_uuid("44f54959-b564-427e-915b-c1a063c41ef4")
+
+        # 잘못된 UUID — 400, 예외 체인 없음
+        with pytest.raises(HTTPException) as exc_info:
+            _validate_uuid("not-a-uuid")
+        assert exc_info.value.status_code == 400
+        assert exc_info.value.__cause__ is None
+
+
+# ===========================================================================
+# IDOR 방지 테스트
+# ===========================================================================
+
+
+class TestJobAccessControl:
+    """_check_job_access 소유권 검증 테스트."""
+
+    def test_owner_matches(self) -> None:
+        """소유자가 일치하면 접근 허용."""
+        from interface.api.routes.jobs import _check_job_access
+
+        job = {"user_id": "user-1"}
+        user = {"user_id": "user-1"}
+        _check_job_access(job, user)  # 예외 없음
+
+    def test_owner_mismatch(self) -> None:
+        """소유자가 불일치하면 403."""
+        from fastapi import HTTPException
+
+        from interface.api.routes.jobs import _check_job_access
+
+        job = {"user_id": "user-1"}
+        user = {"user_id": "user-2"}
+        with pytest.raises(HTTPException) as exc_info:
+            _check_job_access(job, user)
+        assert exc_info.value.status_code == 403
+
+    def test_unauthenticated_access_to_owned_job(self) -> None:
+        """미인증 사용자가 소유된 Job에 접근하면 403."""
+        from fastapi import HTTPException
+
+        from interface.api.routes.jobs import _check_job_access
+
+        job = {"user_id": "user-1"}
+        with pytest.raises(HTTPException) as exc_info:
+            _check_job_access(job, None)
+        assert exc_info.value.status_code == 403
+
+    def test_no_owner_allows_anyone(self) -> None:
+        """소유자 없는 Job은 누구나 접근 가능."""
+        from interface.api.routes.jobs import _check_job_access
+
+        job = {"user_id": None}
+        _check_job_access(job, None)  # 예외 없음
+        _check_job_access(job, {"user_id": "user-1"})  # 예외 없음
+
+
+# ===========================================================================
+# JWT Secret 통합 테스트
+# ===========================================================================
+
+
+class TestJwtSecret:
+    """_get_secret 캐시 + fallback 테스트."""
+
+    def test_uses_env_var(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """JWT_SECRET 환경변수가 설정되면 그 값을 사용한다."""
+        import interface.api.middleware.auth as auth_mod
+
+        auth_mod._cached_secret = None  # 캐시 초기화
+        monkeypatch.setenv("JWT_SECRET", "test-secret-123")
+
+        secret = auth_mod._get_secret()
+        assert secret == "test-secret-123"
+        auth_mod._cached_secret = None  # cleanup
+
+    def test_generates_random_when_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """JWT_SECRET 미설정 시 랜덤 시크릿을 생성한다."""
+        import interface.api.middleware.auth as auth_mod
+
+        auth_mod._cached_secret = None
+        monkeypatch.delenv("JWT_SECRET", raising=False)
+
+        secret = auth_mod._get_secret()
+        assert len(secret) > 20  # token_urlsafe(32) → ~43자
+        auth_mod._cached_secret = None
+
+    def test_caches_secret(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """동일 시크릿이 캐시되어 재사용된다."""
+        import interface.api.middleware.auth as auth_mod
+
+        auth_mod._cached_secret = None
+        monkeypatch.delenv("JWT_SECRET", raising=False)
+
+        secret1 = auth_mod._get_secret()
+        secret2 = auth_mod._get_secret()
+        assert secret1 == secret2
+        auth_mod._cached_secret = None

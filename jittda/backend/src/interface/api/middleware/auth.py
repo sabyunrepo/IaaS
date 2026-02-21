@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import os
+import secrets as _secrets_mod
 from datetime import datetime, timedelta, timezone
 
+import structlog
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
@@ -14,11 +16,22 @@ JWT_EXPIRATION = timedelta(hours=24)
 
 security = HTTPBearer(auto_error=False)
 
+_cached_secret: str | None = None
+
 
 def _get_secret() -> str:
+    """JWT 서명 시크릿을 반환한다. 미설정 시 캐시된 랜덤 시크릿 사용."""
+    global _cached_secret
+    if _cached_secret is not None:
+        return _cached_secret
     secret = os.environ.get("JWT_SECRET", "")
     if not secret:
-        raise RuntimeError("JWT_SECRET environment variable is not set")
+        structlog.get_logger().warning(
+            "jwt_secret_missing",
+            detail="JWT_SECRET not set, using random secret (tokens won't persist across restarts)",
+        )
+        secret = _secrets_mod.token_urlsafe(32)
+    _cached_secret = secret
     return secret
 
 
@@ -38,7 +51,7 @@ def decode_token(token: str) -> dict:
     try:
         return jwt.decode(token, _get_secret(), algorithms=[JWT_ALGORITHM])
     except JWTError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
+        raise HTTPException(status_code=401, detail="Invalid token") from e
 
 
 async def get_current_user(

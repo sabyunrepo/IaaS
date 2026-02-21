@@ -40,9 +40,40 @@ def _configure_logging() -> None:
     logging.basicConfig(format="%(message)s", level=logging.INFO)
 
 
+def _validate_env() -> list[str]:
+    """필수 환경변수 검증. 누락 목록 반환."""
+    required = {
+        "DATABASE_URL": "PostgreSQL 연결",
+        "REDIS_URL": "Redis PubSub 이벤트",
+        "TEMPORAL_HOST": "Temporal 서버",
+    }
+    recommended = {
+        "LLM_API_KEY": "LLM 분석",
+        "GITHUB_TOKEN": "GitHub 리포 수집",
+    }
+    missing = []
+    for var, desc in required.items():
+        if not os.environ.get(var):
+            missing.append(f"[REQUIRED] {var} — {desc}")
+    for var, desc in recommended.items():
+        if not os.environ.get(var):
+            missing.append(f"[RECOMMENDED] {var} — {desc}")
+    return missing
+
+
 async def main() -> None:
     _configure_logging()
     logger = structlog.get_logger()
+
+    # 환경변수 검증
+    missing = _validate_env()
+    required_missing = [m for m in missing if m.startswith("[REQUIRED]")]
+    if required_missing:
+        for m in required_missing:
+            logger.error("env_missing", detail=m)
+        raise SystemExit(f"Missing required env vars: {len(required_missing)}")
+    for m in missing:
+        logger.warning("env_missing", detail=m)
 
     temporal_host = os.environ.get("TEMPORAL_HOST", "localhost:7233")
     logger.info("temporal_worker_starting", host=temporal_host, queue=TASK_QUEUE)

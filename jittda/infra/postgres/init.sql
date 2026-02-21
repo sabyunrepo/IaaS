@@ -10,20 +10,6 @@ SELECT 'CREATE DATABASE sonarqube'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'sonarqube')\gexec
 
 -- ============================================================
--- LangGraph Checkpoint (3.0.x 호환)
--- ============================================================
-CREATE TABLE IF NOT EXISTS checkpoints (
-    thread_id TEXT NOT NULL,
-    checkpoint_ns TEXT NOT NULL DEFAULT '',
-    checkpoint_id TEXT NOT NULL,
-    parent_checkpoint_id TEXT,
-    type TEXT,
-    checkpoint BYTEA,
-    metadata BYTEA,
-    PRIMARY KEY (thread_id, checkpoint_ns, checkpoint_id)
-);
-
--- ============================================================
 -- 비즈니스 테이블
 -- ============================================================
 
@@ -41,7 +27,7 @@ CREATE TABLE users (
 CREATE TABLE jobs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    langgraph_thread_id VARCHAR(100),
+    temporal_workflow_id VARCHAR(100),
     status VARCHAR(20) DEFAULT 'pending',
     progress FLOAT DEFAULT 0.0,
     input_data JSONB NOT NULL,
@@ -51,7 +37,7 @@ CREATE TABLE jobs (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX idx_jobs_user ON jobs(user_id);
-CREATE INDEX idx_jobs_thread ON jobs(langgraph_thread_id);
+CREATE INDEX idx_jobs_workflow ON jobs(temporal_workflow_id);
 CREATE INDEX idx_jobs_status ON jobs(status);
 
 -- 분석 결과 (Worker별 — Reference Passing 저장소)
