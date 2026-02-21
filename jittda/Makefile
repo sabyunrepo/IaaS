@@ -17,11 +17,20 @@ down:
 logs:
 	docker compose logs -f backend
 
+logs-worker:
+	docker compose logs -f worker
+
+logs-temporal:
+	docker compose logs -f temporal
+
 logs-all:
 	docker compose logs -f
 
 shell:
 	docker compose exec backend bash
+
+shell-worker:
+	docker compose exec worker bash
 
 # --- 테스트 ---
 test:

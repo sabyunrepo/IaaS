@@ -1,19 +1,17 @@
 """
-Supervisor Adapter 노드 — 서브그래프 ↔ MetaState 변환.
+Supervisor Adapter 노드 — 서브그래프 워커 직접 오케스트레이션.
 
-각 Supervisor 서브그래프는 자체 State를 사용하므로,
+Phase 9: LangGraph 서브그래프 제거 → 워커 함수 직접 호출.
 MetaState에서 입력을 추출하고 결과를 DB에 저장한 뒤 참조 ID를 반환한다.
 Reference Passing: Load → Process → Save → Return Ref
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from typing import Any
 
-from application.graphs.forensic_graph import build_forensic_graph
-from application.graphs.logic_graph import build_logic_graph
-from application.graphs.stack_graph import build_stack_graph
 from application.states.meta_state import MetaState
 from infrastructure.persistence.repository import (
     AnalysisRepository,
@@ -24,8 +22,88 @@ from infrastructure.persistence.repository import (
 logger = logging.getLogger(__name__)
 
 
+# ===========================================================================
+# Pipeline Runners — LangGraph 서브그래프를 대체하는 직접 워커 오케스트레이션
+# ===========================================================================
+
+
+async def run_forensic_pipeline(initial_state: dict[str, Any]) -> dict[str, Any]:
+    """ForensicGraph 대체: collector → identity → pruner → [vibector, clave, datasketch] → aggregator."""
+    from application.nodes.forensic.aggregator import forensic_aggregator
+    from application.nodes.forensic.clave import clave_worker
+    from application.nodes.forensic.collector import collector_worker
+    from application.nodes.forensic.datasketch_node import datasketch_worker
+    from application.nodes.forensic.identity_resolver import identity_resolver_worker
+    from application.nodes.forensic.semantic_pruner_node import semantic_pruner_worker
+    from application.nodes.forensic.vibector import vibector_worker
+
+    state = dict(initial_state)
+    # Sequential: collector → identity_resolver → semantic_pruner
+    state.update(await collector_worker(state))
+    state.update(await identity_resolver_worker(state))
+    state.update(await semantic_pruner_worker(state))
+    # Parallel: vibector, clave, datasketch
+    results = await asyncio.gather(
+        vibector_worker(dict(state)),
+        clave_worker(dict(state)),
+        datasketch_worker(dict(state)),
+    )
+    for r in results:
+        state.update(r)
+    # Aggregator
+    state.update(await forensic_aggregator(state))
+    return state
+
+
+async def run_logic_pipeline(initial_state: dict[str, Any]) -> dict[str, Any]:
+    """LogicGraph 대체: [ast, complexity, quality] (병렬) → aggregator."""
+    from application.nodes.logic.aggregator import logic_aggregator
+    from application.nodes.logic.ast_analyzer import ast_analyzer_worker
+    from application.nodes.logic.complexity_meter import complexity_meter_worker
+    from application.nodes.logic.quality_scanner import quality_scanner_worker
+
+    state = dict(initial_state)
+    # Parallel: 3 workers
+    results = await asyncio.gather(
+        ast_analyzer_worker(dict(state)),
+        complexity_meter_worker(dict(state)),
+        quality_scanner_worker(dict(state)),
+    )
+    for r in results:
+        state.update(r)
+    # Aggregator
+    state.update(await logic_aggregator(state))
+    return state
+
+
+async def run_stack_pipeline(initial_state: dict[str, Any]) -> dict[str, Any]:
+    """StackGraph 대체: [skill, api_depth, architecture] (병렬) → aggregator."""
+    from application.nodes.stack.aggregator import stack_aggregator
+    from application.nodes.stack.api_depth import api_depth_worker
+    from application.nodes.stack.architecture_evaluator import architecture_evaluator_worker
+    from application.nodes.stack.skill_extractor import skill_extractor_worker
+
+    state = dict(initial_state)
+    # Parallel: 3 workers
+    results = await asyncio.gather(
+        skill_extractor_worker(dict(state)),
+        api_depth_worker(dict(state)),
+        architecture_evaluator_worker(dict(state)),
+    )
+    for r in results:
+        state.update(r)
+    # Aggregator
+    state.update(await stack_aggregator(state))
+    return state
+
+
+# ===========================================================================
+# Supervisor Node Functions — Temporal Activity에서 호출
+# ===========================================================================
+
+
 async def forensic_supervisor_node(state: MetaState) -> dict[str, Any]:
-    """ForensicSupervisor 서브그래프를 실행하고 결과를 DB에 저장한다.
+    """ForensicSupervisor — 워커 파이프라인 실행 + 결과 DB 저장.
 
     Phase 8: repo_collector가 이미 clone을 완료했으므로 repo_paths_ref에서 로딩.
     """
@@ -68,9 +146,8 @@ async def forensic_supervisor_node(state: MetaState) -> dict[str, Any]:
     }
 
     try:
-        # 2. Process: 서브그래프 실행
-        graph = build_forensic_graph().compile()
-        result = await graph.ainvoke(forensic_input)
+        # 2. Process: 워커 파이프라인 직접 실행
+        result = await run_forensic_pipeline(forensic_input)
 
         # 3. Save: DB에 저장 (repo_local_paths 포함 — Logic/Stack에서 참조)
         analysis_repo = AnalysisRepository(db_url)
@@ -124,7 +201,7 @@ async def forensic_supervisor_node(state: MetaState) -> dict[str, Any]:
 
 
 async def logic_supervisor_node(state: MetaState) -> dict[str, Any]:
-    """LogicSupervisor 서브그래프를 실행하고 결과를 DB에 저장한다.
+    """LogicSupervisor — 워커 파이프라인 실행 + 결과 DB 저장.
 
     Phase 8: repo_paths_ref에서 직접 로딩 (forensic과 병렬 실행 가능).
     """
@@ -158,9 +235,8 @@ async def logic_supervisor_node(state: MetaState) -> dict[str, Any]:
     }
 
     try:
-        # 2. Process
-        graph = build_logic_graph().compile()
-        result = await graph.ainvoke(logic_input)
+        # 2. Process: 워커 파이프라인 직접 실행
+        result = await run_logic_pipeline(logic_input)
 
         # 3. Save (analysis_repo는 Load 단계에서 이미 생성됨)
         result_id = await analysis_repo.save_result(
@@ -195,7 +271,7 @@ async def logic_supervisor_node(state: MetaState) -> dict[str, Any]:
 
 
 async def stack_supervisor_node(state: MetaState) -> dict[str, Any]:
-    """StackSupervisor 서브그래프를 실행하고 결과를 DB에 저장한다."""
+    """StackSupervisor — 워커 파이프라인 실행 + 결과 DB 저장."""
     job_id = state["job_id"]
     db_url = os.environ.get("DATABASE_URL", "")
 
@@ -238,9 +314,8 @@ async def stack_supervisor_node(state: MetaState) -> dict[str, Any]:
     }
 
     try:
-        # 2. Process
-        graph = build_stack_graph().compile()
-        result = await graph.ainvoke(stack_input)
+        # 2. Process: 워커 파이프라인 직접 실행
+        result = await run_stack_pipeline(stack_input)
 
         # 3. Save
         result_id = await analysis_repo.save_result(

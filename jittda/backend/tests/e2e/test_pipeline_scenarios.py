@@ -1,11 +1,11 @@
 """
 MetaGraph E2E 통합 테스트 — 5개 시나리오 (JIT-278).
 
-Mock LLM/DB/서브그래프를 사용하여 외부 의존성 없이
+Mock LLM/DB/파이프라인 러너를 사용하여 외부 의존성 없이
 전체 파이프라인의 End-to-End 흐름을 검증한다.
 
-각 노드 함수를 순차 호출하며 MetaState를 누적 갱신하는 방식으로
-실제 LangGraph 그래프 실행을 시뮬레이션한다.
+Phase 9: LangGraph → Temporal 전환. supervisor_adapters가 run_*_pipeline을
+직접 호출하므로, 해당 함수를 mock한다.
 
 Scenario 1: Happy Path (모든 데이터 소스 사용 가능)
 Scenario 2: Partial Data (GitHub만 사용 가능)
@@ -35,13 +35,12 @@ from tests.e2e.conftest import (
     make_full_input_data,
     make_github_only_input_data,
     make_logic_result,
-    make_mock_graph,
     make_sample_questions,
     make_stack_result,
 )
 
 # ---------------------------------------------------------------------------
-# Node imports (langfuse 패치는 conftest.py에서 이미 수행됨)
+# Node imports
 # ---------------------------------------------------------------------------
 from application.nodes.meta.input_router import input_router_node
 from application.nodes.meta.plan_generator import plan_generator_node
@@ -79,6 +78,7 @@ class PipelineRunner:
             "job_id": job_id,
             "input_data_ref": "",
             "identity_cluster_ref": None,
+            "repo_paths_ref": None,
             "forensic_result_ref": None,
             "logic_result_ref": None,
             "stack_result_ref": None,
@@ -96,7 +96,6 @@ class PipelineRunner:
         """노드를 실행하고 반환값으로 상태를 갱신한다."""
         result = await node_fn(self.state)
         if result:
-            # errors는 리스트이므로 병합이 아닌 교체 (노드가 기존 errors를 포함하여 반환)
             self.state.update(result)
         return result
 
@@ -142,8 +141,6 @@ def _build_patches(store: InMemoryStore, llm_responses: dict[str, Any] | None = 
         "application.nodes.meta.question_orchestrator.InstructorClient": mock_instructor_factory,
         "application.nodes.meta.question_orchestrator.EmbeddingService": mock_embedding_factory,
         "application.nodes.meta.question_orchestrator.PgvectorStore": mock_pgvector_factory,
-        # question_orchestrator는 함수 내부에서 `from infrastructure.persistence.repository import JobRepository`
-        # 로 late import하므로, 원본 모듈의 클래스를 패치해야 한다.
         "infrastructure.persistence.repository.JobRepository": job_factory,
         # enhancement_agents
         "application.nodes.meta.enhancement_agents.AnalysisRepository": analysis_factory,
@@ -227,16 +224,13 @@ class TestHappyPath:
         }
         runner.init_state(job_id)
 
-        # --- 서브그래프 Mock 결과 ---
+        # --- 파이프라인 러너 Mock 결과 ---
         forensic_result = make_forensic_result(authenticity_score=0.85, total_files=42)
         logic_result = make_logic_result(logic_score=72.0, files_analyzed=38)
         stack_result = make_stack_result(mastery_score=78.0, total_skills=15)
 
         # --- LLM Mock 응답 ---
         sample_questions = make_sample_questions(9)
-
-        # question_orchestrator는 3번 LLM 호출 (3전략 병렬)
-        # 각 전략이 QuestionBatch를 반환
         question_batch = _make_question_batch_response(sample_questions[:3])
         enhancement_batch = _make_enhancement_batch_response()
         quality_review_approve = QualityReview(
@@ -255,15 +249,15 @@ class TestHappyPath:
         # --- Build patches ---
         patches = _build_patches(store, llm_responses)
 
-        # 서브그래프 패치 추가
-        patches["application.nodes.meta.supervisor_adapters.build_forensic_graph"] = (
-            lambda: make_mock_graph(forensic_result)
+        # Phase 9: run_*_pipeline mock (LangGraph graph builder 대체)
+        patches["application.nodes.meta.supervisor_adapters.run_forensic_pipeline"] = (
+            AsyncMock(return_value=forensic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_logic_graph"] = (
-            lambda: make_mock_graph(logic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_logic_pipeline"] = (
+            AsyncMock(return_value=logic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_stack_graph"] = (
-            lambda: make_mock_graph(stack_result)
+        patches["application.nodes.meta.supervisor_adapters.run_stack_pipeline"] = (
+            AsyncMock(return_value=stack_result)
         )
 
         # --- 파이프라인 실행 ---
@@ -293,7 +287,6 @@ class TestHappyPath:
             assert result.get("profile_ref") is not None
             assert result.get("candidate_scores") is not None
             scores = result["candidate_scores"]
-            # CandidateScore.model_dump() 결과 검증
             assert "logic" in scores
             assert "mastery" in scores
             assert "stability" in scores
@@ -312,9 +305,8 @@ class TestHappyPath:
             # Phase 4: QualityGate
             result = await runner.run_node(quality_gate_node)
             assert result["_quality_verdict"] == "approve"
-            assert result["revision_count"] == 0  # No revision needed
+            assert result["revision_count"] == 0
 
-            # should_revise 라우터 검증
             route = should_revise(runner.state)
             assert route == "approve"
 
@@ -376,7 +368,7 @@ class TestPartialData:
         }
         runner.init_state(job_id)
 
-        # --- 낮은 점수의 서브그래프 결과 ---
+        # --- 낮은 점수의 파이프라인 결과 ---
         forensic_result = make_forensic_result(
             authenticity_score=0.55,
             total_files=8,
@@ -414,14 +406,14 @@ class TestPartialData:
         }
 
         patches = _build_patches(store, llm_responses)
-        patches["application.nodes.meta.supervisor_adapters.build_forensic_graph"] = (
-            lambda: make_mock_graph(forensic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_forensic_pipeline"] = (
+            AsyncMock(return_value=forensic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_logic_graph"] = (
-            lambda: make_mock_graph(logic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_logic_pipeline"] = (
+            AsyncMock(return_value=logic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_stack_graph"] = (
-            lambda: make_mock_graph(stack_result)
+        patches["application.nodes.meta.supervisor_adapters.run_stack_pipeline"] = (
+            AsyncMock(return_value=stack_result)
         )
 
         # --- 파이프라인 실행 ---
@@ -447,14 +439,9 @@ class TestPartialData:
 
         scores = runner.state["candidate_scores"]
         assert scores is not None
-
-        # confidence는 calculate_weighted_score에서 기본적으로 LOW
         assert scores["confidence"] == "low"
-
-        # 낮은 점수 검증 (logic 45, mastery 38 → weighted_total이 낮음)
         assert scores["weighted_total"] < 60
 
-        # DB 저장 확인
         job_data = store.jobs.get(job_id)
         assert job_data is not None
         assert job_data["status"] == "completed"
@@ -481,7 +468,6 @@ class TestQualityGateRejection:
         store = InMemoryStore()
         runner = PipelineRunner(store)
 
-        # --- Job 사전 등록 ---
         job_id = str(uuid.uuid4())
         input_data = make_full_input_data()
         store.jobs[job_id] = {
@@ -502,7 +488,6 @@ class TestQualityGateRejection:
         question_batch = _make_question_batch_response(sample_questions[:3])
         enhancement_batch = _make_enhancement_batch_response()
 
-        # QualityGate: 첫 번째 호출은 revise, 두 번째 호출은 approve
         call_count = {"n": 0}
 
         def quality_review_factory(_call_num: int) -> QualityReview:
@@ -528,30 +513,27 @@ class TestQualityGateRejection:
         }
 
         patches = _build_patches(store, llm_responses)
-        patches["application.nodes.meta.supervisor_adapters.build_forensic_graph"] = (
-            lambda: make_mock_graph(forensic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_forensic_pipeline"] = (
+            AsyncMock(return_value=forensic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_logic_graph"] = (
-            lambda: make_mock_graph(logic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_logic_pipeline"] = (
+            AsyncMock(return_value=logic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_stack_graph"] = (
-            lambda: make_mock_graph(stack_result)
+        patches["application.nodes.meta.supervisor_adapters.run_stack_pipeline"] = (
+            AsyncMock(return_value=stack_result)
         )
 
         with _apply_patches(patches):
-            # Phase 0-2.5
             await runner.run_node(input_router_node)
             await runner.run_node(plan_generator_node)
             await runner.run_node(forensic_supervisor_node)
             await runner.run_node(logic_supervisor_node)
             await runner.run_node(stack_supervisor_node)
             await runner.run_node(profile_synthesizer_node)
-
-            # Phase 3
             await runner.run_node(question_orchestrator_node)
             await runner.run_node(enhancement_agents_node)
 
-            # Phase 4: QualityGate — 첫 번째 호출 (revise)
+            # QualityGate — 첫 번째 호출 (revise)
             result = await runner.run_node(quality_gate_node)
             assert result["_quality_verdict"] == "revise"
             assert result["revision_count"] == 1
@@ -566,10 +548,8 @@ class TestQualityGateRejection:
             route = should_revise(runner.state)
             assert route == "approve"
 
-            # Phase 5
             await runner.run_node(output_assembler_node)
 
-        # --- 검증 ---
         assert runner.state["status"] == "completed"
         assert runner.state["revision_count"] >= 1
         assert runner.state["errors"] == []
@@ -600,7 +580,6 @@ class TestQualityGateRejection:
         question_batch = _make_question_batch_response(sample_questions[:3])
         enhancement_batch = _make_enhancement_batch_response()
 
-        # QualityGate: 항상 revise 반환
         always_revise = QualityReview(
             overall_quality=0.2,
             issues=["Always bad"],
@@ -615,14 +594,14 @@ class TestQualityGateRejection:
         }
 
         patches = _build_patches(store, llm_responses)
-        patches["application.nodes.meta.supervisor_adapters.build_forensic_graph"] = (
-            lambda: make_mock_graph(forensic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_forensic_pipeline"] = (
+            AsyncMock(return_value=forensic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_logic_graph"] = (
-            lambda: make_mock_graph(logic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_logic_pipeline"] = (
+            AsyncMock(return_value=logic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_stack_graph"] = (
-            lambda: make_mock_graph(stack_result)
+        patches["application.nodes.meta.supervisor_adapters.run_stack_pipeline"] = (
+            AsyncMock(return_value=stack_result)
         )
 
         with _apply_patches(patches):
@@ -640,19 +619,18 @@ class TestQualityGateRejection:
             assert result["_quality_verdict"] == "revise"
             assert result["revision_count"] == 1
 
-            # 2회차 revise (MAX_REVISIONS=2에 도달)
+            # 2회차 revise
             result = await runner.run_node(quality_gate_node)
             assert result["_quality_verdict"] == "revise"
             assert result["revision_count"] == 2
 
-            # 3회차: MAX_REVISIONS 도달 → LLM 호출 없이 강제 approve
+            # 3회차: 강제 approve
             result = await runner.run_node(quality_gate_node)
             assert result["_quality_verdict"] == "approve"
 
             route = should_revise(runner.state)
             assert route == "approve"
 
-            # Phase 5
             await runner.run_node(output_assembler_node)
 
         assert runner.state["status"] == "completed"
@@ -691,14 +669,6 @@ class TestWorkerFailure:
         forensic_result = make_forensic_result()
         stack_result = make_stack_result()
 
-        # Logic 서브그래프만 실패하도록 구성
-        failed_logic_graph = MagicMock()
-        failed_logic_compiled = MagicMock()
-        failed_logic_compiled.ainvoke = AsyncMock(
-            side_effect=RuntimeError("AST parser crash: out of memory")
-        )
-        failed_logic_graph.compile.return_value = failed_logic_compiled
-
         sample_questions = make_sample_questions(9)
         question_batch = _make_question_batch_response(sample_questions[:3])
         enhancement_batch = _make_enhancement_batch_response()
@@ -716,14 +686,15 @@ class TestWorkerFailure:
         }
 
         patches = _build_patches(store, llm_responses)
-        patches["application.nodes.meta.supervisor_adapters.build_forensic_graph"] = (
-            lambda: make_mock_graph(forensic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_forensic_pipeline"] = (
+            AsyncMock(return_value=forensic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_logic_graph"] = (
-            lambda: failed_logic_graph
+        # Logic pipeline 실패
+        patches["application.nodes.meta.supervisor_adapters.run_logic_pipeline"] = (
+            AsyncMock(side_effect=RuntimeError("AST parser crash: out of memory"))
         )
-        patches["application.nodes.meta.supervisor_adapters.build_stack_graph"] = (
-            lambda: make_mock_graph(stack_result)
+        patches["application.nodes.meta.supervisor_adapters.run_stack_pipeline"] = (
+            AsyncMock(return_value=stack_result)
         )
 
         with _apply_patches(patches):
@@ -733,12 +704,10 @@ class TestWorkerFailure:
 
             # Logic supervisor 실패 — 에러를 포착하고 계속 진행
             result = await runner.run_node(logic_supervisor_node)
-            assert result.get("logic_result_ref") is not None  # 에러 레코드로 저장
+            assert result.get("logic_result_ref") is not None
             assert any("logic supervisor" in e for e in result.get("errors", []))
 
             await runner.run_node(stack_supervisor_node)
-
-            # Profile synthesizer는 logic 결과가 없어도 기본값으로 진행
             await runner.run_node(profile_synthesizer_node)
             assert runner.state["candidate_scores"] is not None
 
@@ -751,17 +720,13 @@ class TestWorkerFailure:
 
             await runner.run_node(output_assembler_node)
 
-        # --- 검증 ---
         assert runner.state["status"] == "completed"
-        # errors에 실패 기록 존재
         assert len(runner.state["errors"]) > 0
         assert any("logic supervisor" in e for e in runner.state["errors"])
 
-        # DB에 최종 결과 저장 확인
         job_data = store.jobs.get(job_id)
         assert job_data is not None
         assert job_data["status"] == "completed"
-        # 에러가 최종 결과에도 포함
         assert len(job_data["result_data"]["errors"]) > 0
 
 
@@ -775,17 +740,10 @@ class TestConcurrentJobs:
     입력: 2개 job 동시 실행
     예상: 서로 간섭 없이 각각 완료
     검증: 각 job의 결과가 독립적
-
-    동일한 InMemoryStore에 2개의 Job을 등록하고, 노드를 인터리브
-    방식으로 호출하여 상태 격리를 검증한다.
-    unittest.mock.patch는 글로벌 모듈 네임스페이스를 변경하므로,
-    동시 patch 적용은 불가. 대신 공유 Store + 인터리브 호출로
-    실제 동시성 시나리오를 시뮬레이션한다.
     """
 
     @pytest.mark.asyncio
     async def test_two_jobs_interleaved_execution(self) -> None:
-        """2개의 Job을 인터리브 방식으로 실행하여 상태 격리를 검증한다."""
         store = InMemoryStore()
 
         # --- Job A: 높은 점수 ---
@@ -843,8 +801,7 @@ class TestConcurrentJobs:
 
         patches = _build_patches(store, llm_responses)
 
-        # 서브그래프는 job_id에 따라 다른 결과를 반환해야 함
-        # 각 ainvoke 호출이 별도의 결과를 반환하도록 side_effect 사용
+        # 파이프라인 러너를 side_effect로 순서별 결과 반환
         forensic_results_queue = [forensic_a, forensic_b]
         logic_results_queue = [logic_a, logic_b]
         stack_results_queue = [stack_a, stack_b]
@@ -853,37 +810,32 @@ class TestConcurrentJobs:
         logic_call_idx = {"n": 0}
         stack_call_idx = {"n": 0}
 
-        def make_forensic_graph() -> MagicMock:
+        async def mock_forensic_pipeline(initial_state: dict) -> dict:
             idx = forensic_call_idx["n"]
             forensic_call_idx["n"] += 1
-            result = forensic_results_queue[idx] if idx < len(forensic_results_queue) else forensic_a
-            return make_mock_graph(result)
+            return forensic_results_queue[idx] if idx < len(forensic_results_queue) else forensic_a
 
-        def make_logic_graph() -> MagicMock:
+        async def mock_logic_pipeline(initial_state: dict) -> dict:
             idx = logic_call_idx["n"]
             logic_call_idx["n"] += 1
-            result = logic_results_queue[idx] if idx < len(logic_results_queue) else logic_a
-            return make_mock_graph(result)
+            return logic_results_queue[idx] if idx < len(logic_results_queue) else logic_a
 
-        def make_stack_graph() -> MagicMock:
+        async def mock_stack_pipeline(initial_state: dict) -> dict:
             idx = stack_call_idx["n"]
             stack_call_idx["n"] += 1
-            result = stack_results_queue[idx] if idx < len(stack_results_queue) else stack_a
-            return make_mock_graph(result)
+            return stack_results_queue[idx] if idx < len(stack_results_queue) else stack_a
 
-        patches["application.nodes.meta.supervisor_adapters.build_forensic_graph"] = make_forensic_graph
-        patches["application.nodes.meta.supervisor_adapters.build_logic_graph"] = make_logic_graph
-        patches["application.nodes.meta.supervisor_adapters.build_stack_graph"] = make_stack_graph
+        patches["application.nodes.meta.supervisor_adapters.run_forensic_pipeline"] = mock_forensic_pipeline
+        patches["application.nodes.meta.supervisor_adapters.run_logic_pipeline"] = mock_logic_pipeline
+        patches["application.nodes.meta.supervisor_adapters.run_stack_pipeline"] = mock_stack_pipeline
 
         with _apply_patches(patches):
             # --- 인터리브 실행: A와 B를 번갈아 호출 ---
-            # Phase 0-1: InputRouter + PlanGenerator
             await runner_a.run_node(input_router_node)
             await runner_b.run_node(input_router_node)
             await runner_a.run_node(plan_generator_node)
             await runner_b.run_node(plan_generator_node)
 
-            # Phase 2: Supervisors (A 먼저, 그 다음 B)
             await runner_a.run_node(forensic_supervisor_node)
             await runner_b.run_node(forensic_supervisor_node)
             await runner_a.run_node(logic_supervisor_node)
@@ -891,21 +843,17 @@ class TestConcurrentJobs:
             await runner_a.run_node(stack_supervisor_node)
             await runner_b.run_node(stack_supervisor_node)
 
-            # Phase 2.5: ProfileSynthesizer
             await runner_a.run_node(profile_synthesizer_node)
             await runner_b.run_node(profile_synthesizer_node)
 
-            # Phase 3: Questions
             await runner_a.run_node(question_orchestrator_node)
             await runner_b.run_node(question_orchestrator_node)
             await runner_a.run_node(enhancement_agents_node)
             await runner_b.run_node(enhancement_agents_node)
 
-            # Phase 4: QualityGate
             await runner_a.run_node(quality_gate_node)
             await runner_b.run_node(quality_gate_node)
 
-            # Phase 5: OutputAssembler
             await runner_a.run_node(output_assembler_node)
             await runner_b.run_node(output_assembler_node)
 
@@ -916,7 +864,6 @@ class TestConcurrentJobs:
         assert runner_a.state["job_id"] == job_a_id
         assert runner_b.state["job_id"] == job_b_id
 
-        # --- 점수가 독립적 ---
         scores_a = runner_a.state["candidate_scores"]
         scores_b = runner_b.state["candidate_scores"]
 
@@ -928,7 +875,7 @@ class TestConcurrentJobs:
         assert scores_a["logic"]["normalized_score"] > scores_b["logic"]["normalized_score"]
         assert scores_a["mastery"]["normalized_score"] > scores_b["mastery"]["normalized_score"]
 
-        # --- DB 저장이 독립적 ---
+        # DB 저장이 독립적
         job_data_a = store.jobs.get(job_a_id)
         job_data_b = store.jobs.get(job_b_id)
 
@@ -939,12 +886,10 @@ class TestConcurrentJobs:
         assert job_data_a["result_data"]["job_id"] == job_a_id
         assert job_data_b["result_data"]["job_id"] == job_b_id
 
-        # --- 에러 없음 ---
         assert runner_a.state["errors"] == []
         assert runner_b.state["errors"] == []
 
-        # --- Analysis results가 독립적으로 저장됨 ---
-        # 각 job의 ref가 서로 다름
+        # Ref가 서로 다름
         assert runner_a.state["forensic_result_ref"] != runner_b.state["forensic_result_ref"]
         assert runner_a.state["logic_result_ref"] != runner_b.state["logic_result_ref"]
         assert runner_a.state["stack_result_ref"] != runner_b.state["stack_result_ref"]

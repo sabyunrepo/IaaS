@@ -1,10 +1,11 @@
-"""FastAPI Application Factory."""
+"""FastAPI Application Factory — Temporal + Redis PubSub 통합."""
 
 from __future__ import annotations
 
 import logging
 import os
 import time
+from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import FastAPI, Request
@@ -33,6 +34,48 @@ def _configure_logging() -> None:
     logging.basicConfig(format="%(message)s", level=logging.INFO)
 
 
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    """앱 시작/종료 시 Temporal client + Redis bridge 관리."""
+    logger = structlog.get_logger()
+
+    # Temporal Client 연결
+    temporal_client = None
+    temporal_host = os.environ.get("TEMPORAL_HOST", "")
+    if temporal_host:
+        try:
+            from temporalio.client import Client
+
+            temporal_client = await Client.connect(temporal_host)
+            logger.info("temporal_client_connected", host=temporal_host)
+        except Exception as e:
+            logger.error("temporal_client_connection_failed", error=str(e))
+
+    application.state.temporal_client = temporal_client
+
+    # Redis PubSub Bridge 시작
+    redis_bridge = None
+    redis_url = os.environ.get("REDIS_URL", "")
+    if redis_url:
+        try:
+            from interface.websocket.redis_bridge import RedisPubSubBridge
+
+            redis_bridge = RedisPubSubBridge(redis_url)
+            await redis_bridge.start()
+            logger.info("redis_bridge_started")
+        except Exception as e:
+            logger.error("redis_bridge_start_failed", error=str(e))
+
+    application.state.redis_bridge = redis_bridge
+
+    yield
+
+    # Cleanup
+    if redis_bridge:
+        await redis_bridge.stop()
+    logger.info("app_shutdown_complete")
+
+
 def create_app() -> FastAPI:
     _configure_logging()
     logger = structlog.get_logger()
@@ -41,6 +84,7 @@ def create_app() -> FastAPI:
         title="Jittda Sniper v5.0",
         version="5.0.0",
         description="AI Interview Script Generator",
+        lifespan=lifespan,
     )
 
     # CORS — configurable via environment
@@ -112,6 +156,15 @@ def create_app() -> FastAPI:
         except Exception as e:
             checks["redis"] = f"error: {e}"
             checks["status"] = "degraded"
+
+        # Temporal check
+        if hasattr(application.state, "temporal_client") and application.state.temporal_client:
+            checks["temporal"] = "ok"
+        else:
+            temporal_host = os.environ.get("TEMPORAL_HOST", "")
+            if temporal_host:
+                checks["temporal"] = "not connected"
+                checks["status"] = "degraded"
 
         return checks
 
