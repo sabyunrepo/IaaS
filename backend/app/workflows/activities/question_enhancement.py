@@ -166,7 +166,7 @@ async def craft_evaluation_scenarios(questions: list[dict], enriched_input: dict
     """3d. Scenario Writer Agent — 3단계 평가 시나리오 생성 (배치 병렬)"""
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
-    experience_level = raw_input.get("experience_level", "미들")
+    experience_level = raw_input.get("experience_level", "Mid")
 
     validated = await _run_batched_enhancement(
         questions=questions[:25],
@@ -230,7 +230,7 @@ async def design_follow_ups(questions: list[dict], enriched_input: dict) -> dict
     """3e. Follow-up Designer Agent — 후속질문 분기 설계 (질문별 병렬)"""
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
-    experience_level = raw_input.get("experience_level", "미들")
+    experience_level = raw_input.get("experience_level", "Mid")
 
     validated = await _run_batched_enhancement(
         questions=questions[:25],
@@ -311,7 +311,7 @@ async def generate_decision_guide(analysis: dict, enriched_input: dict) -> dict:
     llm = CachedLLMService()
     raw_input = enriched_input.get("raw_input", {})
     output_language = raw_input.get("language_config", {}).get("output_language", "ko")
-    experience_level = raw_input.get("experience_level", "미들")
+    experience_level = raw_input.get("experience_level", "Mid")
 
     # Summarize analysis for the prompt
     analysis_summary = json.dumps({

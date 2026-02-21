@@ -432,7 +432,7 @@ def calculate_radar_scores(
     jd_analysis: dict,
     code_analysis: dict | None,
     document_analysis: dict,
-    experience_level: str = "미들",
+    experience_level: str = "Mid",
     linkedin_profile: dict | None = None,
     output_language: str = "ko",
     candidate_profile: dict | None = None,
@@ -662,12 +662,18 @@ def calculate_radar_scores(
 
 # Required scores per axis: [role_fit, technical, execution, communication, code_quality]
 # Higher experience level → higher expected bar
+_REQ_CTO    = [85, 90, 90, 85, 85]   # SFIA 6-7: Full accountability
+_REQ_SENIOR = [80, 85, 80, 75, 80]   # SFIA 4-5: Substantial responsibility
+_REQ_MID    = [70, 70, 65, 65, 65]   # SFIA 3:   General direction
+_REQ_JUNIOR = [55, 55, 45, 50, 50]   # SFIA 2:   Routine direction
+_REQ_ENTRY  = [45, 45, 35, 40, 40]   # SFIA 1:   Close direction
+
 REQUIRED_SCORES_BY_LEVEL = {
-    "CTO/VP":  [85, 90, 90, 85, 85],   # SFIA 6-7: Full accountability
-    "시니어":   [80, 85, 80, 75, 80],   # SFIA 4-5: Substantial responsibility
-    "미들":     [70, 70, 65, 65, 65],   # SFIA 3:   General direction
-    "주니어":   [55, 55, 45, 50, 50],   # SFIA 2:   Routine direction
-    "신입":     [45, 45, 35, 40, 40],   # SFIA 1:   Close direction
+    # English keys (primary)
+    "CTO/VP": _REQ_CTO, "Senior": _REQ_SENIOR, "Mid": _REQ_MID,
+    "Junior": _REQ_JUNIOR, "Entry": _REQ_ENTRY,
+    # Korean keys (backward compat)
+    "시니어": _REQ_SENIOR, "미들": _REQ_MID, "주니어": _REQ_JUNIOR, "신입": _REQ_ENTRY,
 }
 
 
@@ -678,7 +684,7 @@ def get_required_scores(experience_level: str) -> list[int]:
     """
     return REQUIRED_SCORES_BY_LEVEL.get(
         experience_level,
-        REQUIRED_SCORES_BY_LEVEL["미들"],  # default
+        REQUIRED_SCORES_BY_LEVEL["Mid"],  # default
     )
 
 
@@ -733,10 +739,10 @@ def map_experience_level_label(experience_level: str) -> str:
     """
     LABEL_MAP = {
         "CTO/VP": "Lead",
-        "시니어": "Senior",
-        "미들": "Mid",
-        "주니어": "Junior",
-        "신입": "Junior",
+        "Senior": "Senior", "시니어": "Senior",
+        "Mid": "Mid", "미들": "Mid",
+        "Junior": "Junior", "주니어": "Junior",
+        "Entry": "Junior", "신입": "Junior",
     }
     return LABEL_MAP.get(experience_level, "Mid")
 

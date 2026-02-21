@@ -11,7 +11,10 @@ SupportedLanguage: TypeAlias = Literal[
 ]
 
 # 경험 레벨
-ExperienceLevel: TypeAlias = Literal["신입", "주니어", "미들", "시니어", "CTO/VP"]
+ExperienceLevel: TypeAlias = Literal[
+    "Entry", "Junior", "Mid", "Senior", "CTO/VP",
+    "신입", "주니어", "미들", "시니어",  # backward compat
+]
 
 # 질문 난이도
 Difficulty: TypeAlias = Literal["Easy", "Medium", "Hard"]

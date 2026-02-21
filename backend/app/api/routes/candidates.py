@@ -53,13 +53,13 @@ class CreateJDRequest(BaseModel):
 
 
 class MatchRequest(BaseModel):
-    experience_level: str = "미들"
+    experience_level: str = "Mid"
     output_language: str = "ko"
 
 
 class SearchCandidatesRequest(BaseModel):
     jd_text: str = Field(..., min_length=10)
-    experience_level: str = "미들"
+    experience_level: str = "Mid"
     output_language: str = "ko"
 
 

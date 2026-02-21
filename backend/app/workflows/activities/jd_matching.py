@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 async def match_candidate_to_jd(
     candidate_profile: dict,
     jd_analysis: dict,
-    experience_level: str = "미들",
+    experience_level: str = "Mid",
     output_language: str = "ko",
 ) -> dict:
     """후보자 프로필 vs JD → 매칭 점수 + 근거
