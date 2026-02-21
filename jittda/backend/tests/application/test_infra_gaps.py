@@ -1,9 +1,9 @@
 """
-G6/G7/G9 인프라 갭 해결 테스트.
+G6/G7 인프라 갭 해결 테스트.
 
 G6: Worker 에러 핸들링 — 각 노드에서 예외 발생 시 기본값으로 계속 진행
-G7: WebSocket 이벤트 — build_node_event로 구조화된 이벤트 생성
-G9: Checkpoint — MemorySaver 폴백
+G7: WebSocket 이벤트 — NODE_PROGRESS로 구조화된 이벤트 생성
+Phase 9: events.py → temporal/activities.py, run_analysis.py → Temporal Workflow
 """
 from __future__ import annotations
 
@@ -36,47 +36,23 @@ for _mod_name in _langfuse_modules:
             _m.Langfuse = MagicMock  # type: ignore[attr-defined]
         sys.modules[_mod_name] = _m
 
-from application.events import NODE_PROGRESS, build_node_event  # noqa: E402
+from application.temporal.activities import NODE_PROGRESS  # noqa: E402
 
 
 # ===========================================================================
-# G7: WebSocket 이벤트 — build_node_event 테스트
+# G7: WebSocket 이벤트 — NODE_PROGRESS 테스트 (Phase 9: events.py → activities.py)
 # ===========================================================================
 
 
-class TestBuildNodeEvent:
-    """build_node_event 함수의 구조화된 이벤트 생성을 검증한다."""
-
-    def test_known_node_returns_correct_progress(self):
-        event = build_node_event("forensic_supervisor", {"status": "analyzing"})
-        assert event["type"] == "node_complete"
-        assert event["node"] == "forensic_supervisor"
-        assert event["progress"] == 0.30
-        assert event["label"] == "코드 포렌식 분석"
-        assert event["status"] == "analyzing"
-        assert event["has_errors"] is False
-
-    def test_unknown_node_returns_zero_progress(self):
-        event = build_node_event("unknown_node", {})
-        assert event["progress"] == 0.0
-        assert event["label"] == "unknown_node"
-
-    def test_event_with_errors(self):
-        event = build_node_event("logic_supervisor", {
-            "status": "analyzing",
-            "errors": ["logic supervisor: timeout"],
-        })
-        assert event["has_errors"] is True
-
-    def test_event_without_errors(self):
-        event = build_node_event("input_router", {"status": "collecting"})
-        assert event["has_errors"] is False
+class TestNodeProgress:
+    """NODE_PROGRESS 매핑의 정확성을 검증한다."""
 
     def test_all_meta_nodes_have_progress_mapping(self):
-        """MetaGraph의 모든 노드가 NODE_PROGRESS에 매핑되어 있어야 한다."""
+        """파이프라인의 모든 노드가 NODE_PROGRESS에 매핑되어 있어야 한다."""
         expected_nodes = [
             "input_router",
             "plan_generator",
+            "repo_collector",
             "forensic_supervisor",
             "logic_supervisor",
             "stack_supervisor",
@@ -94,6 +70,7 @@ class TestBuildNodeEvent:
         ordered_nodes = [
             "input_router",
             "plan_generator",
+            "repo_collector",
             "forensic_supervisor",
             "logic_supervisor",
             "stack_supervisor",
@@ -116,10 +93,10 @@ class TestBuildNodeEvent:
         for node, (progress, _) in NODE_PROGRESS.items():
             assert 0.0 <= progress <= 1.0, f"{node} progress out of range: {progress}"
 
-    def test_empty_state_update(self):
-        event = build_node_event("output_assembler", {})
-        assert event["status"] == ""
-        assert event["has_errors"] is False
+    def test_all_nodes_have_korean_label(self):
+        """모든 노드에 한국어 라벨이 있어야 한다."""
+        for node, (_, label) in NODE_PROGRESS.items():
+            assert isinstance(label, str) and len(label) > 0, f"{node} has empty label"
 
 
 # ===========================================================================
@@ -213,7 +190,6 @@ class TestProfileSynthesizerErrorHandling:
             )
             result = await profile_synthesizer_node(state)
 
-        # 기본 점수로 계속 진행
         assert result["candidate_scores"] is not None
         assert result["candidate_scores"]["weighted_total"] == 50.0
         assert result["candidate_scores"]["confidence"] == "low"
@@ -282,8 +258,7 @@ class TestEnhancementAgentsErrorHandling:
             )
             result = await enhancement_agents_node(state)
 
-        # 기존 questions_ref는 변경되지 않음 (에러만 추가)
-        assert "questions_ref" not in result  # 보강 실패 시 questions_ref를 덮어쓰지 않음
+        assert "questions_ref" not in result
         assert any("enhancement_agents" in e for e in result["errors"])
 
 
@@ -321,45 +296,3 @@ class TestOutputAssemblerErrorHandling:
         assert result["status"] == "failed"
         assert result["current_phase"] == "output"
         assert any("output_assembler" in e for e in result["errors"])
-
-
-# ===========================================================================
-# G9: Checkpoint — _create_checkpointer 테스트
-# ===========================================================================
-
-
-class TestCreateCheckpointer:
-    """_create_checkpointer의 PostgreSQL → MemorySaver 폴백을 검증한다."""
-
-    @pytest.mark.asyncio
-    async def test_empty_db_url_uses_memory_saver(self):
-        from application.use_cases.run_analysis import _create_checkpointer
-
-        checkpointer = await _create_checkpointer("")
-
-        # MemorySaver 인스턴스인지 확인
-        from langgraph.checkpoint.memory import MemorySaver
-        assert isinstance(checkpointer, MemorySaver)
-
-    @pytest.mark.asyncio
-    async def test_postgres_failure_falls_back_to_memory(self):
-        from application.use_cases.run_analysis import _create_checkpointer
-
-        with patch(
-            "application.use_cases.run_analysis.AsyncPostgresSaver",
-            create=True,
-        ) as MockSaver:
-            # from_conn_string 자체가 예외를 발생
-            MockSaver.from_conn_string.side_effect = Exception("PG connection refused")
-
-            # langgraph.checkpoint.postgres.aio 모듈을 모킹
-            with patch.dict(sys.modules, {
-                "langgraph.checkpoint.postgres": MagicMock(),
-                "langgraph.checkpoint.postgres.aio": MagicMock(
-                    AsyncPostgresSaver=MockSaver,
-                ),
-            }):
-                checkpointer = await _create_checkpointer("postgresql://fake:5432/test")
-
-        from langgraph.checkpoint.memory import MemorySaver
-        assert isinstance(checkpointer, MemorySaver)

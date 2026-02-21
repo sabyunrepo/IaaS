@@ -5,11 +5,11 @@ from __future__ import annotations
 import os
 
 from authlib.integrations.starlette_client import OAuth
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 
 from infrastructure.persistence.repository import UserRepository
-from interface.api.middleware.auth import create_token
+from interface.api.middleware.auth import create_token, get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -112,11 +112,6 @@ async def github_callback(request: Request):
 
 
 @router.get("/me")
-async def get_me(request: Request):
+async def get_me(user: dict = Depends(get_current_user)):
     """Get current authenticated user info."""
-    from interface.api.middleware.auth import get_current_user
-
-    user = await get_current_user(
-        credentials=request.headers.get("Authorization")
-    )
     return user

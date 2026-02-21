@@ -31,6 +31,10 @@ class WebSocketManager:
             if not self._connections[job_id]:
                 del self._connections[job_id]
 
+    def has_connections(self, job_id: str) -> bool:
+        """Job에 연결된 WebSocket이 있는지 확인한다."""
+        return bool(self._connections.get(job_id))
+
     async def broadcast(self, job_id: str, event: dict[str, Any]) -> None:
         """Job에 연결된 모든 WebSocket에 이벤트를 전송한다."""
         if job_id not in self._connections:
