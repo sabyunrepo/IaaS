@@ -206,7 +206,7 @@ def _calculate_radar_scores(
     jd_analysis: dict,
     code_analysis: dict | None,
     document_analysis: dict,
-    experience_level: str = "미들",
+    experience_level: str = "Mid",
     linkedin_profile: dict | None = None,
     output_language: str = "ko",
     candidate_profile: dict | None = None,
@@ -559,7 +559,7 @@ async def generate_deep_analysis(
     document_analysis: dict,
     job_id: str | None = None,
     output_language: str = "ko",
-    experience_level: str = "미들",
+    experience_level: str = "Mid",
     linkedin_profile: dict | None = None,
     candidate_profile: dict | None = None,
 ) -> dict:

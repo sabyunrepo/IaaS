@@ -118,6 +118,26 @@ _LABELS: dict[str, dict[str, str]] = {
         "ko": "종합 매칭 {total}점: 스킬({skill}점)×35% + 코드({code}점)×25% + 경력({exp}점)×25% + JD({jd}점)×15%",
         "en": "Overall Match {total}pts: skill({skill})×35% + code({code})×25% + exp({exp})×25% + JD({jd})×15%",
     },
+    # decision_generation.py -- level evidence
+    "custom_level": {
+        "ko": "사용자 지정 레벨: {level} → {mapped}",
+        "en": "User-specified level: {level} → {mapped}",
+    },
+    "sfia_level": {
+        "ko": "SFIA v9: {years}년 경력 기반 자동 분류 (Resume)",
+        "en": "SFIA v9: Auto-classified based on {years} years experience (Resume)",
+    },
+    "jd_req_unconfirmed": {
+        "ko": "JD 필수 요구사항 '{skill}' 관련 경험 미확인",
+        "en": "No confirmed experience for JD requirement '{skill}'",
+    },
+    "no_code_verification": {
+        "ko": "GitHub 코드 데이터 없어 기술 역량 직접 검증 불가",
+        "en": "No GitHub code data available for direct technical verification",
+    },
+    # finalization.py -- candidate labels
+    "positions_n": {"ko": "{n}+ 포지션", "en": "{n}+ positions"},
+    "years_experience": {"ko": "{n}년", "en": "{n} years"},
 }
 
 

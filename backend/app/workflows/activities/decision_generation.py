@@ -323,7 +323,7 @@ def _extract_decision_summary(
     jd_analysis: dict,
     document_analysis: dict,
     lang: str = "ko",
-    experience_level: str = "미들",
+    experience_level: str = "Mid",
     code_analysis: dict | None = None,
 ) -> DecisionSummary:
     """후보자 요약에서 Decision Summary 추출"""
@@ -367,12 +367,13 @@ def _extract_decision_summary(
     # 레벨: experience_level 파라미터 우선, SFIA v9 경력 기반 fallback
     level = map_experience_level_label(experience_level)
     level_evidence = ""
-    if experience_level not in ("CTO/VP", "시니어", "미들", "주니어", "신입"):
+    known_levels = ("CTO/VP", "Senior", "Mid", "Junior", "Entry", "시니어", "미들", "주니어", "신입")
+    if experience_level not in known_levels:
         # 미인식 레벨 → SFIA v9 + Dreyfus 경력 기반 분류
         level, _ = classify_experience_level(experience_years)
-        level_evidence = f"SFIA v9: {experience_years}년 경력 기반 자동 분류 (Resume)"
+        level_evidence = _t("sfia_level", lang, years=experience_years)
     else:
-        level_evidence = f"사용자 지정 레벨: {experience_level} → {level}"
+        level_evidence = _t("custom_level", lang, level=experience_level, mapped=level)
 
     # 강점 추출 — profile.skills 우선, 없으면 candidate_summary.technical_expertise
     strengths = []
@@ -431,12 +432,12 @@ def _extract_decision_summary(
             req_skill = req.get("skill", "") if isinstance(req, dict) else str(req)
             category = req.get("category", "") if isinstance(req, dict) else ""
             if category in ("필수", "required", "must") and req_skill.lower() not in candidate_skills_lower:
-                concerns.append(f"JD 필수 요구사항 '{req_skill}' 관련 경험 미확인")
+                concerns.append(_t("jd_req_unconfirmed", lang, skill=req_skill))
 
     # 데이터 완전성 기반 우려사항 보강
     if len(concerns) < 1:
         if not code_analysis:
-            concerns.append(_t("no_code_data", lang) if _t("no_code_data", lang) != "no_code_data" else "GitHub 코드 데이터 없어 기술 역량 직접 검증 불가")
+            concerns.append(_t("no_code_verification", lang))
 
     return DecisionSummary(
         experience=experience_str,
@@ -569,7 +570,7 @@ async def generate_decision_support(
     document_analysis: dict,
     job_id: str | None = None,
     output_language: str = "ko",
-    experience_level: str = "미들",
+    experience_level: str = "Mid",
     candidate_profile: dict | None = None,
     code_analysis: dict | None = None,
 ) -> dict:

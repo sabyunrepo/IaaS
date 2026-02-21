@@ -9,47 +9,49 @@ Extracted from question_generation.py for SRP compliance.
 # 각 레벨에서 중요한 질문 유형에 더 높은 비율 할당
 TOTAL_QUESTIONS = 20
 
+_ENTRY_DIST = {
+    "role_fit":             {"count": 6, "difficulty": ["Easy", "Easy", "Easy", "Medium", "Medium", "Hard"]},
+    "technical_depth":      {"count": 5, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"]},
+    "execution_ownership":  {"count": 3, "difficulty": ["Easy", "Medium", "Hard"]},
+    "communication":        {"count": 4, "difficulty": ["Easy", "Easy", "Medium", "Hard"]},
+    "risk_flags":           {"count": 2, "difficulty": ["Easy", "Medium"]},
+}
+_JUNIOR_DIST = {
+    "role_fit":             {"count": 6, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Medium", "Hard"]},
+    "technical_depth":      {"count": 5, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"]},
+    "execution_ownership":  {"count": 3, "difficulty": ["Easy", "Medium", "Hard"]},
+    "communication":        {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
+    "risk_flags":           {"count": 2, "difficulty": ["Easy", "Medium"]},
+}
+_MID_DIST = {
+    "role_fit":             {"count": 5, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"]},
+    "technical_depth":      {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
+    "execution_ownership":  {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
+    "communication":        {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
+    "risk_flags":           {"count": 3, "difficulty": ["Easy", "Medium", "Hard"]},
+}
+_SENIOR_DIST = {
+    "role_fit":             {"count": 3, "difficulty": ["Medium", "Medium", "Hard"]},
+    "technical_depth":      {"count": 4, "difficulty": ["Medium", "Medium", "Hard", "Hard"]},
+    "execution_ownership":  {"count": 5, "difficulty": ["Easy", "Medium", "Medium", "Hard", "Hard"]},
+    "communication":        {"count": 4, "difficulty": ["Medium", "Medium", "Hard", "Hard"]},
+    "risk_flags":           {"count": 4, "difficulty": ["Easy", "Medium", "Hard", "Hard"]},
+}
+_CTO_DIST = {
+    "role_fit":             {"count": 3, "difficulty": ["Medium", "Hard", "Hard"]},
+    "technical_depth":      {"count": 3, "difficulty": ["Medium", "Hard", "Hard"]},
+    "execution_ownership":  {"count": 5, "difficulty": ["Medium", "Medium", "Hard", "Hard", "Hard"]},
+    "communication":        {"count": 4, "difficulty": ["Medium", "Medium", "Hard", "Hard"]},
+    "risk_flags":           {"count": 5, "difficulty": ["Medium", "Medium", "Hard", "Hard", "Hard"]},
+}
+
 CATEGORY_DISTRIBUTION: dict[str, dict[str, dict]] = {
-    # 신입: 기초 기술력 + 성장 가능성 + 커뮤니케이션 중심
-    "신입": {
-        "role_fit":             {"count": 6, "difficulty": ["Easy", "Easy", "Easy", "Medium", "Medium", "Hard"]},
-        "technical_depth":      {"count": 5, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"]},
-        "execution_ownership":  {"count": 3, "difficulty": ["Easy", "Medium", "Hard"]},
-        "communication":        {"count": 4, "difficulty": ["Easy", "Easy", "Medium", "Hard"]},
-        "risk_flags":           {"count": 2, "difficulty": ["Easy", "Medium"]},
-    },
-    # 주니어: 성장 가능성 + 기초 기술력 중심
-    "주니어": {
-        "role_fit":             {"count": 6, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Medium", "Hard"]},
-        "technical_depth":      {"count": 5, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"]},
-        "execution_ownership":  {"count": 3, "difficulty": ["Easy", "Medium", "Hard"]},
-        "communication":        {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
-        "risk_flags":           {"count": 2, "difficulty": ["Easy", "Medium"]},
-    },
-    # 미들: 균형 잡힌 배분
-    "미들": {
-        "role_fit":             {"count": 5, "difficulty": ["Easy", "Easy", "Medium", "Medium", "Hard"]},
-        "technical_depth":      {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
-        "execution_ownership":  {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
-        "communication":        {"count": 4, "difficulty": ["Easy", "Medium", "Medium", "Hard"]},
-        "risk_flags":           {"count": 3, "difficulty": ["Easy", "Medium", "Hard"]},
-    },
-    # 시니어: 실행력 + 리스크 + 기술 깊이 중심
-    "시니어": {
-        "role_fit":             {"count": 3, "difficulty": ["Medium", "Medium", "Hard"]},
-        "technical_depth":      {"count": 4, "difficulty": ["Medium", "Medium", "Hard", "Hard"]},
-        "execution_ownership":  {"count": 5, "difficulty": ["Easy", "Medium", "Medium", "Hard", "Hard"]},
-        "communication":        {"count": 4, "difficulty": ["Medium", "Medium", "Hard", "Hard"]},
-        "risk_flags":           {"count": 4, "difficulty": ["Easy", "Medium", "Hard", "Hard"]},
-    },
-    # CTO/VP: 리더십 + 전략적 실행력 + 리스크 관리 중심
-    "CTO/VP": {
-        "role_fit":             {"count": 3, "difficulty": ["Medium", "Hard", "Hard"]},
-        "technical_depth":      {"count": 3, "difficulty": ["Medium", "Hard", "Hard"]},
-        "execution_ownership":  {"count": 5, "difficulty": ["Medium", "Medium", "Hard", "Hard", "Hard"]},
-        "communication":        {"count": 4, "difficulty": ["Medium", "Medium", "Hard", "Hard"]},
-        "risk_flags":           {"count": 5, "difficulty": ["Medium", "Medium", "Hard", "Hard", "Hard"]},
-    },
+    # English keys (primary)
+    "Entry": _ENTRY_DIST, "Junior": _JUNIOR_DIST, "Mid": _MID_DIST,
+    "Senior": _SENIOR_DIST, "CTO/VP": _CTO_DIST,
+    # Korean keys (backward compat)
+    "신입": _ENTRY_DIST, "주니어": _JUNIOR_DIST, "미들": _MID_DIST,
+    "시니어": _SENIOR_DIST,
 }
 
 # ── 카테고리별 데이터 소스 접근 제어 ──
@@ -96,7 +98,7 @@ CATEGORY_DATA_ACCESS: dict[str, dict[str, str]] = {
 
 def get_distribution(experience_level: str) -> dict[str, dict]:
     """경험 레벨에 맞는 카테고리 배분 반환 (fallback: 미들)"""
-    return CATEGORY_DISTRIBUTION.get(experience_level, CATEGORY_DISTRIBUTION["미들"])
+    return CATEGORY_DISTRIBUTION.get(experience_level, CATEGORY_DISTRIBUTION["Mid"])
 
 
 def format_distribution_for_prompt(dist: dict[str, dict]) -> tuple[str, str]:

@@ -364,6 +364,7 @@ def _build_candidate(
     linkedin_profile: dict | None,
     analysis: dict,
     raw_input: dict,
+    output_language: str = "ko",
 ) -> dict:
     """LinkedIn 프로필 + 분석 데이터에서 Candidate 객체 생성"""
     candidate = {}
@@ -384,7 +385,8 @@ def _build_candidate(
         # 경력에서 경험 연수 추론
         experiences = linkedin_profile.get("experiences", [])
         if experiences:
-            candidate["experience"] = f"{len(experiences)}+ 포지션"
+            from app.services.i18n_labels import _t
+            candidate["experience"] = _t("positions_n", output_language, n=len(experiences))
 
     # JD 분석에서 역할 정보 추출
     jd_analysis = analysis.get("jd_analysis", {})
@@ -401,7 +403,8 @@ def _build_candidate(
         if not candidate.get("name") and profile.get("name"):
             candidate["name"] = profile["name"]
         if not candidate.get("experience") and profile.get("experience_years"):
-            candidate["experience"] = f"{profile['experience_years']}년"
+            from app.services.i18n_labels import _t
+            candidate["experience"] = _t("years_experience", output_language, n=profile['experience_years'])
 
     return candidate if candidate.get("name") else None
 
@@ -463,7 +466,7 @@ async def finalize_output(
     activity.heartbeat("Generating interviewer guide...")
     guide_config = get_prompt_with_config(
         "finalization.yaml", "interviewer_guide",
-        experience_level=raw_input.get("experience_level", "미들"),
+        experience_level=raw_input.get("experience_level", "Mid"),
         total_questions=len(questions),
         categories=list(set(q.get("category", "") for q in questions)),
         output_language=output_language,
@@ -512,12 +515,12 @@ async def finalize_output(
             "activity": linkedin_profile.get("activity", []),
             "profile_url": linkedin_profile.get("profile_url") or linkedin_profile.get("linkedin_url"),
         } if linkedin_profile else None,
-        "candidate": (lambda c: ({**c, "avatar_url": stored_avatar_url} if stored_avatar_url and c else c))(_build_candidate(linkedin_profile, analysis, raw_input)) if linkedin_profile or analysis else None,
+        "candidate": (lambda c: ({**c, "avatar_url": stored_avatar_url} if stored_avatar_url and c else c))(_build_candidate(linkedin_profile, analysis, raw_input, output_language)) if linkedin_profile or analysis else None,
         "metadata": {
             "total_questions": len(questions),
             "language": output_language,
             "terminology_count": 0,
-            "experience_level": raw_input.get("experience_level", "미들"),
+            "experience_level": raw_input.get("experience_level", "Mid"),
             "has_linkedin_data": bool(linkedin_profile),
             "has_code_analysis": bool(analysis.get("code_analysis")),
             "has_document_analysis": bool(analysis.get("document_analysis")),

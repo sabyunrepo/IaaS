@@ -56,7 +56,7 @@ async def select_topics(analysis: dict, enriched_input: dict, job_id: str | None
 
     llm = CachedLLMService()
     raw_input = enriched_input.get("raw_input", {})
-    experience_level = raw_input.get("experience_level", "미들")
+    experience_level = raw_input.get("experience_level", "Mid")
     max_questions = TOTAL_QUESTIONS  # 고정 20개 (퍼센트 기반)
     dist = get_distribution(experience_level)
 
@@ -357,7 +357,7 @@ async def craft_question(
     raw_input = enriched_input.get("raw_input", {})
     language_config = raw_input.get("language_config", {})
     output_language = language_config.get("output_language", "ko")
-    experience_level = raw_input.get("experience_level", "미들")
+    experience_level = raw_input.get("experience_level", "Mid")
 
     # Extract KG evidence if available
     evidence_context = ""

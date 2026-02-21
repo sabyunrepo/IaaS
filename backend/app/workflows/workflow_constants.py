@@ -37,10 +37,15 @@ EXTERNAL_API_RETRY = RetryPolicy(
 
 # ── 경험 레벨별 카테고리 가중치 ──
 
+_W_ENTRY   = {"role_fit": 0.30, "technical_depth": 0.25, "execution_ownership": 0.15, "communication": 0.20, "risk_flags": 0.10}
+_W_JUNIOR  = {"role_fit": 0.30, "technical_depth": 0.25, "execution_ownership": 0.15, "communication": 0.20, "risk_flags": 0.10}
+_W_MID     = {"role_fit": 0.25, "technical_depth": 0.20, "execution_ownership": 0.20, "communication": 0.20, "risk_flags": 0.15}
+_W_SENIOR  = {"role_fit": 0.15, "technical_depth": 0.20, "execution_ownership": 0.25, "communication": 0.20, "risk_flags": 0.20}
+_W_CTO     = {"role_fit": 0.15, "technical_depth": 0.15, "execution_ownership": 0.25, "communication": 0.20, "risk_flags": 0.25}
+
 CATEGORY_WEIGHTS_BY_LEVEL = {
-    "신입":   {"role_fit": 0.30, "technical_depth": 0.25, "execution_ownership": 0.15, "communication": 0.20, "risk_flags": 0.10},
-    "주니어": {"role_fit": 0.30, "technical_depth": 0.25, "execution_ownership": 0.15, "communication": 0.20, "risk_flags": 0.10},
-    "미들":   {"role_fit": 0.25, "technical_depth": 0.20, "execution_ownership": 0.20, "communication": 0.20, "risk_flags": 0.15},
-    "시니어": {"role_fit": 0.15, "technical_depth": 0.20, "execution_ownership": 0.25, "communication": 0.20, "risk_flags": 0.20},
-    "CTO/VP": {"role_fit": 0.15, "technical_depth": 0.15, "execution_ownership": 0.25, "communication": 0.20, "risk_flags": 0.25},
+    # English keys (primary)
+    "Entry": _W_ENTRY, "Junior": _W_JUNIOR, "Mid": _W_MID, "Senior": _W_SENIOR, "CTO/VP": _W_CTO,
+    # Korean keys (backward compat)
+    "신입": _W_ENTRY, "주니어": _W_JUNIOR, "미들": _W_MID, "시니어": _W_SENIOR,
 }

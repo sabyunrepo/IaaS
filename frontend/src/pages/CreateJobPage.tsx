@@ -27,15 +27,17 @@ const SUPPORTED_LANGUAGES = [
 ]
 
 export function CreateJobPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const { createJob } = useJob()
   const { user, updateNotification } = useAuth()
 
   // 필수 필드
   const [jdText, setJdText] = useState('')
-  const [experienceLevel, setExperienceLevel] = useState('미들')
-  const [outputLanguage, setOutputLanguage] = useState('ko')
+  const [experienceLevel, setExperienceLevel] = useState('Mid')
+  const [outputLanguage, setOutputLanguage] = useState(
+    SUPPORTED_LANGUAGES.some(l => l.code === i18n.language) ? i18n.language : 'ko'
+  )
 
   // 파일 업로드
   const [resume, setResume] = useState<FileUpload>({ file: null, path: null, uploading: false, error: null })
@@ -277,10 +279,10 @@ export function CreateJobPage() {
                 onChange={(e) => setExperienceLevel(e.target.value)}
                 className="w-full rounded-lg border border-[--color-border-default] px-3 py-2.5 text-[--color-text-primary] transition-colors focus:border-[--color-border-accent] focus:outline-none focus:ring-2 focus:ring-em-500/20"
               >
-                <option value="신입">{t('level_entry')}</option>
-                <option value="주니어">{t('level_junior')}</option>
-                <option value="미들">{t('level_mid')}</option>
-                <option value="시니어">{t('level_senior')}</option>
+                <option value="Entry">{t('level_entry')}</option>
+                <option value="Junior">{t('level_junior')}</option>
+                <option value="Mid">{t('level_mid')}</option>
+                <option value="Senior">{t('level_senior')}</option>
                 <option value="CTO/VP">{t('level_executive')}</option>
               </select>
             </div>
