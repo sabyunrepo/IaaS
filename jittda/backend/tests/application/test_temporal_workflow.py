@@ -373,7 +373,99 @@ class TestJobSchemas:
         # 유효한 UUID — 에러 없음
         _validate_uuid("44f54959-b564-427e-915b-c1a063c41ef4")
 
-        # 잘못된 UUID — 400
+        # 잘못된 UUID — 400, 예외 체인 없음
         with pytest.raises(HTTPException) as exc_info:
             _validate_uuid("not-a-uuid")
         assert exc_info.value.status_code == 400
+        assert exc_info.value.__cause__ is None
+
+
+# ===========================================================================
+# IDOR 방지 테스트
+# ===========================================================================
+
+
+class TestJobAccessControl:
+    """_check_job_access 소유권 검증 테스트."""
+
+    def test_owner_matches(self) -> None:
+        """소유자가 일치하면 접근 허용."""
+        from interface.api.routes.jobs import _check_job_access
+
+        job = {"user_id": "user-1"}
+        user = {"user_id": "user-1"}
+        _check_job_access(job, user)  # 예외 없음
+
+    def test_owner_mismatch(self) -> None:
+        """소유자가 불일치하면 403."""
+        from fastapi import HTTPException
+
+        from interface.api.routes.jobs import _check_job_access
+
+        job = {"user_id": "user-1"}
+        user = {"user_id": "user-2"}
+        with pytest.raises(HTTPException) as exc_info:
+            _check_job_access(job, user)
+        assert exc_info.value.status_code == 403
+
+    def test_unauthenticated_access_to_owned_job(self) -> None:
+        """미인증 사용자가 소유된 Job에 접근하면 403."""
+        from fastapi import HTTPException
+
+        from interface.api.routes.jobs import _check_job_access
+
+        job = {"user_id": "user-1"}
+        with pytest.raises(HTTPException) as exc_info:
+            _check_job_access(job, None)
+        assert exc_info.value.status_code == 403
+
+    def test_no_owner_allows_anyone(self) -> None:
+        """소유자 없는 Job은 누구나 접근 가능."""
+        from interface.api.routes.jobs import _check_job_access
+
+        job = {"user_id": None}
+        _check_job_access(job, None)  # 예외 없음
+        _check_job_access(job, {"user_id": "user-1"})  # 예외 없음
+
+
+# ===========================================================================
+# JWT Secret 통합 테스트
+# ===========================================================================
+
+
+class TestJwtSecret:
+    """_get_secret 캐시 + fallback 테스트."""
+
+    def test_uses_env_var(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """JWT_SECRET 환경변수가 설정되면 그 값을 사용한다."""
+        import interface.api.middleware.auth as auth_mod
+
+        auth_mod._cached_secret = None  # 캐시 초기화
+        monkeypatch.setenv("JWT_SECRET", "test-secret-123")
+
+        secret = auth_mod._get_secret()
+        assert secret == "test-secret-123"
+        auth_mod._cached_secret = None  # cleanup
+
+    def test_generates_random_when_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """JWT_SECRET 미설정 시 랜덤 시크릿을 생성한다."""
+        import interface.api.middleware.auth as auth_mod
+
+        auth_mod._cached_secret = None
+        monkeypatch.delenv("JWT_SECRET", raising=False)
+
+        secret = auth_mod._get_secret()
+        assert len(secret) > 20  # token_urlsafe(32) → ~43자
+        auth_mod._cached_secret = None
+
+    def test_caches_secret(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """동일 시크릿이 캐시되어 재사용된다."""
+        import interface.api.middleware.auth as auth_mod
+
+        auth_mod._cached_secret = None
+        monkeypatch.delenv("JWT_SECRET", raising=False)
+
+        secret1 = auth_mod._get_secret()
+        secret2 = auth_mod._get_secret()
+        assert secret1 == secret2
+        auth_mod._cached_secret = None

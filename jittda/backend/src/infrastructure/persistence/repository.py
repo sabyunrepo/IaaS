@@ -158,7 +158,7 @@ class JobRepository:
         """Job ID로 조회한다."""
         async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
             row = await conn.execute(
-                "SELECT id, status, progress, input_data, result_data, error_message FROM jobs WHERE id = %s::uuid",
+                "SELECT id, user_id, status, progress, input_data, result_data, error_message FROM jobs WHERE id = %s::uuid",
                 (job_id,),
             )
             result = await row.fetchone()
@@ -166,11 +166,12 @@ class JobRepository:
                 return None
             return {
                 "id": str(result[0]),
-                "status": result[1],
-                "progress": result[2],
-                "input_data": result[3],
-                "result_data": result[4],
-                "error_message": result[5],
+                "user_id": str(result[1]) if result[1] else None,
+                "status": result[2],
+                "progress": result[3],
+                "input_data": result[4],
+                "result_data": result[5],
+                "error_message": result[6],
             }
 
     async def list_recent(self, limit: int = 100, user_id: str | None = None) -> list[dict[str, Any]]:

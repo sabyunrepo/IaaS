@@ -97,13 +97,10 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
     )
 
-    # Session middleware (required for OAuth state)
-    jwt_secret = os.environ.get("JWT_SECRET", "")
-    if not jwt_secret:
-        logger.warning("jwt_secret_missing", detail="JWT_SECRET not set, using random secret (sessions won't persist across restarts)")
-        import secrets
-        jwt_secret = secrets.token_urlsafe(32)
-    application.add_middleware(SessionMiddleware, secret_key=jwt_secret)
+    # Session middleware (required for OAuth state) — auth.py와 동일 시크릿 사용
+    from interface.api.middleware.auth import _get_secret
+
+    application.add_middleware(SessionMiddleware, secret_key=_get_secret())
 
     # Request logging middleware
     @application.middleware("http")
@@ -181,7 +178,8 @@ def create_app() -> FastAPI:
             loader = get_prompt_loader()
             checks["langfuse"] = "ok" if loader.has_langfuse else "offline (YAML fallback)"
         except Exception as e:
-            checks["langfuse"] = f"error: {e}"
+            logger.error("health_langfuse_error", error=str(e))
+            checks["langfuse"] = "unavailable"
 
         return checks
 
