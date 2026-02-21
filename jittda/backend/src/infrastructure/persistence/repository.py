@@ -173,6 +173,24 @@ class JobRepository:
                 "error_message": result[5],
             }
 
+    async def list_recent(self, limit: int = 100, user_id: str | None = None) -> list[dict[str, Any]]:
+        """최근 Job 목록을 조회한다."""
+        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+            if user_id:
+                rows = await conn.execute(
+                    "SELECT id, status, progress FROM jobs WHERE user_id = %s::uuid ORDER BY created_at DESC LIMIT %s",
+                    (user_id, limit),
+                )
+            else:
+                rows = await conn.execute(
+                    "SELECT id, status, progress FROM jobs ORDER BY created_at DESC LIMIT %s",
+                    (limit,),
+                )
+            return [
+                {"id": str(r[0]), "status": r[1], "progress": r[2]}
+                async for r in rows
+            ]
+
     async def update_status(
         self, job_id: str, status: str, progress: float | None = None
     ) -> None:

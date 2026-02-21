@@ -87,12 +87,17 @@ class RedisPubSubBridge:
         """단일 리스너 — 모든 구독 채널의 메시지를 수신하여 디스패치한다.
 
         Redis 연결 실패 시 지수 백오프로 재연결을 시도한다.
+        구독 채널이 없으면 polling 간격을 두어 CPU spin을 방지한다.
         """
         backoff = 1
         while self._running:
             try:
                 if not self._pubsub:
                     break
+                # 구독 채널이 없으면 대기 (pubsub.listen()이 즉시 반환되어 CPU spin 방지)
+                if not self._subscribed_jobs:
+                    await asyncio.sleep(0.1)
+                    continue
                 async for message in self._pubsub.listen():
                     if not self._running:
                         return

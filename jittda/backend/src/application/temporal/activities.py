@@ -4,17 +4,56 @@ Temporal Activities — 각 분석 단계를 자율 에이전트 Activity로 래
 기존 노드 함수를 Temporal Activity로 래핑하여 재사용한다.
 각 Activity는 MetaState dict를 받아 state delta dict를 반환한다.
 Redis PubSub을 통해 실시간 진행률 이벤트를 발행한다.
+
+에러 분류:
+  - Recoverable (재시도 대상): 네트워크, 타임아웃, LLM 파싱 실패
+  - Fatal (즉시 실패): 입력 검증, 키 누락, 코드 버그
 """
 from __future__ import annotations
 
 import json
 import logging
 import os
-from typing import Any
+from typing import Any, NoReturn
 
 from temporalio import activity
+from temporalio.exceptions import ApplicationError
 
 logger = logging.getLogger(__name__)
+
+# Fatal (non-retryable) 에러 타입: 재시도해도 결과 동일
+_FATAL_ERROR_TYPES = (
+    ValueError,
+    KeyError,
+    TypeError,
+    AttributeError,
+    ImportError,
+    PermissionError,
+    FileNotFoundError,
+)
+
+
+def _classify_and_raise(e: Exception, activity_name: str) -> NoReturn:
+    """에러를 분류하여 Temporal에 적절히 전파한다.
+
+    Fatal 에러: ApplicationError(non_retryable=True) → 재시도 안 함
+    Recoverable 에러: 원본 예외를 그대로 raise → Temporal 재시도 정책 적용
+    """
+    if isinstance(e, _FATAL_ERROR_TYPES):
+        logger.error(
+            "Fatal error in %s (non-retryable): %s: %s",
+            activity_name, type(e).__name__, e,
+        )
+        raise ApplicationError(
+            f"{activity_name}: {type(e).__name__}: {e}",
+            non_retryable=True,
+        ) from e
+    # Recoverable: 그대로 raise → Temporal retry policy 적용
+    logger.warning(
+        "Recoverable error in %s (will retry): %s: %s",
+        activity_name, type(e).__name__, e,
+    )
+    raise e
 
 # 노드별 진행률 + 라벨 (events.py 대체)
 NODE_PROGRESS: dict[str, tuple[float, str]] = {
@@ -112,7 +151,10 @@ async def input_agent(args: dict[str, Any]) -> dict[str, Any]:
 
     job_id = args["job_id"]
     state = _build_meta_state(job_id, args)
-    result = await input_router_node(state)
+    try:
+        result = await input_router_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "input_agent")
     await _publish_event(job_id, "input_router")
     return result
 
@@ -124,7 +166,10 @@ async def plan_agent(args: dict[str, Any]) -> dict[str, Any]:
 
     job_id = args["job_id"]
     state = _build_meta_state(job_id, args)
-    result = await plan_generator_node(state)
+    try:
+        result = await plan_generator_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "plan_agent")
     await _publish_event(job_id, "plan_generator")
     return result
 
@@ -138,7 +183,10 @@ async def collector_agent(args: dict[str, Any]) -> dict[str, Any]:
     state = _build_meta_state(job_id, args)
 
     activity.heartbeat("리포 수집 시작")
-    result = await repo_collector_node(state)
+    try:
+        result = await repo_collector_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "collector_agent")
     activity.heartbeat("리포 수집 완료")
 
     await _publish_event(job_id, "repo_collector")
@@ -154,7 +202,10 @@ async def forensic_agent(args: dict[str, Any]) -> dict[str, Any]:
     state = _build_meta_state(job_id, args)
 
     activity.heartbeat("포렌식 분석 시작")
-    result = await forensic_supervisor_node(state)
+    try:
+        result = await forensic_supervisor_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "forensic_agent")
     activity.heartbeat("포렌식 분석 완료")
 
     await _publish_event(job_id, "forensic_supervisor")
@@ -170,7 +221,10 @@ async def logic_agent(args: dict[str, Any]) -> dict[str, Any]:
     state = _build_meta_state(job_id, args)
 
     activity.heartbeat("로직 분석 시작")
-    result = await logic_supervisor_node(state)
+    try:
+        result = await logic_supervisor_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "logic_agent")
     activity.heartbeat("로직 분석 완료")
 
     await _publish_event(job_id, "logic_supervisor")
@@ -186,7 +240,10 @@ async def stack_agent(args: dict[str, Any]) -> dict[str, Any]:
     state = _build_meta_state(job_id, args)
 
     activity.heartbeat("스택 분석 시작")
-    result = await stack_supervisor_node(state)
+    try:
+        result = await stack_supervisor_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "stack_agent")
     activity.heartbeat("스택 분석 완료")
 
     await _publish_event(job_id, "stack_supervisor")
@@ -200,7 +257,10 @@ async def profile_agent(args: dict[str, Any]) -> dict[str, Any]:
 
     job_id = args["job_id"]
     state = _build_meta_state(job_id, args)
-    result = await profile_synthesizer_node(state)
+    try:
+        result = await profile_synthesizer_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "profile_agent")
     await _publish_event(job_id, "profile_synthesizer")
     return result
 
@@ -214,7 +274,10 @@ async def question_orchestrator_agent(args: dict[str, Any]) -> dict[str, Any]:
     state = _build_meta_state(job_id, args)
 
     activity.heartbeat("질문 생성 시작")
-    result = await question_orchestrator_node(state)
+    try:
+        result = await question_orchestrator_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "question_orchestrator_agent")
     activity.heartbeat("질문 생성 완료")
 
     await _publish_event(job_id, "question_orchestrator")
@@ -230,7 +293,10 @@ async def enhancement_agent(args: dict[str, Any]) -> dict[str, Any]:
     state = _build_meta_state(job_id, args)
 
     activity.heartbeat("질문 보강 시작")
-    result = await enhancement_agents_node(state)
+    try:
+        result = await enhancement_agents_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "enhancement_agent")
     activity.heartbeat("질문 보강 완료")
 
     await _publish_event(job_id, "enhancement_agents")
@@ -244,7 +310,10 @@ async def quality_gate_agent(args: dict[str, Any]) -> dict[str, Any]:
 
     job_id = args["job_id"]
     state = _build_meta_state(job_id, args)
-    result = await quality_gate_node(state)
+    try:
+        result = await quality_gate_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "quality_gate_agent")
     await _publish_event(job_id, "quality_gate")
     return result
 
@@ -256,7 +325,10 @@ async def output_agent(args: dict[str, Any]) -> dict[str, Any]:
 
     job_id = args["job_id"]
     state = _build_meta_state(job_id, args)
-    result = await output_assembler_node(state)
+    try:
+        result = await output_assembler_node(state)
+    except Exception as e:
+        _classify_and_raise(e, "output_agent")
     await _publish_event(job_id, "output_assembler")
     return result
 

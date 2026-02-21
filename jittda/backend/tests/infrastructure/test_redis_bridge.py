@@ -21,6 +21,45 @@ class TestRedisBridgeInit:
         assert bridge._redis is None
         assert bridge._running is False
 
+    def test_initial_subscribed_jobs_empty(self) -> None:
+        """초기 상태에서 구독된 Job이 없다."""
+        from interface.websocket.redis_bridge import RedisPubSubBridge
+
+        bridge = RedisPubSubBridge("redis://localhost:6379")
+        assert len(bridge._subscribed_jobs) == 0
+
+
+class TestRedisBridgeListenGuard:
+    """_listen() CPU spin 방지 가드 테스트."""
+
+    @pytest.mark.asyncio
+    async def test_listen_skips_when_no_subscriptions(self) -> None:
+        """구독 채널이 없으면 _listen이 sleep 후 continue한다."""
+        import asyncio
+
+        from interface.websocket.redis_bridge import RedisPubSubBridge
+
+        bridge = RedisPubSubBridge("redis://localhost:6379")
+        bridge._running = True
+        bridge._pubsub = MagicMock()
+
+        # _listen을 짧게 실행 후 취소하여 spin하지 않는지 확인
+        iterations = 0
+        original_sleep = asyncio.sleep
+
+        async def counting_sleep(duration):
+            nonlocal iterations
+            iterations += 1
+            if iterations >= 3:
+                bridge._running = False
+            await original_sleep(0)  # 즉시 반환
+
+        with patch("asyncio.sleep", side_effect=counting_sleep):
+            await bridge._listen()
+
+        # 3번 sleep 후 종료 (spin이 아닌 sleep 기반)
+        assert iterations >= 3
+
 
 class TestWsManagerHasConnections:
     """WebSocketManager.has_connections() 테스트."""

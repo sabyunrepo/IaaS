@@ -7,12 +7,14 @@ from pydantic import BaseModel, Field
 class JobCreateRequest(BaseModel):
     """분석 Job 생성 요청."""
 
+    model_config = {"populate_by_name": True}
+
     candidate_username: str | None = None
     github_urls: list[str] = Field(default_factory=list)
     linkedin_url: str | None = None
     jd_languages: list[str] = Field(default_factory=list)
     jd_tech_stack: list[str] = Field(default_factory=list)
-    jd_description: str | None = None
+    jd_description: str | None = Field(None, alias="jd_text")
 
 
 class JobResponse(BaseModel):
