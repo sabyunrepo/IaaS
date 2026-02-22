@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { API_BASE } from '../lib/api'
 
 const TOKEN_KEY = 'jittda_token'
-const API_BASE = import.meta.env.VITE_API_BASE || ''
 
 export function AuthCallbackPage() {
   const [searchParams] = useSearchParams()

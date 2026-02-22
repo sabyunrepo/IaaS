@@ -78,6 +78,12 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    # Proxy headers — nginx/Cloudflare가 전달하는 X-Forwarded-* 헤더를 신뢰
+    # OAuth redirect_uri 등에서 올바른 외부 URL 생성에 필수
+    from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+
+    application.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
+
     # CORS — configurable via environment
     allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3001").split(",")
     application.add_middleware(

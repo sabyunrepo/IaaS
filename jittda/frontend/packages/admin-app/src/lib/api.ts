@@ -6,7 +6,7 @@
  */
 
 export const API_BASE: string =
-  import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+  import.meta.env.VITE_API_BASE || '';
 
 export const WS_BASE: string =
   import.meta.env.VITE_WS_BASE ||
