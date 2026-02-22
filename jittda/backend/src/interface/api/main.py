@@ -1,8 +1,7 @@
-"""FastAPI Application Factory — Temporal + Redis PubSub 통합."""
+"""FastAPI Application Factory — Temporal + Redis PubSub + DB Pool 통합."""
 
 from __future__ import annotations
 
-import logging
 import os
 import time
 from contextlib import asynccontextmanager
@@ -12,32 +11,23 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-
-def _configure_logging() -> None:
-    """Configure structlog for JSON structured logging."""
-    structlog.configure(
-        processors=[
-            structlog.contextvars.merge_contextvars,
-            structlog.stdlib.filter_by_level,
-            structlog.stdlib.add_logger_name,
-            structlog.stdlib.add_log_level,
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.StackInfoRenderer(),
-            structlog.processors.format_exc_info,
-            structlog.processors.JSONRenderer(),
-        ],
-        wrapper_class=structlog.stdlib.BoundLogger,
-        context_class=dict,
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        cache_logger_on_first_use=True,
-    )
-    logging.basicConfig(format="%(message)s", level=logging.INFO)
+from infrastructure.logging import configure_logging
+from infrastructure.persistence.pool import close_pool, get_pool, init_pool
 
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    """앱 시작/종료 시 Temporal client + Redis bridge 관리."""
+    """앱 시작/종료 시 DB pool + Temporal client + Redis bridge 관리."""
     logger = structlog.get_logger()
+
+    # DB Connection Pool 초기화
+    db_url = os.environ.get("DATABASE_URL", "")
+    if db_url:
+        try:
+            pool = await init_pool(db_url, min_size=2, max_size=10)
+            logger.info("db_pool_initialized", min_size=2, max_size=10)
+        except Exception as e:
+            logger.error("db_pool_init_failed", error=str(e))
 
     # Temporal Client 연결
     temporal_client = None
@@ -73,11 +63,12 @@ async def lifespan(application: FastAPI):
     # Cleanup
     if redis_bridge:
         await redis_bridge.stop()
+    await close_pool()
     logger.info("app_shutdown_complete")
 
 
 def create_app() -> FastAPI:
-    _configure_logging()
+    configure_logging()
     logger = structlog.get_logger()
 
     application = FastAPI(
@@ -101,6 +92,11 @@ def create_app() -> FastAPI:
     from interface.api.middleware.auth import _get_secret
 
     application.add_middleware(SessionMiddleware, secret_key=_get_secret())
+
+    # Rate limit middleware
+    from infrastructure.security.rate_limiter import RateLimitMiddleware
+
+    application.add_middleware(RateLimitMiddleware)
 
     # Request logging middleware
     @application.middleware("http")
@@ -129,38 +125,43 @@ def create_app() -> FastAPI:
     # Health check with dependency verification
     @application.get("/health")
     async def health_check():
-        checks = {"status": "ok", "version": "5.0.0"}
+        checks: dict = {"status": "ok", "version": "5.0.0"}
 
-        # PostgreSQL check
+        # PostgreSQL check — pool 재사용
         try:
-            import psycopg
-
-            db_url = os.environ.get("DATABASE_URL", "")
-            if db_url:
-                async with await psycopg.AsyncConnection.connect(db_url) as conn:
-                    await conn.execute("SELECT 1")
-                checks["postgres"] = "ok"
+            pool = get_pool()
+            async with pool.connection() as conn:
+                await conn.execute("SELECT 1")
+            stats = pool.get_stats()
+            checks["postgres"] = "ok"
+            checks["pool"] = {
+                "size": stats.pool_size,
+                "available": stats.pool_available,
+                "waiting": stats.requests_waiting,
+            }
+        except RuntimeError:
+            checks["postgres"] = "pool not initialized"
+            checks["status"] = "degraded"
         except Exception as e:
             logger.error("health_postgres_error", error=str(e))
             checks["postgres"] = "unavailable"
             checks["status"] = "degraded"
 
-        # Redis check
-        try:
-            import redis.asyncio as aioredis
-
+        # Redis check — bridge 연결 재사용
+        redis_bridge = getattr(application.state, "redis_bridge", None)
+        if redis_bridge and redis_bridge.redis_client:
+            try:
+                await redis_bridge.redis_client.ping()
+                checks["redis"] = "ok"
+            except Exception as e:
+                logger.error("health_redis_error", error=str(e))
+                checks["redis"] = "unavailable"
+                checks["status"] = "degraded"
+        else:
             redis_url = os.environ.get("REDIS_URL", "")
             if redis_url:
-                r = aioredis.from_url(redis_url)
-                try:
-                    await r.ping()
-                    checks["redis"] = "ok"
-                finally:
-                    await r.aclose()
-        except Exception as e:
-            logger.error("health_redis_error", error=str(e))
-            checks["redis"] = "unavailable"
-            checks["status"] = "degraded"
+                checks["redis"] = "not connected"
+                checks["status"] = "degraded"
 
         # Temporal check
         if hasattr(application.state, "temporal_client") and application.state.temporal_client:

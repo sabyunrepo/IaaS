@@ -176,6 +176,7 @@ services:
       - BRIGHTDATA_API_KEY=${BRIGHTDATA_API_KEY:-}
       - BRIGHTDATA_SCRAPING_BROWSER_URL=${BRIGHTDATA_SCRAPING_BROWSER_URL:-}
     command: ["python", "-m", "worker"]
+    stop_grace_period: 60s
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f 'python -m worker' || exit 1"]
       interval: 30s

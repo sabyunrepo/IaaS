@@ -8,7 +8,6 @@ OutputAssembler 노드 — 최종 면접 스크립트 조립 (Phase 5).
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 
 from application.states.meta_state import MetaState
@@ -275,11 +274,10 @@ def _build_decision_support(
 async def output_assembler_node(state: MetaState) -> dict[str, Any]:
     """최종 면접 스크립트를 구조화하여 조립한다."""
     job_id = state["job_id"]
-    db_url = os.environ.get("DATABASE_URL", "")
 
     try:
-        analysis_repo = AnalysisRepository(db_url)
-        job_repo = JobRepository(db_url)
+        analysis_repo = AnalysisRepository()
+        job_repo = JobRepository()
 
         # 모든 결과 로드
         profile_ref = state.get("profile_ref")

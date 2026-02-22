@@ -69,7 +69,7 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Instructor + Lan
 | v5 도메인 | identity, funnel, scoring, question | sequential | → Phase 설계문서 |
 | v5 인프라 | tree-sitter, AST, git adapter, LLM, langfuse, pgvector, linkedin | context7 | → Phase 설계문서 |
 | v5 앱 | StateGraph, supervisor, HMAS, LangGraph | context7, sequential | → Phase 설계문서 |
-| v5 프론트 | D3, radar, treemap, heatmap, React, Tailwind | context7, magic | → Phase 설계문서 |
+| v5 프론트 | D3, radar, treemap, heatmap, React, Tailwind, Seed Design | context7, magic, seed-docs | → Phase 설계문서, /jittda-design-system |
 | 프로젝트 | linear, 티켓, sprint, lifecycle | sequential | /linear-ops |
 | 개발도구 | bug, debug, TDD, test | sequential, qmd | /troubleshoot, /test |
 | 인프라/배포 | docker, compose, DB, SQL | context7 | /arch-infra |

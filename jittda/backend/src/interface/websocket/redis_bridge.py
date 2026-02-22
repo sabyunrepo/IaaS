@@ -34,6 +34,11 @@ class RedisPubSubBridge:
         self._subscribed_jobs: set[str] = set()
         self._running = False
 
+    @property
+    def redis_client(self) -> aioredis.Redis | None:
+        """Redis 클라이언트를 반환한다 (health check, rate limiter 용)."""
+        return self._redis
+
     async def start(self) -> None:
         """Redis 연결을 초기화하고 리스너를 시작한다."""
         self._redis = aioredis.from_url(self._redis_url)

@@ -58,8 +58,7 @@ async def google_callback(request: Request):
     if not userinfo:
         raise HTTPException(400, "Failed to get user info from Google")
 
-    db_url = os.environ.get("DATABASE_URL", "")
-    user_repo = UserRepository(db_url)
+    user_repo = UserRepository()
 
     user = await user_repo.upsert_oauth_user(
         email=userinfo["email"],
@@ -96,8 +95,7 @@ async def github_callback(request: Request):
         primary = next((e for e in emails if e.get("primary")), None)
         email = primary["email"] if primary else f"{github_user['login']}@github.noreply.com"
 
-    db_url = os.environ.get("DATABASE_URL", "")
-    user_repo = UserRepository(db_url)
+    user_repo = UserRepository()
 
     user = await user_repo.upsert_oauth_user(
         email=email,

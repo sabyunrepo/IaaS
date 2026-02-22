@@ -46,6 +46,15 @@
         "mcp-server-postgres-multi-schema"
       ],
       "env": {}
+    },
+    "seed-docs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@seed-design/docs-mcp"
+      ],
+      "env": {}
     }
   }
 }

@@ -7,7 +7,6 @@ forensic/logic 병렬 실행의 전제 조건을 만든다.
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 
 from application.states.meta_state import MetaState
@@ -24,11 +23,10 @@ logger = logging.getLogger(__name__)
 async def repo_collector_node(state: MetaState) -> dict[str, Any]:
     """GitHub 리포를 수집, 필터링, clone하여 repo_paths_ref를 반환한다."""
     job_id = state["job_id"]
-    db_url = os.environ.get("DATABASE_URL", "")
 
     try:
         # 1. Load: DB에서 input_data 로드
-        job_repo = JobRepository(db_url)
+        job_repo = JobRepository()
         job = await job_repo.get(job_id)
         input_data = job.get("input_data", {}) if job else {}
 
@@ -99,7 +97,7 @@ async def repo_collector_node(state: MetaState) -> dict[str, Any]:
                 continue
 
         # 5. Save: DB에 저장
-        analysis_repo = AnalysisRepository(db_url)
+        analysis_repo = AnalysisRepository()
         result_id = await analysis_repo.save_result(
             job_id,
             "repo_collector",
@@ -119,7 +117,7 @@ async def repo_collector_node(state: MetaState) -> dict[str, Any]:
 
     except Exception as e:
         logger.error("repo_collector_node failed for job %s: %s", job_id, e)
-        analysis_repo = AnalysisRepository(db_url)
+        analysis_repo = AnalysisRepository()
         result_id = await analysis_repo.save_result(
             job_id, "repo_collector", "meta", {"error": str(e), "status": "failed"}
         )

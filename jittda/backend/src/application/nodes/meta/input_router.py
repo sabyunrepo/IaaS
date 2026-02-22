@@ -59,13 +59,11 @@ async def _parse_jd_description(jd_description: str) -> dict[str, list[str]]:
 
 async def input_router_node(state: MetaState) -> dict[str, Any]:
     """입력 데이터를 파싱하고 분석 경로를 결정한다."""
-    import os
-
     job_id = state["job_id"]
 
     try:
         # DB에서 input_data 로드
-        repo = JobRepository(os.environ.get("DATABASE_URL", ""))
+        repo = JobRepository()
         job = await repo.get(job_id)
 
         if not job:

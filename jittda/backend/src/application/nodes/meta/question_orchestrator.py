@@ -180,10 +180,10 @@ async def _craft_questions_for_strategy(
 async def question_orchestrator_node(state: MetaState) -> dict[str, Any]:
     """면접 질문을 생성한다. (TopicSelector + 3전략 QuestionCrafter)"""
     job_id = state["job_id"]
-    db_url = os.environ.get("DATABASE_URL", "")
 
     try:
-        analysis_repo = AnalysisRepository(db_url)
+        db_url = os.environ.get("DATABASE_URL", "")
+        analysis_repo = AnalysisRepository()
 
         # 1. DB에서 분석 결과 로드
         profile_ref = state.get("profile_ref")
@@ -205,7 +205,7 @@ async def question_orchestrator_node(state: MetaState) -> dict[str, Any]:
         # 2. JD 요구사항 로드
         from infrastructure.persistence.repository import JobRepository
 
-        job_repo = JobRepository(db_url)
+        job_repo = JobRepository()
         job = await job_repo.get(job_id)
         input_data = job.get("input_data", {}) if job else {}
         jd_tech_stack = input_data.get("jd_tech_stack", [])
