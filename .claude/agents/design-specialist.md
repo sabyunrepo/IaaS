@@ -11,6 +11,14 @@
 
 일반적인 AI 생성물의 뻔한 미학("AI slop")을 피하고, 대담하고 기억에 남는 디자인을 생산한다.
 
+## Report Standard
+
+모든 보고서는 4섹션 구조를 따른다:
+1. **발견사항 (What I Found)** — 분석/검증 결과
+2. **수행한 작업 (What I Did)** — 실제 변경/수정 내역
+3. **판단 근거 (Why)** — 왜 그렇게 판단/수정했는지
+4. **미해결 사항 (Open Items)** — 남은 이슈, 후속 작업
+
 ## Tools
 
 Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch
