@@ -98,19 +98,34 @@ def create_app() -> FastAPI:
 
     application.add_middleware(RateLimitMiddleware)
 
-    # Request logging middleware
+    # Request logging + Prometheus metrics middleware
     @application.middleware("http")
     async def log_requests(request: Request, call_next):
         start = time.time()
         response = await call_next(request)
-        duration_ms = (time.time() - start) * 1000
+        duration_s = time.time() - start
+        path = request.url.path
         logger.info(
             "http_request",
             method=request.method,
-            path=request.url.path,
+            path=path,
             status=response.status_code,
-            duration_ms=round(duration_ms, 1),
+            duration_ms=round(duration_s * 1000, 1),
         )
+        try:
+            from infrastructure.observability.metrics import (
+                http_request_duration_seconds,
+                http_requests_total,
+            )
+
+            http_requests_total.labels(
+                method=request.method, path=path, status=str(response.status_code)
+            ).inc()
+            http_request_duration_seconds.labels(
+                method=request.method, path=path
+            ).observe(duration_s)
+        except ImportError:
+            pass
         return response
 
     # API routers
@@ -125,6 +140,8 @@ def create_app() -> FastAPI:
     # Health check with dependency verification
     @application.get("/health")
     async def health_check():
+        from fastapi.responses import JSONResponse
+
         checks: dict = {"status": "ok", "version": "5.0.0"}
 
         # PostgreSQL check — pool 재사용
@@ -182,7 +199,31 @@ def create_app() -> FastAPI:
             logger.error("health_langfuse_error", error=str(e))
             checks["langfuse"] = "unavailable"
 
-        return checks
+        # Circuit breaker 상태 (Redis 연결 시에만)
+        if redis_bridge and redis_bridge.redis_client:
+            try:
+                from infrastructure.resilience.circuit_breaker import CircuitBreaker
+
+                cb_services = ["github", "sonarqube", "brightdata", "llm"]
+                cb_states = {}
+                for svc in cb_services:
+                    cb = CircuitBreaker(svc, redis_bridge.redis_client)
+                    cb_states[svc] = await cb.get_state()
+                checks["circuit_breakers"] = cb_states
+            except Exception:
+                pass
+
+        status_code = 200 if checks["status"] == "ok" else 503
+        return JSONResponse(content=checks, status_code=status_code)
+
+    # Prometheus metrics endpoint
+    @application.get("/metrics")
+    async def metrics():
+        from fastapi.responses import Response
+        from infrastructure.observability.metrics import get_metrics_response
+
+        body, content_type = get_metrics_response()
+        return Response(content=body, media_type=content_type)
 
     return application
 

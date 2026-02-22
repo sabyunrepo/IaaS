@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 
 import httpx
 
+from infrastructure.resilience.circuit_breaker import CircuitBreaker, CircuitOpenError
+
 
 @dataclass(frozen=True)
 class QualityIssue:
@@ -47,16 +49,19 @@ class SonarQubeAdapter:
         base_url: str,
         token: str,
         timeout: float = 30.0,
+        circuit_breaker: CircuitBreaker | None = None,
     ):
         """
         Args:
             base_url: SonarQube 서버 URL (예: http://localhost:9000).
             token: SonarQube API 토큰.
             timeout: HTTP 요청 타임아웃(초).
+            circuit_breaker: Circuit breaker 인스턴스 (없으면 직접 호출).
         """
         self._base_url = base_url.rstrip("/")
         self._token = token
         self._timeout = timeout
+        self._cb = circuit_breaker
 
     async def get_quality_report(self, project_key: str) -> QualityReport:
         """프로젝트의 품질 리포트를 가져온다.
@@ -70,7 +75,13 @@ class SonarQubeAdapter:
         Raises:
             ValueError: 프로젝트가 존재하지 않을 때.
             RuntimeError: API 호출 실패 시.
+            CircuitOpenError: Circuit breaker가 Open 상태일 때.
         """
+        if self._cb:
+            return await self._cb.call(self._get_quality_report_impl, project_key)
+        return await self._get_quality_report_impl(project_key)
+
+    async def _get_quality_report_impl(self, project_key: str) -> QualityReport:
         measures = await self._fetch_measures(
             project_key,
             metric_keys=[
