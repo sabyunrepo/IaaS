@@ -11,6 +11,7 @@ Redis PubSub을 통해 실시간 진행률 이벤트를 발행한다.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -73,12 +74,18 @@ NODE_PROGRESS: dict[str, tuple[float, str]] = {
 
 # 모듈 레벨 Redis 연결 풀 (Worker 프로세스당 1개)
 _redis_pool: Any = None
+_redis_lock = asyncio.Lock()
 
 
-def _get_redis() -> Any:
-    """Redis 연결 풀 싱글턴을 반환한다."""
+async def _get_redis() -> Any:
+    """Redis 연결 풀 싱글턴을 반환한다 (concurrency-safe)."""
     global _redis_pool
-    if _redis_pool is None:
+    if _redis_pool is not None:
+        return _redis_pool
+    async with _redis_lock:
+        # double-check after acquiring lock
+        if _redis_pool is not None:
+            return _redis_pool
         import redis.asyncio as aioredis
 
         redis_url = os.environ.get("REDIS_URL", "")
@@ -86,6 +93,11 @@ def _get_redis() -> Any:
             return None
         _redis_pool = aioredis.from_url(redis_url)
     return _redis_pool
+
+
+async def init_redis_pool() -> None:
+    """Worker startup 시 Redis 풀을 미리 초기화한다."""
+    await _get_redis()
 
 
 async def close_redis_pool() -> None:
@@ -99,7 +111,7 @@ async def close_redis_pool() -> None:
 async def _publish_event(job_id: str, node_name: str, extra: dict[str, Any] | None = None) -> None:
     """Redis PubSub으로 진행률 이벤트 발행."""
     try:
-        r = _get_redis()
+        r = await _get_redis()
         if r is None:
             return
 

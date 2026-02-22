@@ -9,13 +9,12 @@ WS /ws/jobs/{job_id} — 실시간 진행률 스트리밍 (Redis PubSub 브릿�
 """
 from __future__ import annotations
 
-import os
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 
 from infrastructure.persistence.repository import JobRepository
-from interface.api.middleware.auth import get_optional_user
+from interface.api.middleware.auth import get_current_user, get_optional_user
 from interface.api.schemas.job_schemas import (
     JobCreateRequest,
     JobDetailResponse,
@@ -35,9 +34,8 @@ async def list_jobs(
     """Job 목록을 조회한다. 인증된 사용자는 자신의 Job만, 미인증은 빈 목록."""
     if not user:
         return []
-    db_url = os.environ.get("DATABASE_URL", "")
-    repo = JobRepository(db_url)
-    jobs = await repo.list_recent(limit=limit, user_id=user["user_id"])
+    repo = JobRepository()
+    jobs = await repo.list_recent(user_id=user["user_id"], limit=limit)
     return [JobResponse(**j) for j in jobs]
 
 
@@ -45,19 +43,17 @@ async def list_jobs(
 async def create_job(
     request_body: JobCreateRequest,
     request: Request,
-    user: dict = Depends(get_optional_user),
+    user: dict = Depends(get_current_user),
 ):
-    """분석 Job을 생성하고 Temporal Workflow를 시작한다."""
-    db_url = os.environ.get("DATABASE_URL", "")
-    repo = JobRepository(db_url)
+    """분석 Job을 생성하고 Temporal Workflow를 시작한다. 인증 필수."""
+    repo = JobRepository()
 
     # 입력 검증
     if not request_body.github_urls and not request_body.candidate_username:
         raise HTTPException(400, "github_urls 또는 candidate_username이 필요합니다.")
 
     # Job 생성
-    user_id = user["user_id"] if user else None
-    job_id = await repo.create(request_body.model_dump(), user_id=user_id)
+    job_id = await repo.create(request_body.model_dump(), user_id=user["user_id"])
 
     # Temporal Workflow 시작
     temporal_client = getattr(request.app.state, "temporal_client", None)
@@ -97,8 +93,7 @@ def _check_job_access(job: dict, user: dict | None) -> None:
 async def get_job(job_id: str, user: dict | None = Depends(get_optional_user)):
     """Job 상태를 조회한다."""
     _validate_uuid(job_id)
-    db_url = os.environ.get("DATABASE_URL", "")
-    repo = JobRepository(db_url)
+    repo = JobRepository()
 
     job = await repo.get(job_id)
     if not job:
@@ -112,8 +107,7 @@ async def get_job(job_id: str, user: dict | None = Depends(get_optional_user)):
 async def get_job_result(job_id: str, user: dict | None = Depends(get_optional_user)):
     """Job 결과를 조회한다."""
     _validate_uuid(job_id)
-    db_url = os.environ.get("DATABASE_URL", "")
-    repo = JobRepository(db_url)
+    repo = JobRepository()
 
     job = await repo.get(job_id)
     if not job:
