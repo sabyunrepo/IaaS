@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import secrets
+import time
 
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -34,6 +36,21 @@ oauth.register(
     api_base_url="https://api.github.com/",
     client_kwargs={"scope": "read:user user:email"},
 )
+
+
+_auth_codes: dict[str, tuple[str, float]] = {}  # code -> (jwt, expiry)
+
+
+async def _store_auth_code(jwt_token: str) -> str:
+    """JWT를 임시 코드로 교환. 30초 TTL, 1회용."""
+    now = time.time()
+    # Lazy cleanup: 만료된 엔트리 제거 (메모리 누수 방지)
+    expired = [k for k, (_, exp) in _auth_codes.items() if exp < now]
+    for k in expired:
+        del _auth_codes[k]
+    code = secrets.token_urlsafe(32)
+    _auth_codes[code] = (jwt_token, now + 30)
+    return code
 
 
 def _get_redirect_base() -> str:
@@ -68,7 +85,8 @@ async def google_callback(request: Request):
     )
 
     jwt_token = create_token(user["id"], user["email"])
-    redirect_url = f"{_get_redirect_base()}/auth/callback?token={jwt_token}"
+    code = await _store_auth_code(jwt_token)
+    redirect_url = f"{_get_redirect_base()}/auth/callback?code={code}"
     return RedirectResponse(url=redirect_url)
 
 
@@ -105,8 +123,18 @@ async def github_callback(request: Request):
     )
 
     jwt_token = create_token(user["id"], user["email"])
-    redirect_url = f"{_get_redirect_base()}/auth/callback?token={jwt_token}"
+    code = await _store_auth_code(jwt_token)
+    redirect_url = f"{_get_redirect_base()}/auth/callback?code={code}"
     return RedirectResponse(url=redirect_url)
+
+
+@router.post("/exchange")
+async def exchange_code(code: str):
+    """임시 코드를 JWT로 교환 (1회용, 30초 TTL)."""
+    entry = _auth_codes.pop(code, None)
+    if not entry or entry[1] < time.time():
+        raise HTTPException(401, "Invalid or expired code")
+    return {"token": entry[0]}
 
 
 @router.get("/me")

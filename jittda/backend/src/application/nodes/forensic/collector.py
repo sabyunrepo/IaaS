@@ -6,6 +6,7 @@ GitHub GraphQL으로 후보자 리포 목록 → Funnel Stage 1-3 필터링 → 
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from application.states.forensic_state import ForensicState
@@ -29,7 +30,7 @@ async def collector_worker(state: ForensicState) -> dict[str, Any]:
         logger.info("collector_worker: pre-loaded data detected, skipping collection")
         return {}
 
-    github_client = GitHubClient()
+    github_client = GitHubClient(token=os.environ.get("GITHUB_TOKEN", ""))
     clone_manager = CloneManager()
     config = FunnelConfig()
 

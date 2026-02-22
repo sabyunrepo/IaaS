@@ -8,12 +8,20 @@ jd_description이 있고 jd_languages가 비어있으면 LLM으로 자동 추출
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
+
+from pydantic import BaseModel
 
 from application.states.meta_state import MetaState
 from infrastructure.persistence.repository import JobRepository
 
 logger = logging.getLogger(__name__)
+
+
+class _JDParseResult(BaseModel):
+    languages: list[str] = []
+    tech_stack: list[str] = []
 
 
 async def _parse_jd_description(jd_description: str) -> dict[str, list[str]]:
@@ -25,16 +33,19 @@ async def _parse_jd_description(jd_description: str) -> dict[str, list[str]]:
     try:
         from infrastructure.llm.instructor_client import InstructorClient
 
-        client = InstructorClient()
-        result = await client.create_completion(
-            model=None,  # 기본 모델 사용
+        client = InstructorClient(
+            api_key=os.environ.get("LLM_API_KEY", ""),
+            base_url=os.environ.get("LLM_BASE_URL", "https://api.moonshot.cn/v1"),
+        )
+        result = await client.create(
+            response_model=_JDParseResult,
             messages=[
                 {
                     "role": "system",
                     "content": (
                         "You are a job description analyzer. Extract programming languages "
                         "and tech stack from the given job description. "
-                        "Return ONLY a JSON object with two fields:\n"
+                        "Return two fields:\n"
                         '- "languages": list of programming language names (lowercase, e.g. "python", "typescript")\n'
                         '- "tech_stack": list of frameworks/tools/libraries (lowercase, e.g. "react", "fastapi", "postgresql")\n'
                         "Be precise. Only include technologies explicitly mentioned or strongly implied."
@@ -42,15 +53,11 @@ async def _parse_jd_description(jd_description: str) -> dict[str, list[str]]:
                 },
                 {"role": "user", "content": jd_description},
             ],
-            response_format={"type": "json_object"},
         )
 
-        import json
-
-        parsed = json.loads(result) if isinstance(result, str) else result
         return {
-            "languages": parsed.get("languages", []),
-            "tech_stack": parsed.get("tech_stack", []),
+            "languages": result.languages,
+            "tech_stack": result.tech_stack,
         }
     except Exception as e:
         logger.warning("JD description LLM parsing failed: %s", e)

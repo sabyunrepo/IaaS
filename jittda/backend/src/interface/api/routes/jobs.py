@@ -14,7 +14,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 
 from infrastructure.persistence.repository import JobRepository
-from interface.api.middleware.auth import get_current_user, get_optional_user
+from interface.api.middleware.auth import decode_token, get_current_user, get_optional_user
 from interface.api.schemas.job_schemas import (
     JobCreateRequest,
     JobDetailResponse,
@@ -123,7 +123,28 @@ async def get_job_result(job_id: str, user: dict | None = Depends(get_optional_u
 @ws_router.websocket("/ws/jobs/{job_id}")
 async def job_websocket(websocket: WebSocket, job_id: str):
     """Job 실시간 진행률 WebSocket — Redis PubSub 브릿지 연동."""
-    await ws_manager.connect(job_id, websocket)
+    # WebSocket 인증: accept 후 토큰 검증 (Starlette는 accept 전 close 불가)
+    await websocket.accept()
+
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=4001, reason="Missing token")
+        return
+    try:
+        # decode_token은 실패 시 HTTPException을 raise하므로 범용 catch 사용
+        payload = decode_token(token)
+        user_id = payload["sub"]
+    except Exception:
+        await websocket.close(code=4003, reason="Invalid token")
+        return
+
+    # Job 소유권 검증
+    job = await JobRepository().get(job_id)
+    if not job or job.get("user_id") != user_id:
+        await websocket.close(code=4003, reason="Forbidden")
+        return
+
+    await ws_manager.connect(job_id, websocket, already_accepted=True)
 
     # Redis PubSub 구독 시작
     redis_bridge = getattr(websocket.app.state, "redis_bridge", None)
