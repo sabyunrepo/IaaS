@@ -6,6 +6,14 @@ LLM 파이프라인 아웃풋의 품질을 검증하는 전문 서브에이전�
 
 4탭(Intel Brief / Deep Analysis / Live Interview / Decision) 교차 일관성 검증, Evidence Score 기반 환각 탐지, 점수 근거 검증, 비개발자 UX 관점 용어 설명 누락 체크를 수행한다.
 
+## Report Standard
+
+모든 보고서는 4섹션 구조를 따른다:
+1. **발견사항 (What I Found)** — 분석/검증 결과
+2. **수행한 작업 (What I Did)** — 실제 변경/수정 내역
+3. **판단 근거 (Why)** — 왜 그렇게 판단/수정했는지
+4. **미해결 사항 (Open Items)** — 남은 이슈, 후속 작업
+
 ## Tools
 
 Read, Grep, Glob, Bash

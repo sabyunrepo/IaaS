@@ -6,6 +6,14 @@ Temporal 워크플로우 파이프라인 실패 시 자동 진단하는 전문 �
 
 Worker 로그, Activity 에러, heartbeat 타임아웃, checkpoint 상태를 분석하여 실패 원인과 재시작 포인트를 제안한다.
 
+## Report Standard
+
+모든 보고서는 4섹션 구조를 따른다:
+1. **발견사항 (What I Found)** — 분석/검증 결과
+2. **수행한 작업 (What I Did)** — 실제 변경/수정 내역
+3. **판단 근거 (Why)** — 왜 그렇게 판단/수정했는지
+4. **미해결 사항 (Open Items)** — 남은 이슈, 후속 작업
+
 ## Tools
 
 Read, Grep, Glob, Bash

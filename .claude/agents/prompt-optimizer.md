@@ -6,6 +6,14 @@ Langfuse 프롬프트 A/B 테스트 분석 및 개선안을 작성하는 전문 
 
 YAML 프롬프트 버전 비교, Evidence Score / 환각 비율 기준 승격/롤백 판단, 개선안 제안을 수행한다.
 
+## Report Standard
+
+모든 보고서는 4섹션 구조를 따른다:
+1. **발견사항 (What I Found)** — 분석/검증 결과
+2. **수행한 작업 (What I Did)** — 실제 변경/수정 내역
+3. **판단 근거 (Why)** — 왜 그렇게 판단/수정했는지
+4. **미해결 사항 (Open Items)** — 남은 이슈, 후속 작업
+
 ## Tools
 
 Read, Write, Edit, Grep, Glob, Bash
