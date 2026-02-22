@@ -20,6 +20,8 @@ from typing import Any, NoReturn
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
+from infrastructure.observability import traced_activity
+
 logger = logging.getLogger(__name__)
 
 # Fatal (non-retryable) 에러 타입: 재시도해도 결과 동일
@@ -157,6 +159,7 @@ def _build_meta_state(job_id: str, state_data: dict[str, Any]) -> dict[str, Any]
 
 
 @activity.defn
+@traced_activity
 async def input_agent(args: dict[str, Any]) -> dict[str, Any]:
     """InputAgent — 입력 파싱 + 분석 경로 결정."""
     from application.nodes.meta.input_router import input_router_node
@@ -172,6 +175,7 @@ async def input_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def plan_agent(args: dict[str, Any]) -> dict[str, Any]:
     """PlanAgent — 실행 계획 수립."""
     from application.nodes.meta.plan_generator import plan_generator_node
@@ -187,6 +191,7 @@ async def plan_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def collector_agent(args: dict[str, Any]) -> dict[str, Any]:
     """CollectorAgent — 리포 수집 + 필터링 + Clone."""
     from application.nodes.meta.repo_collector import repo_collector_node
@@ -206,6 +211,7 @@ async def collector_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def forensic_agent(args: dict[str, Any]) -> dict[str, Any]:
     """ForensicAgent — 포렌식 분석 파이프라인."""
     from application.nodes.meta.supervisor_adapters import forensic_supervisor_node
@@ -225,6 +231,7 @@ async def forensic_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def logic_agent(args: dict[str, Any]) -> dict[str, Any]:
     """LogicAgent — 로직 분석 파이프라인."""
     from application.nodes.meta.supervisor_adapters import logic_supervisor_node
@@ -244,6 +251,7 @@ async def logic_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def stack_agent(args: dict[str, Any]) -> dict[str, Any]:
     """StackAgent — 기술 스택 분석."""
     from application.nodes.meta.supervisor_adapters import stack_supervisor_node
@@ -263,6 +271,7 @@ async def stack_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def profile_agent(args: dict[str, Any]) -> dict[str, Any]:
     """ProfileAgent — 4축 점수 + 신뢰도 산출."""
     from application.nodes.meta.profile_synthesizer import profile_synthesizer_node
@@ -278,6 +287,7 @@ async def profile_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def question_orchestrator_agent(args: dict[str, Any]) -> dict[str, Any]:
     """QuestionOrchestratorAgent — 전략 기반 질문 생성."""
     from application.nodes.meta.question_orchestrator import question_orchestrator_node
@@ -297,6 +307,7 @@ async def question_orchestrator_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def enhancement_agent(args: dict[str, Any]) -> dict[str, Any]:
     """EnhancementAgent — 5개 보강 에이전트 병렬 실행."""
     from application.nodes.meta.enhancement_agents import enhancement_agents_node
@@ -316,6 +327,7 @@ async def enhancement_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def quality_gate_agent(args: dict[str, Any]) -> dict[str, Any]:
     """QualityGateAgent — 개별 질문 평가 + 타겟 개선."""
     from application.nodes.meta.quality_gate import quality_gate_node
@@ -331,6 +343,7 @@ async def quality_gate_agent(args: dict[str, Any]) -> dict[str, Any]:
 
 
 @activity.defn
+@traced_activity
 async def output_agent(args: dict[str, Any]) -> dict[str, Any]:
     """OutputAgent — 최종 면접 스크립트 조립."""
     from application.nodes.meta.output_assembler import output_assembler_node

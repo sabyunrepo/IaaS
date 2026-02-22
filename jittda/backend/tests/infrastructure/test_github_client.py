@@ -146,10 +146,10 @@ class TestFetchProfile:
             mock_cls.return_value.__aenter__ = _async_client_factory
             mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
 
-            # Patch each call individually via _rest_get and get_node_id
+            # Patch each call individually via _rest_get and _get_node_id
             with (
                 patch.object(client, "_rest_get", AsyncMock(return_value=rest_body)),
-                patch.object(client, "get_node_id", AsyncMock(return_value="583231")),
+                patch.object(client, "_get_node_id", AsyncMock(return_value="583231")),
             ):
                 profile = await client.fetch_profile("octocat")
 
@@ -165,7 +165,7 @@ class TestFetchProfile:
         rest_body = {"login": "ghost", "name": None, "email": None}
         with (
             patch.object(client, "_rest_get", AsyncMock(return_value=rest_body)),
-            patch.object(client, "get_node_id", AsyncMock(return_value="10137")),
+            patch.object(client, "_get_node_id", AsyncMock(return_value="10137")),
         ):
             profile = await client.fetch_profile("ghost")
 
@@ -185,7 +185,7 @@ class TestFetchProfile:
 
 
 # ---------------------------------------------------------------------------
-# get_node_id — GraphQL 파싱
+# _get_node_id — GraphQL 파싱
 # ---------------------------------------------------------------------------
 
 
@@ -201,7 +201,7 @@ class TestGetNodeId:
             mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
 
-            node_id = await client.get_node_id("octocat")
+            node_id = await client._get_node_id("octocat")
 
         assert node_id == "583231"
 
@@ -220,7 +220,7 @@ class TestGetNodeId:
             mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
 
             with pytest.raises(ValueError, match="GitHub user not found"):
-                await client.get_node_id("no-such-user")
+                await client._get_node_id("no-such-user")
 
     @pytest.mark.asyncio
     async def test_raises_runtime_error_on_generic_graphql_error(
@@ -238,7 +238,7 @@ class TestGetNodeId:
             mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
 
             with pytest.raises(RuntimeError, match="FORBIDDEN"):
-                await client.get_node_id("octocat")
+                await client._get_node_id("octocat")
 
 
 # ---------------------------------------------------------------------------

@@ -10,6 +10,7 @@ import httpx
 
 from domain.identity.linkedin_models import LinkedInProfile
 from domain.identity.linkedin_normalizer import normalize_linkedin_profile
+from infrastructure.resilience.circuit_breaker import CircuitBreaker, CircuitOpenError
 
 
 class BrightDataClient:
@@ -22,11 +23,13 @@ class BrightDataClient:
         scraping_browser_url: str = "https://api.brightdata.com",
         max_retries: int = 3,
         timeout: float = 30.0,
+        circuit_breaker: CircuitBreaker | None = None,
     ):
         self._api_key = api_key
         self._base_url = scraping_browser_url
         self._max_retries = max_retries
         self._timeout = timeout
+        self._cb = circuit_breaker
 
     async def scrape_profile(self, linkedin_url: str) -> LinkedInProfile | None:
         """LinkedIn 프로필 스크레이핑 → 도메인 모델 변환.
@@ -35,10 +38,19 @@ class BrightDataClient:
         - linkedin_url이 빈 문자열/None
         - BrightData API 호출 실패 (모든 재시도 소진)
         - 프로필 비공개
+        - Circuit breaker가 Open 상태
         """
         if not linkedin_url:
             return None
 
+        if self._cb:
+            try:
+                return await self._cb.call(self._scrape_profile_impl, linkedin_url)
+            except CircuitOpenError:
+                return None  # BrightData fallback: 빈 프로필
+        return await self._scrape_profile_impl(linkedin_url)
+
+    async def _scrape_profile_impl(self, linkedin_url: str) -> LinkedInProfile | None:
         for attempt in range(self._max_retries):
             try:
                 async with httpx.AsyncClient(timeout=self._timeout) as client:
