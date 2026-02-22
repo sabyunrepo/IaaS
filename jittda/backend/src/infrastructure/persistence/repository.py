@@ -33,7 +33,8 @@ class UserRepository:
                     name = EXCLUDED.name,
                     oauth_provider = EXCLUDED.oauth_provider,
                     oauth_id = EXCLUDED.oauth_id
-                RETURNING id, email, name, oauth_provider
+                RETURNING id, email, name, oauth_provider,
+                          company_name, company_slug, company_logo, company_description
                 """,
                 (email, name, oauth_provider, oauth_id),
             )
@@ -44,13 +45,19 @@ class UserRepository:
                 "email": result[1],
                 "name": result[2],
                 "oauth_provider": result[3],
+                "company_name": result[4],
+                "company_slug": result[5],
+                "company_logo": result[6],
+                "company_description": result[7],
             }
 
     async def get_by_id(self, user_id: str) -> dict[str, Any] | None:
         """사용자 ID로 조회한다."""
         async with get_pool().connection() as conn:
             row = await conn.execute(
-                "SELECT id, email, name, oauth_provider FROM users WHERE id = %s::uuid",
+                """SELECT id, email, name, oauth_provider,
+                          company_name, company_slug, company_logo, company_description
+                   FROM users WHERE id = %s::uuid""",
                 (user_id,),
             )
             result = await row.fetchone()
@@ -61,7 +68,56 @@ class UserRepository:
                 "email": result[1],
                 "name": result[2],
                 "oauth_provider": result[3],
+                "company_name": result[4],
+                "company_slug": result[5],
+                "company_logo": result[6],
+                "company_description": result[7],
             }
+
+    async def get_by_slug(self, company_slug: str) -> dict[str, Any] | None:
+        """회사 slug로 사용자를 조회한다."""
+        async with get_pool().connection() as conn:
+            row = await conn.execute(
+                """SELECT id, email, name, oauth_provider,
+                          company_name, company_slug, company_logo, company_description
+                   FROM users WHERE company_slug = %s""",
+                (company_slug,),
+            )
+            result = await row.fetchone()
+            if result is None:
+                return None
+            return {
+                "id": str(result[0]),
+                "email": result[1],
+                "name": result[2],
+                "oauth_provider": result[3],
+                "company_name": result[4],
+                "company_slug": result[5],
+                "company_logo": result[6],
+                "company_description": result[7],
+            }
+
+    async def update_company(
+        self,
+        user_id: str,
+        company_name: str | None = None,
+        company_slug: str | None = None,
+        company_logo: str | None = None,
+        company_description: str | None = None,
+    ) -> bool:
+        """회사 정보를 업데이트한다."""
+        async with get_pool().connection() as conn:
+            result = await conn.execute(
+                """UPDATE users SET
+                       company_name = COALESCE(%s, company_name),
+                       company_slug = COALESCE(%s, company_slug),
+                       company_logo = COALESCE(%s, company_logo),
+                       company_description = COALESCE(%s, company_description)
+                   WHERE id = %s::uuid""",
+                (company_name, company_slug, company_logo, company_description, user_id),
+            )
+            await conn.commit()
+            return result.rowcount > 0
 
 
 class AnalysisRepository:

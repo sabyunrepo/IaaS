@@ -140,10 +140,18 @@ def create_app() -> FastAPI:
     from interface.api.routes.auth import router as auth_router
     from interface.api.routes.jobs import router as jobs_router
     from interface.api.routes.jobs import ws_router
+    from interface.api.routes.postings import router as postings_router
+    from interface.api.routes.applications import router as applications_router
+    from interface.api.routes.careers import router as careers_router
+    from interface.api.routes.uploads import router as uploads_router
 
     application.include_router(auth_router)
     application.include_router(jobs_router)
     application.include_router(ws_router)
+    application.include_router(postings_router)
+    application.include_router(applications_router)
+    application.include_router(careers_router)
+    application.include_router(uploads_router)
 
     # Health check with dependency verification
     @application.get("/health")

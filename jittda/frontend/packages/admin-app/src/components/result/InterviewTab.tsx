@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { AnalysisResult, InterviewQuestion } from '../../types/result';
+import { BookOpen, CheckCircle, AlertCircle } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Strategy display mapping
@@ -34,6 +35,91 @@ const DIFFICULTY_STYLES: Record<string, { label: string; style: string }> = {
   medium: { label: '보통', style: 'bg-yellow-100 text-yellow-700' },
   hard: { label: '심화', style: 'bg-red-100 text-red-700' },
 };
+
+// ---------------------------------------------------------------------------
+// Answer guide parsing helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Markers used to split expected_answer_guide into structured sections.
+ * The guide may contain these markers:
+ *   [GOOD_ANSWER] ... [RED_FLAG] ... [KEY_TERMS] ...
+ * If markers are absent, the entire text is treated as a general guide.
+ */
+interface ParsedGuide {
+  goodAnswer: string | null;
+  redFlag: string | null;
+  keyTerms: string | null;
+  general: string | null;
+}
+
+function parseAnswerGuide(raw: string | undefined): ParsedGuide | null {
+  if (!raw) return null;
+
+  const markers = {
+    goodAnswer: /\[GOOD_ANSWER\]/i,
+    redFlag: /\[RED_FLAG\]/i,
+    keyTerms: /\[KEY_TERMS\]/i,
+  };
+
+  const hasMarkers =
+    markers.goodAnswer.test(raw) ||
+    markers.redFlag.test(raw) ||
+    markers.keyTerms.test(raw);
+
+  if (!hasMarkers) {
+    return { goodAnswer: null, redFlag: null, keyTerms: null, general: raw.trim() };
+  }
+
+  // Split by markers
+  let remaining = raw;
+  let goodAnswer: string | null = null;
+  let redFlag: string | null = null;
+  let keyTerms: string | null = null;
+  let general: string | null = null;
+
+  // Extract sections in order: find each marker and grab text until next marker
+  const allMarkers = [
+    { key: 'goodAnswer' as const, regex: /\[GOOD_ANSWER\]/i },
+    { key: 'redFlag' as const, regex: /\[RED_FLAG\]/i },
+    { key: 'keyTerms' as const, regex: /\[KEY_TERMS\]/i },
+  ];
+
+  // Find positions of all markers
+  const positions: Array<{ key: string; index: number }> = [];
+  for (const m of allMarkers) {
+    const match = m.regex.exec(remaining);
+    if (match) {
+      positions.push({ key: m.key, index: match.index });
+    }
+  }
+  positions.sort((a, b) => a.index - b.index);
+
+  // Text before first marker is general
+  if (positions.length > 0 && positions[0].index > 0) {
+    general = remaining.slice(0, positions[0].index).trim() || null;
+  }
+
+  // Extract each section
+  for (let i = 0; i < positions.length; i++) {
+    const current = positions[i];
+    const markerDef = allMarkers.find((m) => m.key === current.key);
+    if (!markerDef) continue;
+
+    const markerMatch = markerDef.regex.exec(remaining);
+    if (!markerMatch) continue;
+
+    const startIdx = markerMatch.index + markerMatch[0].length;
+    const endIdx = i + 1 < positions.length ? positions[i + 1].index : remaining.length;
+    const content = remaining.slice(startIdx, endIdx).trim();
+
+    if (current.key === 'goodAnswer') goodAnswer = content || null;
+    if (current.key === 'redFlag') redFlag = content || null;
+    if (current.key === 'keyTerms') keyTerms = content || null;
+  }
+
+  return { goodAnswer, redFlag, keyTerms, general };
+}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -161,6 +247,12 @@ function QuestionCard({
     style: 'bg-gray-100 text-gray-600',
   };
 
+  // Parse expected_answer_guide if present
+  const rawGuide = (question as Record<string, unknown>).expected_answer_guide as
+    | string
+    | undefined;
+  const parsedGuide = parseAnswerGuide(rawGuide);
+
   return (
     <div className="bg-[--color-bg-surface] border border-[--color-border-default] rounded-xl shadow-card p-5">
       {/* Question header */}
@@ -211,6 +303,72 @@ function QuestionCard({
               <code className="text-xs text-gray-700 font-mono break-all">
                 {question.code_reference}
               </code>
+            </div>
+          )}
+
+          {/* Expected Answer Guide (structured) */}
+          {parsedGuide && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 mb-1">
+                <BookOpen className="w-3.5 h-3.5 text-[--color-text-secondary]" />
+                <p className="text-xs font-semibold text-[--color-text-secondary]">
+                  예상 답변 가이드
+                </p>
+              </div>
+
+              {/* General guide (when no markers found or preamble text) */}
+              {parsedGuide.general && (
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-[--color-text-primary] leading-relaxed whitespace-pre-line">
+                    {parsedGuide.general}
+                  </p>
+                </div>
+              )}
+
+              {/* Good Answer section */}
+              {parsedGuide.goodAnswer && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                    <p className="text-xs font-semibold text-emerald-700">
+                      좋은 답변 기준
+                    </p>
+                  </div>
+                  <p className="text-xs text-emerald-900 leading-relaxed whitespace-pre-line">
+                    {parsedGuide.goodAnswer}
+                  </p>
+                </div>
+              )}
+
+              {/* Red Flag section */}
+              {parsedGuide.redFlag && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <AlertCircle className="w-3.5 h-3.5 text-red-600" />
+                    <p className="text-xs font-semibold text-red-700">
+                      경고 신호
+                    </p>
+                  </div>
+                  <p className="text-xs text-red-900 leading-relaxed whitespace-pre-line">
+                    {parsedGuide.redFlag}
+                  </p>
+                </div>
+              )}
+
+              {/* Key Terms section */}
+              {parsedGuide.keyTerms && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                    <p className="text-xs font-semibold text-blue-700">
+                      핵심 용어
+                    </p>
+                  </div>
+                  <p className="text-xs text-blue-900 leading-relaxed whitespace-pre-line">
+                    {parsedGuide.keyTerms}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
