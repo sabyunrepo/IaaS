@@ -206,8 +206,11 @@ services:
     ports:
       - "3001:80"
     networks:
-      - internal_net
-      - jittda-public
+      internal_net:
+      jittda-public:
+      cloudflare_tunnel:
+        aliases:
+          - iaas-frontend
 
   sonar-scanner:
     image: sonarsource/sonar-scanner-cli:latest
@@ -228,4 +231,6 @@ networks:
   internal_net:
     driver: bridge
   jittda-public:
+    external: true
+  cloudflare_tunnel:
     external: true
