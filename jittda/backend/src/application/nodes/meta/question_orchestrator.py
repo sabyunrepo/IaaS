@@ -211,7 +211,15 @@ async def question_orchestrator_node(state: MetaState) -> dict[str, Any]:
         jd_tech_stack = input_data.get("jd_tech_stack", [])
 
         # 3. TopicSelector — pgvector로 관련 코드 청크 검색
-        embedding_api_key = os.environ.get("EMBEDDING_API_KEY", os.environ.get("LLM_API_KEY", ""))
+        embedding_api_key = os.environ.get("EMBEDDING_API_KEY", "")
+        if not embedding_api_key:
+            embedding_api_key = os.environ.get("LLM_API_KEY", "")
+            if embedding_api_key:
+                logging.warning(
+                    "EMBEDDING_API_KEY not set — falling back to LLM_API_KEY. "
+                    "This will fail if LLM uses a non-OpenAI provider (e.g. Moonshot). "
+                    "Set EMBEDDING_API_KEY explicitly in .env"
+                )
         embedding_base_url = os.environ.get("EMBEDDING_BASE_URL", "https://api.openai.com/v1")
 
         embedding_service = EmbeddingService(

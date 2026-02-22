@@ -20,12 +20,18 @@ _cached_secret: str | None = None
 
 
 def _get_secret() -> str:
-    """JWT 서명 시크릿을 반환한다. 미설정 시 캐시된 랜덤 시크릿 사용."""
+    """JWT 서명 시크릿을 반환한다. 프로덕션에서 미설정 시 에러."""
     global _cached_secret
     if _cached_secret is not None:
         return _cached_secret
     secret = os.environ.get("JWT_SECRET", "")
     if not secret:
+        env = os.environ.get("ENV", "development")
+        if env == "production":
+            raise RuntimeError(
+                "JWT_SECRET is required in production. "
+                "Set a strong secret (32+ chars) in .env"
+            )
         structlog.get_logger().warning(
             "jwt_secret_missing",
             detail="JWT_SECRET not set, using random secret (tokens won't persist across restarts)",
