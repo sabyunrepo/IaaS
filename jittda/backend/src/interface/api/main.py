@@ -78,12 +78,6 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Proxy headers — nginx/Cloudflare가 전달하는 X-Forwarded-* 헤더를 신뢰
-    # OAuth redirect_uri 등에서 올바른 외부 URL 생성에 필수
-    from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
-
-    application.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
-
     # CORS — configurable via environment
     allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3001").split(",")
     application.add_middleware(
@@ -103,6 +97,14 @@ def create_app() -> FastAPI:
     from infrastructure.security.rate_limiter import RateLimitMiddleware
 
     application.add_middleware(RateLimitMiddleware)
+
+    # Proxy headers — 가장 마지막에 추가 (= 가장 먼저 실행)
+    # nginx/Cloudflare가 전달하는 X-Forwarded-* 헤더를 신뢰
+    # OAuth redirect_uri 등에서 올바른 외부 URL 생성에 필수
+    from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+
+    trusted_hosts = os.environ.get("TRUSTED_PROXY_HOSTS", "127.0.0.1,backend").split(",")
+    application.add_middleware(ProxyHeadersMiddleware, trusted_hosts=trusted_hosts)
 
     # Request logging + Prometheus metrics middleware
     @application.middleware("http")

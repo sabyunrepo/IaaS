@@ -60,10 +60,24 @@ def _get_redirect_base() -> str:
     )
 
 
+def _warn_if_localhost_redirect(redirect_uri: str, provider: str) -> None:
+    """프로덕션에서 localhost redirect_uri 생성 시 경고."""
+    if "localhost" in redirect_uri and os.environ.get("ENV") == "production":
+        import structlog
+
+        structlog.get_logger().warning(
+            "oauth_redirect_uri_suspicious",
+            provider=provider,
+            redirect_uri=redirect_uri,
+            hint="ProxyHeadersMiddleware가 X-Forwarded-* 헤더를 올바르게 처리하지 못했을 수 있음",
+        )
+
+
 @router.get("/google")
 async def google_login(request: Request):
     """Redirect to Google OAuth consent screen."""
     redirect_uri = str(request.url_for("google_callback"))
+    _warn_if_localhost_redirect(redirect_uri, "google")
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
@@ -94,6 +108,7 @@ async def google_callback(request: Request):
 async def github_login(request: Request):
     """Redirect to GitHub OAuth consent screen."""
     redirect_uri = str(request.url_for("github_callback"))
+    _warn_if_localhost_redirect(redirect_uri, "github")
     return await oauth.github.authorize_redirect(request, redirect_uri)
 
 

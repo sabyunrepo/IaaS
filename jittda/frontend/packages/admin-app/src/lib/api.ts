@@ -10,8 +10,14 @@ export const API_BASE: string =
 
 export const WS_BASE: string =
   import.meta.env.VITE_WS_BASE ||
-  API_BASE.replace(/^http/, 'ws') ||
-  'ws://localhost:8000';
+  (API_BASE ? API_BASE.replace(/^http/, 'ws') : '');
+
+/** WebSocket URL을 동적으로 생성. WS_BASE가 비어있으면 현재 호스트에서 추론. */
+export function getWsUrl(path: string): string {
+  if (WS_BASE) return `${WS_BASE}${path}`;
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${proto}//${window.location.host}${path}`;
+}
 
 const TOKEN_KEY = 'jittda_token';
 
