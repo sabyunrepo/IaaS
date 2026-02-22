@@ -1,5 +1,5 @@
 """
-Rate Limiter — Redis Sliding Window Counter.
+Rate Limiter — Redis Fixed Window Counter.
 
 FastAPI 미들웨어로 사용. Redis 장애 시 fail-open (요청 허용 + WARNING).
 """
@@ -31,7 +31,7 @@ def _get_client_ip(request: Request) -> str:
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Redis 기반 sliding window counter rate limiter."""
+    """Redis 기반 fixed window counter rate limiter."""
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         # POST 요청만 rate limit 적용
@@ -61,7 +61,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         else:
             rate_key = f"rl:{prefix}:{_get_client_ip(request)}"
 
-        # Redis sliding window counter
+        # Redis fixed window counter
         try:
             redis_bridge = getattr(request.app.state, "redis_bridge", None)
             if redis_bridge and redis_bridge.redis_client:

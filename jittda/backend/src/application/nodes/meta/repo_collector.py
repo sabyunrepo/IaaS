@@ -7,6 +7,7 @@ forensic/logic 병렬 실행의 전제 조건을 만든다.
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from application.states.meta_state import MetaState
@@ -30,7 +31,7 @@ async def repo_collector_node(state: MetaState) -> dict[str, Any]:
         job = await job_repo.get(job_id)
         input_data = job.get("input_data", {}) if job else {}
 
-        github_client = GitHubClient()
+        github_client = GitHubClient(token=os.environ.get("GITHUB_TOKEN", ""))
         clone_manager = CloneManager()
         config = FunnelConfig()
 

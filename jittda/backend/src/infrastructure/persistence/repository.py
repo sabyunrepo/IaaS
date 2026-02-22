@@ -38,6 +38,7 @@ class UserRepository:
                 (email, name, oauth_provider, oauth_id),
             )
             result = await row.fetchone()
+            await conn.commit()
             return {
                 "id": str(result[0]),
                 "email": result[1],
@@ -91,6 +92,7 @@ class AnalysisRepository:
                     json.dumps(metrics, default=str) if metrics else None,
                 ),
             )
+            await conn.commit()
         return result_id
 
     async def get_result(self, result_id: str) -> dict[str, Any] | None:
@@ -143,6 +145,7 @@ class JobRepository:
                 """,
                 (job_id, user_id, json.dumps(input_data, default=str)),
             )
+            await conn.commit()
         return job_id
 
     async def get(self, job_id: str) -> dict[str, Any] | None:
@@ -192,6 +195,7 @@ class JobRepository:
                     "UPDATE jobs SET status = %s, updated_at = NOW() WHERE id = %s::uuid",
                     (status, job_id),
                 )
+            await conn.commit()
 
     async def update_input_data(self, job_id: str, input_data: dict[str, Any]) -> None:
         """Job의 input_data를 업데이트한다 (JD 자동 파싱 결과 반영 등)."""
@@ -200,6 +204,7 @@ class JobRepository:
                 "UPDATE jobs SET input_data = %s::jsonb, updated_at = NOW() WHERE id = %s::uuid",
                 (json.dumps(input_data, default=str), job_id),
             )
+            await conn.commit()
 
     async def save_result_data(self, job_id: str, result_data: dict[str, Any]) -> None:
         """Job 최종 결과를 저장한다."""
@@ -208,6 +213,7 @@ class JobRepository:
                 "UPDATE jobs SET result_data = %s::jsonb, status = 'completed', progress = 1.0, updated_at = NOW() WHERE id = %s::uuid",
                 (json.dumps(result_data, default=str), job_id),
             )
+            await conn.commit()
 
     async def save_error(self, job_id: str, error_message: str) -> None:
         """Job 오류를 저장한다."""
@@ -216,6 +222,7 @@ class JobRepository:
                 "UPDATE jobs SET error_message = %s, status = 'failed', updated_at = NOW() WHERE id = %s::uuid",
                 (error_message, job_id),
             )
+            await conn.commit()
 
 
 class IdentityRepository:
@@ -262,6 +269,7 @@ class IdentityRepository:
                     pure_logic_lines,
                 ),
             )
+            await conn.commit()
         return result_id
 
     async def get_by_job(self, job_id: str) -> dict[str, Any] | None:
@@ -334,4 +342,5 @@ class ScoreRepository:
                     json.dumps(details, default=str) if details else None,
                 ),
             )
+            await conn.commit()
         return result_id

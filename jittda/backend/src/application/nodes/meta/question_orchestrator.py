@@ -218,7 +218,7 @@ async def question_orchestrator_node(state: MetaState) -> dict[str, Any]:
             api_key=embedding_api_key,
             base_url=embedding_base_url,
         )
-        vector_store = PgvectorStore(dsn=db_url)
+        vector_store = PgvectorStore()
 
         relevant_chunks = await _select_topics(
             job_id, jd_tech_stack, embedding_service, vector_store

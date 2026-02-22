@@ -146,7 +146,7 @@ class TestComputeSimilarity:
 
     @pytest.fixture
     def store(self) -> PgvectorStore:
-        return PgvectorStore(dsn="postgresql://dummy/dummy")
+        return PgvectorStore()
 
     @pytest.mark.asyncio
     async def test_identical_vectors_return_one(self, store: PgvectorStore):

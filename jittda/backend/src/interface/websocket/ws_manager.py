@@ -17,9 +17,12 @@ class WebSocketManager:
     def __init__(self) -> None:
         self._connections: dict[str, list[WebSocket]] = {}
 
-    async def connect(self, job_id: str, websocket: WebSocket) -> None:
+    async def connect(
+        self, job_id: str, websocket: WebSocket, *, already_accepted: bool = False
+    ) -> None:
         """WebSocket 연결을 등록한다."""
-        await websocket.accept()
+        if not already_accepted:
+            await websocket.accept()
         self._connections.setdefault(job_id, []).append(websocket)
 
     def disconnect(self, job_id: str, websocket: WebSocket) -> None:
