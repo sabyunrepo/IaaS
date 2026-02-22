@@ -152,9 +152,9 @@ def create_app() -> FastAPI:
             stats = pool.get_stats()
             checks["postgres"] = "ok"
             checks["pool"] = {
-                "size": stats.pool_size,
-                "available": stats.pool_available,
-                "waiting": stats.requests_waiting,
+                "size": stats.get("pool_size", 0) if isinstance(stats, dict) else getattr(stats, "pool_size", 0),
+                "available": stats.get("pool_available", 0) if isinstance(stats, dict) else getattr(stats, "pool_available", 0),
+                "waiting": stats.get("requests_waiting", 0) if isinstance(stats, dict) else getattr(stats, "requests_waiting", 0),
             }
         except RuntimeError:
             checks["postgres"] = "pool not initialized"
