@@ -2,24 +2,27 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { API_BASE } from '../lib/api'
 
-interface JobListing {
+interface PostingListing {
   id: string
   title: string
   department?: string
-  location?: string
-  type?: string
+  jd_languages: string[]
+  jd_tech_stack: string[]
+  jd_experience_years?: number
+  created_at?: string
 }
 
 interface CompanyInfo {
   name: string
+  slug?: string
   description?: string
-  logo_url?: string
+  logo?: string
 }
 
 export function CareerPage() {
   const { slug } = useParams<{ slug: string }>()
   const [company, setCompany] = useState<CompanyInfo>({ name: slug || '' })
-  const [jobs, setJobs] = useState<JobListing[]>([])
+  const [postings, setPostings] = useState<PostingListing[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -27,9 +30,9 @@ export function CareerPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.company) setCompany(data.company)
-        setJobs(data.jobs || [])
+        setPostings(data.postings || [])
       })
-      .catch(() => setJobs([]))
+      .catch(() => setPostings([]))
       .finally(() => setIsLoading(false))
   }, [slug])
 
@@ -38,6 +41,13 @@ export function CareerPage() {
       {/* Header */}
       <header className="bg-[--color-bg-surface] border-b border-[--color-border-default]">
         <div className="max-w-3xl mx-auto px-4 py-12 text-center">
+          {company.logo && (
+            <img
+              src={company.logo}
+              alt={company.name}
+              className="w-16 h-16 mx-auto mb-4 rounded-xl object-contain"
+            />
+          )}
           <h1 className="text-3xl font-bold text-[--color-text-primary]">{company.name}</h1>
           {company.description && (
             <p className="text-[--color-text-secondary] mt-2 max-w-xl mx-auto">
@@ -65,7 +75,7 @@ export function CareerPage() {
               </div>
             ))}
           </div>
-        ) : jobs.length === 0 ? (
+        ) : postings.length === 0 ? (
           <div className="bg-[--color-bg-surface] border border-[--color-border-default] rounded-xl p-8 text-center">
             <p className="text-[--color-text-secondary]">
               현재 채용 중인 포지션이 없습니다.
@@ -73,18 +83,31 @@ export function CareerPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {jobs.map((job) => (
+            {postings.map((posting) => (
               <Link
-                key={job.id}
-                to={`/careers/${slug}/${job.id}`}
+                key={posting.id}
+                to={`/careers/${slug}/${posting.id}`}
                 className="block bg-[--color-bg-surface] border border-[--color-border-default] rounded-xl p-5 hover:shadow-card-hover transition-shadow"
               >
-                <h3 className="font-medium text-[--color-text-primary]">{job.title}</h3>
-                <div className="flex gap-3 mt-1 text-sm text-[--color-text-secondary]">
-                  {job.department && <span>{job.department}</span>}
-                  {job.location && <span>{job.location}</span>}
-                  {job.type && <span>{job.type}</span>}
+                <h3 className="font-medium text-[--color-text-primary]">{posting.title}</h3>
+                <div className="flex items-center gap-3 mt-1 text-sm text-[--color-text-secondary]">
+                  {posting.department && <span>{posting.department}</span>}
+                  {posting.jd_experience_years != null && (
+                    <span>{posting.jd_experience_years}+ years</span>
+                  )}
                 </div>
+                {posting.jd_tech_stack.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {posting.jd_tech_stack.map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-2 py-0.5 text-xs rounded-full bg-[--color-bg-neutral] text-[--color-text-secondary]"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </Link>
             ))}
           </div>

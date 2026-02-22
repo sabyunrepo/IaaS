@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAnalysisResult } from '../hooks/useAnalysisResult';
-import { OverviewTab, CodeDeepDiveTab, InterviewTab } from '../components/result';
+import {
+  OverviewTab,
+  IntelBriefTab,
+  CodeDeepDiveTab,
+  InterviewTab,
+  DecisionTab,
+} from '../components/result';
 
 // ---------------------------------------------------------------------------
 // Tab definitions
 // ---------------------------------------------------------------------------
 
-type TabId = 'overview' | 'code' | 'interview';
+type TabId = 'overview' | 'intel' | 'code' | 'interview' | 'decision';
 
 interface TabDef {
   id: TabId;
@@ -16,8 +22,10 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { id: 'overview', label: '개요' },
+  { id: 'intel', label: '인텔 브리프' },
   { id: 'code', label: '코드 심층 분석' },
   { id: 'interview', label: '면접 스크립트' },
+  { id: 'decision', label: '채용 판단' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -53,11 +61,13 @@ export function ResultPage() {
         <div className="bg-[--color-bg-surface] border border-[--color-border-default] rounded-xl shadow-card p-8 text-center max-w-md">
           <p className="text-red-500 text-lg font-semibold mb-2">오류 발생</p>
           <p className="text-[--color-text-secondary] mb-4">
-            {error ?? '분석 결과를 찾을 수 없습니다.'}
+            {error instanceof Error
+              ? error.message
+              : '분석 결과를 찾을 수 없습니다.'}
           </p>
           <button
             type="button"
-            onClick={refetch}
+            onClick={() => refetch()}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
           >
             다시 시도
@@ -103,13 +113,13 @@ export function ResultPage() {
       {/* Tab Navigation */}
       <nav className="bg-[--color-bg-surface] border-b border-[--color-border-default]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-0 -mb-px">
+          <div className="flex gap-0 -mb-px overflow-x-auto">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 ${
+                className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-[--color-text-secondary] hover:text-[--color-text-primary] hover:border-gray-300'
@@ -125,8 +135,10 @@ export function ResultPage() {
       {/* Tab Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'overview' && <OverviewTab result={data} />}
+        {activeTab === 'intel' && <IntelBriefTab result={data} />}
         {activeTab === 'code' && <CodeDeepDiveTab result={data} />}
         {activeTab === 'interview' && <InterviewTab result={data} />}
+        {activeTab === 'decision' && <DecisionTab result={data} />}
       </main>
     </div>
   );

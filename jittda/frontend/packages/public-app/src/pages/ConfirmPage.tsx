@@ -2,7 +2,11 @@ import { useLocation } from 'react-router-dom'
 
 export function ConfirmPage() {
   const location = useLocation()
-  const state = location.state as { name?: string; email?: string } | null
+  const state = location.state as {
+    name?: string
+    email?: string
+    applicationId?: string
+  } | null
 
   return (
     <div className="min-h-screen bg-[--color-bg-primary] flex items-center justify-center">
@@ -16,6 +20,11 @@ export function ConfirmPage() {
         <p className="text-[--color-text-secondary] mt-2">
           {state?.name ? `${state.name}님, ` : ''}지원해주셔서 감사합니다.
         </p>
+        {state?.applicationId && (
+          <p className="text-sm text-[--color-text-tertiary] mt-2">
+            접수번호: <span className="font-mono text-[--color-text-primary]">{state.applicationId.slice(0, 8).toUpperCase()}</span>
+          </p>
+        )}
         {state?.email && (
           <p className="text-sm text-[--color-text-tertiary] mt-1">
             결과는 {state.email}로 안내드리겠습니다.

@@ -1,10 +1,11 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
+import { LayoutDashboard, FileText, Settings } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 
 const NAV_ITEMS = [
-  { path: '/', label: '대시보드', icon: '📊' },
-  { path: '/jobs', label: '채용 공고', icon: '📋' },
-  { path: '/settings', label: '설정', icon: '⚙️' },
+  { path: '/', label: '대시보드', icon: LayoutDashboard },
+  { path: '/postings', label: '채용 공고', icon: FileText },
+  { path: '/settings', label: '설정', icon: Settings },
 ]
 
 export function AppLayout() {
@@ -22,6 +23,7 @@ export function AppLayout() {
 
         <nav className="flex-1 p-2">
           {NAV_ITEMS.map((item) => {
+            const Icon = item.icon
             const isActive =
               item.path === '/'
                 ? location.pathname === '/'
@@ -36,7 +38,7 @@ export function AppLayout() {
                     : 'text-[--color-text-secondary] hover:bg-[--color-bg-neutral]'
                 }`}
               >
-                <span>{item.icon}</span>
+                <Icon size={16} />
                 {item.label}
               </Link>
             )
