@@ -5,6 +5,7 @@ FastAPI 미들웨어로 사용. Redis 장애 시 fail-open (요청 허용 + WARN
 """
 from __future__ import annotations
 
+import hashlib
 import logging
 import time
 
@@ -56,7 +57,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             if not auth_header:
                 return await call_next(request)
             # JWT에서 sub 추출 대신 토큰 해시를 key로 사용 (간단하고 안전)
-            import hashlib
             rate_key = f"rl:{prefix}:{hashlib.sha256(auth_header.encode()).hexdigest()[:16]}"
         else:
             rate_key = f"rl:{prefix}:{_get_client_ip(request)}"
@@ -64,8 +64,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Redis sliding window counter
         try:
             redis_bridge = getattr(request.app.state, "redis_bridge", None)
-            if redis_bridge and redis_bridge._redis:
-                redis = redis_bridge._redis
+            if redis_bridge and redis_bridge.redis_client:
+                redis = redis_bridge.redis_client
             else:
                 # Redis 미연결 → fail-open
                 return await call_next(request)

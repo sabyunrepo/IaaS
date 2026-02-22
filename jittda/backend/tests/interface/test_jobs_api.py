@@ -48,7 +48,12 @@ def mock_pool():
     mock = MagicMock()
     mock.connection.return_value.__aenter__ = AsyncMock()
     mock.connection.return_value.__aexit__ = AsyncMock()
-    mock.get_stats.return_value = {"pool_size": 2, "pool_available": 2, "requests_waiting": 0}
+    # PoolStats는 namedtuple — 속성 접근 방식 사용
+    stats_mock = MagicMock()
+    stats_mock.pool_size = 2
+    stats_mock.pool_available = 2
+    stats_mock.requests_waiting = 0
+    mock.get_stats.return_value = stats_mock
     return mock
 
 

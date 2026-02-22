@@ -135,9 +135,9 @@ def create_app() -> FastAPI:
             stats = pool.get_stats()
             checks["postgres"] = "ok"
             checks["pool"] = {
-                "size": stats.get("pool_size", 0),
-                "available": stats.get("pool_available", 0),
-                "waiting": stats.get("requests_waiting", 0),
+                "size": stats.pool_size,
+                "available": stats.pool_available,
+                "waiting": stats.requests_waiting,
             }
         except RuntimeError:
             checks["postgres"] = "pool not initialized"
@@ -149,9 +149,9 @@ def create_app() -> FastAPI:
 
         # Redis check — bridge 연결 재사용
         redis_bridge = getattr(application.state, "redis_bridge", None)
-        if redis_bridge and redis_bridge._redis:
+        if redis_bridge and redis_bridge.redis_client:
             try:
-                await redis_bridge._redis.ping()
+                await redis_bridge.redis_client.ping()
                 checks["redis"] = "ok"
             except Exception as e:
                 logger.error("health_redis_error", error=str(e))

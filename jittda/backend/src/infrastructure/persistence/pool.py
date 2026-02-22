@@ -16,6 +16,8 @@ async def init_pool(
 ) -> AsyncConnectionPool:
     """커넥션 풀을 초기화하고 열린 풀을 반환한다."""
     global _pool
+    if _pool is not None:
+        raise RuntimeError("DB pool already initialized")
     _pool = AsyncConnectionPool(conninfo, min_size=min_size, max_size=max_size)
     await _pool.open()
     return _pool
