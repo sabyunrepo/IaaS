@@ -24,6 +24,11 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Instructor + Lan
 
 > **절대 규칙**: 루트 레거시 디렉토리 수정 금지. 구현은 반드시 `jittda/` 하위에서.
 
+## 🔴 Git 브랜치 규칙
+
+> **메인 브랜치: `mvp`** (main 아님)
+> 모든 PR/머지 타겟은 `mvp` 브랜치. feature branch → PR → `mvp`로 머지.
+
 ## 🛠 Operation Rules
 
 1. 참조 문서는 **해당 작업에 직접 필요할 때만** Read (토큰 효율 원칙)
@@ -31,7 +36,7 @@ DB: PostgreSQL 16 + pgvector | Cache: Redis 7 | LLM: Kimi K2.5 (Instructor + Lan
 3. v5.0 참조 시 → **Obsidian vault에서 먼저 확인** (`/obsidian-api` 스킬 사용)
 4. Linear 작업 시 → `docs/claude-refs/dev-rules.md` 먼저 읽기
 5. UI/UX 작업 시 → `docs/claude-refs/ux-guidelines.md` + `jittda-design-system` 스킬
-6. Git: feature branch → PR → merge
+6. Git: feature branch → PR → **`mvp`** 머지 (main 사용 금지)
 7. DDD: domain → infrastructure import 금지, Thin Wrapper 노드, Reference Passing
 
 ## 🔵 Obsidian 연동 규칙
