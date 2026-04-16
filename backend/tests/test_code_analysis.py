@@ -526,3 +526,125 @@ class TestCalculateDynamicTokenBudget:
 
         budget = CodeAnalyzer.calculate_dynamic_token_budget(100_000)
         assert budget == 50_000
+
+
+# ============================================================
+# P2C-10: Stage 2 Deep Analysis 병렬화 테스트 (perf/code-analyzer-stage2-parallel)
+# ============================================================
+
+
+class TestDeepAnalysesParallel:
+    """Stage 2 `llm_deep_file_analyses_parallel` — bounded Semaphore 병렬 실행.
+
+    프로덕션 잡 1b2ec26b-e1f4-48c4-8ccb-f2199072a7f6 (analyze_code 662s) 근본
+    원인 해소: 파일당 ~10s × 50+ 파일의 순차 처리 → Semaphore 기반 병렬화.
+    """
+
+    @pytest.mark.asyncio
+    async def test_parallel_faster_than_sequential(self):
+        """4개 파일, 파일당 0.1s fake latency → 총 0.2s 미만이어야 함 (순차 시 0.4s)."""
+        import asyncio
+        import time
+        from app.services.code_analyzer import CodeAnalyzer
+
+        async def fake_deep(file_info, commit_history, jd_tech_stack, model=None, token_budget=8000):
+            await asyncio.sleep(0.1)
+            return {"file_path": file_info["path"], "patterns_found": [], "quality_notes": "OK"}
+
+        analyzer = CodeAnalyzer()
+        with patch.object(CodeAnalyzer, "llm_deep_file_analysis", side_effect=fake_deep):
+            inputs = [
+                {"file_info": {"path": f"f{i}.py"}, "commit_history": []}
+                for i in range(4)
+            ]
+            start = time.perf_counter()
+            results = await analyzer.llm_deep_file_analyses_parallel(
+                tasks_input=inputs,
+                jd_tech_stack=["Python"],
+                concurrency=8,
+            )
+            elapsed = time.perf_counter() - start
+
+        assert len(results) == 4
+        assert elapsed < 0.2, f"Parallel should be < 0.2s but took {elapsed:.3f}s"
+        # 순서 보존
+        assert [r["file_path"] for r in results] == ["f0.py", "f1.py", "f2.py", "f3.py"]
+
+    @pytest.mark.asyncio
+    async def test_error_isolation(self):
+        """파일 하나가 예외를 던져도 다른 파일은 결과를 반환해야 한다."""
+        import asyncio
+        from app.services.code_analyzer import CodeAnalyzer
+
+        async def fake_deep(file_info, commit_history, jd_tech_stack, model=None, token_budget=8000):
+            path = file_info.get("path", "")
+            if path == "bad.py":
+                raise RuntimeError("LLM boom")
+            await asyncio.sleep(0)
+            return {"file_path": path, "patterns_found": [], "quality_notes": "OK"}
+
+        analyzer = CodeAnalyzer()
+        with patch.object(CodeAnalyzer, "llm_deep_file_analysis", side_effect=fake_deep):
+            inputs = [
+                {"file_info": {"path": "a.py"}, "commit_history": []},
+                {"file_info": {"path": "bad.py"}, "commit_history": []},
+                {"file_info": {"path": "b.py"}, "commit_history": []},
+                {"file_info": {"path": "c.py"}, "commit_history": []},
+            ]
+            results = await analyzer.llm_deep_file_analyses_parallel(
+                tasks_input=inputs,
+                jd_tech_stack=["Python"],
+            )
+
+        # 4개 entry 모두 반환, 입력 순서 보존
+        assert len(results) == 4
+        assert [r["file_path"] for r in results] == ["a.py", "bad.py", "b.py", "c.py"]
+
+        # bad.py는 fallback dict (quality_notes에 실패 메시지 포함)
+        bad = results[1]
+        assert "fail" in bad["quality_notes"].lower() or "crash" in bad["quality_notes"].lower()
+        # 나머지는 정상
+        for idx in (0, 2, 3):
+            assert results[idx]["quality_notes"] == "OK"
+
+    @pytest.mark.asyncio
+    async def test_concurrency_cap_enforced(self):
+        """10개 파일, concurrency=2 → 동시 실행 카운터 피크가 2를 초과하지 않아야 한다."""
+        import asyncio
+        from app.services.code_analyzer import CodeAnalyzer
+
+        in_flight = 0
+        peak = 0
+
+        async def fake_deep(file_info, commit_history, jd_tech_stack, model=None, token_budget=8000):
+            nonlocal in_flight, peak
+            in_flight += 1
+            peak = max(peak, in_flight)
+            try:
+                await asyncio.sleep(0.02)
+                return {"file_path": file_info["path"], "patterns_found": [], "quality_notes": "OK"}
+            finally:
+                in_flight -= 1
+
+        analyzer = CodeAnalyzer()
+        with patch.object(CodeAnalyzer, "llm_deep_file_analysis", side_effect=fake_deep):
+            inputs = [
+                {"file_info": {"path": f"f{i}.py"}, "commit_history": []}
+                for i in range(10)
+            ]
+            results = await analyzer.llm_deep_file_analyses_parallel(
+                tasks_input=inputs,
+                jd_tech_stack=["Python"],
+                concurrency=2,
+            )
+
+        assert len(results) == 10
+        assert peak <= 2, f"Concurrency peak was {peak}, expected <= 2"
+        assert peak >= 2, f"Expected concurrency to reach cap of 2, saw peak={peak}"
+
+    def test_default_concurrency_constant(self):
+        """CODE_DEEP_ANALYSIS_CONCURRENCY 상수가 모듈에 노출되어 있고 기본값이 8이다."""
+        from app.services import code_analyzer
+
+        assert hasattr(code_analyzer, "CODE_DEEP_ANALYSIS_CONCURRENCY")
+        assert code_analyzer.CODE_DEEP_ANALYSIS_CONCURRENCY == 8
