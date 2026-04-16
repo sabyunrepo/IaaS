@@ -308,8 +308,12 @@ class CachedLLMService:
         model: str | None = None,
         override_max_tokens: int | None = None,
         temperature: float = 0.0,
+        extra_body: dict | None = None,
     ):
-        """모델별 최적 ModelSettings 반환 (temperature 기본값 0.0 = 결정적 출력)"""
+        """모델별 최적 ModelSettings 반환 (temperature 기본값 0.0 = 결정적 출력).
+
+        extra_body는 Kimi thinking 같은 provider-specific 파라미터 전달용.
+        """
         from pydantic_ai import ModelSettings
         from app.services.llm_config import get_max_output_tokens
         if override_max_tokens:
@@ -318,7 +322,38 @@ class CachedLLMService:
             max_tokens = get_max_output_tokens(model)
         else:
             max_tokens = settings.LLM_MAX_OUTPUT_TOKENS
-        return ModelSettings(max_tokens=max_tokens, temperature=temperature)
+        kwargs: dict[str, Any] = {"max_tokens": max_tokens, "temperature": temperature}
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+        return ModelSettings(**kwargs)
+
+    @staticmethod
+    def _build_kimi_thinking_args(
+        *,
+        model: str,
+        prompt_name: str | None = None,
+        activity_name: str | None = None,
+        langfuse_config: dict | None = None,
+        base_temperature: float = 0.0,
+    ) -> tuple[dict | None, float]:
+        """Kimi K2.5용 extra_body + 강제 temperature 반환.
+
+        Kimi가 아니면 (None, base_temperature) 그대로 통과.
+        Kimi이면 thinking 정책을 해석해 extra_body={"thinking": {...}}와
+        Kimi가 허용하는 고정 temperature(1.0/0.6)를 반환.
+        """
+        from app.services.llm_config import is_kimi_model, resolve_kimi_thinking
+        if not is_kimi_model(model):
+            return None, base_temperature
+        enabled = resolve_kimi_thinking(
+            prompt_name=prompt_name,
+            activity_name=activity_name,
+            langfuse_config=langfuse_config,
+        )
+        return (
+            {"thinking": {"type": "enabled" if enabled else "disabled"}},
+            1.0 if enabled else 0.6,
+        )
 
     @staticmethod
     def _make_cache_key(prompt: str, model: str, activity_name: str | None = None, job_id: str | None = None) -> str:
@@ -376,11 +411,12 @@ class CachedLLMService:
         override_max_tokens: int | None = None,
         trace_meta: dict | None = None,
         temperature: float = 0.0,
+        extra_body: dict | None = None,
     ) -> tuple[Any, Any]:
         """LLM 호출 + 폴백 + 결과 정규화. (data, run_result) 반환."""
         from app.services.llm_config import get_llm_agent
 
-        ms = self._model_settings(model, override_max_tokens, temperature=temperature)
+        ms = self._model_settings(model, override_max_tokens, temperature=temperature, extra_body=extra_body)
         try:
             agent = get_llm_agent(output_type=result_type, model=model)
             run_result = await asyncio.shield(agent.run(prompt, model_settings=ms))
@@ -418,6 +454,7 @@ class CachedLLMService:
         activity_name: str | None = None,
         override_max_tokens: int | None = None,
         temperature: float = 0.0,
+        extra_body: dict | None = None,
     ) -> Any:
         """캐시 조회 → LLM 호출 → Langfuse 로깅 → 캐시 저장 (공통 파이프라인)"""
         # 1. 캐시 조회
@@ -429,6 +466,7 @@ class CachedLLMService:
         data, run_result = await self._call_llm_with_fallback(
             prompt, model, result_type, override_max_tokens, trace_meta,
             temperature=temperature,
+            extra_body=extra_body,
         )
 
         # 3. Langfuse 로깅
@@ -457,6 +495,10 @@ class CachedLLMService:
             model = get_model_for_activity(activity_name)
         model = model or settings.LLM_MODEL
 
+        extra_body, temperature = self._build_kimi_thinking_args(
+            model=model, activity_name=activity_name
+        )
+
         return await self._execute_with_cache(
             prompt=prompt,
             model=model,
@@ -464,6 +506,8 @@ class CachedLLMService:
             trace_meta=get_current_trace_metadata(),
             result_type=result_type,
             activity_name=activity_name,
+            temperature=temperature,
+            extra_body=extra_body,
         )
 
     async def run_for_job(
@@ -480,6 +524,10 @@ class CachedLLMService:
             model = get_model_for_activity(activity_name)
         model = model or settings.LLM_MODEL
 
+        extra_body, temperature = self._build_kimi_thinking_args(
+            model=model, activity_name=activity_name
+        )
+
         return await self._execute_with_cache(
             prompt=prompt,
             model=model,
@@ -487,6 +535,8 @@ class CachedLLMService:
             trace_meta={**get_current_trace_metadata(), "job_id": job_id},
             result_type=result_type,
             activity_name=activity_name,
+            temperature=temperature,
+            extra_body=extra_body,
         )
 
     async def run_with_prompt_config(
@@ -518,6 +568,15 @@ class CachedLLMService:
             if temp is not None:
                 config_temperature = float(temp)
 
+        # Kimi thinking 모드는 prompt_name + Langfuse config로 해석.
+        # Kimi일 때만 extra_body와 강제 temperature(1.0/0.6)가 적용됨.
+        extra_body, config_temperature = self._build_kimi_thinking_args(
+            model=model,
+            prompt_name=prompt_name,
+            langfuse_config=prompt_config.config,
+            base_temperature=config_temperature,
+        )
+
         return await self._execute_with_cache(
             prompt=prompt,
             model=model,
@@ -527,6 +586,7 @@ class CachedLLMService:
             activity_name=prompt_name,
             override_max_tokens=config_max_tokens,
             temperature=config_temperature,
+            extra_body=extra_body,
         )
 
     # ─── Langfuse 이벤트 로깅 ────────────────────────────

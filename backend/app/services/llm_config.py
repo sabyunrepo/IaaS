@@ -58,6 +58,74 @@ GPT_41_MINI_MODEL = "openai:gpt-4.1-mini"
 # Legacy alias (backward compatibility)
 CODE_ANALYSIS_GLM_MODEL = GLM_CODER_MODEL
 
+# =============================================================================
+# Kimi K2.5 Thinking Mode 정책
+# =============================================================================
+# Kimi K2.5는 기본적으로 thinking=enabled. 느리고 비싸기 때문에 기본은 OFF로
+# 강제하고, 종합분석·최종 검토·최종 결과물 단계만 ON.
+#
+# 우선순위 (cached_llm.py:resolve_kimi_thinking 참조):
+#   1) env var LLM_KIMI_THINKING = "on" | "off"  (글로벌 kill-switch)
+#   2) Langfuse prompt config.thinking.type  (프롬프트별 override)
+#   3) THINKING_ENABLED_PROMPTS 집합에 포함되면 ON
+#   4) 기본 OFF
+#
+# Kimi 제약: thinking=ON → temperature 1.0 고정 / OFF → 0.6 고정. 다른 값은 400.
+# =============================================================================
+
+THINKING_ENABLED_PROMPTS: set[str] = {
+    # 종합분석 (5축 레이더 + 스킬 매칭)
+    "v2_generation_radar_analysis",
+    "v2_generation_skill_matching",
+    # 최종 의사결정 종합
+    "v2_generation_decision_summary",
+    "v2_generation_interviewer_tips",
+    # 질문 최종 검토 / revise
+    "quality_review_review",
+    "question_enhancement_revise_questions",
+    # 최종 결과물
+    "finalization_candidate_summary",
+    "finalization_interviewer_guide",
+}
+
+
+def is_kimi_model(model: str | None) -> bool:
+    """Kimi (Moonshot) 모델 여부"""
+    return bool(model) and model.startswith("moonshot/")
+
+
+def resolve_kimi_thinking(
+    *,
+    prompt_name: str | None,
+    activity_name: str | None,
+    langfuse_config: dict | None,
+) -> bool:
+    """Kimi thinking 모드를 결정. True=enabled, False=disabled.
+
+    우선순위: env > Langfuse config > THINKING_ENABLED_PROMPTS > 기본 OFF.
+    """
+    # 1) env override
+    env = (settings.LLM_KIMI_THINKING or "auto").lower()
+    if env == "on":
+        return True
+    if env == "off":
+        return False
+
+    # 2) Langfuse config override
+    if langfuse_config:
+        thinking = langfuse_config.get("thinking")
+        if isinstance(thinking, dict) and thinking.get("type") in ("enabled", "disabled"):
+            return thinking["type"] == "enabled"
+
+    # 3) 코드 정책 집합
+    key = prompt_name or activity_name
+    if key and key in THINKING_ENABLED_PROMPTS:
+        return True
+
+    # 4) 기본 OFF
+    return False
+
+
 ACTIVITY_MODEL_CONFIG: dict[str, str] = {
     # Phase 0: Input Enrichment
     "enrich_input": KIMI_CHAT_MODEL,
