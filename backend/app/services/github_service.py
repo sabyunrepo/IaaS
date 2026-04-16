@@ -62,7 +62,10 @@ class GitHubService:
         try:
             g = self._get_github()
             repo = g.get_repo(path)
-            return dict(repo.get_languages())
+            # PyGithub 2.9.x leak: get_languages() may include a stray 'url' key (str).
+            # Filter to int-only to protect downstream sum/max/min/iteration.
+            raw = dict(repo.get_languages())
+            return {k: v for k, v in raw.items() if isinstance(v, int)}
         except Exception as e:
             logger.warning(f"Failed to get languages for {url}: {e}")
             return {}
