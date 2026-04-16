@@ -110,6 +110,9 @@ class Settings(BaseSettings):
     # LLM Cache
     LLM_CACHE_ENABLED: bool = True  # False면 LLM 응답 캐싱 비활성화
 
+    # Kimi K2.5 thinking 모드 글로벌 override — auto(정책) | on | off
+    LLM_KIMI_THINKING: str = "auto"
+
     # Embedding
     EMBEDDING_DIMENSION: int = 1536
 
