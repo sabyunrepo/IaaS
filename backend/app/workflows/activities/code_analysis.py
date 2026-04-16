@@ -991,7 +991,11 @@ async def _analyze_single_repo_impl(
                 if fp not in chunk_by_file:
                     chunk_by_file[fp] = chunk
 
-        deep_analysis_tasks = []
+        # JIT-28: 동적 토큰 예산 (AST 파이프라인 시 레포 크기 비례, legacy: 8000)
+        file_token_budget = token_budget if use_ast_pipeline else 8000
+
+        # (file_info, commit_history) 쌍을 준비 — 입력 순서 = 결과 순서
+        deep_analysis_inputs: list[dict] = []
         for file_info in key_files:
             file_path = file_info.get("path", file_info.get("filename", ""))
             commit_history = _get_file_commits(driller_result, file_path)
@@ -1018,25 +1022,28 @@ async def _analyze_single_repo_impl(
                     ),
                 }
 
-            # JIT-28: 동적 토큰 예산 전달 (AST 파이프라인 시 레포 크기 비례)
-            file_token_budget = token_budget if use_ast_pipeline else 8000
-            task = analyzer.llm_deep_file_analysis(
-                file_info=enriched_file_info,
-                commit_history=commit_history,
+            deep_analysis_inputs.append({
+                "file_info": enriched_file_info,
+                "commit_history": commit_history,
+            })
+
+        # Stage 2 병렬 실행 (bounded Semaphore) + heartbeat 유지
+        # Semaphore 한도는 code_analyzer.CODE_DEEP_ANALYSIS_CONCURRENCY (기본 8).
+        # return_exceptions 계약 + 입력 순서 보존은 메서드 내부에서 보장.
+        deep_results = await run_with_heartbeat(
+            analyzer.llm_deep_file_analyses_parallel(
+                tasks_input=deep_analysis_inputs,
                 jd_tech_stack=jd_tech_stack,
                 model=KIMI_CODER_MODEL,
                 token_budget=file_token_budget,
-            )
-            deep_analysis_tasks.append(task)
-
-        # 병렬 실행 (asyncio.gather) + heartbeat 유지
-        deep_results = await run_with_heartbeat(
-            asyncio.gather(*deep_analysis_tasks, return_exceptions=True),
+            ),
             interval=30.0,
-            message=f"Stage 2: Deep Analysis LLM ({len(deep_analysis_tasks)} files) for {repo_name}...",
+            message=f"Stage 2: Deep Analysis LLM ({len(deep_analysis_inputs)} files) for {repo_name}...",
         )
 
-        # 실패한 분석 필터링
+        # 실패한 분석 필터링 — parallel 메서드는 예외 시에도 fallback dict을 반환하므로
+        # quality_notes가 "Analysis failed"로 시작하는 항목을 실패로 간주할 수 있지만,
+        # 기존 동작과의 호환을 위해 isinstance dict 체크만 수행한다.
         successful_analyses = [
             r for r in deep_results
             if not isinstance(r, Exception) and isinstance(r, dict)

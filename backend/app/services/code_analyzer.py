@@ -8,12 +8,19 @@ PyDriller + AST + LLM 기반 코드 분석 파이프라인
 - HYBRID 3-Stage Multi-Agent 분석 지원 (Kimi K2.5 비용 최적화)
 - shallow clone 소스 fallback: PyDriller diff가 0일 때 clone 소스 기반 분석
 """
+import asyncio
 import logging
 import os
 from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
+
+# Stage 2 Deep Analysis 병렬 실행 동시성 한도
+# production job 1b2ec26b (662s) 근본 원인: Stage 2에서 Kimi K2.5 호출이 파일당
+# ~10s × 50+ 파일 = ~500s 소요. 상한을 두지 않으면 rate-limit 위험이 있으므로
+# Semaphore로 제한 (기본 8: 속도와 rate-limit 사이 균형).
+CODE_DEEP_ANALYSIS_CONCURRENCY = 8
 from app.models.analysis import (
     OverviewAnalysisResult,
     DeepAnalysisResult,
@@ -485,6 +492,97 @@ class CodeAnalyzer:
                 "complexity_assessment": "Failed",
                 "relevance_score": input_relevance,
             }
+
+    async def llm_deep_file_analyses_parallel(
+        self,
+        tasks_input: list[dict],
+        jd_tech_stack: list[str],
+        model: str | None = None,
+        token_budget: int = 8000,
+        concurrency: int | None = None,
+    ) -> list[dict]:
+        """Stage 2: 다수 파일 Deep Analysis를 병렬 실행 (bounded Semaphore)
+
+        기존 구현은 activity 층에서 `asyncio.gather(*tasks)`로 모든 파일을 동시에
+        기동했는데, 파일이 많을 경우 Kimi K2.5 rate-limit에 걸릴 위험이 있어
+        프로덕션에선 실질적으로 순차 처리처럼 동작(=662s)했다. 본 메서드는
+        Semaphore로 동시성을 CODE_DEEP_ANALYSIS_CONCURRENCY로 제한하고,
+        한 파일 실패가 형제 코루틴을 취소하지 않도록 `return_exceptions=True`를
+        사용한다. 입력 순서와 결과 순서는 1:1로 보존된다.
+
+        Args:
+            tasks_input: 각 항목은 {"file_info": dict, "commit_history": list[dict]}.
+                입력 리스트 순서대로 결과가 반환된다.
+            jd_tech_stack: JD에서 추출한 기술 스택
+            model: LLM 모델 (None이면 KIMI_CODER_MODEL)
+            token_budget: 파일별 토큰 예산 (legacy diff 경로: 8000)
+            concurrency: 병렬 한도 (None이면 CODE_DEEP_ANALYSIS_CONCURRENCY)
+
+        Returns:
+            각 파일의 DeepAnalysisResult 딕셔너리 리스트 (입력 순서 보존).
+            실패한 파일은 `llm_deep_file_analysis`의 fallback 딕셔너리 형태.
+        """
+        limit = concurrency if concurrency is not None else CODE_DEEP_ANALYSIS_CONCURRENCY
+        # 최소 1 이상 (0/음수 방어)
+        limit = max(1, int(limit))
+        semaphore = asyncio.Semaphore(limit)
+
+        async def _one(file_info: dict, commit_history: list[dict]) -> dict:
+            async with semaphore:
+                try:
+                    return await self.llm_deep_file_analysis(
+                        file_info=file_info,
+                        commit_history=commit_history,
+                        jd_tech_stack=jd_tech_stack,
+                        model=model,
+                        token_budget=token_budget,
+                    )
+                except Exception as e:
+                    # llm_deep_file_analysis 내부에서 이미 try/except로 fallback을
+                    # 반환하지만, 혹시라도 예외가 새어나오면 여기서 보정한다.
+                    file_path = file_info.get("path", file_info.get("filename", "unknown"))
+                    logger.warning(f"Deep analysis crashed for {file_path}: {e}")
+                    return {
+                        "file_path": file_path,
+                        "patterns_found": [],
+                        "algorithms_used": [],
+                        "code_quality_score": 0.0,
+                        "quality_notes": f"Analysis crashed: {e}",
+                        "question_candidates": [],
+                        "notable_aspects": [],
+                        "complexity_assessment": "Failed",
+                        "relevance_score": file_info.get("relevance_score", {}),
+                    }
+
+        coros = [
+            _one(item["file_info"], item.get("commit_history", []))
+            for item in tasks_input
+        ]
+
+        # return_exceptions=True: `_one`이 이미 예외를 fallback으로 치환하므로
+        # 여기 도달할 예외는 사실상 없지만 방어적으로 유지한다. 예외가 올 경우
+        # fallback dict으로 변환해 반환 형태 일관성을 유지한다.
+        raw = await asyncio.gather(*coros, return_exceptions=True)
+        results: list[dict] = []
+        for idx, r in enumerate(raw):
+            if isinstance(r, Exception):
+                fi = tasks_input[idx]["file_info"]
+                file_path = fi.get("path", fi.get("filename", "unknown"))
+                logger.warning(f"Deep analysis gather exception for {file_path}: {r}")
+                results.append({
+                    "file_path": file_path,
+                    "patterns_found": [],
+                    "algorithms_used": [],
+                    "code_quality_score": 0.0,
+                    "quality_notes": f"Analysis failed: {r}",
+                    "question_candidates": [],
+                    "notable_aspects": [],
+                    "complexity_assessment": "Failed",
+                    "relevance_score": fi.get("relevance_score", {}),
+                })
+            else:
+                results.append(r)
+        return results
 
     async def llm_synthesize_analysis(
         self,
