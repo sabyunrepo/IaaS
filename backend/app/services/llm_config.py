@@ -86,7 +86,14 @@ THINKING_ENABLED_PROMPTS: set[str] = {
     # 최종 결과물
     "finalization_candidate_summary",
     "finalization_interviewer_guide",
+    # 3-Stage 코드 분석 Stage 3 종합 (Stage 1 overview, Stage 2 per-file deep는 OFF 유지)
+    # 사용자 정책: "종합분석 띵킹" — 최종 synthesis 단계만 reasoning 활성화.
+    "code_synthesis_analysis",
 }
+
+# Langfuse config.thinking 형식이 잘못됐을 때 한 번만 경고하기 위한 dedup 세트.
+# 테스트에서는 매 테스트 시작 시 clear해야 한다.
+_WARNED_MALFORMED_THINKING: set[str] = set()
 
 
 def is_kimi_model(model: str | None) -> bool:
@@ -114,8 +121,20 @@ def resolve_kimi_thinking(
     # 2) Langfuse config override
     if langfuse_config:
         thinking = langfuse_config.get("thinking")
-        if isinstance(thinking, dict) and thinking.get("type") in ("enabled", "disabled"):
-            return thinking["type"] == "enabled"
+        if thinking is not None:
+            if isinstance(thinking, dict) and thinking.get("type") in ("enabled", "disabled"):
+                return thinking["type"] == "enabled"
+            # Malformed (e.g. {"thinking": True}, {"thinking": "enabled"},
+            # {"thinking": {"enabled": True}}) — 정책으로 fallthrough하되, 한 번만 경고.
+            warn_key = prompt_name or activity_name or "<unknown>"
+            if warn_key not in _WARNED_MALFORMED_THINKING:
+                _WARNED_MALFORMED_THINKING.add(warn_key)
+                logger.warning(
+                    "Langfuse config.thinking malformed for %s "
+                    "(expected {type: enabled|disabled}, got %r) — falling back to policy",
+                    warn_key,
+                    thinking,
+                )
 
     # 3) 코드 정책 집합
     key = prompt_name or activity_name
