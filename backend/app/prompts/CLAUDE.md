@@ -20,3 +20,29 @@ LLM 프롬프트 YAML 파일.
 
 - 질문 생성: 다중 소스 증거 기반 전략
 - 필수 필드는 `null 금지` + 추론 규칙 명시 (MEMORY.md 참조)
+
+## Kimi K2.5 thinking mode in Langfuse prompt config
+
+Kimi (`moonshot/*`) 프롬프트의 경우 Langfuse prompt `config`에서 thinking 모드를
+명시적으로 오버라이드할 수 있다. 유일하게 허용되는 형식:
+
+```yaml
+config:
+  thinking:
+    type: "enabled"   # 또는 "disabled"
+```
+
+그 외 모든 형식(예: `{"thinking": true}`, `{"thinking": "enabled"}`,
+`{"thinking": {"enabled": true}}`)은 **무시**되고 `llm_config.THINKING_ENABLED_PROMPTS`
+세트의 하드코딩 정책으로 fallback된다. 이 경우 `llm_config.py`가 프로세스당
+프롬프트별로 한 번만 `WARNING` 로그를 남긴다.
+
+우선순위 (`resolve_kimi_thinking`):
+1. env var `LLM_KIMI_THINKING` = `on` / `off` (글로벌 kill-switch)
+2. Langfuse `config.thinking.type` (프롬프트별 override)
+3. `THINKING_ENABLED_PROMPTS` 세트 포함 여부
+4. 기본 OFF
+
+Kimi 제약 — thinking=ON → `temperature=1.0` 강제 / OFF → `0.6` 강제. 다른 값은
+HTTP 400. Langfuse prompt config에 `temperature`가 있어도 Kimi라면 덮어써지며,
+`cached_llm._build_kimi_thinking_args`가 `INFO` 로그로 override 사실을 기록한다.

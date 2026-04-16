@@ -350,20 +350,55 @@ class CachedLLMService:
             activity_name=activity_name,
             langfuse_config=langfuse_config,
         )
+        forced_temp = 1.0 if enabled else 0.6
+        # Kimi 제약: thinking=ON → 1.0, OFF → 0.6. 그 외 값은 HTTP 400.
+        # 기본값(0.0)은 실제 operator가 설정한 값이 아니므로 로깅 노이즈만 만듦 → 제외.
+        # 1.0/0.6 그대로면 override가 아니므로 제외.
+        if base_temperature not in (0.0, 1.0, 0.6):
+            logger.info(
+                "Kimi temperature override: %.2f → %.2f (thinking=%s, prompt=%s)",
+                base_temperature,
+                forced_temp,
+                "enabled" if enabled else "disabled",
+                prompt_name or activity_name,
+            )
         return (
             {"thinking": {"type": "enabled" if enabled else "disabled"}},
-            1.0 if enabled else 0.6,
+            forced_temp,
         )
 
     @staticmethod
-    def _make_cache_key(prompt: str, model: str, activity_name: str | None = None, job_id: str | None = None) -> str:
+    def _make_cache_key(
+        prompt: str,
+        model: str,
+        activity_name: str | None = None,
+        job_id: str | None = None,
+        temperature: float | None = None,
+        extra_body: dict | None = None,
+    ) -> str:
         """캐시 키 생성 (Activity + Job 스코프 통합)
 
         키 형식:
           글로벌:   llm_cache:{activity}:{hash}
           잡스코프: llm_cache:job:{job_id}:{activity}:{hash}
+
+        해싱 대상에 temperature / extra_body도 포함한다. 이유:
+          - Kimi thinking 토글(Langfuse operator가 config.thinking.type 변경)이나
+            env LLM_KIMI_THINKING on/off 전환 시 동일 prompt+model이라도
+            실제 출력 분포가 다름(reasoning vs non-reasoning).
+          - 이전 구현(`model:prompt`)은 이런 조건 차이를 키에 반영하지 않아
+            thinking 토글 후 TTL 만료까지 stale 결과를 서빙했다.
+
+        Separator(`|`)는 이전 포맷(`model:prompt`)의 콜론과 달라 기존 배포에서
+        생성된 orphan 키가 우연히 같은 해시로 충돌할 가능성을 없앤다.
         """
-        content = f"{model}:{prompt}"
+        content_parts = [model]
+        if temperature is not None:
+            content_parts.append(f"t={temperature}")
+        if extra_body:
+            content_parts.append(f"eb={json.dumps(extra_body, sort_keys=True)}")
+        content_parts.append(prompt)
+        content = "|".join(content_parts)
         hash_part = hashlib.sha256(content.encode()).hexdigest()
         parts = ["llm_cache"]
         if job_id:
@@ -502,7 +537,10 @@ class CachedLLMService:
         return await self._execute_with_cache(
             prompt=prompt,
             model=model,
-            cache_key=self._make_cache_key(prompt, model, activity_name),
+            cache_key=self._make_cache_key(
+                prompt, model, activity_name,
+                temperature=temperature, extra_body=extra_body,
+            ),
             trace_meta=get_current_trace_metadata(),
             result_type=result_type,
             activity_name=activity_name,
@@ -531,7 +569,10 @@ class CachedLLMService:
         return await self._execute_with_cache(
             prompt=prompt,
             model=model,
-            cache_key=self._make_cache_key(prompt, model, activity_name, job_id=job_id),
+            cache_key=self._make_cache_key(
+                prompt, model, activity_name, job_id=job_id,
+                temperature=temperature, extra_body=extra_body,
+            ),
             trace_meta={**get_current_trace_metadata(), "job_id": job_id},
             result_type=result_type,
             activity_name=activity_name,
@@ -580,7 +621,10 @@ class CachedLLMService:
         return await self._execute_with_cache(
             prompt=prompt,
             model=model,
-            cache_key=self._make_cache_key(prompt, model, prompt_name),
+            cache_key=self._make_cache_key(
+                prompt, model, prompt_name,
+                temperature=config_temperature, extra_body=extra_body,
+            ),
             trace_meta=trace_meta,
             result_type=result_type,
             activity_name=prompt_name,
