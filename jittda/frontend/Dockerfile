@@ -6,11 +6,13 @@ ARG APP=admin-app
 FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json ./
 COPY packages/ packages/
 RUN pnpm install --frozen-lockfile
 ARG APP
-RUN pnpm --filter @jittda/${APP} build
+ARG VITE_API_BASE=""
+ENV VITE_API_BASE=${VITE_API_BASE}
+RUN pnpm --filter "./packages/${APP}" build
 
 # Stage 2: Serve
 FROM nginx:alpine

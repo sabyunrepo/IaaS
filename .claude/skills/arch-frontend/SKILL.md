@@ -15,12 +15,19 @@ Vite + React + Tailwind CSS 프론트엔드 구현 가이드.
 3. `docs/architecture/06-output-spec.md` — 면접 스크립트 뷰 설계
 
 ## 기술 스택
-- **빌드**: Vite
-- **UI**: React (함수형 컴포넌트 + Hooks)
-- **스타일**: Tailwind CSS
+- **빌드**: Vite + `@seed-design/vite-plugin` + `@tailwindcss/vite`
+- **UI**: React 19 (함수형 컴포넌트 + Hooks) + Seed Design React
+- **스타일**: Tailwind CSS 4 + Seed Design CSS + Jittda 브랜드 토큰
 - **인증**: OAuth → JWT (메모리 저장)
 - **다국어**: react-i18next
 - **HTTP**: fetch 또는 axios + Authorization Bearer header
+- **디자인 시스템**: `jittda-design-system` 스킬 참조 (Seed Design + 브랜드 토큰)
+
+### Seed Design 컴포넌트 사용법
+1. `seed-docs` MCP → `list_react_components` / `get_react_component` 로 조회
+2. CLI: `npx @seed-design/cli@latest add ui:{name}` (packages/ui 에서 실행)
+3. `packages/ui/src/index.ts`에 export 추가
+4. 앱에서 `import { Component } from '@jittda/ui'`
 
 ## 주요 페이지
 
@@ -49,38 +56,32 @@ Vite + React + Tailwind CSS 프론트엔드 구현 가이드.
 - 평가 시나리오 (색상 구분)
 - on-demand 번역 버튼
 
-## 파일 배치
+## 파일 배치 (pnpm 워크스페이스)
 ```
-frontend/
-├── src/
-│   ├── App.tsx
-│   ├── main.tsx
-│   ├── pages/
-│   │   ├── LoginPage.tsx
-│   │   ├── CreateJobPage.tsx
-│   │   ├── JobStatusPage.tsx
-│   │   └── ResultPage.tsx
-│   ├── components/
-│   │   ├── auth/          — OAuth 버튼, AuthProvider
-│   │   ├── job/           — JobForm, FileUpload
-│   │   ├── interview/     — QuestionCard, FollowUp, Evaluation
-│   │   └── common/        — Layout, Navbar, Loading
-│   ├── hooks/
-│   │   ├── useAuth.ts     — JWT 관리
-│   │   └── useJob.ts      — Job API 호출
-│   ├── utils/
-│   │   └── auth.ts        — extractTokenFromCallback
-│   ├── i18n/
-│   │   └── config.ts      — react-i18next 설정
-│   └── types/
-│       └── index.ts       — 공통 타입
-├── public/
-│   └── locales/
-│       ├── ko/translation.json
-│       └── en/translation.json
-├── tailwind.config.js
-├── vite.config.ts
-└── package.json
+jittda/frontend/
+├── packages/
+│   ├── ui/                          — 공유 디자인 시스템 (@jittda/ui)
+│   │   ├── src/
+│   │   │   ├── seed-design/ui/      — Seed Design CLI 생성 컴포넌트
+│   │   │   ├── styles/
+│   │   │   │   ├── index.css        — base.css + tokens + 글로벌 스타일
+│   │   │   │   └── tokens.css       — Jittda 브랜드 토큰
+│   │   │   └── index.ts             — 컴포넌트 export
+│   │   └── seed-design.json
+│   ├── public-app/                  — 사용자용 앱 (:3000)
+│   │   └── src/
+│   │       ├── pages/               — LoginPage, CreateJobPage, ResultPage
+│   │       ├── components/          — auth/, job/, interview/, common/
+│   │       ├── hooks/               — useAuth, useJob
+│   │       └── index.css            — @import tailwindcss + @jittda/ui/styles
+│   └── admin-app/                   — 관리자 앱 (:3001)
+│       └── src/
+│           ├── pages/               — Dashboard, JobList, Analytics
+│           ├── components/          — charts/, admin/
+│           └── index.css            — @import tailwindcss + @jittda/ui/styles
+├── package.json                     — 루트 워크스페이스
+├── pnpm-workspace.yaml
+└── tsconfig.base.json
 ```
 
 ## 규칙

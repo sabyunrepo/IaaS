@@ -143,10 +143,9 @@ async def _run_agent(
 async def enhancement_agents_node(state: MetaState) -> dict[str, Any]:
     """5개 Enhancement Agent를 병렬 실행하여 질문을 보강한다."""
     job_id = state["job_id"]
-    db_url = os.environ.get("DATABASE_URL", "")
 
     try:
-        analysis_repo = AnalysisRepository(db_url)
+        analysis_repo = AnalysisRepository()
 
         # 1. 질문 로드
         questions_ref = state.get("questions_ref")

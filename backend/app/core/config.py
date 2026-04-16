@@ -57,7 +57,10 @@ class Settings(BaseSettings):
     ZAI_API_KEY: str | None = None  # Z.AI (Zhipu AI) API Key for GLM models
     MOONSHOT_API_KEY: str | None = None  # Moonshot AI (Kimi) API Key
     LLM_MODEL: str = "openai:gpt-4o"
-    LLM_FALLBACK_MODEL: str = "zai/glm-4.7-flashx"
+    # zai/glm-4.7-flashx 는 실존하지 않는 모델 슬러그이며, 호출 시 Z.AI 가
+    # "Insufficient balance" 429 로 응답해 폴백이 전혀 동작하지 않았다.
+    # 무료 티어에서 실제 서빙되는 zai/glm-4.5-flash 로 교체한다.
+    LLM_FALLBACK_MODEL: str = "zai/glm-4.5-flash"
     # GLM 모델 (Z.AI - Zhipu AI)
     # glm-4.5-flash: 무료!, glm-4.5-air: 저렴, glm-4.7: 최신 플래그십
     GLM_MODEL: str = "zai/glm-4.5-flash"  # 무료 모델

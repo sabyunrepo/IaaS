@@ -51,6 +51,45 @@ services:
     networks:
       - internal_net
 
+  # --- Temporal Infrastructure ---
+  temporal:
+    image: temporalio/auto-setup:latest
+    container_name: jittda_temporal
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB: postgres12_pgx
+      DB_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PWD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_SEEDS: postgres
+    ports:
+      - "7233:7233"
+    healthcheck:
+      test: ["CMD-SHELL", "temporal operator cluster health --address $(hostname -i):7233"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+    networks:
+      - internal_net
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    container_name: jittda_temporal_ui
+    restart: unless-stopped
+    depends_on:
+      temporal:
+        condition: service_healthy
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+    ports:
+      - "8088:8080"
+    networks:
+      - internal_net
+
   # --- Application Layer ---
   backend:
     build:
@@ -63,10 +102,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      temporal:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-jittda}
       - REDIS_URL=redis://redis:6379
-      - LANGGRAPH_CHECKPOINTER_URI=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-jittda}
+      - TEMPORAL_HOST=temporal:7233
       - SONAR_ON_DEMAND=true
       # LLM
       - LLM_API_KEY=${LLM_API_KEY:-}
@@ -85,7 +126,13 @@ services:
       - BRIGHTDATA_SCRAPING_BROWSER_URL=${BRIGHTDATA_SCRAPING_BROWSER_URL:-}
       # Auth
       - JWT_SECRET=${JWT_SECRET:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3001}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3001}
+      - TRUSTED_PROXY_HOSTS=${TRUSTED_PROXY_HOSTS:-*}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -97,12 +144,56 @@ services:
     networks:
       - internal_net
 
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: jittda_worker
+    restart: unless-stopped
+    depends_on:
+      temporal:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-jittda}
+      - REDIS_URL=redis://redis:6379
+      - TEMPORAL_HOST=temporal:7233
+      # LLM
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.moonshot.cn/v1}
+      # Embeddings
+      - EMBEDDING_API_KEY=${EMBEDDING_API_KEY:-}
+      - EMBEDDING_BASE_URL=${EMBEDDING_BASE_URL:-https://api.openai.com/v1}
+      # Langfuse
+      - LANGFUSE_HOST=${LANGFUSE_HOST:-}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
+      # GitHub
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      # LinkedIn (BrightData)
+      - BRIGHTDATA_API_KEY=${BRIGHTDATA_API_KEY:-}
+      - BRIGHTDATA_SCRAPING_BROWSER_URL=${BRIGHTDATA_SCRAPING_BROWSER_URL:-}
+    command: ["python", "-m", "worker"]
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'python -m worker' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - internal_net
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
         APP: admin-app
+        VITE_API_BASE: ${VITE_API_BASE:-}
     container_name: jittda_frontend
     restart: unless-stopped
     depends_on:
@@ -116,7 +207,11 @@ services:
     ports:
       - "3001:80"
     networks:
-      - internal_net
+      internal_net:
+      jittda-public:
+      cloudflare_tunnel:
+        aliases:
+          - iaas-frontend
 
   sonar-scanner:
     image: sonarsource/sonar-scanner-cli:latest
@@ -136,3 +231,7 @@ volumes:
 networks:
   internal_net:
     driver: bridge
+  jittda-public:
+    external: true
+  cloudflare_tunnel:
+    external: true

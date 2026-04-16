@@ -13,6 +13,7 @@ from typing import Any
 import httpx
 
 from domain.identity.models import GitHubProfile
+from infrastructure.resilience.circuit_breaker import CircuitBreaker, CircuitOpenError
 
 logger = logging.getLogger(__name__)
 
@@ -65,12 +66,13 @@ class GitHubClient:
         token: GitHub personal access token (classic 또는 fine-grained).
     """
 
-    def __init__(self, token: str) -> None:
+    def __init__(self, token: str, *, circuit_breaker: CircuitBreaker | None = None) -> None:
         self._headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
         }
+        self._cb = circuit_breaker
 
     async def fetch_profile(self, username: str) -> GitHubProfile:
         """REST API v3로 GitHub 사용자 프로필을 가져온다.
@@ -84,9 +86,15 @@ class GitHubClient:
         Raises:
             ValueError: 존재하지 않는 사용자 요청 시.
             RuntimeError: API 통신 오류 시.
+            CircuitOpenError: Circuit breaker가 Open 상태일 때.
         """
+        if self._cb:
+            return await self._cb.call(self._fetch_profile_impl, username)
+        return await self._fetch_profile_impl(username)
+
+    async def _fetch_profile_impl(self, username: str) -> GitHubProfile:
         data = await self._rest_get(f"/users/{username}")
-        database_id = await self.get_node_id(username)
+        database_id = await self._get_node_id(username)
         return GitHubProfile(
             name=data.get("name") or "",
             email=data.get("email") or "",
@@ -94,8 +102,11 @@ class GitHubClient:
             database_id=database_id,
         )
 
-    async def get_node_id(self, username: str) -> str:
+    async def _get_node_id(self, username: str) -> str:
         """GraphQL로 사용자의 databaseId(global integer ID)를 조회한다.
+
+        _fetch_profile_impl() 내부에서만 호출되므로 private.
+        Circuit breaker는 fetch_profile() 레벨에서 적용된다.
 
         Args:
             username: GitHub 사용자명 (login).
@@ -139,7 +150,13 @@ class GitHubClient:
         Raises:
             ValueError: 존재하지 않는 사용자 요청 시.
             RuntimeError: GraphQL 오류 또는 통신 오류 시.
+            CircuitOpenError: Circuit breaker가 Open 상태일 때.
         """
+        if self._cb:
+            return await self._cb.call(self._get_user_repos_impl, username, first=first)
+        return await self._get_user_repos_impl(username, first=first)
+
+    async def _get_user_repos_impl(self, username: str, *, first: int = 100) -> list[dict]:
         result = await self._graphql(
             _REPOS_QUERY,
             variables={"login": username, "first": first},

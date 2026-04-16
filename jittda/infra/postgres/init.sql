@@ -10,20 +10,6 @@ SELECT 'CREATE DATABASE sonarqube'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'sonarqube')\gexec
 
 -- ============================================================
--- LangGraph Checkpoint (3.0.x 호환)
--- ============================================================
-CREATE TABLE IF NOT EXISTS checkpoints (
-    thread_id TEXT NOT NULL,
-    checkpoint_ns TEXT NOT NULL DEFAULT '',
-    checkpoint_id TEXT NOT NULL,
-    parent_checkpoint_id TEXT,
-    type TEXT,
-    checkpoint BYTEA,
-    metadata BYTEA,
-    PRIMARY KEY (thread_id, checkpoint_ns, checkpoint_id)
-);
-
--- ============================================================
 -- 비즈니스 테이블
 -- ============================================================
 
@@ -34,6 +20,10 @@ CREATE TABLE users (
     name VARCHAR(100),
     oauth_provider VARCHAR(20),
     oauth_id VARCHAR(100),
+    company_name VARCHAR(100),
+    company_slug VARCHAR(50) UNIQUE,
+    company_logo VARCHAR(500),
+    company_description TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -41,7 +31,7 @@ CREATE TABLE users (
 CREATE TABLE jobs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    langgraph_thread_id VARCHAR(100),
+    temporal_workflow_id VARCHAR(100),
     status VARCHAR(20) DEFAULT 'pending',
     progress FLOAT DEFAULT 0.0,
     input_data JSONB NOT NULL,
@@ -51,7 +41,7 @@ CREATE TABLE jobs (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX idx_jobs_user ON jobs(user_id);
-CREATE INDEX idx_jobs_thread ON jobs(langgraph_thread_id);
+CREATE INDEX idx_jobs_workflow ON jobs(temporal_workflow_id);
 CREATE INDEX idx_jobs_status ON jobs(status);
 
 -- 분석 결과 (Worker별 — Reference Passing 저장소)
@@ -121,3 +111,62 @@ CREATE TABLE embeddings (
 CREATE INDEX idx_embeddings_job ON embeddings(job_id);
 CREATE INDEX idx_embeddings_kind ON embeddings(kind);
 CREATE INDEX idx_embeddings_vector ON embeddings USING ivfflat (embedding vector_cosine_ops);
+
+-- ============================================================
+-- 채용 공고 / 지원 관리 (Phase 5)
+-- ============================================================
+
+-- 채용 공고
+CREATE TABLE postings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    department VARCHAR(100),
+    jd_description TEXT,
+    jd_languages TEXT[] DEFAULT '{}',
+    jd_tech_stack TEXT[] DEFAULT '{}',
+    jd_experience_years INT,
+    auto_analyze BOOLEAN DEFAULT false,
+    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft','active','closed')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_postings_user ON postings(user_id);
+CREATE INDEX idx_postings_status ON postings(status);
+
+-- 지원 (applications)
+CREATE TABLE applications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    posting_id UUID NOT NULL REFERENCES postings(id) ON DELETE CASCADE,
+    candidate_name VARCHAR(200),
+    candidate_email VARCHAR(200),
+    github_username VARCHAR(100),
+    github_urls TEXT[] DEFAULT '{}',
+    linkedin_url VARCHAR(500),
+    resume_path VARCHAR(500),
+    cover_letter_path VARCHAR(500),
+    portfolio_path VARCHAR(500),
+    memo TEXT,
+    source VARCHAR(20) DEFAULT 'admin_manual' CHECK (source IN ('self_apply','admin_manual')),
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending','analyzing','completed','failed')),
+    job_id UUID REFERENCES jobs(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(posting_id, candidate_email)
+);
+CREATE INDEX idx_apps_posting ON applications(posting_id);
+CREATE INDEX idx_apps_job ON applications(job_id);
+CREATE INDEX idx_apps_status ON applications(status);
+
+-- 파일 업로드 메타
+CREATE TABLE file_uploads (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    uploader_type VARCHAR(20) NOT NULL CHECK (uploader_type IN ('admin','candidate')),
+    uploader_ref VARCHAR(200),
+    file_type VARCHAR(20) NOT NULL CHECK (file_type IN ('resume','cover_letter','portfolio')),
+    file_name VARCHAR(300) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    content_type VARCHAR(100),
+    size_bytes BIGINT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);

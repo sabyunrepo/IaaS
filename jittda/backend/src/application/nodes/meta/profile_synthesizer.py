@@ -7,7 +7,6 @@ UnifiedCandidateProfile + 4대 지표 점수를 산출한다.
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 
 from application.states.meta_state import MetaState
@@ -25,12 +24,11 @@ logger = logging.getLogger(__name__)
 async def profile_synthesizer_node(state: MetaState) -> dict[str, Any]:
     """분석 결과를 종합하여 후보자 프로필 + 점수를 산출한다."""
     job_id = state["job_id"]
-    db_url = os.environ.get("DATABASE_URL", "")
 
     try:
-        analysis_repo = AnalysisRepository(db_url)
-        score_repo = ScoreRepository(db_url)
-        job_repo = JobRepository(db_url)
+        analysis_repo = AnalysisRepository()
+        score_repo = ScoreRepository()
+        job_repo = JobRepository()
 
         # DB에서 각 Supervisor 결과 로드
         forensic_ref = state.get("forensic_result_ref")

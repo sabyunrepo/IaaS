@@ -244,10 +244,10 @@ class TestLangfusePromptManagerCompilePrompt:
         mock_lf.get_prompt.return_value = mock_prompt
 
         manager = self._make_manager(mock_lf)
-        result = manager.compile_prompt("greeting", name="Alice")
+        result = manager.compile_prompt("greeting", user_name="Alice")
 
         mock_lf.get_prompt.assert_called_once_with("greeting", label="production")
-        mock_prompt.compile.assert_called_once_with(name="Alice")
+        mock_prompt.compile.assert_called_once_with(user_name="Alice")
         assert result == compiled
 
     def test_compile_prompt_uses_custom_label(self):

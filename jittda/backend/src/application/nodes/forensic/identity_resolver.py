@@ -5,6 +5,8 @@ GitHub API → mailmap 빌드 → git blame 실행 → 순수 기여 필터링.
 """
 from __future__ import annotations
 
+import asyncio
+import os
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +21,7 @@ from infrastructure.github.github_client import GitHubClient
 
 async def identity_resolver_worker(state: ForensicState) -> dict[str, Any]:
     """Git 저자 Identity Resolution + Blame Attribution을 수행한다."""
-    github_client = GitHubClient()
+    github_client = GitHubClient(token=os.environ.get("GITHUB_TOKEN", ""))
     blame_runner = BlameRunner()
     mailmap_writer = MailmapWriter()
 
@@ -50,16 +52,15 @@ async def identity_resolver_worker(state: ForensicState) -> dict[str, Any]:
             continue
 
         # Git log에서 저자 추출 (CloneManager의 기능이 아니므로 직접 수행)
-        import subprocess
-
-        result = subprocess.run(
-            ["git", "log", "--format=%aN|%aE", "--no-merges"],
-            cwd=repo_path,
-            capture_output=True,
-            text=True,
+        proc = await asyncio.create_subprocess_exec(
+            "git", "log", "--format=%aN|%aE", "--no-merges",
+            cwd=str(repo_path),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
+        stdout, _ = await proc.communicate()
         git_authors = []
-        for line in result.stdout.strip().split("\n"):
+        for line in stdout.decode().strip().split("\n"):
             if "|" in line:
                 name, email = line.split("|", 1)
                 git_authors.append(GitAuthor(name=name.strip(), email=email.strip()))

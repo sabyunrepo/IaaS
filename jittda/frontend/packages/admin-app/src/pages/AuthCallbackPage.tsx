@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { API_BASE } from '../lib/api'
 
 const TOKEN_KEY = 'jittda_token'
 
@@ -8,13 +9,30 @@ export function AuthCallbackPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const token = searchParams.get('token')
-    if (token) {
-      localStorage.setItem(TOKEN_KEY, token)
-      navigate('/', { replace: true })
-    } else {
+    const code = searchParams.get('code')
+    if (!code) {
       navigate('/login', { replace: true })
+      return
     }
+
+    fetch(`${API_BASE}/api/auth/exchange?code=${encodeURIComponent(code)}`, {
+      method: 'POST',
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Exchange failed')
+        return res.json()
+      })
+      .then((data) => {
+        if (data.token) {
+          localStorage.setItem(TOKEN_KEY, data.token)
+          navigate('/', { replace: true })
+        } else {
+          navigate('/login', { replace: true })
+        }
+      })
+      .catch(() => {
+        navigate('/login', { replace: true })
+      })
   }, [searchParams, navigate])
 
   return (

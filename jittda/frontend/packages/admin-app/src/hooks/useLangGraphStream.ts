@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { WS_BASE } from '../lib/api';
+import { getWsUrl } from '../lib/api';
 import type {
   AgentState,
   LangGraphStreamState,
@@ -146,7 +146,7 @@ export function useLangGraphStream(jobId: string): LangGraphStreamState {
       wsRef.current = null;
     }
 
-    const url = `${WS_BASE}/ws/jobs/${jobId}`;
+    const url = getWsUrl(`/ws/jobs/${jobId}`);
     const ws = new WebSocket(url);
     wsRef.current = ws;
 

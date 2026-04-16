@@ -4,6 +4,7 @@ import type {
   Signal,
   Recommendation,
 } from '../../types/result';
+import { Sparkles } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Signal badge mapping
@@ -56,6 +57,21 @@ export function OverviewTab({ result }: OverviewTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* One-line Summary */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl shadow-card p-5">
+        <div className="flex items-start gap-3">
+          <Sparkles className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+          <div>
+            <h3 className="text-sm font-semibold text-blue-700 mb-1">
+              핵심 한 줄 요약
+            </h3>
+            <p className="text-sm text-blue-900 leading-relaxed">
+              {decision_support.recommendation_reason}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Grade + Summary Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Overall Grade */}
@@ -80,9 +96,6 @@ export function OverviewTab({ result }: OverviewTabProps) {
           >
             {rec.label}
           </span>
-          <p className="text-sm text-[--color-text-secondary] mt-3 leading-relaxed">
-            {decision_support.recommendation_reason}
-          </p>
         </div>
 
         {/* AI Suspicion */}
@@ -131,63 +144,6 @@ export function OverviewTab({ result }: OverviewTabProps) {
         </h3>
         <div className="flex justify-center">
           <FourAxisRadar data={four_axes} size={320} />
-        </div>
-      </div>
-
-      {/* Strengths & Concerns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Strengths */}
-        <div className="bg-[--color-bg-surface] border border-[--color-border-default] rounded-xl shadow-card p-6">
-          <h3 className="text-base font-semibold text-emerald-600 mb-3">
-            강점
-          </h3>
-          <ul className="space-y-2">
-            {decision_support.strengths.map((s, i) => (
-              <li
-                key={i}
-                className="text-sm text-[--color-text-primary] flex items-start gap-2"
-              >
-                <span className="text-emerald-500 mt-0.5 shrink-0">+</span>
-                <span>{s}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Concerns */}
-        <div className="bg-[--color-bg-surface] border border-[--color-border-default] rounded-xl shadow-card p-6">
-          <h3 className="text-base font-semibold text-red-600 mb-3">
-            우려 사항
-          </h3>
-          <ul className="space-y-2">
-            {decision_support.concerns.map((c, i) => (
-              <li
-                key={i}
-                className="text-sm text-[--color-text-primary] flex items-start gap-2"
-              >
-                <span className="text-red-500 mt-0.5 shrink-0">-</span>
-                <span>{c}</span>
-              </li>
-            ))}
-          </ul>
-          {decision_support.risk_factors.length > 0 && (
-            <>
-              <h4 className="text-sm font-semibold text-yellow-600 mt-4 mb-2">
-                리스크 요인
-              </h4>
-              <ul className="space-y-1">
-                {decision_support.risk_factors.map((r, i) => (
-                  <li
-                    key={i}
-                    className="text-sm text-[--color-text-secondary] flex items-start gap-2"
-                  >
-                    <span className="text-yellow-500 mt-0.5 shrink-0">!</span>
-                    <span>{r}</span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
         </div>
       </div>
     </div>

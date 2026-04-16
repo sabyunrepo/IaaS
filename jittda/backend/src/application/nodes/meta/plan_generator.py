@@ -6,7 +6,6 @@ PlanGenerator 노드 — LLM 기반 실행 계획 동적 생성 (Phase 1).
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 
 from application.states.meta_state import MetaState
@@ -20,7 +19,7 @@ async def plan_generator_node(state: MetaState) -> dict[str, Any]:
     job_id = state["job_id"]
 
     try:
-        repo = JobRepository(os.environ.get("DATABASE_URL", ""))
+        repo = JobRepository()
         job = await repo.get(job_id)
 
         if not job:

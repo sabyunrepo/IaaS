@@ -544,14 +544,14 @@ class TestPipelinePerformance:
         }
 
         patches = _build_patches(store, llm_responses)
-        patches["application.nodes.meta.supervisor_adapters.build_forensic_graph"] = (
-            lambda: make_mock_graph(forensic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_forensic_pipeline"] = (
+            AsyncMock(return_value=forensic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_logic_graph"] = (
-            lambda: make_mock_graph(logic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_logic_pipeline"] = (
+            AsyncMock(return_value=logic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_stack_graph"] = (
-            lambda: make_mock_graph(stack_result)
+        patches["application.nodes.meta.supervisor_adapters.run_stack_pipeline"] = (
+            AsyncMock(return_value=stack_result)
         )
 
         with measure_time() as t:
@@ -669,14 +669,14 @@ class TestConcurrentPerformance:
         }
 
         patches = _build_patches(shared_store, llm_responses)
-        patches["application.nodes.meta.supervisor_adapters.build_forensic_graph"] = (
-            lambda: make_mock_graph(forensic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_forensic_pipeline"] = (
+            AsyncMock(return_value=forensic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_logic_graph"] = (
-            lambda: make_mock_graph(logic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_logic_pipeline"] = (
+            AsyncMock(return_value=logic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_stack_graph"] = (
-            lambda: make_mock_graph(stack_result)
+        patches["application.nodes.meta.supervisor_adapters.run_stack_pipeline"] = (
+            AsyncMock(return_value=stack_result)
         )
 
         # 순차 실행: 3개 job (단일 patch 컨텍스트)
@@ -903,14 +903,14 @@ class TestComprehensiveBenchmark:
         }
 
         patches = _build_patches(store, llm_responses)
-        patches["application.nodes.meta.supervisor_adapters.build_forensic_graph"] = (
-            lambda: make_mock_graph(forensic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_forensic_pipeline"] = (
+            AsyncMock(return_value=forensic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_logic_graph"] = (
-            lambda: make_mock_graph(logic_result)
+        patches["application.nodes.meta.supervisor_adapters.run_logic_pipeline"] = (
+            AsyncMock(return_value=logic_result)
         )
-        patches["application.nodes.meta.supervisor_adapters.build_stack_graph"] = (
-            lambda: make_mock_graph(stack_result)
+        patches["application.nodes.meta.supervisor_adapters.run_stack_pipeline"] = (
+            AsyncMock(return_value=stack_result)
         )
 
         # 노드별 시간 측정

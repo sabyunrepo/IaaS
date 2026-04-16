@@ -2,7 +2,7 @@
 Persistence Repository — Reference Passing 패턴 저장소.
 
 노드가 분석 결과를 DB에 저장하고 UUID만 State에 반환하는 패턴의 핵심.
-psycopg 3 async 기반 CRUD.
+psycopg_pool AsyncConnectionPool 기반 CRUD.
 """
 from __future__ import annotations
 
@@ -10,14 +10,11 @@ import json
 import uuid
 from typing import Any
 
-import psycopg
+from infrastructure.persistence.pool import get_pool
 
 
 class UserRepository:
     """users 테이블 CRUD — OAuth 사용자 관리."""
-
-    def __init__(self, conninfo: str) -> None:
-        self._conninfo = conninfo
 
     async def upsert_oauth_user(
         self,
@@ -27,7 +24,7 @@ class UserRepository:
         oauth_id: str,
     ) -> dict[str, Any]:
         """OAuth 사용자를 생성하거나 기존 사용자를 반환한다."""
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             row = await conn.execute(
                 """
                 INSERT INTO users (email, name, oauth_provider, oauth_id)
@@ -36,23 +33,31 @@ class UserRepository:
                     name = EXCLUDED.name,
                     oauth_provider = EXCLUDED.oauth_provider,
                     oauth_id = EXCLUDED.oauth_id
-                RETURNING id, email, name, oauth_provider
+                RETURNING id, email, name, oauth_provider,
+                          company_name, company_slug, company_logo, company_description
                 """,
                 (email, name, oauth_provider, oauth_id),
             )
             result = await row.fetchone()
+            await conn.commit()
             return {
                 "id": str(result[0]),
                 "email": result[1],
                 "name": result[2],
                 "oauth_provider": result[3],
+                "company_name": result[4],
+                "company_slug": result[5],
+                "company_logo": result[6],
+                "company_description": result[7],
             }
 
     async def get_by_id(self, user_id: str) -> dict[str, Any] | None:
         """사용자 ID로 조회한다."""
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             row = await conn.execute(
-                "SELECT id, email, name, oauth_provider FROM users WHERE id = %s::uuid",
+                """SELECT id, email, name, oauth_provider,
+                          company_name, company_slug, company_logo, company_description
+                   FROM users WHERE id = %s::uuid""",
                 (user_id,),
             )
             result = await row.fetchone()
@@ -63,14 +68,60 @@ class UserRepository:
                 "email": result[1],
                 "name": result[2],
                 "oauth_provider": result[3],
+                "company_name": result[4],
+                "company_slug": result[5],
+                "company_logo": result[6],
+                "company_description": result[7],
             }
+
+    async def get_by_slug(self, company_slug: str) -> dict[str, Any] | None:
+        """회사 slug로 사용자를 조회한다."""
+        async with get_pool().connection() as conn:
+            row = await conn.execute(
+                """SELECT id, email, name, oauth_provider,
+                          company_name, company_slug, company_logo, company_description
+                   FROM users WHERE company_slug = %s""",
+                (company_slug,),
+            )
+            result = await row.fetchone()
+            if result is None:
+                return None
+            return {
+                "id": str(result[0]),
+                "email": result[1],
+                "name": result[2],
+                "oauth_provider": result[3],
+                "company_name": result[4],
+                "company_slug": result[5],
+                "company_logo": result[6],
+                "company_description": result[7],
+            }
+
+    async def update_company(
+        self,
+        user_id: str,
+        company_name: str | None = None,
+        company_slug: str | None = None,
+        company_logo: str | None = None,
+        company_description: str | None = None,
+    ) -> bool:
+        """회사 정보를 업데이트한다."""
+        async with get_pool().connection() as conn:
+            result = await conn.execute(
+                """UPDATE users SET
+                       company_name = COALESCE(%s, company_name),
+                       company_slug = COALESCE(%s, company_slug),
+                       company_logo = COALESCE(%s, company_logo),
+                       company_description = COALESCE(%s, company_description)
+                   WHERE id = %s::uuid""",
+                (company_name, company_slug, company_logo, company_description, user_id),
+            )
+            await conn.commit()
+            return result.rowcount > 0
 
 
 class AnalysisRepository:
     """analysis_results 테이블 CRUD — Worker별 분석 결과 저장소."""
-
-    def __init__(self, conninfo: str) -> None:
-        self._conninfo = conninfo
 
     async def save_result(
         self,
@@ -82,7 +133,7 @@ class AnalysisRepository:
     ) -> str:
         """분석 결과를 DB에 저장하고 UUID를 반환한다."""
         result_id = str(uuid.uuid4())
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             await conn.execute(
                 """
                 INSERT INTO analysis_results (id, job_id, worker_name, supervisor_name, result_data, metrics)
@@ -97,11 +148,12 @@ class AnalysisRepository:
                     json.dumps(metrics, default=str) if metrics else None,
                 ),
             )
+            await conn.commit()
         return result_id
 
     async def get_result(self, result_id: str) -> dict[str, Any] | None:
         """UUID로 분석 결과를 조회한다."""
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             row = await conn.execute(
                 "SELECT result_data, metrics FROM analysis_results WHERE id = %s",
                 (result_id,),
@@ -121,7 +173,7 @@ class AnalysisRepository:
             query += " AND supervisor_name = %s"
             params.append(supervisor_name)
         query += " ORDER BY created_at"
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             rows = await conn.execute(query, params)
             return [
                 {
@@ -138,13 +190,10 @@ class AnalysisRepository:
 class JobRepository:
     """jobs 테이블 CRUD."""
 
-    def __init__(self, conninfo: str) -> None:
-        self._conninfo = conninfo
-
     async def create(self, input_data: dict[str, Any], user_id: str | None = None) -> str:
         """새 Job을 생성하고 UUID를 반환한다."""
         job_id = str(uuid.uuid4())
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             await conn.execute(
                 """
                 INSERT INTO jobs (id, user_id, input_data, status)
@@ -152,13 +201,14 @@ class JobRepository:
                 """,
                 (job_id, user_id, json.dumps(input_data, default=str)),
             )
+            await conn.commit()
         return job_id
 
     async def get(self, job_id: str) -> dict[str, Any] | None:
         """Job ID로 조회한다."""
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             row = await conn.execute(
-                "SELECT id, status, progress, input_data, result_data, error_message FROM jobs WHERE id = %s::uuid",
+                "SELECT id, user_id, status, progress, input_data, result_data, error_message FROM jobs WHERE id = %s::uuid",
                 (job_id,),
             )
             result = await row.fetchone()
@@ -166,18 +216,31 @@ class JobRepository:
                 return None
             return {
                 "id": str(result[0]),
-                "status": result[1],
-                "progress": result[2],
-                "input_data": result[3],
-                "result_data": result[4],
-                "error_message": result[5],
+                "user_id": str(result[1]) if result[1] else None,
+                "status": result[2],
+                "progress": result[3],
+                "input_data": result[4],
+                "result_data": result[5],
+                "error_message": result[6],
             }
+
+    async def list_recent(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
+        """특정 사용자의 최근 Job 목록을 조회한다. user_id는 필수."""
+        async with get_pool().connection() as conn:
+            rows = await conn.execute(
+                "SELECT id, status, progress FROM jobs WHERE user_id = %s::uuid ORDER BY created_at DESC LIMIT %s",
+                (user_id, limit),
+            )
+            return [
+                {"id": str(r[0]), "status": r[1], "progress": r[2]}
+                async for r in rows
+            ]
 
     async def update_status(
         self, job_id: str, status: str, progress: float | None = None
     ) -> None:
         """Job 상태를 업데이트한다."""
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             if progress is not None:
                 await conn.execute(
                     "UPDATE jobs SET status = %s, progress = %s, updated_at = NOW() WHERE id = %s::uuid",
@@ -188,29 +251,38 @@ class JobRepository:
                     "UPDATE jobs SET status = %s, updated_at = NOW() WHERE id = %s::uuid",
                     (status, job_id),
                 )
+            await conn.commit()
+
+    async def update_input_data(self, job_id: str, input_data: dict[str, Any]) -> None:
+        """Job의 input_data를 업데이트한다 (JD 자동 파싱 결과 반영 등)."""
+        async with get_pool().connection() as conn:
+            await conn.execute(
+                "UPDATE jobs SET input_data = %s::jsonb, updated_at = NOW() WHERE id = %s::uuid",
+                (json.dumps(input_data, default=str), job_id),
+            )
+            await conn.commit()
 
     async def save_result_data(self, job_id: str, result_data: dict[str, Any]) -> None:
         """Job 최종 결과를 저장한다."""
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             await conn.execute(
                 "UPDATE jobs SET result_data = %s::jsonb, status = 'completed', progress = 1.0, updated_at = NOW() WHERE id = %s::uuid",
                 (json.dumps(result_data, default=str), job_id),
             )
+            await conn.commit()
 
     async def save_error(self, job_id: str, error_message: str) -> None:
         """Job 오류를 저장한다."""
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             await conn.execute(
                 "UPDATE jobs SET error_message = %s, status = 'failed', updated_at = NOW() WHERE id = %s::uuid",
                 (error_message, job_id),
             )
+            await conn.commit()
 
 
 class IdentityRepository:
     """identity_resolutions 테이블 CRUD."""
-
-    def __init__(self, conninfo: str) -> None:
-        self._conninfo = conninfo
 
     async def save(
         self,
@@ -225,7 +297,7 @@ class IdentityRepository:
     ) -> str:
         """Identity Resolution 결과를 저장하고 UUID를 반환한다."""
         result_id = str(uuid.uuid4())
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             await conn.execute(
                 """
                 INSERT INTO identity_resolutions
@@ -253,11 +325,12 @@ class IdentityRepository:
                     pure_logic_lines,
                 ),
             )
+            await conn.commit()
         return result_id
 
     async def get_by_job(self, job_id: str) -> dict[str, Any] | None:
         """Job ID로 Identity Resolution 결과를 조회한다."""
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             row = await conn.execute(
                 """
                 SELECT id, github_node_id, canonical_name, canonical_email,
@@ -284,9 +357,6 @@ class IdentityRepository:
 class ScoreRepository:
     """candidate_scores 테이블 CRUD."""
 
-    def __init__(self, conninfo: str) -> None:
-        self._conninfo = conninfo
-
     async def save(
         self,
         job_id: str,
@@ -300,7 +370,7 @@ class ScoreRepository:
     ) -> str:
         """4대 지표 점수를 저장하고 UUID를 반환한다."""
         result_id = str(uuid.uuid4())
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with get_pool().connection() as conn:
             await conn.execute(
                 """
                 INSERT INTO candidate_scores
@@ -328,4 +398,5 @@ class ScoreRepository:
                     json.dumps(details, default=str) if details else None,
                 ),
             )
+            await conn.commit()
         return result_id

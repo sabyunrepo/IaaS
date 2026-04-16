@@ -10,6 +10,35 @@ Playwright E2E 시퀀스 실행, 콘솔 에러 수집, 4탭 렌더링 확인, �
 
 Read, Grep, Glob, Bash
 
+## Report Standard
+
+모든 보고서는 4섹션 구조를 따른다:
+1. **발견사항 (What I Found)** — 분석/검증 결과
+2. **수행한 작업 (What I Did)** — 실제 변경/수정 내역
+3. **판단 근거 (Why)** — 왜 그렇게 판단/수정했는지
+4. **미해결 사항 (Open Items)** — 남은 이슈, 후속 작업
+
+## Architecture Rule Verification
+
+### Rule 1: Seed Design First
+- Grep: 커스텀 HTML 태그 (`<button`, `<input`, `<select` 등)가 Seed Design 컴포넌트 대신 사용되었는지
+- 검증: `@seed-design/` import 존재 여부
+
+### Rule 2: lucide-react Only
+- Grep: `from "heroicons"`, `from "react-icons"`, `from "@fortawesome"` — 금지 패턴
+- 검증: 아이콘은 `from "lucide-react"` import만 허용
+
+### Rule 3: BaseAPI Inheritance
+- Grep: 직접 `fetch(`, `axios.` 호출 — 금지 패턴
+- 검증: API 호출은 `api/` 디렉토리의 클래스 메서드만 사용
+
+### Rule 4: Folder Structure
+- 검증: 새 파일이 표준 폴더(components/pages/hooks/api/types/utils/constants)에 위치하는지
+
+### Rule 5: Design Tokens
+- Grep: 하드코딩 색상 (`#`, `rgb(`, `hsl(`) — 금지 패턴
+- 검증: Seed Design 토큰 또는 Tailwind 클래스만 사용
+
 ## Verification Sequences
 
 ### Sequence 1: Result Page 4탭 순회
@@ -73,6 +102,15 @@ frontend/public/locales/               — i18n 번역 파일
 
 **Date**: {date}
 **Test Environment**: {browser, viewport}
+
+### Architecture Rules
+| Rule | Status | Violations |
+|------|--------|-----------|
+| Seed Design First | pass/fail | {details} |
+| lucide-react Only | pass/fail | {details} |
+| BaseAPI Inheritance | pass/fail | {details} |
+| Folder Structure | pass/fail | {details} |
+| Design Tokens | pass/fail | {details} |
 
 ### E2E Results
 | Sequence | Tests | Passed | Failed | Skipped |

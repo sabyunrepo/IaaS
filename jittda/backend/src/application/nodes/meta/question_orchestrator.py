@@ -180,10 +180,10 @@ async def _craft_questions_for_strategy(
 async def question_orchestrator_node(state: MetaState) -> dict[str, Any]:
     """면접 질문을 생성한다. (TopicSelector + 3전략 QuestionCrafter)"""
     job_id = state["job_id"]
-    db_url = os.environ.get("DATABASE_URL", "")
 
     try:
-        analysis_repo = AnalysisRepository(db_url)
+        db_url = os.environ.get("DATABASE_URL", "")
+        analysis_repo = AnalysisRepository()
 
         # 1. DB에서 분석 결과 로드
         profile_ref = state.get("profile_ref")
@@ -205,20 +205,28 @@ async def question_orchestrator_node(state: MetaState) -> dict[str, Any]:
         # 2. JD 요구사항 로드
         from infrastructure.persistence.repository import JobRepository
 
-        job_repo = JobRepository(db_url)
+        job_repo = JobRepository()
         job = await job_repo.get(job_id)
         input_data = job.get("input_data", {}) if job else {}
         jd_tech_stack = input_data.get("jd_tech_stack", [])
 
         # 3. TopicSelector — pgvector로 관련 코드 청크 검색
-        embedding_api_key = os.environ.get("EMBEDDING_API_KEY", os.environ.get("LLM_API_KEY", ""))
+        embedding_api_key = os.environ.get("EMBEDDING_API_KEY", "")
+        if not embedding_api_key:
+            embedding_api_key = os.environ.get("LLM_API_KEY", "")
+            if embedding_api_key:
+                logging.warning(
+                    "EMBEDDING_API_KEY not set — falling back to LLM_API_KEY. "
+                    "This will fail if LLM uses a non-OpenAI provider (e.g. Moonshot). "
+                    "Set EMBEDDING_API_KEY explicitly in .env"
+                )
         embedding_base_url = os.environ.get("EMBEDDING_BASE_URL", "https://api.openai.com/v1")
 
         embedding_service = EmbeddingService(
             api_key=embedding_api_key,
             base_url=embedding_base_url,
         )
-        vector_store = PgvectorStore(dsn=db_url)
+        vector_store = PgvectorStore()
 
         relevant_chunks = await _select_topics(
             job_id, jd_tech_stack, embedding_service, vector_store

@@ -108,8 +108,7 @@ async def quality_gate_node(state: MetaState) -> dict[str, Any]:
         }
 
     # --- DB에서 질문 데이터 로드 ---
-    db_url = os.environ.get("DATABASE_URL", "")
-    analysis_repo = AnalysisRepository(db_url)
+    analysis_repo = AnalysisRepository()
 
     try:
         questions_data = await analysis_repo.get_result(questions_ref)

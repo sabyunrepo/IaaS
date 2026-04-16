@@ -17,9 +17,12 @@ class WebSocketManager:
     def __init__(self) -> None:
         self._connections: dict[str, list[WebSocket]] = {}
 
-    async def connect(self, job_id: str, websocket: WebSocket) -> None:
+    async def connect(
+        self, job_id: str, websocket: WebSocket, *, already_accepted: bool = False
+    ) -> None:
         """WebSocket 연결을 등록한다."""
-        await websocket.accept()
+        if not already_accepted:
+            await websocket.accept()
         self._connections.setdefault(job_id, []).append(websocket)
 
     def disconnect(self, job_id: str, websocket: WebSocket) -> None:
@@ -30,6 +33,10 @@ class WebSocketManager:
             ]
             if not self._connections[job_id]:
                 del self._connections[job_id]
+
+    def has_connections(self, job_id: str) -> bool:
+        """Job에 연결된 WebSocket이 있는지 확인한다."""
+        return bool(self._connections.get(job_id))
 
     async def broadcast(self, job_id: str, event: dict[str, Any]) -> None:
         """Job에 연결된 모든 WebSocket에 이벤트를 전송한다."""

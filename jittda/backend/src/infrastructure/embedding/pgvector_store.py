@@ -7,6 +7,8 @@ import json
 from dataclasses import dataclass
 from enum import StrEnum
 
+from psycopg import sql
+
 
 class ChunkKind(StrEnum):
     """임베딩 청크 종류."""
@@ -33,34 +35,35 @@ class EmbeddingRecord:
 class PgvectorStore:
     """pgvector 기반 벡터 스토어."""
 
-    def __init__(self, *, dsn: str, table_name: str = "embeddings", dimensions: int = 1536):
-        self._dsn = dsn
+    def __init__(self, *, table_name: str = "embeddings", dimensions: int = 1536):
         self._table_name = table_name
         self._dimensions = dimensions
 
     async def initialize(self) -> None:
         """테이블 및 pgvector 확장 초기화 (CREATE IF NOT EXISTS)."""
-        import psycopg
+        from infrastructure.persistence.pool import get_pool
 
-        async with await psycopg.AsyncConnection.connect(self._dsn) as conn:
+        table = sql.Identifier(self._table_name)
+        idx_name = sql.Identifier(f"idx_{self._table_name}_job_kind")
+
+        async with get_pool().connection() as conn:
             await conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
             await conn.execute(
-                f"""
-                CREATE TABLE IF NOT EXISTS {self._table_name} (
-                    id TEXT PRIMARY KEY,
-                    job_id TEXT NOT NULL,
-                    kind TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    metadata JSONB DEFAULT '{{}}',
-                    embedding vector({self._dimensions})
-                )
-                """
+                sql.SQL(
+                    "CREATE TABLE IF NOT EXISTS {} ("
+                    "id TEXT PRIMARY KEY, "
+                    "job_id TEXT NOT NULL, "
+                    "kind TEXT NOT NULL, "
+                    "content TEXT NOT NULL, "
+                    "metadata JSONB DEFAULT '{{}}', "
+                    "embedding vector({})"
+                    ")"
+                ).format(table, sql.Literal(self._dimensions))
             )
             await conn.execute(
-                f"""
-                CREATE INDEX IF NOT EXISTS idx_{self._table_name}_job_kind
-                ON {self._table_name} (job_id, kind)
-                """
+                sql.SQL(
+                    "CREATE INDEX IF NOT EXISTS {} ON {} (job_id, kind)"
+                ).format(idx_name, table)
             )
             await conn.commit()
 
@@ -75,20 +78,21 @@ class PgvectorStore:
         embedding: list[float],
     ) -> None:
         """임베딩을 저장한다 (UPSERT)."""
-        import psycopg
+        from infrastructure.persistence.pool import get_pool
 
         kind_str = kind.value if isinstance(kind, ChunkKind) else kind
+        table = sql.Identifier(self._table_name)
 
-        async with await psycopg.AsyncConnection.connect(self._dsn) as conn:
+        async with get_pool().connection() as conn:
             await conn.execute(
-                f"""
-                INSERT INTO {self._table_name} (id, job_id, kind, content, metadata, embedding)
-                VALUES (%s, %s, %s, %s, %s::jsonb, %s::vector)
-                ON CONFLICT (id) DO UPDATE SET
-                    content = EXCLUDED.content,
-                    metadata = EXCLUDED.metadata,
-                    embedding = EXCLUDED.embedding
-                """,
+                sql.SQL(
+                    "INSERT INTO {} (id, job_id, kind, content, metadata, embedding) "
+                    "VALUES (%s, %s, %s, %s, %s::jsonb, %s::vector) "
+                    "ON CONFLICT (id) DO UPDATE SET "
+                    "content = EXCLUDED.content, "
+                    "metadata = EXCLUDED.metadata, "
+                    "embedding = EXCLUDED.embedding"
+                ).format(table),
                 (
                     record_id,
                     job_id,
@@ -109,7 +113,7 @@ class PgvectorStore:
         top_k: int = 10,
     ) -> list[EmbeddingRecord]:
         """코사인 유사도 기반 검색."""
-        import psycopg
+        from infrastructure.persistence.pool import get_pool
 
         conditions: list[str] = []
         filter_params: list = []
@@ -132,16 +136,17 @@ class PgvectorStore:
         embedding_str = str(query_embedding)
         params: list = [embedding_str] + filter_params + [embedding_str, top_k]
 
-        query = f"""
-            SELECT id, job_id, kind, content, metadata,
-                   1 - (embedding <=> %s::vector) AS similarity
-            FROM {self._table_name}
-            {where_clause}
-            ORDER BY embedding <=> %s::vector
-            LIMIT %s
-        """
+        table = sql.Identifier(self._table_name)
+        query = sql.SQL(
+            "SELECT id, job_id, kind, content, metadata, "
+            "1 - (embedding <=> %s::vector) AS similarity "
+            "FROM {} "
+            "{} "
+            "ORDER BY embedding <=> %s::vector "
+            "LIMIT %s"
+        ).format(table, sql.SQL(where_clause))
 
-        async with await psycopg.AsyncConnection.connect(self._dsn) as conn:
+        async with get_pool().connection() as conn:
             cursor = await conn.execute(query, params)
             rows = await cursor.fetchall()
 

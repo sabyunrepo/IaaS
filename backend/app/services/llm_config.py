@@ -50,7 +50,10 @@ KIMI_CODER_MODEL = KIMI_K2_5_MODEL  # 코드 분석 — K2.5 멀티모달 + agen
 
 # OpenAI 모델
 # GPT-4.1 mini: 1M context, $0.40/$1.60 per 1M USD — 저컨텍스트 구조화 작업에 최적
-GPT_41_MINI_MODEL = "openai/gpt-4.1-mini"
+# NOTE: pydantic-ai v1.x는 네이티브 OpenAI 모델에 'openai:' (콜론) 식별자를 요구함.
+#       'openai/' (슬래시)를 주면 pydantic-ai가 UserError: Unknown model 로 거부하고
+#       analyze_jd 가 즉시 실패 → 폴백으로 넘어가게 되어 프로덕션에서 근본 장애 원인이 됨.
+GPT_41_MINI_MODEL = "openai:gpt-4.1-mini"
 
 # Legacy alias (backward compatibility)
 CODE_ANALYSIS_GLM_MODEL = GLM_CODER_MODEL
