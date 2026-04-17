@@ -80,9 +80,10 @@ class Settings(BaseSettings):
     # LinkedIn (Bright Data Web Scraper API)
     BRIGHTDATA_API_TOKEN: str | None = None
 
-    # Email Notification (Gmail SMTP)
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
+    # Email Notification (SMTP)
+    SMTP_HOST: str = "mail.mystery-place.com"
+    SMTP_PORT: int = 465
+    SMTP_SECURITY: str = "SSL"  # SSL (port 465) or STARTTLS (port 587)
     SMTP_USERNAME: str | None = None
     SMTP_PASSWORD: str | None = None
     SMTP_FROM_EMAIL: str | None = None

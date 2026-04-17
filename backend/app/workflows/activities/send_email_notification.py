@@ -20,21 +20,27 @@ logger = logging.getLogger(__name__)
 
 
 def _send_smtp_email(to_email: str, subject: str, html_body: str) -> bool:
-    """Gmail SMTP로 이메일 발송."""
+    """SMTP로 이메일 발송. SSL(465) / STARTTLS(587) 자동 분기."""
     if not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
         logger.warning("SMTP credentials not configured, skipping email")
         return False
 
     msg = MIMEMultipart("alternative")
-    msg["From"] = f"{settings.SMTP_FROM_NAME} <{settings.SMTP_FROM_EMAIL}>"
+    msg["From"] = f"{settings.SMTP_FROM_NAME} <{settings.SMTP_FROM_EMAIL or settings.SMTP_USERNAME}>"
     msg["To"] = to_email
     msg["Subject"] = subject
     msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-    with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-        server.starttls()
-        server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-        server.send_message(msg)
+    security = (settings.SMTP_SECURITY or "").upper()
+    if security == "SSL":
+        with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+            server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+            server.send_message(msg)
+    else:
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+            server.starttls()
+            server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+            server.send_message(msg)
 
     return True
 
